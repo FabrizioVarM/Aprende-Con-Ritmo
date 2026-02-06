@@ -8,26 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useToast } from '@/hooks/use-toast';
-
-const RESOURCES = [
-  { id: 1, title: 'Básicos de Acordes de Guitarra', category: 'Guitarra', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[0] },
-  { id: 2, title: 'Masterclass de Escalas de Piano', category: 'Piano', type: 'Video', icon: Play, img: PlaceHolderImages[1] },
-  { id: 3, title: 'Guía de Afinación de Violín', category: 'Violín', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[2] },
-  { id: 4, title: 'Teoría Avanzada Vol 1', category: 'Teoría', type: 'Libro', icon: BookOpen, img: PlaceHolderImages[3] },
-  { id: 5, title: 'Rudimentos Esenciales de Batería', category: 'Batería', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[4] },
-  { id: 6, title: 'Técnicas de Respiración y Apoyo', category: 'Canto', type: 'Video', icon: Play, img: PlaceHolderImages[5] },
-  { id: 7, title: 'Esenciales de Fingerstyle', category: 'Guitarra', type: 'Video', icon: Play, img: PlaceHolderImages[0] },
-  { id: 8, title: 'Práctica de Lectura a Primera Vista', category: 'Piano', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[1] },
-  { id: 9, title: 'Independencia en la Batería', category: 'Batería', type: 'Video', icon: Play, img: PlaceHolderImages[4] },
-];
+import { RESOURCES } from '@/lib/resources';
 
 export default function LibraryPage() {
   const { user } = useAuth();
@@ -36,8 +23,6 @@ export default function LibraryPage() {
   const [filter, setFilter] = useState('Todos');
   const [search, setSearch] = useState('');
 
-  // En un entorno real, el profesor seleccionaría a un alumno de una lista.
-  // Para el prototipo, asumimos que se está gestionando al alumno "Ana García" (ID: 1)
   const [selectedStudentId] = useState('1'); 
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';

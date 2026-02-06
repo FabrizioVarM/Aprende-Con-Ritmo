@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,8 @@ import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useBookingStore } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
+import { useCompletionStore } from '@/lib/completion-store';
+import { RESOURCES } from '@/lib/resources';
 import { cn } from '@/lib/utils';
 
 const TEACHERS = [
@@ -38,6 +40,7 @@ export default function StudentDashboard() {
   
   const { toast } = useToast();
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
+  const { getCompletionStatus } = useCompletionStore();
 
   useEffect(() => {
     const now = new Date();
@@ -71,7 +74,6 @@ export default function StudentDashboard() {
           
           const endDateTime = new Date(`${lessonDate}T${endTime}:00`);
           
-          // Mostrar solo si no ha terminado
           if (currentTime < endDateTime) {
             lessons.push({
               date: lessonDate,
@@ -92,6 +94,18 @@ export default function StudentDashboard() {
   }, [availabilities, user, currentTime]);
 
   const nextLesson = myUpcomingLessons[0];
+
+  const recommendedResources = useMemo(() => {
+    if (!user) return [];
+    
+    const userInstruments = user.instruments || [];
+    
+    return RESOURCES.filter(res => {
+      const isRelevant = userInstruments.includes(res.category) || res.category === 'Teoría';
+      const isCompleted = getCompletionStatus(res.id, user.id);
+      return isRelevant && !isCompleted;
+    }).slice(0, 3);
+  }, [user, getCompletionStatus]);
 
   const handleBookLesson = () => {
     if (!selectedSlotId || !user) return;
@@ -165,7 +179,7 @@ export default function StudentDashboard() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día (Semana Actual)</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día</label>
                     <div className="grid grid-cols-7 gap-2">
                       {weekDays.map((d, i) => {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
@@ -371,26 +385,29 @@ export default function StudentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {[
-              { title: 'Intro a Acordes', length: '15 min', type: 'Video' },
-              { title: 'Hoja de Práctica #4', length: '2 págs', type: 'PDF' },
-              { title: 'Pentatónica Menor', length: '12 min', type: 'Video' },
-            ].map((resource, i) => (
-              <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0">
-                <div className="flex gap-3 sm:gap-4 items-center min-w-0">
-                  <div className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-primary/10 shrink-0">
-                    <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+            {recommendedResources.length > 0 ? (
+              recommendedResources.map((resource, i) => (
+                <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0">
+                  <div className="flex gap-3 sm:gap-4 items-center min-w-0">
+                    <div className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-primary/10 shrink-0">
+                      <resource.icon className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate">{resource.title}</div>
+                      <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length} • {resource.type}</div>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate">{resource.title}</div>
-                    <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length}</div>
-                  </div>
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0" onClick={() => window.location.href = '/library'}>
+                    <ChevronRight className="w-6 h-6 text-accent" />
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0">
-                  <ChevronRight className="w-6 h-6 text-accent" />
-                </Button>
+              ))
+            ) : (
+              <div className="p-16 text-center">
+                <Music className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
+                <p className="text-muted-foreground font-bold italic">¡Todo al día! No hay recursos pendientes para tus instrumentos.</p>
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </div>
