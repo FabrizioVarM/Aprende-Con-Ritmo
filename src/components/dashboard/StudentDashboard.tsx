@@ -1,11 +1,11 @@
 
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, PlayCircle, Star, Clock, ChevronRight, Music, CheckCircle2, AlertCircle, ChevronLeft } from 'lucide-react';
+import { Calendar as CalendarIcon, PlayCircle, Star, Clock, ChevronRight, Music, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,10 +31,15 @@ export default function StudentDashboard() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('2');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [todayStr, setTodayStr] = useState<string>('');
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   
   const { toast } = useToast();
   const { getDayAvailability, bookSlot } = useBookingStore();
+
+  useEffect(() => {
+    setTodayStr(new Date().toDateString());
+  }, []);
 
   const availability = useMemo(() => {
     return getDayAvailability(selectedTeacherId, selectedDate);
@@ -56,7 +61,6 @@ export default function StudentDashboard() {
     setSelectedSlotId(null);
   };
 
-  // Lógica para vista semanal en el modal
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(selectedDate);
     const day = startOfWeek.getDay();
@@ -121,19 +125,29 @@ export default function StudentDashboard() {
                     <div className="grid grid-cols-7 gap-2">
                       {weekDays.map((d, i) => {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
+                        const isToday = d.toDateString() === todayStr;
                         return (
                           <button
                             key={i}
                             onClick={() => setSelectedDate(d)}
                             className={cn(
-                              "flex flex-col items-center py-3 rounded-xl transition-all border-2",
+                              "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
                               isSelected 
                                 ? "bg-accent border-accent text-white" 
-                                : "bg-primary/5 border-transparent hover:border-accent/30"
+                                : "bg-primary/5 border-transparent hover:border-accent/30",
+                              isToday && !isSelected && "border-accent/30"
                             )}
                           >
                             <span className="text-[8px] font-black uppercase">{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
                             <span className="text-lg font-black">{d.getDate()}</span>
+                            {isToday && (
+                              <span className={cn(
+                                "text-[7px] font-black uppercase",
+                                isSelected ? "text-white/80" : "text-accent"
+                              )}>
+                                HOY
+                              </span>
+                            )}
                           </button>
                         );
                       })}
@@ -161,7 +175,7 @@ export default function StudentDashboard() {
                             <Clock className="w-5 h-5" />
                             {slot.time}
                           </span>
-                          {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5" />}
+                          {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 animate-in zoom-in" />}
                         </Button>
                       ))
                     ) : (

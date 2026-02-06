@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,10 +24,15 @@ import { Label } from '@/components/ui/label';
 export default function SchedulePage() {
   const { user } = useAuth();
   const [date, setDate] = useState<Date>(new Date());
+  const [todayStr, setTodayStr] = useState<string>('');
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const { toast } = useToast();
   const { getDayAvailability, bookSlot } = useBookingStore();
+
+  useEffect(() => {
+    setTodayStr(new Date().toDateString());
+  }, []);
 
   const teacherId = '2'; // Simulación con Prof. Carlos
   const availability = getDayAvailability(teacherId, date);
@@ -48,11 +53,10 @@ export default function SchedulePage() {
     setSelectedSlotId(null);
   };
 
-  // Lógica para vista semanal
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(date);
     const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Ajuste para que empiece el lunes
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
 
     return Array.from({ length: 7 }, (_, i) => {
@@ -144,7 +148,6 @@ export default function SchedulePage() {
           </Dialog>
         </div>
 
-        {/* Vista Semanal Horizontal */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-xl font-black text-secondary-foreground uppercase tracking-widest flex items-center gap-2">
@@ -164,18 +167,18 @@ export default function SchedulePage() {
           <div className="grid grid-cols-7 gap-4">
             {weekDays.map((d, i) => {
               const isSelected = d.toDateString() === date.toDateString();
-              const isToday = d.toDateString() === new Date().toDateString();
+              const isToday = d.toDateString() === todayStr;
               
               return (
                 <button
                   key={i}
                   onClick={() => setDate(d)}
                   className={cn(
-                    "flex flex-col items-center p-4 rounded-3xl transition-all border-2",
+                    "flex flex-col items-center p-4 rounded-3xl transition-all border-2 relative",
                     isSelected 
                       ? "bg-accent border-accent text-white shadow-xl shadow-accent/20 scale-105" 
                       : "bg-white border-primary/5 hover:border-accent/30 hover:bg-accent/5 text-secondary-foreground",
-                    isToday && !isSelected && "border-primary"
+                    isToday && !isSelected && "border-accent/40"
                   )}
                 >
                   <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
@@ -184,6 +187,14 @@ export default function SchedulePage() {
                   <span className="text-2xl font-black leading-none mt-1">
                     {d.getDate()}
                   </span>
+                  {isToday && (
+                    <span className={cn(
+                      "text-[9px] font-black mt-1 uppercase tracking-tighter",
+                      isSelected ? "text-white/80" : "text-accent"
+                    )}>
+                      HOY
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -191,7 +202,6 @@ export default function SchedulePage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-          {/* Lista de Horarios del Día Seleccionado */}
           <div className="space-y-6">
             <div className="flex items-center gap-4 bg-primary/5 p-4 rounded-3xl border border-primary/10">
               <div className="bg-accent/10 p-3 rounded-2xl">

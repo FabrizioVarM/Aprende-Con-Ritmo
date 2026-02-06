@@ -20,16 +20,22 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { Calendar } from '@/components/ui/calendar';
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function TeacherDashboard() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [todayStr, setTodayStr] = useState<string>('');
   const { toast } = useToast();
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
 
-  const teacherId = '2'; // ID del Prof. Carlos
+  const teacherId = '2'; 
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
+
+  useEffect(() => {
+    setTodayStr(new Date().toDateString());
+  }, []);
 
   useEffect(() => {
     const data = getDayAvailability(teacherId, selectedDate);
@@ -87,7 +93,6 @@ export default function TeacherDashboard() {
     return data.slots.filter(s => s.isBooked);
   }, [selectedDate, getDayAvailability, teacherId, availabilities]);
 
-  // Lógica para vista semanal en la gestión
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(selectedDate);
     const day = startOfWeek.getDay();
@@ -135,19 +140,29 @@ export default function TeacherDashboard() {
                   <div className="grid grid-cols-7 gap-2">
                     {weekDays.map((d, i) => {
                       const isSelected = d.toDateString() === selectedDate.toDateString();
+                      const isToday = d.toDateString() === todayStr;
                       return (
                         <button
                           key={i}
                           onClick={() => setSelectedDate(d)}
                           className={cn(
-                            "flex flex-col items-center py-4 rounded-xl transition-all border-2",
+                            "flex flex-col items-center py-4 rounded-xl transition-all border-2 relative",
                             isSelected 
                               ? "bg-accent border-accent text-white shadow-lg" 
-                              : "bg-primary/5 border-transparent hover:border-accent/20"
+                              : "bg-primary/5 border-transparent hover:border-accent/20",
+                            isToday && !isSelected && "border-accent/30"
                           )}
                         >
                           <span className="text-[10px] font-black uppercase">{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
                           <span className="text-xl font-black">{d.getDate()}</span>
+                          {isToday && (
+                            <span className={cn(
+                              "text-[8px] font-black uppercase",
+                              isSelected ? "text-white/80" : "text-accent"
+                            )}>
+                              HOY
+                            </span>
+                          )}
                         </button>
                       );
                     })}
