@@ -1,0 +1,145 @@
+
+"use client"
+
+import React from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { 
+  LayoutDashboard, 
+  Calendar, 
+  Library, 
+  TrendingUp, 
+  Users, 
+  LogOut,
+  Music,
+  Menu,
+  ChevronRight
+} from 'lucide-react';
+import { useAuth, UserRole } from '@/lib/auth-store';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetTrigger 
+} from '@/components/ui/sheet';
+
+interface NavItem {
+  label: string;
+  href: string;
+  icon: React.ElementType;
+  roles: UserRole[];
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'teacher', 'admin'] },
+  { label: 'Schedule', href: '/schedule', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
+  { label: 'Library', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
+  { label: 'Progress', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher'] },
+  { label: 'User Management', href: '/users', icon: Users, roles: ['admin'] },
+];
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user, logout } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  if (!user) {
+    return <>{children}</>;
+  }
+
+  const filteredNav = NAV_ITEMS.filter(item => item.roles.includes(user.role));
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-white/50 backdrop-blur-sm border-r border-border p-6">
+      <div className="flex items-center gap-3 mb-10 px-2">
+        <div className="bg-accent p-2 rounded-xl text-white">
+          <Music className="w-6 h-6" />
+        </div>
+        <span className="text-xl font-extrabold text-secondary-foreground font-headline tracking-tight">
+          Ritmo
+        </span>
+      </div>
+
+      <nav className="flex-1 space-y-1">
+        {filteredNav.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link key={item.href} href={item.href}>
+              <span className={cn(
+                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
+                isActive 
+                  ? "bg-secondary text-secondary-foreground font-semibold shadow-sm" 
+                  : "text-muted-foreground hover:bg-primary/30 hover:text-foreground"
+              )}>
+                <item.icon className={cn(
+                  "w-5 h-5",
+                  isActive ? "text-accent" : "text-muted-foreground"
+                )} />
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="mt-auto pt-6 border-t border-border">
+        <div className="flex items-center gap-3 px-4 py-4 mb-4">
+          <Avatar className="w-10 h-10 border-2 border-primary">
+            <AvatarImage src={`https://picsum.photos/seed/${user.id}/100`} />
+            <AvatarFallback className="bg-primary">{user.name[0]}</AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col overflow-hidden">
+            <span className="text-sm font-bold truncate">{user.name}</span>
+            <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+          </div>
+        </div>
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl"
+          onClick={() => {
+            logout();
+            router.push('/login');
+          }}
+        >
+          <LogOut className="w-5 h-5" />
+          Logout
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen flex bg-background">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:block w-72 h-screen sticky top-0">
+        <SidebarContent />
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 min-w-0">
+        <header className="md:hidden flex items-center justify-between p-4 bg-white/80 border-b">
+          <div className="flex items-center gap-2">
+            <Music className="w-6 h-6 text-accent" />
+            <span className="font-bold">Ritmo</span>
+          </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-72">
+              <SidebarContent />
+            </SheetContent>
+          </Sheet>
+        </header>
+
+        <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500">
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}

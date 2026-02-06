@@ -1,0 +1,29 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "guitar-lesson",
+      "description": "Guitar sheet music and pick",
+      "imageUrl": "https://picsum.photos/seed/guitar1/600/400",
+      "imageHint": "guitar music"
+    },
+    {
+      "id": "piano-scales",
+      "description": "Piano keys with sheet music",
+      "imageUrl": "https://picsum.photos/seed/piano1/600/400",
+      "imageHint": "piano keys"
+    },
+    {
+      "id": "violin-notes",
+      "description": "Violin and bow on music stand",
+      "imageUrl": "https://picsum.photos/seed/violin1/600/400",
+      "imageHint": "violin instrument"
+    },
+    {
+      "id": "theory-book",
+      "description": "Music theory book and pencil",
+      "imageUrl": "https://picsum.photos/seed/theory1/600/400",
+      "imageHint": "music theory"
+    }
+  ]
+}
