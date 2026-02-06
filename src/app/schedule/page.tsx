@@ -43,11 +43,16 @@ export default function SchedulePage() {
     return getDayAvailability(teacherId, date);
   }, [teacherId, date, getDayAvailability, availabilities]);
   
-  const freeSlots = useMemo(() => {
-    return availability.slots.filter(s => s.isAvailable && !s.isBooked);
-  }, [availability.slots]);
-
   const allDaySlots = availability.slots;
+
+  // Filtrado de slots por categorías
+  const mySlots = useMemo(() => 
+    allDaySlots.filter(s => s.isBooked && s.bookedBy === user?.name),
+  [allDaySlots, user]);
+
+  const otherAvailableSlots = useMemo(() => 
+    allDaySlots.filter(s => s.isAvailable && !s.isBooked),
+  [allDaySlots]);
 
   const handleBook = () => {
     if (!selectedSlotId || !date || !user) return;
@@ -84,6 +89,74 @@ export default function SchedulePage() {
     });
   }, [date]);
 
+  const SlotCard = ({ slot, isMine }: { slot: any, isMine: boolean }) => (
+    <Card className={cn(
+      "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden",
+      isMine 
+        ? 'bg-accent/5 border-accent shadow-lg shadow-accent/10' 
+        : 'bg-white border-primary/5 hover:border-accent/20'
+    )}>
+      <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+          <div className={cn(
+            "flex flex-col items-center justify-center min-w-[70px] sm:min-w-[80px] h-14 sm:h-16 rounded-2xl shrink-0",
+            isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
+          )}>
+            <span className="text-base sm:text-lg font-black leading-none">{slot.time.split(' ')[0]}</span>
+          </div>
+          
+          <div className="min-w-0 space-y-0.5 sm:space-y-1">
+            <h4 className={cn(
+              "text-base sm:text-lg font-black tracking-tight truncate",
+              isMine ? "text-accent" : "text-secondary-foreground"
+            )}>
+              {isMine ? '🌟 Tu Clase' : 'Horario Disponible'}
+            </h4>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+              <span className="flex items-center gap-1 shrink-0"><Music className="w-3 h-3 text-accent" /> Carlos</span>
+              <span className={cn(
+                  "flex items-center gap-1 shrink-0",
+                  slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+              )}>
+                {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                {slot.type === 'virtual' ? 'Online' : 'Sede'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="shrink-0 flex items-center gap-1 sm:gap-2">
+          {isMine ? (
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => handleCancel(slot.id)}
+                className="text-destructive hover:bg-destructive/10 rounded-full h-9 w-9 sm:h-10 sm:w-10"
+              >
+                <Trash2 className="w-5 h-5" />
+              </Button>
+              <div className="bg-accent/10 p-2 rounded-full text-accent flex items-center">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+            </>
+          ) : (
+            <Button 
+              size="sm"
+              className="bg-accent text-white rounded-xl font-black px-3 sm:px-4 h-9 sm:h-10"
+              onClick={() => {
+                setSelectedSlotId(slot.id);
+                setIsBookingOpen(true);
+              }}
+            >
+              Reservar
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -113,9 +186,9 @@ export default function SchedulePage() {
                     <Clock className="w-4 h-4 text-accent" /> Horarios Libres
                   </Label>
                   
-                  {freeSlots.length > 0 ? (
+                  {otherAvailableSlots.length > 0 ? (
                     <div className="grid grid-cols-1 gap-2">
-                      {freeSlots.map((slot) => (
+                      {otherAvailableSlots.map((slot) => (
                         <Button
                           key={slot.id}
                           variant={selectedSlotId === slot.id ? "default" : "outline"}
@@ -220,7 +293,7 @@ export default function SchedulePage() {
             </Card>
           </div>
 
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-8">
             <div className="flex items-center gap-4 bg-primary/5 p-4 rounded-3xl border border-primary/10">
               <div className="bg-accent/10 p-3 rounded-2xl">
                 <Clock className="w-6 h-6 text-accent" />
@@ -229,96 +302,48 @@ export default function SchedulePage() {
                 <h3 className="text-xl font-black text-secondary-foreground capitalize leading-tight">
                   {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </h3>
-                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Horarios del día</p>
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Resumen del día</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 gap-4">
-              {allDaySlots.some(s => s.isBooked || s.isAvailable) ? (
-                allDaySlots.map((slot, i) => {
-                  if (!slot.isBooked && !slot.isAvailable) return null;
-                  const isMine = slot.bookedBy === user?.name;
-                  
-                  return (
-                    <Card key={slot.id} className={cn(
-                      "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden",
-                      isMine 
-                        ? 'bg-accent/5 border-accent shadow-lg shadow-accent/10' 
-                        : slot.isBooked 
-                          ? 'bg-gray-50 border-transparent opacity-60' 
-                          : 'bg-white border-primary/5 hover:border-accent/20'
-                    )}>
-                      <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-                          <div className={cn(
-                            "flex flex-col items-center justify-center min-w-[70px] sm:min-w-[80px] h-14 sm:h-16 rounded-2xl shrink-0",
-                            isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
-                          )}>
-                            <span className="text-base sm:text-lg font-black leading-none">{slot.time.split(' ')[0]}</span>
-                          </div>
-                          
-                          <div className="min-w-0 space-y-0.5 sm:space-y-1">
-                            <h4 className={cn(
-                              "text-base sm:text-lg font-black tracking-tight truncate",
-                              isMine ? "text-accent" : "text-secondary-foreground"
-                            )}>
-                              {isMine ? '🌟 Tu Clase' : slot.isBooked ? 'Ocupado' : 'Disponible'}
-                            </h4>
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                              <span className="flex items-center gap-1 shrink-0"><Music className="w-3 h-3 text-accent" /> Carlos</span>
-                              <span className={cn(
-                                  "flex items-center gap-1 shrink-0",
-                                  slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
-                              )}>
-                                {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                                {slot.type === 'virtual' ? 'Online' : 'Sede'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="shrink-0 flex items-center gap-1 sm:gap-2">
-                          {isMine ? (
-                            <>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                onClick={() => handleCancel(slot.id)}
-                                className="text-destructive hover:bg-destructive/10 rounded-full h-9 w-9 sm:h-10 sm:w-10"
-                              >
-                                <Trash2 className="w-5 h-5" />
-                              </Button>
-                              <div className="bg-accent/10 p-2 rounded-full text-accent flex items-center">
-                                <CheckCircle2 className="w-5 h-5" />
-                              </div>
-                            </>
-                          ) : slot.isAvailable && !slot.isBooked ? (
-                            <Button 
-                              size="sm"
-                              className="bg-accent text-white rounded-xl font-black px-3 sm:px-4 h-9 sm:h-10"
-                              onClick={() => {
-                                setSelectedSlotId(slot.id);
-                                setIsBookingOpen(true);
-                              }}
-                            >
-                              Reservar
-                            </Button>
-                          ) : (
-                            <Badge variant="outline" className="text-muted-foreground border-dashed border-gray-300 bg-gray-100/50 px-3 py-1 rounded-xl font-bold">Cerrado</Badge>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })
-              ) : (
-                <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border-4 border-dashed border-primary/5 space-y-4">
-                  <div className="bg-primary/5 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
-                    <AlertCircle className="w-8 h-8 text-primary/20" />
-                  </div>
-                  <p className="text-lg font-black text-secondary-foreground">Sin disponibilidad configurada</p>
+            <div className="space-y-10">
+              {/* Sección: Mis Clases */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-6 bg-accent rounded-full" />
+                  <h2 className="text-xl font-black text-secondary-foreground">Mis Clases Confirmadas 🌟</h2>
                 </div>
-              )}
+                <div className="grid grid-cols-1 gap-4">
+                  {mySlots.length > 0 ? (
+                    mySlots.map((slot) => (
+                      <SlotCard key={slot.id} slot={slot} isMine={true} />
+                    ))
+                  ) : (
+                    <div className="py-8 text-center bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/10">
+                      <p className="text-sm font-bold text-muted-foreground">No tienes clases reservadas para este día.</p>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Sección: Otros Horarios */}
+              <section className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-6 bg-primary rounded-full" />
+                  <h2 className="text-xl font-black text-secondary-foreground">Horarios Disponibles para Reservar 🎸</h2>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {otherAvailableSlots.length > 0 ? (
+                    otherAvailableSlots.map((slot) => (
+                      <SlotCard key={slot.id} slot={slot} isMine={false} />
+                    ))
+                  ) : (
+                    <div className="py-8 text-center bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
+                      <p className="text-sm font-bold text-muted-foreground">No hay más horarios disponibles hoy.</p>
+                    </div>
+                  )}
+                </div>
+              </section>
             </div>
           </div>
         </div>
