@@ -169,7 +169,7 @@ export default function SchedulePage() {
           <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
             <DialogTrigger asChild>
               <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
-                <Plus className="w-5 h-5" /> Nueva Reserva
+                <Plus className="w-5 h-5" /> Nueva Reserva Rapida
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-[2.5rem] max-w-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
