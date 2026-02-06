@@ -35,7 +35,11 @@ export function useBookingStore() {
   useEffect(() => {
     const saved = localStorage.getItem('ac_availabilities');
     if (saved) {
-      setAvailabilities(JSON.parse(saved));
+      try {
+        setAvailabilities(JSON.parse(saved));
+      } catch (e) {
+        console.error("Error loading availabilities", e);
+      }
     }
   }, []);
 
@@ -71,25 +75,39 @@ export function useBookingStore() {
 
   const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string) => {
     const dateStr = date.toISOString().split('T')[0];
-    const updated = availabilities.map(a => {
-      if (a.teacherId === teacherId && a.date === dateStr) {
-        return {
-          ...a,
-          slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, isAvailable: false } : s)
-        };
-      }
-      return a;
-    });
-    
     const exists = availabilities.some(a => a.teacherId === teacherId && a.date === dateStr);
-    if (!exists) {
-      const current = getDayAvailability(teacherId, date);
-      current.slots = current.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, isAvailable: false } : s);
-      updated.push(current);
+    
+    let updated: DayAvailability[];
+    if (exists) {
+      updated = availabilities.map(a => {
+        if (a.teacherId === teacherId && a.date === dateStr) {
+          return {
+            ...a,
+            slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, isAvailable: false } : s)
+          };
+        }
+        return a;
+      });
+    } else {
+      const current = {
+        date: dateStr,
+        teacherId,
+        slots: INITIAL_SLOTS.map(s => {
+          const id = Math.random().toString(36).substring(2, 9);
+          return {
+            id: id,
+            time: s,
+            isAvailable: false,
+            isBooked: id === slotId,
+            bookedBy: id === slotId ? studentName : undefined
+          };
+        })
+      };
+      updated = [...availabilities, current];
     }
 
     saveToStorage(updated);
-  }, [availabilities, getDayAvailability, saveToStorage]);
+  }, [availabilities, saveToStorage]);
 
   return { availabilities, getDayAvailability, updateAvailability, bookSlot };
 }

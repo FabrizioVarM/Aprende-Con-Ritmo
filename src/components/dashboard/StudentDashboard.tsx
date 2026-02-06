@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -44,9 +44,11 @@ export default function StudentDashboard() {
 
   const availability = useMemo(() => {
     return getDayAvailability(selectedTeacherId, selectedDate);
-  }, [selectedTeacherId, selectedDate, getDayAvailability]);
+  }, [selectedTeacherId, selectedDate, getDayAvailability, availabilities]);
 
-  const freeSlots = availability.slots.filter(s => s.isAvailable && !s.isBooked);
+  const freeSlots = useMemo(() => {
+    return availability.slots.filter(s => s.isAvailable && !s.isBooked);
+  }, [availability.slots]);
 
   const myUpcomingLessons = useMemo(() => {
     if (!user) return [];
@@ -116,8 +118,8 @@ export default function StudentDashboard() {
               Agendar Nueva Lección
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden">
-            <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
+          <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+            <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
               <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
                 <Music className="w-8 h-8 text-accent" />
                 Agendar Sesión
@@ -127,7 +129,7 @@ export default function StudentDashboard() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="p-8 space-y-8 bg-white">
+            <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
                   <div className="space-y-3">
@@ -147,7 +149,7 @@ export default function StudentDashboard() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día (Semana Actual)</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día</label>
                     <div className="grid grid-cols-7 gap-2">
                       {weekDays.map((d, i) => {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
@@ -159,7 +161,7 @@ export default function StudentDashboard() {
                             className={cn(
                               "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
                               isSelected 
-                                ? "bg-accent border-accent text-white" 
+                                ? "bg-accent border-accent text-white shadow-md" 
                                 : "bg-primary/5 border-transparent hover:border-accent/30",
                               isToday && !isSelected && "border-accent/30"
                             )}
@@ -183,7 +185,7 @@ export default function StudentDashboard() {
 
                 <div className="space-y-6">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Horarios Libres</label>
-                  <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2">
+                  <div className="grid grid-cols-1 gap-2">
                     {freeSlots.length > 0 ? (
                       freeSlots.map((slot) => (
                         <Button
@@ -192,7 +194,7 @@ export default function StudentDashboard() {
                           className={cn(
                             "justify-between rounded-2xl h-14 border-2 font-black px-6 text-lg",
                             selectedSlotId === slot.id 
-                              ? 'bg-accent text-white border-accent' 
+                              ? 'bg-accent text-white border-accent shadow-md' 
                               : 'border-primary/5 hover:border-accent/30'
                           )}
                           onClick={() => setSelectedSlotId(slot.id)}
@@ -207,7 +209,7 @@ export default function StudentDashboard() {
                     ) : (
                       <div className="bg-muted/10 p-12 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5">
                         <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
-                        <p className="font-black text-muted-foreground">Sin cupos libres para este día</p>
+                        <p className="font-black text-muted-foreground">Sin cupos libres</p>
                       </div>
                     )}
                   </div>
@@ -215,7 +217,7 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            <div className="p-8 bg-gray-50 flex gap-4 border-t">
+            <div className="p-8 bg-gray-50 flex gap-4 border-t shrink-0 mt-auto">
               <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black">
                 Cancelar
               </Button>
@@ -224,7 +226,7 @@ export default function StudentDashboard() {
                 disabled={!selectedSlotId}
                 className="bg-accent text-white rounded-2xl flex-1 h-14 font-black shadow-xl"
               >
-                Confirmar Reserva
+                Confirmar
               </Button>
             </div>
           </DialogContent>

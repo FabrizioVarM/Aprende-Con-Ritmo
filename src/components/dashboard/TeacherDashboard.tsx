@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -36,9 +36,13 @@ export default function TeacherDashboard() {
     setTodayStr(new Date().toDateString());
   }, []);
 
+  // Use a ref-like approach or deep comparison to avoid infinite loop
   useEffect(() => {
-    const data = getDayAvailability(teacherId, selectedDate);
-    setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
+    if (isOpen || true) {
+      const data = getDayAvailability(teacherId, selectedDate);
+      // Only set if different to avoid re-renders
+      setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
+    }
   }, [selectedDate, isOpen, getDayAvailability, teacherId]);
 
   const toggleSlotAvailability = (index: number) => {
@@ -119,8 +123,8 @@ export default function TeacherDashboard() {
               <Clock className="w-5 h-5" /> Gestionar Horarios
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-[2.5rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden">
-            <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
+          <DialogContent className="rounded-[2.5rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+            <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
               <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
                 <CalendarIcon className="w-8 h-8 text-accent" />
                 Configurar Agenda Semanal
@@ -130,7 +134,7 @@ export default function TeacherDashboard() {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="p-8 space-y-8 bg-white">
+            <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1">
               <div className="flex flex-col gap-10">
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
@@ -153,7 +157,7 @@ export default function TeacherDashboard() {
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-7 gap-4">
+                  <div className="grid grid-cols-7 gap-2 md:gap-4">
                     {weekDays.map((d, i) => {
                       const isSelected = d.toDateString() === selectedDate.toDateString();
                       const isToday = d.toDateString() === todayStr;
@@ -162,20 +166,20 @@ export default function TeacherDashboard() {
                           key={i}
                           onClick={() => setSelectedDate(d)}
                           className={cn(
-                            "flex flex-col items-center py-5 rounded-2xl transition-all border-2 relative group",
+                            "flex flex-col items-center py-4 md:py-5 rounded-2xl transition-all border-2 relative group",
                             isSelected 
                               ? "bg-accent border-accent text-white shadow-xl scale-105" 
                               : "bg-primary/5 border-transparent hover:border-accent/20",
                             isToday && !isSelected && "border-accent/30"
                           )}
                         >
-                          <span className="text-[11px] font-black uppercase tracking-wider mb-1">
+                          <span className="text-[9px] md:text-[11px] font-black uppercase tracking-wider mb-1">
                             {d.toLocaleDateString('es-ES', { weekday: 'short' })}
                           </span>
-                          <span className="text-2xl font-black">{d.getDate()}</span>
+                          <span className="text-xl md:text-2xl font-black">{d.getDate()}</span>
                           {isToday && (
                             <span className={cn(
-                              "text-[9px] font-black uppercase mt-1",
+                              "text-[7px] md:text-[9px] font-black uppercase mt-1",
                               isSelected ? "text-white/80" : "text-accent"
                             )}>
                               HOY
@@ -196,11 +200,11 @@ export default function TeacherDashboard() {
                       </p>
                     </div>
                     <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent font-black gap-2 h-10 px-5">
-                      <Plus className="w-4 h-4" /> Añadir Horario
+                      <Plus className="w-4 h-4" /> Añadir
                     </Button>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto pr-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {localSlots.length > 0 ? (
                       localSlots.map((slot, i) => (
                         <div key={slot.id} className={cn(
@@ -240,7 +244,7 @@ export default function TeacherDashboard() {
                     ) : (
                       <div className="col-span-full text-center py-16 bg-muted/5 rounded-[2.5rem] border-4 border-dashed border-primary/10">
                         <Clock className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
-                        <p className="font-black text-muted-foreground">Este día no tiene horarios configurados</p>
+                        <p className="font-black text-muted-foreground">Sin horarios configurados</p>
                         <Button variant="link" onClick={addSlot} className="text-accent font-black mt-2">Crea el primer bloque aquí</Button>
                       </div>
                     )}
@@ -249,54 +253,54 @@ export default function TeacherDashboard() {
               </div>
             </div>
 
-            <div className="p-8 bg-gray-50 border-t flex gap-6">
+            <div className="p-8 bg-gray-50 border-t flex gap-6 shrink-0 mt-auto">
               <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black">
                 Cancelar
               </Button>
               <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black gap-2 shadow-xl">
-                <Save className="w-6 h-6" /> Guardar Todos los Cambios
+                <Save className="w-6 h-6" /> Guardar Cambios
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <Card className="rounded-[2rem] border-none shadow-sm bg-blue-50/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-blue-600">Estudiantes</CardTitle>
+          <CardHeader className="pb-2 p-4 md:p-6">
+            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-blue-600">Alumnos</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black text-blue-900">24</div>
-            <p className="text-xs text-blue-500 font-bold mt-1">+2 este mes</p>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <div className="text-3xl md:text-4xl font-black text-blue-900">24</div>
+            <p className="text-[10px] md:text-xs text-blue-500 font-bold mt-1">+2 este mes</p>
           </CardContent>
         </Card>
         
         <Card className="rounded-[2rem] border-none shadow-sm bg-green-50/50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-green-600">Asistencia</CardTitle>
+          <CardHeader className="pb-2 p-4 md:p-6">
+            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-green-600">Asistencia</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black text-green-900">94%</div>
-            <p className="text-xs text-green-500 font-bold mt-1">Excelente ritmo</p>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <div className="text-3xl md:text-4xl font-black text-green-900">94%</div>
+            <p className="text-[10px] md:text-xs text-green-500 font-bold mt-1">Excelente ritmo</p>
           </CardContent>
         </Card>
 
         <Card className="rounded-[2rem] border-none shadow-sm bg-accent/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-accent">Materiales</CardTitle>
+          <CardHeader className="pb-2 p-4 md:p-6">
+            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-accent">Materiales</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black text-accent-foreground">12</div>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <div className="text-3xl md:text-4xl font-black text-accent-foreground">12</div>
           </CardContent>
         </Card>
 
         <Card className="rounded-[2rem] border-none shadow-sm bg-secondary/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-secondary-foreground">Horas Totales</CardTitle>
+          <CardHeader className="pb-2 p-4 md:p-6">
+            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-secondary-foreground">Horas</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black text-secondary-foreground">120</div>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <div className="text-3xl md:text-4xl font-black text-secondary-foreground">120</div>
           </CardContent>
         </Card>
       </div>
@@ -346,7 +350,7 @@ export default function TeacherDashboard() {
               ))
             ) : (
               <div className="p-16 text-center text-muted-foreground italic font-medium">
-                <p>No hay clases reservadas para la fecha seleccionada.</p>
+                <p>No hay clases reservadas hoy.</p>
               </div>
             )}
           </CardContent>

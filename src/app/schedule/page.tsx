@@ -28,15 +28,21 @@ export default function SchedulePage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const { toast } = useToast();
-  const { getDayAvailability, bookSlot } = useBookingStore();
+  const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
 
   useEffect(() => {
     setTodayStr(new Date().toDateString());
   }, []);
 
   const teacherId = '2'; // Simulación con Prof. Carlos
-  const availability = getDayAvailability(teacherId, date);
-  const freeSlots = availability.slots.filter(s => s.isAvailable && !s.isBooked);
+  const availability = useMemo(() => {
+    return getDayAvailability(teacherId, date);
+  }, [teacherId, date, getDayAvailability, availabilities]);
+  
+  const freeSlots = useMemo(() => {
+    return availability.slots.filter(s => s.isAvailable && !s.isBooked);
+  }, [availability.slots]);
+
   const allDaySlots = availability.slots;
 
   const handleBook = () => {
@@ -81,22 +87,22 @@ export default function SchedulePage() {
                 <Plus className="w-5 h-5" /> Nueva Reserva
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-[2.5rem] max-w-md border-none p-0 shadow-2xl overflow-hidden">
-              <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
+            <DialogContent className="rounded-[2.5rem] max-w-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
                 <DialogTitle className="text-2xl font-black text-secondary-foreground">Agendar Sesión 🎵</DialogTitle>
                 <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
                   {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="p-8 space-y-6">
+              <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white">
                 <div className="space-y-4">
                   <Label className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                     <Clock className="w-4 h-4 text-accent" /> Horarios Libres
                   </Label>
                   
                   {freeSlots.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-2 max-h-[250px] overflow-y-auto pr-2">
+                    <div className="grid grid-cols-1 gap-2">
                       {freeSlots.map((slot) => (
                         <Button
                           key={slot.id}
@@ -126,7 +132,7 @@ export default function SchedulePage() {
                 </div>
               </div>
 
-              <div className="p-8 bg-gray-50 flex gap-3 border-t">
+              <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
                 <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                 <Button 
                   onClick={handleBook} 
@@ -173,10 +179,12 @@ export default function SchedulePage() {
                           <span className="text-xl font-black">{d.getDate()}</span>
                         </div>
                         {isToday && (
-                          <Badge className={cn(
-                            "rounded-full px-3 py-1 text-[9px] font-black",
-                            isSelected ? "bg-white text-accent" : "bg-accent text-white"
-                          )}>HOY</Badge>
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge className={cn(
+                              "rounded-full px-3 py-1 text-[9px] font-black",
+                              isSelected ? "bg-white text-accent" : "bg-accent text-white"
+                            )}>HOY</Badge>
+                          </div>
                         )}
                       </button>
                     );
