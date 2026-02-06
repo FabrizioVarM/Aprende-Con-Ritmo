@@ -35,7 +35,7 @@ export default function StudentDashboard() {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   
   const { toast } = useToast();
-  const { getDayAvailability, bookSlot } = useBookingStore();
+  const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
 
   useEffect(() => {
     setTodayStr(new Date().toDateString());
@@ -46,6 +46,37 @@ export default function StudentDashboard() {
   }, [selectedTeacherId, selectedDate, getDayAvailability]);
 
   const freeSlots = availability.slots.filter(s => s.isAvailable && !s.isBooked);
+
+  // Obtener todas las clases reservadas por el usuario actual
+  const myUpcomingLessons = useMemo(() => {
+    if (!user) return [];
+    
+    const lessons: any[] = [];
+    availabilities.forEach(dayAvail => {
+      dayAvail.slots.forEach(slot => {
+        if (slot.isBooked && slot.bookedBy === user.name) {
+          const teacher = TEACHERS.find(t => t.id === dayAvail.teacherId);
+          lessons.push({
+            date: dayAvail.date,
+            time: slot.time,
+            teacherName: teacher?.name || 'Profesor',
+            instrument: teacher?.instrument || 'General',
+            dateTime: new Date(`${dayAvail.date} ${slot.time.split(' ')[0]}`)
+          });
+        }
+      });
+    });
+
+    // Ordenar por fecha y hora (solo las futuras o de hoy)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return lessons
+      .filter(l => new Date(l.date) >= today)
+      .sort((a, b) => a.dateTime.getTime() - b.dateTime.getTime());
+  }, [availabilities, user]);
+
+  const nextLesson = myUpcomingLessons[0];
 
   const handleBookLesson = () => {
     if (!selectedSlotId || !user) return;
@@ -142,7 +173,7 @@ export default function StudentDashboard() {
                             <span className="text-lg font-black">{d.getDate()}</span>
                             {isToday && (
                               <span className={cn(
-                                "text-[7px] font-black uppercase",
+                                "text-[7px] font-black uppercase absolute -bottom-1",
                                 isSelected ? "text-white/80" : "text-accent"
                               )}>
                                 HOY
@@ -215,7 +246,7 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="text-5xl font-black text-secondary-foreground">85%</div>
-            <p className="text-sm text-secondary-foreground/60 font-bold mt-1">Maestra de Guitarra Nivel 2</p>
+            <p className="text-sm text-secondary-foreground/60 font-bold mt-1">Maestra de {user?.instruments?.[0] || 'Música'} Nivel 2</p>
           </CardContent>
         </Card>
         
@@ -227,8 +258,14 @@ export default function StudentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-5xl font-black text-secondary-foreground">Hoy</div>
-            <p className="text-sm text-secondary-foreground/60 font-bold mt-1">3:00 PM con Prof. Carlos</p>
+            <div className="text-4xl font-black text-secondary-foreground leading-tight">
+              {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin fecha'}
+            </div>
+            <p className="text-sm text-secondary-foreground/60 font-bold mt-1">
+              {nextLesson 
+                ? `${new Date(nextLesson.date).toLocaleDateString('es-ES', { weekday: 'long' })} con ${nextLesson.teacherName}` 
+                : 'Agenda tu primera lección'}
+            </p>
           </CardContent>
         </Card>
 
@@ -241,7 +278,7 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="text-5xl font-black text-orange-900">12.5h</div>
-            <p className="text-sm text-orange-600 font-bold mt-1">¡Sigue así, Ana!</p>
+            <p className="text-sm text-orange-600 font-bold mt-1">¡Sigue así, {user?.name.split(' ')[0]}!</p>
           </CardContent>
         </Card>
       </div>
@@ -251,28 +288,35 @@ export default function StudentDashboard() {
           <CardHeader className="border-b bg-primary/5 p-6">
             <CardTitle className="text-xl font-black flex items-center gap-2">
               <CalendarIcon className="w-6 h-6 text-accent" />
-              Próximas Clases
+              Tus Próximas Clases
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {[
-              { date: 'Hoy, 3 PM', topic: 'Ritmos Acústicos', type: 'Guitarra' },
-              { date: 'Viernes, 11 AM', topic: 'Básicos de Teoría', type: 'General' },
-              { date: 'Lunes, 2 PM', topic: 'Práctica de Escalas', type: 'Guitarra' },
-            ].map((lesson, i) => (
-              <div key={i} className="flex items-center justify-between p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
-                <div className="flex gap-4 items-center">
-                  <div className="bg-white p-3 rounded-2xl shadow-sm border border-primary/10">
-                    <Music className="w-6 h-6 text-accent" />
+            {myUpcomingLessons.length > 0 ? (
+              myUpcomingLessons.slice(0, 4).map((lesson, i) => (
+                <div key={i} className="flex items-center justify-between p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
+                  <div className="flex gap-4 items-center">
+                    <div className="bg-white p-3 rounded-2xl shadow-sm border border-primary/10">
+                      <Music className="w-6 h-6 text-accent" />
+                    </div>
+                    <div>
+                      <div className="font-black text-lg text-secondary-foreground leading-tight">Clase de {lesson.instrument}</div>
+                      <div className="text-sm text-muted-foreground font-bold">
+                        {new Date(lesson.date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-black text-lg text-secondary-foreground leading-tight">{lesson.topic}</div>
-                    <div className="text-sm text-muted-foreground font-bold">{lesson.date}</div>
-                  </div>
+                  <Badge className="bg-secondary text-secondary-foreground font-black px-4 py-1 rounded-full">
+                    {lesson.teacherName}
+                  </Badge>
                 </div>
-                <Badge className="bg-secondary text-secondary-foreground font-black px-4 py-1 rounded-full">{lesson.type}</Badge>
+              ))
+            ) : (
+              <div className="p-12 text-center">
+                <Music className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
+                <p className="text-muted-foreground font-bold italic">No tienes clases agendadas próximamente.</p>
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
 
@@ -280,7 +324,7 @@ export default function StudentDashboard() {
           <CardHeader className="border-b bg-accent/5 p-6">
             <CardTitle className="text-xl font-black flex items-center gap-2">
               <PlayCircle className="w-6 h-6 text-accent" />
-              Recursos de Aprendizaje
+              Recursos Recomendados
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
