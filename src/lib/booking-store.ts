@@ -112,5 +112,23 @@ export function useBookingStore() {
     saveToStorage(updated);
   }, [availabilities, saveToStorage]);
 
-  return { availabilities, getDayAvailability, updateAvailability, bookSlot };
+  const cancelBooking = useCallback((teacherId: string, date: Date, slotId: string) => {
+    const dateStr = date.toISOString().split('T')[0];
+    const updated = availabilities.map(a => {
+      if (a.teacherId === teacherId && a.date === dateStr) {
+        return {
+          ...a,
+          slots: a.slots.map(s => 
+            s.id === slotId 
+              ? { ...s, isBooked: false, bookedBy: undefined, isAvailable: true } 
+              : s
+          )
+        };
+      }
+      return a;
+    });
+    saveToStorage(updated);
+  }, [availabilities, saveToStorage]);
+
+  return { availabilities, getDayAvailability, updateAvailability, bookSlot, cancelBooking };
 }

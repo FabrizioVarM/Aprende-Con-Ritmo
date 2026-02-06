@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -29,7 +29,7 @@ export default function SchedulePage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const { toast } = useToast();
-  const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
+  const { getDayAvailability, bookSlot, cancelBooking, availabilities } = useBookingStore();
 
   useEffect(() => {
     const now = new Date();
@@ -61,6 +61,14 @@ export default function SchedulePage() {
     
     setIsBookingOpen(false);
     setSelectedSlotId(null);
+  };
+
+  const handleCancel = (slotId: string) => {
+    cancelBooking(teacherId, date, slotId);
+    toast({
+      title: "Clase Cancelada 🗑️",
+      description: "Tu reserva ha sido eliminada.",
+    });
   };
 
   const weekDays = useMemo(() => {
@@ -146,7 +154,7 @@ export default function SchedulePage() {
               </div>
 
               <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                 <Button 
                   onClick={handleBook} 
                   disabled={!selectedSlotId}
@@ -267,11 +275,21 @@ export default function SchedulePage() {
                           </div>
                         </div>
 
-                        <div className="shrink-0">
+                        <div className="shrink-0 flex gap-2">
                           {isMine ? (
-                            <div className="bg-accent/10 p-2 rounded-full text-accent">
-                              <CheckCircle2 className="w-5 h-5" />
-                            </div>
+                            <>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                onClick={() => handleCancel(slot.id)}
+                                className="text-destructive hover:bg-destructive/10 rounded-full h-10 w-10"
+                              >
+                                <Trash2 className="w-5 h-5" />
+                              </Button>
+                              <div className="bg-accent/10 p-2 rounded-full text-accent flex items-center">
+                                <CheckCircle2 className="w-5 h-5" />
+                              </div>
+                            </>
                           ) : slot.isAvailable && !slot.isBooked ? (
                             <Button 
                               size="sm"
