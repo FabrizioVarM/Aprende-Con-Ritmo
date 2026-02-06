@@ -99,7 +99,7 @@ export default function TeacherDashboard() {
               <Clock className="w-5 h-5" /> Gestionar Horarios
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
+          <DialogContent className="rounded-3xl max-w-5xl max-h-[95vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
             <div className="bg-primary/10 p-6 border-b">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-2">
@@ -107,75 +107,79 @@ export default function TeacherDashboard() {
                   Configuración de Agenda Diaria
                 </DialogTitle>
                 <DialogDescription className="text-base text-secondary-foreground/70">
-                  Selecciona un día y personaliza tus horas de clase disponibles.
+                  Selecciona un día y personaliza tus horas de clase disponibles de forma independiente.
                 </DialogDescription>
               </DialogHeader>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-6 bg-white">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                <div className="lg:col-span-5 space-y-4">
-                  <Label className="font-black text-sm uppercase tracking-widest text-muted-foreground">1. Selecciona el Día</Label>
-                  <div className="border border-primary/20 rounded-2xl p-2 bg-white flex justify-center">
+            <div className="flex-1 overflow-y-auto p-8 bg-white">
+              <div className="flex flex-col lg:flex-row gap-10">
+                <div className="flex-1 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">1. Selecciona Fecha</Label>
+                    <Badge variant="outline" className="bg-accent/5 text-accent border-accent/20 px-3 py-1 font-bold">
+                      {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </Badge>
+                  </div>
+                  <div className="border border-primary/20 rounded-[2rem] p-6 bg-white shadow-inner flex justify-center">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
                       onSelect={(date) => date && setSelectedDate(date)}
-                      className="w-full"
+                      className="w-full max-w-sm"
                     />
-                  </div>
-                  <div className="bg-accent/10 p-4 rounded-2xl border border-accent/20">
-                    <p className="text-sm font-bold text-accent">Día seleccionado:</p>
-                    <p className="text-lg font-black capitalize">{selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                   </div>
                 </div>
                 
-                <div className="lg:col-span-7 space-y-4">
+                <div className="flex-[1.5] space-y-6">
                   <div className="flex justify-between items-center">
-                    <Label className="font-black text-sm uppercase tracking-widest text-muted-foreground">2. Define tus Horas</Label>
+                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">2. Configura Rangos Horarios</Label>
                     <Button 
                       size="sm" 
                       variant="outline" 
                       onClick={addSlot}
-                      className="rounded-full border-accent text-accent hover:bg-accent hover:text-white gap-1 font-bold"
+                      className="rounded-full border-accent text-accent hover:bg-accent hover:text-white gap-2 font-black px-4"
                     >
-                      <Plus className="w-4 h-4" /> Nuevo Rango
+                      <Plus className="w-4 h-4" /> Agregar Horario
                     </Button>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
                     {localSlots.length > 0 ? (
                       localSlots.map((slot, i) => (
                         <div 
                           key={slot.id} 
-                          className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${
-                            slot.isBooked ? 'bg-orange-50 border-orange-200' : 
-                            slot.isAvailable ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-100'
+                          className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group ${
+                            slot.isBooked ? 'bg-orange-50 border-orange-200 shadow-sm' : 
+                            slot.isAvailable ? 'bg-green-50/50 border-green-200' : 'bg-gray-50 border-gray-100 opacity-70'
                           }`}
                         >
-                          <div className="flex-1 space-y-1">
-                            <Input
-                              value={slot.time}
-                              onChange={(e) => updateSlotTime(i, e.target.value)}
-                              disabled={slot.isBooked}
-                              placeholder="Ej: 08:00 - 09:00"
-                              className="h-10 text-base rounded-xl font-bold bg-white"
-                            />
+                          <div className="flex-1 space-y-2">
+                            <div className="relative">
+                              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                              <Input
+                                value={slot.time}
+                                onChange={(e) => updateSlotTime(i, e.target.value)}
+                                disabled={slot.isBooked}
+                                placeholder="Ej: 08:00 - 09:00"
+                                className="h-12 pl-10 text-base rounded-xl font-bold bg-white border-primary/10"
+                              />
+                            </div>
                             {slot.isBooked && (
-                              <p className="text-[10px] text-orange-600 font-black uppercase tracking-tight ml-1">
-                                Reservado por {slot.bookedBy}
-                              </p>
+                              <div className="flex items-center gap-1 text-[11px] text-orange-600 font-black uppercase tracking-widest ml-1">
+                                <CheckCircle2 className="w-3 h-3" /> Reservado por {slot.bookedBy}
+                              </div>
                             )}
                           </div>
                           
-                          <div className="flex items-center gap-2">
-                            <div className="flex flex-col items-center">
-                              <span className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Activo</span>
+                          <div className="flex items-center gap-4">
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="text-[10px] font-black text-muted-foreground uppercase">Disponible</span>
                               <Checkbox 
                                 checked={slot.isAvailable || slot.isBooked} 
                                 disabled={slot.isBooked}
                                 onCheckedChange={() => toggleSlotAvailability(i)}
-                                className="h-5 w-5"
+                                className="h-6 w-6 rounded-lg data-[state=checked]:bg-green-600"
                               />
                             </div>
                             
@@ -184,16 +188,18 @@ export default function TeacherDashboard() {
                               size="icon" 
                               onClick={() => removeSlot(i)}
                               disabled={slot.isBooked}
-                              className="text-muted-foreground hover:text-destructive h-9 w-9"
+                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-5 h-5" />
                             </Button>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-12 bg-muted/5 rounded-3xl border-2 border-dashed">
-                        <p className="text-muted-foreground font-medium italic">Configura tus horarios para este día.</p>
+                      <div className="text-center py-20 bg-muted/5 rounded-[2.5rem] border-4 border-dashed border-primary/10">
+                        <Plus className="w-10 h-10 mx-auto text-primary/20 mb-3" />
+                        <p className="text-muted-foreground font-bold">Sin horarios definidos para hoy.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Haz clic en "Agregar Horario" para empezar.</p>
                       </div>
                     )}
                   </div>
@@ -201,12 +207,12 @@ export default function TeacherDashboard() {
               </div>
             </div>
 
-            <div className="p-6 bg-gray-50 border-t flex gap-4">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary font-bold">
+            <div className="p-8 bg-gray-50 border-t flex gap-4">
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 border-primary/20 font-black text-lg">
                 Cerrar
               </Button>
-              <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-2xl flex-1 h-12 font-bold gap-2 shadow-lg shadow-accent/20">
-                <Save className="w-5 h-5" /> Guardar Cambios
+              <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black text-lg gap-2 shadow-xl shadow-accent/20 hover:scale-[1.02] transition-transform">
+                <Save className="w-6 h-6" /> Guardar Cambios Diarios
               </Button>
             </div>
           </DialogContent>
