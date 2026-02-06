@@ -233,7 +233,7 @@ export default function SchedulePage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {allDaySlots.some(s => s.isBooked || s.isAvailable) ? (
                 allDaySlots.map((slot, i) => {
                   if (!slot.isBooked && !slot.isAvailable) return null;
@@ -241,48 +241,50 @@ export default function SchedulePage() {
                   
                   return (
                     <Card key={slot.id} className={cn(
-                      "rounded-[2rem] border-2 transition-all duration-300 group",
+                      "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden",
                       isMine 
-                        ? 'bg-accent/5 border-accent shadow-lg shadow-accent/10 scale-[1.02]' 
+                        ? 'bg-accent/5 border-accent shadow-lg shadow-accent/10' 
                         : slot.isBooked 
                           ? 'bg-gray-50 border-transparent opacity-60' 
                           : 'bg-white border-primary/5 hover:border-accent/20'
                     )}>
-                      <CardContent className="p-5 flex items-center gap-5">
-                        <div className={cn(
-                          "flex flex-col items-center justify-center min-w-[80px] h-16 rounded-2xl",
-                          isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
-                        )}>
-                          <span className="text-lg font-black leading-none">{slot.time.split(' ')[0]}</span>
-                        </div>
-                        
-                        <div className="flex-1 space-y-1">
-                          <h4 className={cn(
-                            "text-lg font-black tracking-tight",
-                            isMine ? "text-accent" : "text-secondary-foreground"
+                      <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+                          <div className={cn(
+                            "flex flex-col items-center justify-center min-w-[70px] sm:min-w-[80px] h-14 sm:h-16 rounded-2xl shrink-0",
+                            isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
                           )}>
-                            {isMine ? '🌟 Tu Clase Confirmada' : slot.isBooked ? 'Ocupado' : 'Disponible'}
-                          </h4>
-                          <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                            <span className="flex items-center gap-1"><Music className="w-3 h-3 text-accent" /> Carlos</span>
-                            <span className={cn(
-                                "flex items-center gap-1",
-                                slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                            <span className="text-base sm:text-lg font-black leading-none">{slot.time.split(' ')[0]}</span>
+                          </div>
+                          
+                          <div className="min-w-0 space-y-0.5 sm:space-y-1">
+                            <h4 className={cn(
+                              "text-base sm:text-lg font-black tracking-tight truncate",
+                              isMine ? "text-accent" : "text-secondary-foreground"
                             )}>
-                              {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                              {slot.type === 'virtual' ? 'Online' : 'Presencial'}
-                            </span>
+                              {isMine ? '🌟 Tu Clase' : slot.isBooked ? 'Ocupado' : 'Disponible'}
+                            </h4>
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                              <span className="flex items-center gap-1 shrink-0"><Music className="w-3 h-3 text-accent" /> Carlos</span>
+                              <span className={cn(
+                                  "flex items-center gap-1 shrink-0",
+                                  slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                              )}>
+                                {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                {slot.type === 'virtual' ? 'Online' : 'Sede'}
+                              </span>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="shrink-0 flex gap-2">
+                        <div className="shrink-0 flex items-center gap-1 sm:gap-2">
                           {isMine ? (
                             <>
                               <Button 
                                 variant="ghost" 
                                 size="icon" 
                                 onClick={() => handleCancel(slot.id)}
-                                className="text-destructive hover:bg-destructive/10 rounded-full h-10 w-10"
+                                className="text-destructive hover:bg-destructive/10 rounded-full h-9 w-9 sm:h-10 sm:w-10"
                               >
                                 <Trash2 className="w-5 h-5" />
                               </Button>
@@ -293,7 +295,7 @@ export default function SchedulePage() {
                           ) : slot.isAvailable && !slot.isBooked ? (
                             <Button 
                               size="sm"
-                              className="bg-accent text-white rounded-xl font-black px-4 h-9"
+                              className="bg-accent text-white rounded-xl font-black px-3 sm:px-4 h-9 sm:h-10"
                               onClick={() => {
                                 setSelectedSlotId(slot.id);
                                 setIsBookingOpen(true);

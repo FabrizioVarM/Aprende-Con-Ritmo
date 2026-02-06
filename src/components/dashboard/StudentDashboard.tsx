@@ -71,6 +71,7 @@ export default function StudentDashboard() {
           
           const endDateTime = new Date(`${lessonDate}T${endTime}:00`);
           
+          // Mostrar solo si no ha terminado
           if (currentTime < endDateTime) {
             lessons.push({
               date: lessonDate,
@@ -322,26 +323,26 @@ export default function StudentDashboard() {
           <CardContent className="p-0">
             {myUpcomingLessons.length > 0 ? (
               myUpcomingLessons.map((lesson, i) => (
-                <div key={i} className="flex items-center justify-between p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
-                  <div className="flex gap-4 items-center">
-                    <div className="bg-white p-3 rounded-2xl shadow-sm border border-primary/10">
-                      <Music className="w-6 h-6 text-accent" />
+                <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
+                  <div className="flex gap-3 sm:gap-4 items-center min-w-0">
+                    <div className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-primary/10 shrink-0">
+                      <Music className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                     </div>
-                    <div>
-                      <div className="font-black text-lg text-secondary-foreground leading-tight">Lección de {lesson.instrument}</div>
-                      <div className="text-sm text-muted-foreground font-bold">
+                    <div className="min-w-0">
+                      <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate">Lección de {lesson.instrument}</div>
+                      <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
                         {new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}
                       </div>
                       <div className={cn(
-                          "text-[10px] font-black uppercase flex items-center gap-1 mt-1",
+                          "text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1 mt-1",
                           lesson.type === 'virtual' ? "text-blue-500" : "text-red-500"
                       )}>
                         {lesson.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                        Modalidad {lesson.type}
+                        {lesson.type}
                       </div>
                     </div>
                   </div>
-                  <Badge className="bg-secondary text-secondary-foreground font-black px-4 py-1 rounded-full">
+                  <Badge className="hidden sm:inline-flex bg-secondary text-secondary-foreground font-black px-4 py-1 rounded-full shrink-0">
                     {lesson.teacherName}
                   </Badge>
                 </div>
@@ -375,17 +376,17 @@ export default function StudentDashboard() {
               { title: 'Hoja de Práctica #4', length: '2 págs', type: 'PDF' },
               { title: 'Pentatónica Menor', length: '12 min', type: 'Video' },
             ].map((resource, i) => (
-              <div key={i} className="flex items-center justify-between p-6 hover:bg-accent/5 transition-colors border-b last:border-0">
-                <div className="flex gap-4 items-center">
-                  <div className="bg-white p-3 rounded-2xl shadow-sm border border-primary/10">
-                    <PlayCircle className="w-6 h-6 text-accent" />
+              <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0">
+                <div className="flex gap-3 sm:gap-4 items-center min-w-0">
+                  <div className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-primary/10 shrink-0">
+                    <PlayCircle className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                   </div>
-                  <div>
-                    <div className="font-black text-lg text-secondary-foreground leading-tight">{resource.title}</div>
-                    <div className="text-sm text-muted-foreground font-bold">{resource.length}</div>
+                  <div className="min-w-0">
+                    <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate">{resource.title}</div>
+                    <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length}</div>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10">
+                <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0">
                   <ChevronRight className="w-6 h-6 text-accent" />
                 </Button>
               </div>
