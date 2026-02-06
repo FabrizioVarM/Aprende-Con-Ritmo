@@ -32,14 +32,17 @@ export default function StudentDashboard() {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('2');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
+  const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   
   const { toast } = useToast();
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
 
   useEffect(() => {
-    const today = new Date();
-    setTodayStr(today.toDateString());
+    const now = new Date();
+    setTodayStr(now.toDateString());
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    setTodayTimestamp(startOfToday.getTime());
   }, []);
 
   const availability = useMemo(() => {
@@ -129,7 +132,7 @@ export default function StudentDashboard() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1">
+            <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1 max-h-[60vh]">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
                   <div className="space-y-3">
@@ -149,21 +152,26 @@ export default function StudentDashboard() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día (Semana Actual)</label>
                     <div className="grid grid-cols-7 gap-2">
                       {weekDays.map((d, i) => {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
                         const isToday = d.toDateString() === todayStr;
+                        const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                        const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
+
                         return (
                           <button
                             key={i}
-                            onClick={() => setSelectedDate(d)}
+                            disabled={isPast}
+                            onClick={() => !isPast && setSelectedDate(d)}
                             className={cn(
                               "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
                               isSelected 
                                 ? "bg-accent border-accent text-white shadow-md" 
                                 : "bg-primary/5 border-transparent hover:border-accent/30",
-                              isToday && !isSelected && "border-accent/30"
+                              isToday && !isSelected && "border-accent/30",
+                              isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-gray-100 border-gray-200"
                             )}
                           >
                             <span className="text-[8px] font-black uppercase">{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>

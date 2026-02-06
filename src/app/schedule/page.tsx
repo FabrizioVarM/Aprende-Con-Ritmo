@@ -25,13 +25,17 @@ export default function SchedulePage() {
   const { user } = useAuth();
   const [date, setDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
+  const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const { toast } = useToast();
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
 
   useEffect(() => {
-    setTodayStr(new Date().toDateString());
+    const now = new Date();
+    setTodayStr(now.toDateString());
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    setTodayTimestamp(startOfToday.getTime());
   }, []);
 
   const teacherId = '2'; // Simulación con Prof. Carlos
@@ -95,7 +99,7 @@ export default function SchedulePage() {
                 </DialogDescription>
               </DialogHeader>
               
-              <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white">
+              <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white max-h-[60vh]">
                 <div className="space-y-4">
                   <Label className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                     <Clock className="w-4 h-4 text-accent" /> Horarios Libres
@@ -160,16 +164,21 @@ export default function SchedulePage() {
                   {weekDays.map((d, i) => {
                     const isSelected = d.toDateString() === date.toDateString();
                     const isToday = d.toDateString() === todayStr;
+                    const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                    const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
+
                     return (
                       <button
                         key={i}
-                        onClick={() => setDate(d)}
+                        disabled={isPast}
+                        onClick={() => !isPast && setDate(d)}
                         className={cn(
                           "flex items-center justify-between p-4 rounded-2xl transition-all border-2",
                           isSelected 
                             ? "bg-accent border-accent text-white shadow-lg" 
                             : "bg-white border-primary/5 hover:border-accent/30",
-                          isToday && !isSelected && "border-accent/30"
+                          isToday && !isSelected && "border-accent/30",
+                          isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-gray-100 border-gray-200"
                         )}
                       >
                         <div className="flex flex-col items-start">

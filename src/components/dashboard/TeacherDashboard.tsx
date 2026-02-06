@@ -26,6 +26,7 @@ export default function TeacherDashboard() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
+  const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const { toast } = useToast();
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
 
@@ -33,7 +34,10 @@ export default function TeacherDashboard() {
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
 
   useEffect(() => {
-    setTodayStr(new Date().toDateString());
+    const now = new Date();
+    setTodayStr(now.toDateString());
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    setTodayTimestamp(startOfToday.getTime());
   }, []);
 
   useEffect(() => {
@@ -125,6 +129,12 @@ export default function TeacherDashboard() {
     });
   }, [selectedDate]);
 
+  const isSelectedDatePast = useMemo(() => {
+    if (!todayTimestamp) return false;
+    const dateCopy = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    return dateCopy.getTime() < todayTimestamp;
+  }, [selectedDate, todayTimestamp]);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
@@ -150,7 +160,7 @@ export default function TeacherDashboard() {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1">
+            <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1 max-h-[60vh]">
               <div className="flex flex-col gap-10">
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
@@ -177,16 +187,21 @@ export default function TeacherDashboard() {
                     {weekDays.map((d, i) => {
                       const isSelected = d.toDateString() === selectedDate.toDateString();
                       const isToday = d.toDateString() === todayStr;
+                      const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                      const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
+
                       return (
                         <button
                           key={i}
-                          onClick={() => setSelectedDate(d)}
+                          disabled={isPast}
+                          onClick={() => !isPast && setSelectedDate(d)}
                           className={cn(
                             "flex flex-col items-center py-4 md:py-5 rounded-2xl transition-all border-2 relative group",
                             isSelected 
                               ? "bg-accent border-accent text-white shadow-xl scale-105" 
                               : "bg-primary/5 border-transparent hover:border-accent/20",
-                            isToday && !isSelected && "border-accent/30"
+                            isToday && !isSelected && "border-accent/30",
+                            isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-gray-100 border-gray-200"
                           )}
                         >
                           <span className="text-[9px] md:text-[11px] font-black uppercase tracking-wider mb-1">
@@ -215,14 +230,16 @@ export default function TeacherDashboard() {
                         {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={clearAllSlots} className="rounded-full border-destructive/50 text-destructive hover:bg-destructive/10 font-black gap-2 h-10 px-5">
-                        <Eraser className="w-4 h-4" /> Limpiar Día
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent font-black gap-2 h-10 px-5">
-                        <Plus className="w-4 h-4" /> Añadir Horario
-                      </Button>
-                    </div>
+                    {!isSelectedDatePast && (
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" onClick={clearAllSlots} className="rounded-full border-destructive/50 text-destructive hover:bg-destructive/10 font-black gap-2 h-10 px-5">
+                          <Eraser className="w-4 h-4" /> Limpiar Día
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent font-black gap-2 h-10 px-5">
+                          <Plus className="w-4 h-4" /> Añadir Horario
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -234,7 +251,8 @@ export default function TeacherDashboard() {
                             ? "bg-orange-50 border-orange-300 shadow-sm" 
                             : slot.isAvailable 
                               ? "bg-emerald-50 border-emerald-400 shadow-emerald-100 shadow-md" 
-                              : "bg-gray-50 border-gray-100 opacity-60"
+                              : "bg-gray-50 border-gray-100 opacity-60",
+                          isSelectedDatePast && "opacity-50 grayscale pointer-events-none"
                         )}>
                           <div className="flex-1 relative">
                             <Clock className={cn(
@@ -244,7 +262,7 @@ export default function TeacherDashboard() {
                             <Input
                               value={slot.time}
                               onChange={(e) => updateSlotTime(i, e.target.value)}
-                              disabled={slot.isBooked}
+                              disabled={slot.isBooked || isSelectedDatePast}
                               className={cn(
                                 "h-12 pl-10 text-base rounded-xl font-bold bg-white border-2 transition-all",
                                 slot.isAvailable ? "border-emerald-100 focus:border-emerald-300" : "border-transparent"
@@ -274,15 +292,15 @@ export default function TeacherDashboard() {
                               </span>
                               <Switch 
                                 checked={slot.isAvailable || slot.isBooked} 
-                                disabled={slot.isBooked}
+                                disabled={slot.isBooked || isSelectedDatePast}
                                 onCheckedChange={() => toggleSlotAvailability(i)}
                                 className={cn(
                                   "data-[state=checked]:bg-emerald-500",
-                                  !slot.isBooked && "hover:scale-110 transition-transform"
+                                  !slot.isBooked && !isSelectedDatePast && "hover:scale-110 transition-transform"
                                 )}
                               />
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked} className="text-muted-foreground hover:text-destructive h-10 w-10 mt-4">
+                            <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="text-muted-foreground hover:text-destructive h-10 w-10 mt-4">
                               <Trash2 className="w-5 h-5" />
                             </Button>
                           </div>
@@ -292,7 +310,9 @@ export default function TeacherDashboard() {
                       <div className="col-span-full text-center py-16 bg-muted/5 rounded-[2.5rem] border-4 border-dashed border-primary/10">
                         <Clock className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
                         <p className="font-black text-muted-foreground">Sin horarios configurados</p>
-                        <Button variant="link" onClick={addSlot} className="text-accent font-black mt-2">Crea el primer bloque aquí</Button>
+                        {!isSelectedDatePast && (
+                          <Button variant="link" onClick={addSlot} className="text-accent font-black mt-2">Crea el primer bloque aquí</Button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -304,7 +324,11 @@ export default function TeacherDashboard() {
               <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black">
                 Cancelar
               </Button>
-              <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black gap-2 shadow-xl">
+              <Button 
+                onClick={handleSaveAvailability} 
+                disabled={isSelectedDatePast}
+                className="bg-accent text-white rounded-2xl flex-1 h-14 font-black gap-2 shadow-xl"
+              >
                 <Save className="w-6 h-6" /> Guardar Todos los Cambios
               </Button>
             </div>
