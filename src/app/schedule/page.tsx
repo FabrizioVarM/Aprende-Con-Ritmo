@@ -21,6 +21,13 @@ import { useBookingStore } from '@/lib/booking-store';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 
+// Simulación de datos de profesores para la vista de agenda
+const TEACHER_INFO = {
+  id: '2',
+  name: 'Carlos',
+  instrument: 'Guitarra'
+};
+
 export default function SchedulePage() {
   const { user } = useAuth();
   const [date, setDate] = useState<Date>(new Date());
@@ -38,7 +45,7 @@ export default function SchedulePage() {
     setTodayTimestamp(startOfToday.getTime());
   }, []);
 
-  const teacherId = '2'; // Simulación con Prof. Carlos
+  const teacherId = TEACHER_INFO.id;
   const availability = useMemo(() => {
     return getDayAvailability(teacherId, date);
   }, [teacherId, date, getDayAvailability, availabilities]);
@@ -113,7 +120,7 @@ export default function SchedulePage() {
               {isMine ? '🌟 Tu Clase' : 'Horario Disponible'}
             </h4>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-              <span className="flex items-center gap-1 shrink-0"><Music className="w-3 h-3 text-accent" /> Carlos</span>
+              <span className="flex items-center gap-1 shrink-0"><Music className="w-3 h-3 text-accent" /> {TEACHER_INFO.name}</span>
               <span className={cn(
                   "flex items-center gap-1 shrink-0",
                   slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
@@ -193,7 +200,7 @@ export default function SchedulePage() {
                           key={slot.id}
                           variant={selectedSlotId === slot.id ? "default" : "outline"}
                           className={cn(
-                            "justify-between rounded-2xl h-14 transition-all border-2 font-bold px-4",
+                            "justify-between rounded-2xl h-16 transition-all border-2 font-bold px-4 py-2",
                             selectedSlotId === slot.id 
                               ? 'bg-accent text-white border-accent shadow-md' 
                               : 'border-primary/5 hover:border-accent/30 hover:bg-accent/5'
@@ -201,19 +208,26 @@ export default function SchedulePage() {
                           onClick={() => setSelectedSlotId(slot.id)}
                         >
                           <div className="flex items-center gap-3">
-                            <Music className="w-4 h-4" />
-                            <div className="flex flex-col items-start">
-                                <span className="text-sm">{slot.time}</span>
-                                <span className={cn(
-                                    "text-[10px] font-black uppercase flex items-center gap-1",
-                                    slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
-                                )}>
-                                    {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                                    {slot.type}
-                                </span>
+                            <Music className="w-4 h-4 shrink-0" />
+                            <div className="flex flex-col items-start min-w-0">
+                                <span className="text-base font-black leading-tight">{slot.time}</span>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-[10px] font-black uppercase text-muted-foreground/80">
+                                    {TEACHER_INFO.name} • {TEACHER_INFO.instrument}
+                                  </span>
+                                  <span className={cn(
+                                      "text-[9px] font-black uppercase flex items-center gap-1",
+                                      slot.type === 'virtual' 
+                                        ? (selectedSlotId === slot.id ? "text-white" : "text-blue-500") 
+                                        : (selectedSlotId === slot.id ? "text-white" : "text-red-500")
+                                  )}>
+                                      {slot.type === 'virtual' ? <Video className="w-2.5 h-2.5" /> : <MapPin className="w-2.5 h-2.5" />}
+                                      {slot.type}
+                                  </span>
+                                </div>
                             </div>
                           </div>
-                          {selectedSlotId === slot.id && <CheckCircle2 className="w-4 h-4" />}
+                          {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 shrink-0" />}
                         </Button>
                       ))}
                     </div>
