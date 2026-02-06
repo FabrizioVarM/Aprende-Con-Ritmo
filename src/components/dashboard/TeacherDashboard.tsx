@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -31,6 +32,7 @@ export default function TeacherDashboard() {
   const teacherId = '2'; // ID del Prof. Carlos
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
 
+  // Sincronizar slots locales cuando cambia la fecha o se abre el diálogo
   useEffect(() => {
     const data = getDayAvailability(teacherId, selectedDate);
     setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
@@ -85,7 +87,7 @@ export default function TeacherDashboard() {
   const currentDayBookedSlots = useMemo(() => {
     const data = getDayAvailability(teacherId, selectedDate);
     return data.slots.filter(s => s.isBooked);
-  }, [selectedDate, getDayAvailability, teacherId, availabilities]);
+  }, [selectedDate, getDayAvailability, teacherId]);
 
   return (
     <div className="space-y-8">

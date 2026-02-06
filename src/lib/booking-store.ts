@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface TimeSlot {
   id: string;
@@ -38,12 +39,12 @@ export function useBookingStore() {
     }
   }, []);
 
-  const saveToStorage = (data: DayAvailability[]) => {
+  const saveToStorage = useCallback((data: DayAvailability[]) => {
     localStorage.setItem('ac_availabilities', JSON.stringify(data));
     setAvailabilities([...data]);
-  };
+  }, []);
 
-  const getDayAvailability = (teacherId: string, date: Date): DayAvailability => {
+  const getDayAvailability = useCallback((teacherId: string, date: Date): DayAvailability => {
     const dateStr = date.toISOString().split('T')[0];
     const existing = availabilities.find(a => a.teacherId === teacherId && a.date === dateStr);
     
@@ -59,16 +60,16 @@ export function useBookingStore() {
         isBooked: false 
       }))
     };
-  };
+  }, [availabilities]);
 
-  const updateAvailability = (teacherId: string, date: Date, slots: TimeSlot[]) => {
+  const updateAvailability = useCallback((teacherId: string, date: Date, slots: TimeSlot[]) => {
     const dateStr = date.toISOString().split('T')[0];
     const newAvailabilities = availabilities.filter(a => !(a.teacherId === teacherId && a.date === dateStr));
     newAvailabilities.push({ teacherId, date: dateStr, slots });
     saveToStorage(newAvailabilities);
-  };
+  }, [availabilities, saveToStorage]);
 
-  const bookSlot = (teacherId: string, date: Date, slotId: string, studentName: string) => {
+  const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string) => {
     const dateStr = date.toISOString().split('T')[0];
     const updated = availabilities.map(a => {
       if (a.teacherId === teacherId && a.date === dateStr) {
@@ -88,7 +89,7 @@ export function useBookingStore() {
     }
 
     saveToStorage(updated);
-  };
+  }, [availabilities, getDayAvailability, saveToStorage]);
 
   return { availabilities, getDayAvailability, updateAvailability, bookSlot };
 }
