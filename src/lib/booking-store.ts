@@ -16,7 +16,6 @@ export interface DayAvailability {
   slots: TimeSlot[];
 }
 
-// Horas estándar iniciales (solo como sugerencia)
 export const INITIAL_SLOTS = [
   "08:00 - 09:00",
   "09:00 - 10:00",
@@ -41,7 +40,7 @@ export function useBookingStore() {
 
   const saveToStorage = (data: DayAvailability[]) => {
     localStorage.setItem('ac_availabilities', JSON.stringify(data));
-    setAvailabilities(data);
+    setAvailabilities([...data]);
   };
 
   const getDayAvailability = (teacherId: string, date: Date): DayAvailability => {
@@ -50,12 +49,11 @@ export function useBookingStore() {
     
     if (existing) return existing;
 
-    // Si no existe, devolvemos los slots iniciales como base
     return {
       date: dateStr,
       teacherId,
       slots: INITIAL_SLOTS.map(s => ({ 
-        id: Math.random().toString(36).substr(2, 9), 
+        id: Math.random().toString(36).substring(2, 9), 
         time: s, 
         isAvailable: false, 
         isBooked: false 
@@ -82,7 +80,6 @@ export function useBookingStore() {
       return a;
     });
     
-    // Si no existía disponibilidad para ese día aún, la creamos (caso raro si el alumno puede reservar)
     const exists = availabilities.some(a => a.teacherId === teacherId && a.date === dateStr);
     if (!exists) {
       const current = getDayAvailability(teacherId, date);
@@ -93,5 +90,5 @@ export function useBookingStore() {
     saveToStorage(updated);
   };
 
-  return { getDayAvailability, updateAvailability, bookSlot };
+  return { availabilities, getDayAvailability, updateAvailability, bookSlot };
 }

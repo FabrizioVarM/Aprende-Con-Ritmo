@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -27,15 +26,13 @@ export default function TeacherDashboard() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { toast } = useToast();
-  const { getDayAvailability, updateAvailability } = useBookingStore();
+  const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
 
   const teacherId = '2'; // ID del Prof. Carlos
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
 
-  // Efecto para cargar los horarios cuando cambia la fecha o se abre el diálogo
   useEffect(() => {
     const data = getDayAvailability(teacherId, selectedDate);
-    // Clonamos los slots para que la edición local no afecte al store hasta guardar
     setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
   }, [selectedDate, isOpen, getDayAvailability, teacherId]);
 
@@ -88,7 +85,7 @@ export default function TeacherDashboard() {
   const currentDayBookedSlots = useMemo(() => {
     const data = getDayAvailability(teacherId, selectedDate);
     return data.slots.filter(s => s.isBooked);
-  }, [selectedDate, getDayAvailability, teacherId, availabilities]); // Añadido availabilities si fuera necesario, pero la store usa localStorage
+  }, [selectedDate, getDayAvailability, teacherId, availabilities]);
 
   return (
     <div className="space-y-8">
@@ -121,7 +118,7 @@ export default function TeacherDashboard() {
               <div className="flex flex-col lg:flex-row gap-12">
                 <div className="flex-1 space-y-6">
                   <div className="flex items-center justify-between mb-4">
-                    <Label className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground">1. Elige Fecha</Label>
+                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">1. Elige Fecha</Label>
                     <Badge variant="secondary" className="bg-accent text-white px-4 py-1.5 rounded-full font-bold">
                       {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </Badge>
@@ -138,7 +135,7 @@ export default function TeacherDashboard() {
                 
                 <div className="flex-[1.5] space-y-6">
                   <div className="flex justify-between items-center mb-4">
-                    <Label className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground">2. Configura los Bloques</Label>
+                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">2. Configura los Bloques</Label>
                     <Button 
                       size="sm" 
                       variant="outline" 
