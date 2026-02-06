@@ -1,11 +1,10 @@
 
 "use client"
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +18,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Check } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Check, Video, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function TeacherDashboard() {
@@ -55,6 +54,14 @@ export default function TeacherDashboard() {
     }
   };
 
+  const toggleSlotType = (index: number) => {
+    const newSlots = [...localSlots];
+    if (!newSlots[index].isBooked) {
+      newSlots[index].type = newSlots[index].type === 'virtual' ? 'presencial' : 'virtual';
+      setLocalSlots(newSlots);
+    }
+  };
+
   const updateSlotTime = (index: number, newTime: string) => {
     const newSlots = [...localSlots];
     newSlots[index].time = newTime;
@@ -66,7 +73,8 @@ export default function TeacherDashboard() {
       id: Math.random().toString(36).substring(2, 9),
       time: "08:00 - 09:00",
       isAvailable: true,
-      isBooked: false
+      isBooked: false,
+      type: 'presencial'
     };
     setLocalSlots([...localSlots, newSlot]);
   };
@@ -145,7 +153,7 @@ export default function TeacherDashboard() {
         
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all">
+            <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
               <Clock className="w-5 h-5" /> Gestionar Horarios
             </Button>
           </DialogTrigger>
@@ -282,7 +290,23 @@ export default function TeacherDashboard() {
                             )}
                           </div>
                           
-                          <div className="flex items-center gap-3">
+                          <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={slot.isBooked || isSelectedDatePast}
+                                  onClick={() => toggleSlotType(i)}
+                                  className={cn(
+                                    "rounded-xl h-10 px-3 font-black gap-2 border-2",
+                                    slot.type === 'virtual' ? "bg-blue-50 border-blue-400 text-blue-600" : "bg-red-50 border-red-400 text-red-600"
+                                  )}
+                                >
+                                  {slot.type === 'virtual' ? <Video className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
+                                  <span className="text-[10px] uppercase">{slot.type}</span>
+                                </Button>
+                            </div>
+                            
                             <div className="flex flex-col items-center gap-1">
                               <span className={cn(
                                 "text-[9px] font-black uppercase tracking-tighter",
@@ -300,8 +324,8 @@ export default function TeacherDashboard() {
                                 )}
                               />
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="text-muted-foreground hover:text-destructive h-10 w-10 mt-4">
-                              <Trash2 className="w-5 h-5" />
+                            <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="text-muted-foreground hover:text-destructive h-8 w-8 mx-auto">
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
@@ -416,7 +440,16 @@ export default function TeacherDashboard() {
                     <div className="font-black text-lg leading-tight">{cls.time}</div>
                     <div className="text-sm text-muted-foreground font-bold">{cls.bookedBy}</div>
                   </div>
-                  <Button size="sm" className="bg-accent text-white rounded-xl font-black px-5">Iniciar</Button>
+                  <div className="flex items-center gap-2">
+                    <Badge className={cn(
+                        "rounded-full px-3 py-1 font-black",
+                        cls.type === 'virtual' ? "bg-blue-100 text-blue-600" : "bg-red-100 text-red-600"
+                    )}>
+                        {cls.type === 'virtual' ? <Video className="w-3 h-3 mr-1 inline" /> : <MapPin className="w-3 h-3 mr-1 inline" />}
+                        {cls.type}
+                    </Badge>
+                    <Button size="sm" className="bg-accent text-white rounded-xl font-black px-5">Iniciar</Button>
+                  </div>
                 </div>
               ))
             ) : (

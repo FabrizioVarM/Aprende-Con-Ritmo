@@ -112,17 +112,26 @@ export default function SchedulePage() {
                           key={slot.id}
                           variant={selectedSlotId === slot.id ? "default" : "outline"}
                           className={cn(
-                            "justify-between rounded-2xl h-12 transition-all border-2 font-bold px-4",
+                            "justify-between rounded-2xl h-14 transition-all border-2 font-bold px-4",
                             selectedSlotId === slot.id 
                               ? 'bg-accent text-white border-accent shadow-md' 
                               : 'border-primary/5 hover:border-accent/30 hover:bg-accent/5'
                           )}
                           onClick={() => setSelectedSlotId(slot.id)}
                         >
-                          <span className="flex items-center gap-2">
+                          <div className="flex items-center gap-3">
                             <Music className="w-4 h-4" />
-                            {slot.time}
-                          </span>
+                            <div className="flex flex-col items-start">
+                                <span className="text-sm">{slot.time}</span>
+                                <span className={cn(
+                                    "text-[10px] font-black uppercase flex items-center gap-1",
+                                    slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                                )}>
+                                    {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                    {slot.type}
+                                </span>
+                            </div>
+                          </div>
                           {selectedSlotId === slot.id && <CheckCircle2 className="w-4 h-4" />}
                         </Button>
                       ))}
@@ -137,7 +146,7 @@ export default function SchedulePage() {
               </div>
 
               <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                 <Button 
                   onClick={handleBook} 
                   disabled={!selectedSlotId}
@@ -248,9 +257,12 @@ export default function SchedulePage() {
                           </h4>
                           <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                             <span className="flex items-center gap-1"><Music className="w-3 h-3 text-accent" /> Carlos</span>
-                            <span className="flex items-center gap-1">
-                              {i % 2 === 0 ? <Video className="w-3 h-3 text-blue-500" /> : <MapPin className="w-3 h-3 text-red-500" />}
-                              {i % 2 === 0 ? 'Online' : 'Presencial'}
+                            <span className={cn(
+                                "flex items-center gap-1",
+                                slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                            )}>
+                              {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                              {slot.type === 'virtual' ? 'Online' : 'Presencial'}
                             </span>
                           </div>
                         </div>

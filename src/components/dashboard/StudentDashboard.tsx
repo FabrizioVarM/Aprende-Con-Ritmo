@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, PlayCircle, Star, Clock, ChevronRight, Music, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, PlayCircle, Star, Clock, ChevronRight, Music, CheckCircle2, AlertCircle, Video, MapPin } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -65,13 +65,10 @@ export default function StudentDashboard() {
           const teacher = TEACHERS.find(t => t.id === dayAvail.teacherId);
           const lessonDate = dayAvail.date;
           
-          // slot.time format: "HH:mm - HH:mm"
           const timeParts = slot.time.split(' - ');
           const startTime = timeParts[0];
           const endTime = timeParts[1];
           
-          // Use the end time of the class to decide if it should still be shown
-          // This allows "in progress" classes to stay on the dashboard
           const endDateTime = new Date(`${lessonDate}T${endTime}:00`);
           
           if (currentTime < endDateTime) {
@@ -80,6 +77,7 @@ export default function StudentDashboard() {
               time: slot.time,
               teacherName: teacher?.name || 'Profesor',
               instrument: teacher?.instrument || 'General',
+              type: slot.type,
               sortDate: new Date(`${lessonDate}T${startTime}:00`)
             });
           }
@@ -87,7 +85,6 @@ export default function StudentDashboard() {
       });
     });
 
-    // Sort chronologically and limit to the top 4
     return lessons
       .sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime())
       .slice(0, 4);
@@ -215,17 +212,26 @@ export default function StudentDashboard() {
                           key={slot.id}
                           variant={selectedSlotId === slot.id ? "default" : "outline"}
                           className={cn(
-                            "justify-between rounded-2xl h-14 border-2 font-black px-6 text-lg",
+                            "justify-between rounded-2xl h-16 border-2 font-black px-6",
                             selectedSlotId === slot.id 
                               ? 'bg-accent text-white border-accent shadow-md' 
                               : 'border-primary/5 hover:border-accent/30'
                           )}
                           onClick={() => setSelectedSlotId(slot.id)}
                         >
-                          <span className="flex items-center gap-3">
+                          <div className="flex items-center gap-4">
                             <Clock className="w-5 h-5" />
-                            {slot.time}
-                          </span>
+                            <div className="flex flex-col items-start">
+                                <span className="text-lg">{slot.time}</span>
+                                <span className={cn(
+                                    "text-xs font-black uppercase flex items-center gap-1",
+                                    slot.type === 'virtual' ? "text-blue-400" : "text-red-400"
+                                )}>
+                                    {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                    {slot.type}
+                                </span>
+                            </div>
+                          </div>
                           {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 animate-in zoom-in" />}
                         </Button>
                       ))
@@ -325,6 +331,13 @@ export default function StudentDashboard() {
                       <div className="font-black text-lg text-secondary-foreground leading-tight">Lección de {lesson.instrument}</div>
                       <div className="text-sm text-muted-foreground font-bold">
                         {new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}
+                      </div>
+                      <div className={cn(
+                          "text-[10px] font-black uppercase flex items-center gap-1 mt-1",
+                          lesson.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                      )}>
+                        {lesson.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                        Modalidad {lesson.type}
                       </div>
                     </div>
                   </div>

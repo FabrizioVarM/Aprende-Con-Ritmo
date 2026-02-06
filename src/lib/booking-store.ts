@@ -9,6 +9,7 @@ export interface TimeSlot {
   isAvailable: boolean;
   isBooked: boolean;
   bookedBy?: string;
+  type: 'virtual' | 'presencial';
 }
 
 export interface DayAvailability {
@@ -61,7 +62,8 @@ export function useBookingStore() {
         id: Math.random().toString(36).substring(2, 9), 
         time: s, 
         isAvailable: false, 
-        isBooked: false 
+        isBooked: false,
+        type: 'presencial'
       }))
     };
   }, [availabilities]);
@@ -99,7 +101,8 @@ export function useBookingStore() {
             time: s,
             isAvailable: false,
             isBooked: id === slotId,
-            bookedBy: id === slotId ? studentName : undefined
+            bookedBy: id === slotId ? studentName : undefined,
+            type: 'presencial'
           };
         })
       };
