@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function TeacherDashboard() {
@@ -36,11 +36,9 @@ export default function TeacherDashboard() {
     setTodayStr(new Date().toDateString());
   }, []);
 
-  // Use a ref-like approach or deep comparison to avoid infinite loop
   useEffect(() => {
-    if (isOpen || true) {
+    if (isOpen) {
       const data = getDayAvailability(teacherId, selectedDate);
-      // Only set if different to avoid re-renders
       setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
     }
   }, [selectedDate, isOpen, getDayAvailability, teacherId]);
@@ -80,6 +78,24 @@ export default function TeacherDashboard() {
     }
     const newSlots = localSlots.filter((_, i) => i !== index);
     setLocalSlots(newSlots);
+  };
+
+  const clearAllSlots = () => {
+    const bookedSlots = localSlots.filter(s => s.isBooked);
+    if (bookedSlots.length === localSlots.length && localSlots.length > 0) {
+      toast({
+        variant: "destructive",
+        title: "No se puede limpiar",
+        description: "Todos los horarios actuales están reservados.",
+      });
+      return;
+    }
+    
+    setLocalSlots(bookedSlots);
+    toast({
+      title: "Día Limpiado 🧹",
+      description: "Se han eliminado los horarios no reservados.",
+    });
   };
 
   const handleSaveAvailability = () => {
@@ -199,9 +215,14 @@ export default function TeacherDashboard() {
                         {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                       </p>
                     </div>
-                    <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent font-black gap-2 h-10 px-5">
-                      <Plus className="w-4 h-4" /> Añadir
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={clearAllSlots} className="rounded-full border-destructive/50 text-destructive hover:bg-destructive/10 font-black gap-2 h-10 px-5">
+                        <Eraser className="w-4 h-4" /> Limpiar Día
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent font-black gap-2 h-10 px-5">
+                        <Plus className="w-4 h-4" /> Añadir Horario
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -258,7 +279,7 @@ export default function TeacherDashboard() {
                 Cancelar
               </Button>
               <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black gap-2 shadow-xl">
-                <Save className="w-6 h-6" /> Guardar Cambios
+                <Save className="w-6 h-6" /> Guardar Todos los Cambios
               </Button>
             </div>
           </DialogContent>
