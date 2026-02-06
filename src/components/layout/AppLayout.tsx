@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from 'react';
@@ -11,7 +12,8 @@ import {
   Users, 
   LogOut,
   Music,
-  Menu
+  Menu,
+  User as UserIcon
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
 import { Button } from '@/components/ui/button';
@@ -36,6 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Biblioteca', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
   { label: 'Progreso', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher'] },
   { label: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
+  { label: 'Mi Perfil', href: '/profile', icon: UserIcon, roles: ['student', 'teacher', 'admin'] },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -83,16 +86,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
 
       <div className="mt-auto pt-6 border-t border-border">
-        <div className="flex items-center gap-3 px-4 py-4 mb-4">
+        <Link href="/profile" className="flex items-center gap-3 px-4 py-4 mb-4 hover:bg-primary/10 rounded-2xl transition-all">
           <Avatar className="w-10 h-10 border-2 border-primary">
-            <AvatarImage src={`https://picsum.photos/seed/${user.id}/100`} />
+            <AvatarImage src={`https://picsum.photos/seed/${user.avatarSeed || user.id}/100`} />
             <AvatarFallback className="bg-primary">{user.name[0]}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col overflow-hidden">
             <span className="text-sm font-bold truncate">{user.name}</span>
-            <span className="text-xs text-muted-foreground capitalize">{user.role === 'student' ? 'Estudiante' : user.role === 'teacher' ? 'Profesor' : 'Administrador'}</span>
+            <span className="text-xs text-muted-foreground capitalize">
+              {user.role === 'student' ? 'Estudiante' : user.role === 'teacher' ? 'Profesor' : 'Administrador'}
+            </span>
           </div>
-        </div>
+        </Link>
         <Button 
           variant="ghost" 
           className="w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl"
