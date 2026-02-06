@@ -17,8 +17,11 @@ const RESOURCES = [
   { id: 2, title: 'Masterclass de Escalas de Piano', category: 'Piano', type: 'Video', icon: Play, img: PlaceHolderImages[1] },
   { id: 3, title: 'Guía de Afinación de Violín', category: 'Violín', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[2] },
   { id: 4, title: 'Teoría Avanzada Vol 1', category: 'Teoría', type: 'Libro', icon: BookOpen, img: PlaceHolderImages[3] },
-  { id: 5, title: 'Esenciales de Fingerstyle', category: 'Guitarra', type: 'Video', icon: Play, img: PlaceHolderImages[0] },
-  { id: 6, title: 'Práctica de Lectura a Primera Vista', category: 'Piano', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[1] },
+  { id: 5, title: 'Rudimentos Esenciales de Batería', category: 'Batería', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[4] },
+  { id: 6, title: 'Técnicas de Respiración y Apoyo', category: 'Canto', type: 'Video', icon: Play, img: PlaceHolderImages[5] },
+  { id: 7, title: 'Esenciales de Fingerstyle', category: 'Guitarra', type: 'Video', icon: Play, img: PlaceHolderImages[0] },
+  { id: 8, title: 'Práctica de Lectura a Primera Vista', category: 'Piano', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[1] },
+  { id: 9, title: 'Independencia en la Batería', category: 'Batería', type: 'Video', icon: Play, img: PlaceHolderImages[4] },
 ];
 
 export default function LibraryPage() {
@@ -49,7 +52,7 @@ export default function LibraryPage() {
             />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto">
-            {['Todos', 'Guitarra', 'Piano', 'Violín', 'Teoría'].map((cat) => (
+            {['Todos', 'Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'].map((cat) => (
               <Button
                 key={cat}
                 variant={filter === cat ? 'default' : 'outline'}

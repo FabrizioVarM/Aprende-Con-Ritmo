@@ -24,6 +24,18 @@
       "description": "Libro de teoría musical y lápiz",
       "imageUrl": "https://picsum.photos/seed/theory1/600/400",
       "imageHint": "music theory"
+    },
+    {
+      "id": "drums-session",
+      "description": "Batería acústica con baquetas",
+      "imageUrl": "https://picsum.photos/seed/drums1/600/400",
+      "imageHint": "drums instrument"
+    },
+    {
+      "id": "singing-mic",
+      "description": "Micrófono profesional en estudio",
+      "imageUrl": "https://picsum.photos/seed/vocal1/600/400",
+      "imageHint": "singing microphone"
     }
   ]
 }
