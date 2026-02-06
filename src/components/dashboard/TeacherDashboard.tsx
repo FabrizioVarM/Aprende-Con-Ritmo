@@ -14,12 +14,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function TeacherDashboard() {
@@ -229,17 +229,26 @@ export default function TeacherDashboard() {
                     {localSlots.length > 0 ? (
                       localSlots.map((slot, i) => (
                         <div key={slot.id} className={cn(
-                          "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all",
-                          slot.isBooked ? "bg-orange-50 border-orange-200" : 
-                          slot.isAvailable ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-100 opacity-60"
+                          "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300",
+                          slot.isBooked 
+                            ? "bg-orange-50 border-orange-300 shadow-sm" 
+                            : slot.isAvailable 
+                              ? "bg-emerald-50 border-emerald-400 shadow-emerald-100 shadow-md" 
+                              : "bg-gray-50 border-gray-100 opacity-60"
                         )}>
                           <div className="flex-1 relative">
-                            <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Clock className={cn(
+                              "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
+                              slot.isAvailable ? "text-emerald-600" : "text-muted-foreground"
+                            )} />
                             <Input
                               value={slot.time}
                               onChange={(e) => updateSlotTime(i, e.target.value)}
                               disabled={slot.isBooked}
-                              className="h-12 pl-10 text-base rounded-xl font-bold bg-white"
+                              className={cn(
+                                "h-12 pl-10 text-base rounded-xl font-bold bg-white border-2 transition-all",
+                                slot.isAvailable ? "border-emerald-100 focus:border-emerald-300" : "border-transparent"
+                              )}
                             />
                             {slot.isBooked && (
                               <div className="flex items-center gap-1 mt-1 ml-2">
@@ -247,16 +256,33 @@ export default function TeacherDashboard() {
                                 <span className="text-[10px] font-black text-orange-600 uppercase">Reservado por {slot.bookedBy}</span>
                               </div>
                             )}
+                            {slot.isAvailable && !slot.isBooked && (
+                              <div className="flex items-center gap-1 mt-1 ml-2">
+                                <Check className="w-3 h-3 text-emerald-600" />
+                                <span className="text-[10px] font-black text-emerald-600 uppercase">Visible para alumnos</span>
+                              </div>
+                            )}
                           </div>
                           
-                          <div className="flex items-center gap-4">
-                            <Checkbox 
-                              checked={slot.isAvailable || slot.isBooked} 
-                              disabled={slot.isBooked}
-                              onCheckedChange={() => toggleSlotAvailability(i)}
-                              className="h-7 w-7 rounded-xl"
-                            />
-                            <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked} className="text-muted-foreground hover:text-destructive h-10 w-10">
+                          <div className="flex items-center gap-3">
+                            <div className="flex flex-col items-center gap-1">
+                              <span className={cn(
+                                "text-[9px] font-black uppercase tracking-tighter",
+                                slot.isAvailable ? "text-emerald-700" : "text-muted-foreground"
+                              )}>
+                                {slot.isAvailable ? 'Activo' : 'Inactivo'}
+                              </span>
+                              <Switch 
+                                checked={slot.isAvailable || slot.isBooked} 
+                                disabled={slot.isBooked}
+                                onCheckedChange={() => toggleSlotAvailability(i)}
+                                className={cn(
+                                  "data-[state=checked]:bg-emerald-500",
+                                  !slot.isBooked && "hover:scale-110 transition-transform"
+                                )}
+                              />
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked} className="text-muted-foreground hover:text-destructive h-10 w-10 mt-4">
                               <Trash2 className="w-5 h-5" />
                             </Button>
                           </div>
