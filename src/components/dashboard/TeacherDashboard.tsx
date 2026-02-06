@@ -121,17 +121,15 @@ export default function TeacherDashboard() {
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-[2.5rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden">
-            <div className="bg-primary/10 p-8 border-b">
-              <DialogHeader>
-                <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
-                  <CalendarIcon className="w-8 h-8 text-accent" />
-                  Configurar Agenda
-                </DialogTitle>
-                <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
-                  Elige el día y define tus bloques horarios.
-                </DialogDescription>
-              </DialogHeader>
-            </div>
+            <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
+              <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
+                <CalendarIcon className="w-8 h-8 text-accent" />
+                Configurar Agenda
+              </DialogTitle>
+              <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
+                Elige el día y define tus bloques horarios.
+              </DialogDescription>
+            </DialogHeader>
             
             <div className="p-8 space-y-8 bg-white">
               <div className="flex flex-col lg:flex-row gap-10">

@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -66,19 +66,13 @@ export default function SchedulePage() {
     });
   }, [date]);
 
-  const changeWeek = (offset: number) => {
-    const newDate = new Date(date);
-    newDate.setDate(date.getDate() + (offset * 7));
-    setDate(newDate);
-  };
-
   return (
     <AppLayout>
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-black text-foreground font-headline tracking-tight">Tu Agenda Musical 📅</h1>
-            <p className="text-muted-foreground mt-1 text-lg">Gestiona tus clases y descubre nuevos horarios.</p>
+            <p className="text-muted-foreground mt-1 text-lg font-medium">Gestiona tus clases y descubre nuevos horarios.</p>
           </div>
           
           <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
@@ -88,14 +82,12 @@ export default function SchedulePage() {
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-[2.5rem] max-w-md border-none p-0 shadow-2xl overflow-hidden">
-              <div className="bg-primary/10 p-8 border-b">
-                <DialogHeader>
-                  <DialogTitle className="text-2xl font-black text-secondary-foreground">Agendar Sesión 🎵</DialogTitle>
-                  <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
-                    {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                  </DialogDescription>
-                </DialogHeader>
-              </div>
+              <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
+                <DialogTitle className="text-2xl font-black text-secondary-foreground">Agendar Sesión 🎵</DialogTitle>
+                <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+                  {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </DialogDescription>
+              </DialogHeader>
               
               <div className="p-8 space-y-6">
                 <div className="space-y-4">
@@ -127,7 +119,7 @@ export default function SchedulePage() {
                     </div>
                   ) : (
                     <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10">
-                      <AlertCircle className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
+                      <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
                       <p className="text-sm font-bold text-muted-foreground">Sin cupos libres</p>
                     </div>
                   )}
@@ -148,61 +140,53 @@ export default function SchedulePage() {
           </Dialog>
         </div>
 
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-black text-secondary-foreground uppercase tracking-widest flex items-center gap-2">
-              <CalendarIcon className="w-6 h-6 text-accent" />
-              Vista Semanal
-            </h3>
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={() => changeWeek(-1)} className="rounded-full border-primary/20">
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => changeWeek(1)} className="rounded-full border-primary/20">
-                <ChevronRight className="w-5 h-5" />
-              </Button>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-4 space-y-6">
+            <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
+              <CardHeader className="bg-primary/5 p-6">
+                <CardTitle className="text-lg font-black flex items-center gap-2">
+                  <CalendarIcon className="w-5 h-5 text-accent" />
+                  Semana Actual
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 gap-2">
+                  {weekDays.map((d, i) => {
+                    const isSelected = d.toDateString() === date.toDateString();
+                    const isToday = d.toDateString() === todayStr;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setDate(d)}
+                        className={cn(
+                          "flex items-center justify-between p-4 rounded-2xl transition-all border-2",
+                          isSelected 
+                            ? "bg-accent border-accent text-white shadow-lg" 
+                            : "bg-white border-primary/5 hover:border-accent/30",
+                          isToday && !isSelected && "border-accent/30"
+                        )}
+                      >
+                        <div className="flex flex-col items-start">
+                          <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+                            {d.toLocaleDateString('es-ES', { weekday: 'long' })}
+                          </span>
+                          <span className="text-xl font-black">{d.getDate()}</span>
+                        </div>
+                        {isToday && (
+                          <Badge className={cn(
+                            "rounded-full px-3 py-1 text-[9px] font-black",
+                            isSelected ? "bg-white text-accent" : "bg-accent text-white"
+                          )}>HOY</Badge>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <div className="grid grid-cols-7 gap-4">
-            {weekDays.map((d, i) => {
-              const isSelected = d.toDateString() === date.toDateString();
-              const isToday = d.toDateString() === todayStr;
-              
-              return (
-                <button
-                  key={i}
-                  onClick={() => setDate(d)}
-                  className={cn(
-                    "flex flex-col items-center p-4 rounded-3xl transition-all border-2 relative",
-                    isSelected 
-                      ? "bg-accent border-accent text-white shadow-xl shadow-accent/20 scale-105" 
-                      : "bg-white border-primary/5 hover:border-accent/30 hover:bg-accent/5 text-secondary-foreground",
-                    isToday && !isSelected && "border-accent/40"
-                  )}
-                >
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                    {d.toLocaleDateString('es-ES', { weekday: 'short' })}
-                  </span>
-                  <span className="text-2xl font-black leading-none mt-1">
-                    {d.getDate()}
-                  </span>
-                  {isToday && (
-                    <span className={cn(
-                      "text-[9px] font-black mt-1 uppercase tracking-tighter",
-                      isSelected ? "text-white/80" : "text-accent"
-                    )}>
-                      HOY
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-          <div className="space-y-6">
+          <div className="lg:col-span-8 space-y-6">
             <div className="flex items-center gap-4 bg-primary/5 p-4 rounded-3xl border border-primary/10">
               <div className="bg-accent/10 p-3 rounded-2xl">
                 <Clock className="w-6 h-6 text-accent" />
@@ -211,7 +195,7 @@ export default function SchedulePage() {
                 <h3 className="text-xl font-black text-secondary-foreground capitalize leading-tight">
                   {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </h3>
-                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Resumen del día</p>
+                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Horarios del día</p>
               </div>
             </div>
             
@@ -219,14 +203,13 @@ export default function SchedulePage() {
               {allDaySlots.some(s => s.isBooked || s.isAvailable) ? (
                 allDaySlots.map((slot, i) => {
                   if (!slot.isBooked && !slot.isAvailable) return null;
-                  
                   const isMine = slot.bookedBy === user?.name;
                   
                   return (
                     <Card key={slot.id} className={cn(
                       "rounded-[2rem] border-2 transition-all duration-300 group",
                       isMine 
-                        ? 'bg-accent/5 border-accent shadow-lg shadow-accent/10' 
+                        ? 'bg-accent/5 border-accent shadow-lg shadow-accent/10 scale-[1.02]' 
                         : slot.isBooked 
                           ? 'bg-gray-50 border-transparent opacity-60' 
                           : 'bg-white border-primary/5 hover:border-accent/20'
@@ -244,13 +227,13 @@ export default function SchedulePage() {
                             "text-lg font-black tracking-tight",
                             isMine ? "text-accent" : "text-secondary-foreground"
                           )}>
-                            {isMine ? '🌟 Tu Clase' : slot.isBooked ? 'Ocupado' : 'Disponible'}
+                            {isMine ? '🌟 Tu Clase Confirmada' : slot.isBooked ? 'Ocupado' : 'Disponible'}
                           </h4>
                           <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                             <span className="flex items-center gap-1"><Music className="w-3 h-3 text-accent" /> Carlos</span>
                             <span className="flex items-center gap-1">
                               {i % 2 === 0 ? <Video className="w-3 h-3 text-blue-500" /> : <MapPin className="w-3 h-3 text-red-500" />}
-                              {i % 2 === 0 ? 'Online' : 'Estudio'}
+                              {i % 2 === 0 ? 'Online' : 'Presencial'}
                             </span>
                           </div>
                         </div>
@@ -284,7 +267,7 @@ export default function SchedulePage() {
                   <div className="bg-primary/5 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
                     <AlertCircle className="w-8 h-8 text-primary/20" />
                   </div>
-                  <p className="text-lg font-black text-secondary-foreground">Sin disponibilidad</p>
+                  <p className="text-lg font-black text-secondary-foreground">Sin disponibilidad configurada</p>
                 </div>
               )}
             </div>

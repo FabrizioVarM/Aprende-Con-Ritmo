@@ -117,17 +117,15 @@ export default function StudentDashboard() {
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden">
-            <div className="bg-primary/10 p-8 border-b">
-              <DialogHeader>
-                <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
-                  <Music className="w-8 h-8 text-accent" />
-                  Agendar Sesión
-                </DialogTitle>
-                <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
-                  Elige a tu profesor y encuentra el horario perfecto.
-                </DialogDescription>
-              </DialogHeader>
-            </div>
+            <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
+              <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
+                <Music className="w-8 h-8 text-accent" />
+                Agendar Sesión
+              </DialogTitle>
+              <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
+                Elige a tu profesor y encuentra el horario perfecto.
+              </DialogDescription>
+            </DialogHeader>
 
             <div className="p-8 space-y-8 bg-white">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
