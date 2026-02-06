@@ -1,11 +1,11 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, PlayCircle, Star, Clock, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, PlayCircle, Star, Clock, ChevronRight, Music, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,115 +17,211 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Calendar } from '@/components/ui/calendar';
+import { useBookingStore } from '@/lib/booking-store';
+import { useAuth } from '@/lib/auth-store';
+import { cn } from '@/lib/utils';
+
+const TEACHERS = [
+  { id: '2', name: 'Prof. Carlos', instrument: 'Guitarra' },
+  { id: '4', name: 'Prof. Elena', instrument: 'Teoría' },
+  { id: '5', name: 'Prof. Marcos', instrument: 'Piano' },
+];
 
 export default function StudentDashboard() {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('2');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  
   const { toast } = useToast();
+  const { getDayAvailability, bookSlot } = useBookingStore();
+
+  const availability = useMemo(() => {
+    return getDayAvailability(selectedTeacherId, selectedDate);
+  }, [selectedTeacherId, selectedDate, getDayAvailability]);
+
+  const freeSlots = availability.slots.filter(s => s.isAvailable && !s.isBooked);
 
   const handleBookLesson = () => {
+    if (!selectedSlotId || !user) return;
+
+    bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name);
+    
     toast({
-      title: "Clase Solicitada 🎵",
-      description: "Tu solicitud ha sido enviada al profesor. Recibirás una confirmación pronto.",
+      title: "¡Reserva Exitosa! 🎸",
+      description: "Tu clase ha sido agendada con éxito en tu calendario.",
     });
+    
     setIsOpen(false);
+    setSelectedSlotId(null);
   };
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-foreground font-headline">¡Hola, Ana! 👋</h1>
-          <p className="text-muted-foreground mt-1 text-lg">¿Lista para tu próximo avance musical?</p>
+          <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">¡Hola, {user?.name.split(' ')[0]}! 👋</h1>
+          <p className="text-muted-foreground mt-1 text-lg font-medium">¿Lista para tu próximo avance musical?</p>
         </div>
         
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-accent text-white rounded-full px-6 h-12">
+            <Button className="bg-accent text-white rounded-2xl px-8 h-14 text-lg font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all">
               Agendar Nueva Lección
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">Agendar Lección 🎸</DialogTitle>
-              <DialogDescription>
-                Selecciona el profesor y el horario que mejor te convenga.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold">Seleccionar Profesor</label>
-                <Select>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue placeholder="Elige un profesor" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="carlos">Prof. Carlos (Guitarra)</SelectItem>
-                    <SelectItem value="elena">Prof. Elena (Teoría)</SelectItem>
-                    <SelectItem value="marcos">Prof. Marcos (Piano)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-bold">Horarios Disponibles</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" className="rounded-xl border-primary hover:bg-primary/20">Mañana (10:00)</Button>
-                  <Button variant="outline" className="rounded-xl border-primary hover:bg-primary/20">Tarde (16:00)</Button>
+          <DialogContent className="rounded-[2.5rem] max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
+            <div className="bg-primary/10 p-8 border-b">
+              <DialogHeader>
+                <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
+                  <Music className="w-8 h-8 text-accent" />
+                  Agendar Nueva Sesión
+                </DialogTitle>
+                <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
+                  Elige a tu profesor y encuentra el horario perfecto para ti.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 bg-white">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Seleccionar Profesor</label>
+                    <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                      <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 focus:ring-accent">
+                        <SelectValue placeholder="Elige un profesor" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl">
+                        {TEACHERS.map(t => (
+                          <SelectItem key={t.id} value={t.id} className="font-bold py-3">
+                            {t.name} ({t.instrument})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Seleccionar Fecha</label>
+                    <div className="border-2 border-primary/10 rounded-[2rem] p-4 bg-primary/5">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(date) => date && setSelectedDate(date)}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Horarios Disponibles</label>
+                    <Badge variant="outline" className="rounded-full border-accent text-accent font-black">
+                      {selectedDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto pr-2">
+                    {freeSlots.length > 0 ? (
+                      freeSlots.map((slot) => (
+                        <Button
+                          key={slot.id}
+                          variant={selectedSlotId === slot.id ? "default" : "outline"}
+                          className={cn(
+                            "justify-between rounded-2xl h-14 transition-all border-2 font-black px-6 text-lg",
+                            selectedSlotId === slot.id 
+                              ? 'bg-accent text-white border-accent shadow-lg shadow-accent/20' 
+                              : 'border-primary/5 hover:border-accent/30 hover:bg-accent/5 text-secondary-foreground'
+                          )}
+                          onClick={() => setSelectedSlotId(slot.id)}
+                        >
+                          <span className="flex items-center gap-3">
+                            <Clock className="w-5 h-5" />
+                            {slot.time}
+                          </span>
+                          {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 animate-in zoom-in" />}
+                        </Button>
+                      ))}
+                    ) : (
+                      <div className="bg-muted/10 p-12 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5">
+                        <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
+                        <p className="text-lg font-black text-muted-foreground">Sin horarios libres</p>
+                        <p className="text-sm text-muted-foreground/60 font-medium mt-1">Prueba con otra fecha o profesor.</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-            <DialogFooter className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 border-primary">Cancelar</Button>
-              <Button onClick={handleBookLesson} className="bg-accent text-white rounded-xl flex-1">Confirmar Reserva</Button>
-            </DialogFooter>
+
+            <div className="p-8 bg-gray-50 flex gap-4 border-t">
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 border-primary/20 font-black text-lg">
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleBookLesson} 
+                disabled={!selectedSlotId}
+                className="bg-accent text-white rounded-2xl flex-1 h-14 font-black text-lg shadow-xl shadow-accent/20 hover:scale-[1.02] transition-transform disabled:opacity-50"
+              >
+                Confirmar Clase
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="rounded-3xl border-none shadow-sm bg-secondary/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
+        <Card className="rounded-[2.5rem] border-none shadow-sm bg-secondary/30 p-6">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="text-sm font-black uppercase tracking-widest text-secondary-foreground flex items-center gap-2">
               <Star className="w-5 h-5 text-accent fill-accent" />
               Progreso
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">85%</div>
-            <p className="text-sm text-muted-foreground">Maestra de Guitarra Nivel 2</p>
+          <CardContent className="p-0">
+            <div className="text-5xl font-black text-secondary-foreground">85%</div>
+            <p className="text-sm text-secondary-foreground/60 font-bold mt-1">Maestra de Guitarra Nivel 2</p>
           </CardContent>
         </Card>
         
-        <Card className="rounded-3xl border-none shadow-sm bg-primary/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-accent" />
+        <Card className="rounded-[2.5rem] border-none shadow-sm bg-primary/20 p-6">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="text-sm font-black uppercase tracking-widest text-secondary-foreground flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 text-accent" />
               Próxima Clase
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">Hoy</div>
-            <p className="text-sm text-muted-foreground">3:00 PM con Prof. Carlos</p>
+          <CardContent className="p-0">
+            <div className="text-5xl font-black text-secondary-foreground">Hoy</div>
+            <p className="text-sm text-secondary-foreground/60 font-bold mt-1">3:00 PM con Prof. Carlos</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-none shadow-sm bg-orange-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
+        <Card className="rounded-[2.5rem] border-none shadow-sm bg-orange-100/50 p-6">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-600 flex items-center gap-2">
               <Clock className="w-5 h-5 text-accent" />
-              Horas de Práctica
+              Práctica
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">12.5</div>
-            <p className="text-sm text-muted-foreground">¡Sigue con el gran trabajo!</p>
+          <CardContent className="p-0">
+            <div className="text-5xl font-black text-orange-900">12.5h</div>
+            <p className="text-sm text-orange-600 font-bold mt-1">¡Sigue así, Ana!</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="rounded-3xl border-none shadow-md overflow-hidden">
-          <CardHeader className="border-b bg-white/50">
-            <CardTitle>Próximas Clases</CardTitle>
+        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
+          <CardHeader className="border-b bg-primary/5 p-6">
+            <CardTitle className="text-xl font-black flex items-center gap-2">
+              <CalendarIcon className="w-6 h-6 text-accent" />
+              Próximas Clases
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {[
@@ -133,25 +229,28 @@ export default function StudentDashboard() {
               { date: 'Viernes, 11 AM', topic: 'Básicos de Teoría', type: 'General' },
               { date: 'Lunes, 2 PM', topic: 'Práctica de Escalas', type: 'Guitarra' },
             ].map((lesson, i) => (
-              <div key={i} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors border-b last:border-0">
+              <div key={i} className="flex items-center justify-between p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
                 <div className="flex gap-4 items-center">
-                  <div className="bg-primary/50 p-2 rounded-xl">
-                    <Calendar className="w-5 h-5 text-secondary-foreground" />
+                  <div className="bg-white p-3 rounded-2xl shadow-sm border border-primary/10">
+                    <Music className="w-6 h-6 text-accent" />
                   </div>
                   <div>
-                    <div className="font-bold">{lesson.topic}</div>
-                    <div className="text-xs text-muted-foreground">{lesson.date}</div>
+                    <div className="font-black text-lg text-secondary-foreground leading-tight">{lesson.topic}</div>
+                    <div className="text-sm text-muted-foreground font-bold">{lesson.date}</div>
                   </div>
                 </div>
-                <Badge variant="secondary" className="rounded-full">{lesson.type}</Badge>
+                <Badge className="bg-secondary text-secondary-foreground font-black px-4 py-1 rounded-full">{lesson.type}</Badge>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-none shadow-md overflow-hidden">
-          <CardHeader className="border-b bg-white/50">
-            <CardTitle>Recursos de Aprendizaje</CardTitle>
+        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
+          <CardHeader className="border-b bg-accent/5 p-6">
+            <CardTitle className="text-xl font-black flex items-center gap-2">
+              <PlayCircle className="w-6 h-6 text-accent" />
+              Recursos de Aprendizaje
+            </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {[
@@ -159,18 +258,18 @@ export default function StudentDashboard() {
               { title: 'Hoja de Práctica #4', length: '2 págs', type: 'PDF' },
               { title: 'Pentatónica Menor', length: '12 min', type: 'Video' },
             ].map((resource, i) => (
-              <div key={i} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors border-b last:border-0">
+              <div key={i} className="flex items-center justify-between p-6 hover:bg-accent/5 transition-colors border-b last:border-0">
                 <div className="flex gap-4 items-center">
-                  <div className="bg-accent/20 p-2 rounded-xl">
-                    <PlayCircle className="w-5 h-5 text-accent" />
+                  <div className="bg-white p-3 rounded-2xl shadow-sm border border-primary/10">
+                    <PlayCircle className="w-6 h-6 text-accent" />
                   </div>
                   <div>
-                    <div className="font-bold">{resource.title}</div>
-                    <div className="text-xs text-muted-foreground">{resource.length}</div>
+                    <div className="font-black text-lg text-secondary-foreground leading-tight">{resource.title}</div>
+                    <div className="text-sm text-muted-foreground font-bold">{resource.length}</div>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <ChevronRight className="w-5 h-5" />
+                <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10">
+                  <ChevronRight className="w-6 h-6 text-accent" />
                 </Button>
               </div>
             ))}
