@@ -38,7 +38,6 @@ export default function StudentDashboard() {
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
 
   useEffect(() => {
-    // Definimos el hoy de forma segura para el cliente
     const today = new Date();
     setTodayStr(today.toDateString());
   }, []);
@@ -49,7 +48,6 @@ export default function StudentDashboard() {
 
   const freeSlots = availability.slots.filter(s => s.isAvailable && !s.isBooked);
 
-  // Obtener todas las clases reservadas por el usuario actual de forma robusta
   const myUpcomingLessons = useMemo(() => {
     if (!user) return [];
     
@@ -58,9 +56,8 @@ export default function StudentDashboard() {
       dayAvail.slots.forEach(slot => {
         if (slot.isBooked && slot.bookedBy === user.name) {
           const teacher = TEACHERS.find(t => t.id === dayAvail.teacherId);
-          // Creamos una fecha comparable
-          const lessonDate = dayAvail.date; // YYYY-MM-DD
-          const timeStart = slot.time.split(' ')[0]; // HH:mm
+          const lessonDate = dayAvail.date;
+          const timeStart = slot.time.split(' ')[0];
           
           lessons.push({
             date: lessonDate,
@@ -74,10 +71,9 @@ export default function StudentDashboard() {
     });
 
     const now = new Date();
-    const todayISO = now.toISOString().split('T')[0];
 
     return lessons
-      .filter(l => l.date >= todayISO)
+      .filter(l => l.sortDate >= now)
       .sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime());
   }, [availabilities, user]);
 
@@ -300,7 +296,7 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             {myUpcomingLessons.length > 0 ? (
-              myUpcomingLessons.slice(0, 5).map((lesson, i) => (
+              myUpcomingLessons.slice(0, 4).map((lesson, i) => (
                 <div key={i} className="flex items-center justify-between p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
                   <div className="flex gap-4 items-center">
                     <div className="bg-white p-3 rounded-2xl shadow-sm border border-primary/10">
@@ -321,7 +317,7 @@ export default function StudentDashboard() {
             ) : (
               <div className="p-16 text-center">
                 <Music className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-                <p className="text-muted-foreground font-bold italic">No tienes clases agendadas para los próximos días.</p>
+                <p className="text-muted-foreground font-bold italic">No tienes clases agendadas próximamente.</p>
                 <Button 
                   variant="link" 
                   className="text-accent font-black mt-2"
