@@ -70,11 +70,7 @@ export default function StudentDashboard() {
       });
     });
 
-    const now = new Date();
-
-    return lessons
-      .filter(l => l.sortDate >= now)
-      .sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime());
+    return lessons.sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime());
   }, [availabilities, user]);
 
   const nextLesson = myUpcomingLessons[0];
@@ -153,7 +149,7 @@ export default function StudentDashboard() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día (Semana Actual)</label>
                     <div className="grid grid-cols-7 gap-2">
                       {weekDays.map((d, i) => {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
@@ -211,9 +207,9 @@ export default function StudentDashboard() {
                         </Button>
                       ))
                     ) : (
-                      <div className="bg-muted/10 p-10 rounded-[2rem] text-center border-2 border-dashed">
-                        <AlertCircle className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
-                        <p className="font-black text-muted-foreground">Sin cupos libres</p>
+                      <div className="bg-muted/10 p-12 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5">
+                        <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
+                        <p className="font-black text-muted-foreground">Sin cupos libres para este día</p>
                       </div>
                     )}
                   </div>
@@ -230,7 +226,7 @@ export default function StudentDashboard() {
                 disabled={!selectedSlotId}
                 className="bg-accent text-white rounded-2xl flex-1 h-14 font-black shadow-xl"
               >
-                Confirmar
+                Confirmar Reserva
               </Button>
             </div>
           </DialogContent>
@@ -281,7 +277,7 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="text-5xl font-black text-orange-900">{myUpcomingLessons.length}</div>
-            <p className="text-sm text-orange-600 font-bold mt-1">Clases próximas</p>
+            <p className="text-sm text-orange-600 font-bold mt-1">Clases programadas</p>
           </CardContent>
         </Card>
       </div>
@@ -296,7 +292,7 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             {myUpcomingLessons.length > 0 ? (
-              myUpcomingLessons.slice(0, 4).map((lesson, i) => (
+              myUpcomingLessons.map((lesson, i) => (
                 <div key={i} className="flex items-center justify-between p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
                   <div className="flex gap-4 items-center">
                     <div className="bg-white p-3 rounded-2xl shadow-sm border border-primary/10">
