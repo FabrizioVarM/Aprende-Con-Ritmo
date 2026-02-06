@@ -18,9 +18,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { Calendar } from '@/components/ui/calendar';
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function TeacherDashboard() {
@@ -124,18 +123,37 @@ export default function TeacherDashboard() {
             <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
               <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
                 <CalendarIcon className="w-8 h-8 text-accent" />
-                Configurar Agenda
+                Configurar Agenda Semanal
               </DialogTitle>
               <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
-                Elige el día y define tus bloques horarios.
+                Selecciona un día de la semana para definir tus bloques de clase.
               </DialogDescription>
             </DialogHeader>
             
             <div className="p-8 space-y-8 bg-white">
-              <div className="flex flex-col lg:flex-row gap-10">
-                <div className="flex-1 space-y-4">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Día de la Semana Actual</Label>
-                  <div className="grid grid-cols-7 gap-2">
+              <div className="flex flex-col gap-10">
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Elige el Día</Label>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => {
+                        const prev = new Date(selectedDate);
+                        prev.setDate(prev.getDate() - 7);
+                        setSelectedDate(prev);
+                      }} className="rounded-full">
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => {
+                        const next = new Date(selectedDate);
+                        next.setDate(next.getDate() + 7);
+                        setSelectedDate(next);
+                      }} className="rounded-full">
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-7 gap-4">
                     {weekDays.map((d, i) => {
                       const isSelected = d.toDateString() === selectedDate.toDateString();
                       const isToday = d.toDateString() === todayStr;
@@ -144,18 +162,20 @@ export default function TeacherDashboard() {
                           key={i}
                           onClick={() => setSelectedDate(d)}
                           className={cn(
-                            "flex flex-col items-center py-4 rounded-xl transition-all border-2 relative",
+                            "flex flex-col items-center py-5 rounded-2xl transition-all border-2 relative group",
                             isSelected 
-                              ? "bg-accent border-accent text-white shadow-lg" 
+                              ? "bg-accent border-accent text-white shadow-xl scale-105" 
                               : "bg-primary/5 border-transparent hover:border-accent/20",
                             isToday && !isSelected && "border-accent/30"
                           )}
                         >
-                          <span className="text-[10px] font-black uppercase">{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
-                          <span className="text-xl font-black">{d.getDate()}</span>
+                          <span className="text-[11px] font-black uppercase tracking-wider mb-1">
+                            {d.toLocaleDateString('es-ES', { weekday: 'short' })}
+                          </span>
+                          <span className="text-2xl font-black">{d.getDate()}</span>
                           {isToday && (
                             <span className={cn(
-                              "text-[8px] font-black uppercase",
+                              "text-[9px] font-black uppercase mt-1",
                               isSelected ? "text-white/80" : "text-accent"
                             )}>
                               HOY
@@ -165,28 +185,22 @@ export default function TeacherDashboard() {
                       );
                     })}
                   </div>
-                  <div className="pt-4 border-t">
-                    <p className="text-xs font-bold text-muted-foreground italic text-center">También puedes usar el calendario completo si prefieres otras fechas.</p>
-                    <div className="flex justify-center mt-2">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(date) => date && setSelectedDate(date)}
-                        className="scale-90"
-                      />
-                    </div>
-                  </div>
                 </div>
                 
-                <div className="flex-[1.5] space-y-6">
+                <div className="space-y-6">
                   <div className="flex justify-between items-center">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Bloques del Día</Label>
-                    <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent font-black gap-2">
-                      <Plus className="w-4 h-4" /> Nuevo Rango
+                    <div className="flex flex-col">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Bloques Horarios para:</Label>
+                      <p className="text-lg font-black text-secondary-foreground capitalize">
+                        {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      </p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent font-black gap-2 h-10 px-5">
+                      <Plus className="w-4 h-4" /> Añadir Horario
                     </Button>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[350px] overflow-y-auto pr-2">
                     {localSlots.length > 0 ? (
                       localSlots.map((slot, i) => (
                         <div key={slot.id} className={cn(
@@ -202,7 +216,12 @@ export default function TeacherDashboard() {
                               disabled={slot.isBooked}
                               className="h-12 pl-10 text-base rounded-xl font-bold bg-white"
                             />
-                            {slot.isBooked && <span className="text-[10px] font-black text-orange-600 uppercase ml-2 mt-1 block">Reservado por {slot.bookedBy}</span>}
+                            {slot.isBooked && (
+                              <div className="flex items-center gap-1 mt-1 ml-2">
+                                <User className="w-3 h-3 text-orange-600" />
+                                <span className="text-[10px] font-black text-orange-600 uppercase">Reservado por {slot.bookedBy}</span>
+                              </div>
+                            )}
                           </div>
                           
                           <div className="flex items-center gap-4">
@@ -210,17 +229,19 @@ export default function TeacherDashboard() {
                               checked={slot.isAvailable || slot.isBooked} 
                               disabled={slot.isBooked}
                               onCheckedChange={() => toggleSlotAvailability(i)}
-                              className="h-6 w-6 rounded-lg"
+                              className="h-7 w-7 rounded-xl"
                             />
-                            <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked} className="text-muted-foreground hover:text-destructive">
+                            <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked} className="text-muted-foreground hover:text-destructive h-10 w-10">
                               <Trash2 className="w-5 h-5" />
                             </Button>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-12 bg-muted/5 rounded-[2rem] border-2 border-dashed">
-                        <p className="font-bold text-muted-foreground">Día sin horarios definidos</p>
+                      <div className="col-span-full text-center py-16 bg-muted/5 rounded-[2.5rem] border-4 border-dashed border-primary/10">
+                        <Clock className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
+                        <p className="font-black text-muted-foreground">Este día no tiene horarios configurados</p>
+                        <Button variant="link" onClick={addSlot} className="text-accent font-black mt-2">Crea el primer bloque aquí</Button>
                       </div>
                     )}
                   </div>
@@ -233,7 +254,7 @@ export default function TeacherDashboard() {
                 Cancelar
               </Button>
               <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black gap-2 shadow-xl">
-                <Save className="w-6 h-6" /> Guardar Cambios
+                <Save className="w-6 h-6" /> Guardar Todos los Cambios
               </Button>
             </div>
           </DialogContent>
