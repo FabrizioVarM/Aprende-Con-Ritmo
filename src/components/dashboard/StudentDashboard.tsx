@@ -1,11 +1,35 @@
+
 "use client"
 
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, PlayCircle, Star, Clock, ChevronRight } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function StudentDashboard() {
+  const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleBookLesson = () => {
+    toast({
+      title: "Clase Solicitada 🎵",
+      description: "Tu solicitud ha sido enviada al profesor. Recibirás una confirmación pronto.",
+    });
+    setIsOpen(false);
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -13,9 +37,48 @@ export default function StudentDashboard() {
           <h1 className="text-3xl font-extrabold text-foreground font-headline">¡Hola, Ana! 👋</h1>
           <p className="text-muted-foreground mt-1 text-lg">¿Lista para tu próximo avance musical?</p>
         </div>
-        <Button className="bg-accent text-white rounded-full px-6">
-          Agendar Nueva Lección
-        </Button>
+        
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-accent text-white rounded-full px-6 h-12">
+              Agendar Nueva Lección
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="rounded-3xl max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">Agendar Lección 🎸</DialogTitle>
+              <DialogDescription>
+                Selecciona el profesor y el horario que mejor te convenga.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold">Seleccionar Profesor</label>
+                <Select>
+                  <SelectTrigger className="rounded-xl">
+                    <SelectValue placeholder="Elige un profesor" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="carlos">Prof. Carlos (Guitarra)</SelectItem>
+                    <SelectItem value="elena">Prof. Elena (Teoría)</SelectItem>
+                    <SelectItem value="marcos">Prof. Marcos (Piano)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold">Horarios Disponibles</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" className="rounded-xl border-primary hover:bg-primary/20">Mañana (10:00)</Button>
+                  <Button variant="outline" className="rounded-xl border-primary hover:bg-primary/20">Tarde (16:00)</Button>
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 border-primary">Cancelar</Button>
+              <Button onClick={handleBookLesson} className="bg-accent text-white rounded-xl flex-1">Confirmar Reserva</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

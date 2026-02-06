@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -7,10 +8,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Clock, Video, MapPin, Plus, Users } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
 
 export default function SchedulePage() {
   const { user } = useAuth();
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleBook = () => {
+    toast({
+      title: "Reserva Exitosa 📅",
+      description: "Tu clase ha sido agendada correctamente para el día seleccionado.",
+    });
+    setIsOpen(false);
+  };
 
   const CLASSES = [
     { time: '09:00 AM', title: 'Ritmos Avanzados', teacher: 'Carlos V.', type: 'En línea', duration: '60 min' },
@@ -26,9 +47,39 @@ export default function SchedulePage() {
             <h1 className="text-3xl font-extrabold text-foreground font-headline">Horario de Clases 📅</h1>
             <p className="text-muted-foreground mt-1 text-lg">Gestiona tus sesiones y disponibilidad.</p>
           </div>
-          <Button className="bg-accent text-white rounded-xl gap-2 h-12 px-6">
-            <Plus className="w-5 h-5" /> Reservar Clase
-          </Button>
+          
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-accent text-white rounded-xl gap-2 h-12 px-6">
+                <Plus className="w-5 h-5" /> Reservar Clase
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="rounded-3xl max-w-md">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold">Nueva Reserva 🎵</DialogTitle>
+                <DialogDescription>
+                  Estás reservando para el {date?.toLocaleDateString('es-ES', { dateStyle: 'long' })}.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                <p className="text-sm">Selecciona el tipo de clase que deseas agendar:</p>
+                <div className="grid grid-cols-1 gap-2">
+                  <Button variant="outline" className="justify-start rounded-xl h-14 border-primary/50 px-4">
+                    <Users className="w-5 h-5 mr-3 text-accent" />
+                    Lección Individual (60 min)
+                  </Button>
+                  <Button variant="outline" className="justify-start rounded-xl h-14 border-primary/50 px-4">
+                    <Video className="w-5 h-5 mr-3 text-blue-500" />
+                    Taller Grupal Online (90 min)
+                  </Button>
+                </div>
+              </div>
+              <DialogFooter className="flex gap-2">
+                <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 border-primary">Cancelar</Button>
+                <Button onClick={handleBook} className="bg-accent text-white rounded-xl flex-1">Agendar Ahora</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -73,7 +124,7 @@ export default function SchedulePage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="outline" className="rounded-xl border-primary">Reprogramar</Button>
+                    <Button variant="outline" className="rounded-xl border-primary" onClick={() => toast({ title: "Función próximamente", description: "Esta opción estará disponible pronto." })}>Reprogramar</Button>
                     <Button className="bg-accent text-white rounded-xl">Ver Detalles</Button>
                   </div>
                 </CardContent>

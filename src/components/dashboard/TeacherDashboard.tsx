@@ -1,10 +1,35 @@
+
 "use client"
 
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast"
 
 export default function TeacherDashboard() {
+  const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleSaveAvailability = () => {
+    toast({
+      title: "Disponibilidad Actualizada ✅",
+      description: "Tus horarios de disponibilidad han sido guardados con éxito.",
+    });
+    setIsOpen(false);
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -58,7 +83,7 @@ export default function TeacherDashboard() {
         <Card className="lg:col-span-2 rounded-3xl border-none shadow-md">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Seguimiento de Progreso</CardTitle>
-            <Button variant="outline" size="sm">Ver Todos</Button>
+            <Button variant="outline" size="sm" className="rounded-xl border-primary">Ver Todos</Button>
           </CardHeader>
           <CardContent className="space-y-6">
             {[
@@ -100,7 +125,34 @@ export default function TeacherDashboard() {
               </div>
             ))}
             <div className="p-4 bg-muted/30">
-              <Button className="w-full bg-accent text-white rounded-xl">Gestionar Disponibilidad</Button>
+              <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full bg-accent text-white rounded-xl">Gestionar Disponibilidad</Button>
+                </DialogTrigger>
+                <DialogContent className="rounded-3xl max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="text-2xl font-bold">Gestionar Disponibilidad 🕒</DialogTitle>
+                    <DialogDescription>
+                      Selecciona los días y rangos horarios en los que estás disponible para nuevas clases.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].map((day) => (
+                      <div key={day} className="flex items-center justify-between border-b pb-2">
+                        <div className="flex items-center gap-3">
+                          <Checkbox id={day} defaultChecked />
+                          <Label htmlFor={day} className="font-bold cursor-pointer">{day}</Label>
+                        </div>
+                        <span className="text-sm text-muted-foreground">09:00 - 18:00</span>
+                      </div>
+                    ))}
+                  </div>
+                  <DialogFooter className="flex gap-2">
+                    <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 border-primary">Cancelar</Button>
+                    <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-xl flex-1">Guardar Cambios</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
         </Card>
