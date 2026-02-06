@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -68,13 +69,19 @@ export default function LibraryPage() {
           {filtered.map((res) => (
             <Card key={res.id} className="rounded-3xl border-none shadow-md group overflow-hidden">
               <div className="relative aspect-video overflow-hidden">
-                <Image 
-                  src={res.img.imageUrl} 
-                  alt={res.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  data-ai-hint={res.img.imageHint}
-                />
+                {res.img ? (
+                  <Image 
+                    src={res.img.imageUrl} 
+                    alt={res.title}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    data-ai-hint={res.img.imageHint}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-muted flex items-center justify-center">
+                    <BookOpen className="w-12 h-12 text-muted-foreground" />
+                  </div>
+                )}
                 <div className="absolute top-3 left-3">
                   <Badge className="bg-white/90 text-black backdrop-blur-sm rounded-full px-3">{res.category}</Badge>
                 </div>

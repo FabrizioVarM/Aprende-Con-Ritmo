@@ -3,25 +3,25 @@
   "placeholderImages": [
     {
       "id": "guitar-lesson",
-      "description": "Guitar sheet music and pick",
+      "description": "Partitura de guitarra y púa",
       "imageUrl": "https://picsum.photos/seed/guitar1/600/400",
       "imageHint": "guitar music"
     },
     {
       "id": "piano-scales",
-      "description": "Piano keys with sheet music",
+      "description": "Teclas de piano con partitura",
       "imageUrl": "https://picsum.photos/seed/piano1/600/400",
       "imageHint": "piano keys"
     },
     {
       "id": "violin-notes",
-      "description": "Violin and bow on music stand",
+      "description": "Violín y arco en atril",
       "imageUrl": "https://picsum.photos/seed/violin1/600/400",
       "imageHint": "violin instrument"
     },
     {
       "id": "theory-book",
-      "description": "Music theory book and pencil",
+      "description": "Libro de teoría musical y lápiz",
       "imageUrl": "https://picsum.photos/seed/theory1/600/400",
       "imageHint": "music theory"
     }

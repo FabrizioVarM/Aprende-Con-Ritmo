@@ -7,22 +7,23 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-store';
 import { Star, Award, TrendingUp, Music, CheckCircle2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function ProgressPage() {
   const { user } = useAuth();
 
   const SKILLS = [
-    { name: 'Rhythm Accuracy', level: 85, color: 'bg-accent' },
-    { name: 'Note Reading', level: 60, color: 'bg-blue-500' },
-    { name: 'Dynamics', level: 45, color: 'bg-orange-500' },
-    { name: 'Technique', level: 72, color: 'bg-green-500' },
+    { name: 'Precisión de Ritmo', level: 85, color: 'bg-accent' },
+    { name: 'Lectura de Notas', level: 60, color: 'bg-blue-500' },
+    { name: 'Dinámicas', level: 45, color: 'bg-orange-500' },
+    { name: 'Técnica', level: 72, color: 'bg-green-500' },
   ];
 
   const MILESTONES = [
-    { title: 'Completed Level 1', date: 'Oct 2023', achieved: true },
-    { title: 'First Performance', date: 'Dec 2023', achieved: true },
-    { title: 'Major Scales Master', date: 'Jan 2024', achieved: true },
-    { title: 'Level 2 Proficiency', date: 'Expected Apr 2024', achieved: false },
+    { title: 'Nivel 1 Completado', date: 'Oct 2023', achieved: true },
+    { title: 'Primera Presentación', date: 'Dic 2023', achieved: true },
+    { title: 'Maestro de Escalas Mayores', date: 'Ene 2024', achieved: true },
+    { title: 'Eficiencia Nivel 2', date: 'Esperado Abr 2024', achieved: false },
   ];
 
   return (
@@ -30,9 +31,9 @@ export default function ProgressPage() {
       <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-extrabold text-foreground font-headline">
-            {user?.role === 'teacher' ? 'Student Progress Overview' : 'My Learning Journey 🚀'}
+            {user?.role === 'teacher' ? 'Resumen del Progreso del Estudiante' : 'Mi Viaje de Aprendizaje 🚀'}
           </h1>
-          <p className="text-muted-foreground mt-1 text-lg">Visualizing musical growth and achievements.</p>
+          <p className="text-muted-foreground mt-1 text-lg">Visualizando tu crecimiento musical y logros.</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -41,7 +42,7 @@ export default function ProgressPage() {
               <CardHeader className="bg-primary/20">
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-accent" />
-                  Skill Development
+                  Desarrollo de Habilidades
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
@@ -51,7 +52,7 @@ export default function ProgressPage() {
                       <span className="text-lg">{skill.name}</span>
                       <span className="text-accent">{skill.level}%</span>
                     </div>
-                    <Progress value={skill.level} className="h-3" indicatorClassName={skill.color} />
+                    <Progress value={skill.level} className="h-3" />
                   </div>
                 ))}
               </CardContent>
@@ -63,8 +64,8 @@ export default function ProgressPage() {
                   <Music className="w-8 h-8 text-secondary-foreground" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-xl">Current Level</h4>
-                  <p className="text-muted-foreground">Guitar Enthusiast (Lv. 2)</p>
+                  <h4 className="font-bold text-xl">Nivel Actual</h4>
+                  <p className="text-muted-foreground">Entusiasta de la Guitarra (Nv. 2)</p>
                 </div>
               </Card>
 
@@ -73,8 +74,8 @@ export default function ProgressPage() {
                   <Award className="w-8 h-8 text-accent" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-xl">Achievement Points</h4>
-                  <p className="text-muted-foreground">2,450 Rhythm Points</p>
+                  <h4 className="font-bold text-xl">Puntos de Logro</h4>
+                  <p className="text-muted-foreground">2,450 Puntos de Ritmo</p>
                 </div>
               </Card>
             </div>
@@ -84,7 +85,7 @@ export default function ProgressPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Star className="w-5 h-5 text-accent" />
-                Milestones
+                Hitos
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">

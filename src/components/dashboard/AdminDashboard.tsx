@@ -10,17 +10,15 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line
+  ResponsiveContainer
 } from 'recharts';
 import { Users, Music, DollarSign, TrendingUp, UserPlus, Settings } from 'lucide-react';
 
 const enrollmentData = [
-  { name: 'Jan', students: 400 },
+  { name: 'Ene', students: 400 },
   { name: 'Feb', students: 300 },
   { name: 'Mar', students: 600 },
-  { name: 'Apr', students: 800 },
+  { name: 'Abr', students: 800 },
   { name: 'May', students: 700 },
   { name: 'Jun', students: 900 },
 ];
@@ -30,15 +28,15 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-foreground font-headline">Administration Hub 🏢</h1>
-          <p className="text-muted-foreground mt-1 text-lg">Overview of school operations and growth.</p>
+          <h1 className="text-3xl font-extrabold text-foreground font-headline">Centro de Administración 🏢</h1>
+          <p className="text-muted-foreground mt-1 text-lg">Resumen de las operaciones y crecimiento de la escuela.</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="rounded-xl gap-2">
-            <Settings className="w-4 h-4" /> Settings
+            <Settings className="w-4 h-4" /> Ajustes
           </Button>
           <Button className="bg-accent text-white rounded-xl gap-2">
-            <UserPlus className="w-4 h-4" /> Add User
+            <UserPlus className="w-4 h-4" /> Agregar Usuario
           </Button>
         </div>
       </div>
@@ -51,7 +49,7 @@ export default function AdminDashboard() {
                 <Users className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Total Students</p>
+                <p className="text-sm text-muted-foreground font-medium">Estudiantes Totales</p>
                 <h3 className="text-2xl font-black">1,284</h3>
               </div>
             </div>
@@ -65,7 +63,7 @@ export default function AdminDashboard() {
                 <Music className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Total Teachers</p>
+                <p className="text-sm text-muted-foreground font-medium">Profesores Totales</p>
                 <h3 className="text-2xl font-black">42</h3>
               </div>
             </div>
@@ -79,7 +77,7 @@ export default function AdminDashboard() {
                 <DollarSign className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Monthly Rev</p>
+                <p className="text-sm text-muted-foreground font-medium">Ingresos Mensuales</p>
                 <h3 className="text-2xl font-black">$42,500</h3>
               </div>
             </div>
@@ -93,7 +91,7 @@ export default function AdminDashboard() {
                 <TrendingUp className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground font-medium">Retention</p>
+                <p className="text-sm text-muted-foreground font-medium">Retención</p>
                 <h3 className="text-2xl font-black">92%</h3>
               </div>
             </div>
@@ -104,7 +102,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 rounded-3xl border-none shadow-md p-6">
           <CardHeader className="px-0 pt-0">
-            <CardTitle>Enrollment Trends</CardTitle>
+            <CardTitle>Tendencias de Inscripción</CardTitle>
           </CardHeader>
           <div className="h-[300px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
@@ -124,15 +122,15 @@ export default function AdminDashboard() {
 
         <Card className="rounded-3xl border-none shadow-md overflow-hidden">
           <CardHeader className="border-b bg-white/50">
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>Actividad Reciente</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {[
-              { user: 'John Smith', action: 'New Enrollment', time: '10m ago' },
-              { user: 'Prof. Garcia', action: 'Updated Syllabus', time: '1h ago' },
-              { user: 'Emma Lou', action: 'Class Rescheduled', time: '2h ago' },
-              { user: 'System', action: 'Invoices Sent', time: '4h ago' },
-              { user: 'Alex Doe', action: 'Teacher Onboarded', time: '1d ago' },
+              { user: 'Juan Pérez', action: 'Nueva Inscripción', time: 'Hace 10m' },
+              { user: 'Prof. García', action: 'Sílabo Actualizado', time: 'Hace 1h' },
+              { user: 'Emma Lou', action: 'Clase Reprogramada', time: 'Hace 2h' },
+              { user: 'Sistema', action: 'Facturas Enviadas', time: 'Hace 4h' },
+              { user: 'Alex Doe', action: 'Profesor Incorporado', time: 'Hace 1d' },
             ].map((act, i) => (
               <div key={i} className="flex items-center gap-4 p-4 border-b last:border-0 hover:bg-muted/50 transition-colors">
                 <div className="w-2 h-2 rounded-full bg-accent" />
