@@ -22,7 +22,10 @@ import { cn } from '@/lib/utils';
 import { 
   Sheet, 
   SheetContent, 
-  SheetTrigger 
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription
 } from '@/components/ui/sheet';
 
 interface NavItem {
@@ -134,6 +137,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-72">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Menú de Navegación</SheetTitle>
+                <SheetDescription>Acceso a las secciones principales de la academia Aprende Con Ritmo</SheetDescription>
+              </SheetHeader>
               <SidebarContent />
             </SheetContent>
           </Sheet>
