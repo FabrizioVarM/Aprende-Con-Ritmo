@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, PlayCircle, Star, Clock, ChevronRight, Music, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, PlayCircle, Star, Clock, ChevronRight, Music, CheckCircle2, AlertCircle, ChevronLeft } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,11 +13,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from '@/components/ui/calendar';
 import { useBookingStore } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { cn } from '@/lib/utils';
@@ -51,12 +49,26 @@ export default function StudentDashboard() {
     
     toast({
       title: "¡Reserva Exitosa! 🎸",
-      description: "Tu clase ha sido agendada con éxito en tu calendario.",
+      description: "Tu clase ha sido agendada con éxito.",
     });
     
     setIsOpen(false);
     setSelectedSlotId(null);
   };
+
+  // Lógica para vista semanal en el modal
+  const weekDays = useMemo(() => {
+    const startOfWeek = new Date(selectedDate);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+    startOfWeek.setDate(diff);
+
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      return d;
+    });
+  }, [selectedDate]);
 
   return (
     <div className="space-y-8">
@@ -72,26 +84,26 @@ export default function StudentDashboard() {
               Agendar Nueva Lección
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-[2.5rem] max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
+          <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden">
             <div className="bg-primary/10 p-8 border-b">
               <DialogHeader>
                 <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
                   <Music className="w-8 h-8 text-accent" />
-                  Agendar Nueva Sesión
+                  Agendar Sesión
                 </DialogTitle>
                 <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
-                  Elige a tu profesor y encuentra el horario perfecto para ti.
+                  Elige a tu profesor y encuentra el horario perfecto.
                 </DialogDescription>
               </DialogHeader>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-8 bg-white">
+            <div className="p-8 space-y-8 bg-white">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
                   <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Seleccionar Profesor</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Profesor</label>
                     <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
-                      <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 focus:ring-accent">
+                      <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2">
                         <SelectValue placeholder="Elige un profesor" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl">
@@ -105,37 +117,43 @@ export default function StudentDashboard() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Seleccionar Fecha</label>
-                    <div className="border-2 border-primary/10 rounded-[2rem] p-4 bg-primary/5">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(date) => date && setSelectedDate(date)}
-                        className="w-full"
-                      />
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día (Semana Actual)</label>
+                    <div className="grid grid-cols-7 gap-2">
+                      {weekDays.map((d, i) => {
+                        const isSelected = d.toDateString() === selectedDate.toDateString();
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => setSelectedDate(d)}
+                            className={cn(
+                              "flex flex-col items-center py-3 rounded-xl transition-all border-2",
+                              isSelected 
+                                ? "bg-accent border-accent text-white" 
+                                : "bg-primary/5 border-transparent hover:border-accent/30"
+                            )}
+                          >
+                            <span className="text-[8px] font-black uppercase">{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
+                            <span className="text-lg font-black">{d.getDate()}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Horarios Disponibles</label>
-                    <Badge variant="outline" className="rounded-full border-accent text-accent font-black">
-                      {selectedDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                    </Badge>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto pr-2">
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Horarios Libres</label>
+                  <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2">
                     {freeSlots.length > 0 ? (
                       freeSlots.map((slot) => (
                         <Button
                           key={slot.id}
                           variant={selectedSlotId === slot.id ? "default" : "outline"}
                           className={cn(
-                            "justify-between rounded-2xl h-14 transition-all border-2 font-black px-6 text-lg",
+                            "justify-between rounded-2xl h-14 border-2 font-black px-6 text-lg",
                             selectedSlotId === slot.id 
-                              ? 'bg-accent text-white border-accent shadow-lg shadow-accent/20' 
-                              : 'border-primary/5 hover:border-accent/30 hover:bg-accent/5 text-secondary-foreground'
+                              ? 'bg-accent text-white border-accent' 
+                              : 'border-primary/5 hover:border-accent/30'
                           )}
                           onClick={() => setSelectedSlotId(slot.id)}
                         >
@@ -143,14 +161,13 @@ export default function StudentDashboard() {
                             <Clock className="w-5 h-5" />
                             {slot.time}
                           </span>
-                          {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 animate-in zoom-in" />}
+                          {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5" />}
                         </Button>
                       ))
                     ) : (
-                      <div className="bg-muted/10 p-12 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5">
-                        <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
-                        <p className="text-lg font-black text-muted-foreground">Sin horarios libres</p>
-                        <p className="text-sm text-muted-foreground/60 font-medium mt-1">Prueba con otra fecha o profesor.</p>
+                      <div className="bg-muted/10 p-10 rounded-[2rem] text-center border-2 border-dashed">
+                        <AlertCircle className="w-10 h-10 mx-auto text-muted-foreground/30 mb-2" />
+                        <p className="font-black text-muted-foreground">Sin cupos libres</p>
                       </div>
                     )}
                   </div>
@@ -159,15 +176,15 @@ export default function StudentDashboard() {
             </div>
 
             <div className="p-8 bg-gray-50 flex gap-4 border-t">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 border-primary/20 font-black text-lg">
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black">
                 Cancelar
               </Button>
               <Button 
                 onClick={handleBookLesson} 
                 disabled={!selectedSlotId}
-                className="bg-accent text-white rounded-2xl flex-1 h-14 font-black text-lg shadow-xl shadow-accent/20 hover:scale-[1.02] transition-transform disabled:opacity-50"
+                className="bg-accent text-white rounded-2xl flex-1 h-14 font-black shadow-xl"
               >
-                Confirmar Clase
+                Confirmar
               </Button>
             </div>
           </DialogContent>

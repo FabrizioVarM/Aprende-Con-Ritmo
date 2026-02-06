@@ -1,13 +1,12 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
-import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -16,7 +15,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { useBookingStore } from '@/lib/booking-store';
@@ -48,6 +46,26 @@ export default function SchedulePage() {
     
     setIsBookingOpen(false);
     setSelectedSlotId(null);
+  };
+
+  // Lógica para vista semanal
+  const weekDays = useMemo(() => {
+    const startOfWeek = new Date(date);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Ajuste para que empiece el lunes
+    startOfWeek.setDate(diff);
+
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(startOfWeek);
+      d.setDate(startOfWeek.getDate() + i);
+      return d;
+    });
+  }, [date]);
+
+  const changeWeek = (offset: number) => {
+    const newDate = new Date(date);
+    newDate.setDate(date.getDate() + (offset * 7));
+    setDate(newDate);
   };
 
   return (
@@ -113,7 +131,7 @@ export default function SchedulePage() {
               </div>
 
               <div className="p-8 bg-gray-50 flex gap-3 border-t">
-                <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                 <Button 
                   onClick={handleBook} 
                   disabled={!selectedSlotId}
@@ -126,36 +144,58 @@ export default function SchedulePage() {
           </Dialog>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Calendario Lateral - Siempre Visible */}
-          <div className="lg:col-span-4 space-y-6 sticky top-8">
-            <Card className="rounded-[2.5rem] border-none shadow-xl overflow-hidden bg-white p-4">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(d) => d && setDate(d)}
-                className="w-full"
-              />
-            </Card>
-            
-            <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-primary/5 space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Leyenda</h4>
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-accent shadow-sm" />
-                <span className="text-xs font-bold text-secondary-foreground">Tus Clases Confirmadas</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-green-400 shadow-sm" />
-                <span className="text-xs font-bold text-secondary-foreground">Espacios Disponibles</span>
-              </div>
+        {/* Vista Semanal Horizontal */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-black text-secondary-foreground uppercase tracking-widest flex items-center gap-2">
+              <CalendarIcon className="w-6 h-6 text-accent" />
+              Vista Semanal
+            </h3>
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" onClick={() => changeWeek(-1)} className="rounded-full border-primary/20">
+                <ChevronLeft className="w-5 h-5" />
+              </Button>
+              <Button variant="outline" size="icon" onClick={() => changeWeek(1)} className="rounded-full border-primary/20">
+                <ChevronRight className="w-5 h-5" />
+              </Button>
             </div>
           </div>
 
-          {/* Lista de Horarios */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="grid grid-cols-7 gap-4">
+            {weekDays.map((d, i) => {
+              const isSelected = d.toDateString() === date.toDateString();
+              const isToday = d.toDateString() === new Date().toDateString();
+              
+              return (
+                <button
+                  key={i}
+                  onClick={() => setDate(d)}
+                  className={cn(
+                    "flex flex-col items-center p-4 rounded-3xl transition-all border-2",
+                    isSelected 
+                      ? "bg-accent border-accent text-white shadow-xl shadow-accent/20 scale-105" 
+                      : "bg-white border-primary/5 hover:border-accent/30 hover:bg-accent/5 text-secondary-foreground",
+                    isToday && !isSelected && "border-primary"
+                  )}
+                >
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+                    {d.toLocaleDateString('es-ES', { weekday: 'short' })}
+                  </span>
+                  <span className="text-2xl font-black leading-none mt-1">
+                    {d.getDate()}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
+          {/* Lista de Horarios del Día Seleccionado */}
+          <div className="space-y-6">
             <div className="flex items-center gap-4 bg-primary/5 p-4 rounded-3xl border border-primary/10">
               <div className="bg-accent/10 p-3 rounded-2xl">
-                <CalendarIcon className="w-6 h-6 text-accent" />
+                <Clock className="w-6 h-6 text-accent" />
               </div>
               <div>
                 <h3 className="text-xl font-black text-secondary-foreground capitalize leading-tight">
@@ -165,7 +205,7 @@ export default function SchedulePage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {allDaySlots.some(s => s.isBooked || s.isAvailable) ? (
                 allDaySlots.map((slot, i) => {
                   if (!slot.isBooked && !slot.isAvailable) return null;
@@ -176,36 +216,30 @@ export default function SchedulePage() {
                     <Card key={slot.id} className={cn(
                       "rounded-[2rem] border-2 transition-all duration-300 group",
                       isMine 
-                        ? 'bg-accent/5 border-accent shadow-lg shadow-accent/5' 
+                        ? 'bg-accent/5 border-accent shadow-lg shadow-accent/10' 
                         : slot.isBooked 
                           ? 'bg-gray-50 border-transparent opacity-60' 
-                          : 'bg-white border-green-100 hover:border-green-300'
+                          : 'bg-white border-primary/5 hover:border-accent/20'
                     )}>
-                      <CardContent className="p-5 flex flex-col sm:flex-row items-center gap-5">
-                        {/* Tiempo - Más compacto */}
+                      <CardContent className="p-5 flex items-center gap-5">
                         <div className={cn(
-                          "flex flex-col items-center justify-center min-w-[90px] h-20 rounded-2xl",
+                          "flex flex-col items-center justify-center min-w-[80px] h-16 rounded-2xl",
                           isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
                         )}>
-                          <span className="text-xs font-black uppercase opacity-60">Hora</span>
                           <span className="text-lg font-black leading-none">{slot.time.split(' ')[0]}</span>
                         </div>
                         
-                        <div className="flex-1 space-y-2 text-center sm:text-left">
-                          <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
-                            <h4 className={cn(
-                              "text-xl font-black tracking-tight",
-                              isMine ? "text-accent" : "text-secondary-foreground"
-                            )}>
-                              {isMine ? '🌟 Tu Clase Confirmada' : slot.isBooked ? 'Sesión Reservada' : 'Clase de Guitarra'}
-                            </h4>
-                            {isMine && <Badge className="bg-green-500 text-white font-black text-[10px] rounded-full">CONFIRMADA</Badge>}
-                          </div>
-                          
-                          <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-[11px] font-black text-muted-foreground uppercase tracking-widest">
-                            <span className="flex items-center gap-1.5"><Music className="w-3.5 h-3.5 text-accent" /> Prof. Carlos</span>
-                            <span className="flex items-center gap-1.5">
-                              {i % 2 === 0 ? <Video className="w-3.5 h-3.5 text-blue-500" /> : <MapPin className="w-3.5 h-3.5 text-red-500" />}
+                        <div className="flex-1 space-y-1">
+                          <h4 className={cn(
+                            "text-lg font-black tracking-tight",
+                            isMine ? "text-accent" : "text-secondary-foreground"
+                          )}>
+                            {isMine ? '🌟 Tu Clase' : slot.isBooked ? 'Ocupado' : 'Disponible'}
+                          </h4>
+                          <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                            <span className="flex items-center gap-1"><Music className="w-3 h-3 text-accent" /> Carlos</span>
+                            <span className="flex items-center gap-1">
+                              {i % 2 === 0 ? <Video className="w-3 h-3 text-blue-500" /> : <MapPin className="w-3 h-3 text-red-500" />}
                               {i % 2 === 0 ? 'Online' : 'Estudio'}
                             </span>
                           </div>
@@ -213,22 +247,22 @@ export default function SchedulePage() {
 
                         <div className="shrink-0">
                           {isMine ? (
-                            <div className="bg-accent/10 p-3 rounded-full text-accent">
-                              <CheckCircle2 className="w-6 h-6" />
+                            <div className="bg-accent/10 p-2 rounded-full text-accent">
+                              <CheckCircle2 className="w-5 h-5" />
                             </div>
                           ) : slot.isAvailable && !slot.isBooked ? (
                             <Button 
                               size="sm"
-                              className="bg-green-500 hover:bg-green-600 text-white rounded-xl font-black px-6 h-10 shadow-lg shadow-green-100"
+                              className="bg-accent text-white rounded-xl font-black px-4 h-9"
                               onClick={() => {
                                 setSelectedSlotId(slot.id);
                                 setIsBookingOpen(true);
                               }}
                             >
-                              Reservar <ChevronRight className="w-4 h-4 ml-1" />
+                              Reservar
                             </Button>
                           ) : (
-                            <Badge variant="outline" className="text-muted-foreground border-dashed border-gray-300 bg-gray-100/50 px-4 py-1.5 rounded-xl font-bold">Ocupado</Badge>
+                            <Badge variant="outline" className="text-muted-foreground border-dashed border-gray-300 bg-gray-100/50 px-3 py-1 rounded-xl font-bold">Cerrado</Badge>
                           )}
                         </div>
                       </CardContent>
@@ -236,12 +270,11 @@ export default function SchedulePage() {
                   );
                 })
               ) : (
-                <div className="py-20 text-center bg-white rounded-[3rem] border-4 border-dashed border-primary/5 space-y-4">
-                  <div className="bg-primary/5 w-20 h-20 rounded-full flex items-center justify-center mx-auto">
-                    <AlertCircle className="w-10 h-10 text-primary/20" />
+                <div className="col-span-full py-20 text-center bg-white rounded-[3rem] border-4 border-dashed border-primary/5 space-y-4">
+                  <div className="bg-primary/5 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                    <AlertCircle className="w-8 h-8 text-primary/20" />
                   </div>
-                  <p className="text-xl font-black text-secondary-foreground">Día sin disponibilidad</p>
-                  <p className="text-sm text-muted-foreground font-medium max-w-xs mx-auto">El profesor no ha habilitado horarios todavía. ¡Prueba otra fecha!</p>
+                  <p className="text-lg font-black text-secondary-foreground">Sin disponibilidad</p>
                 </div>
               )}
             </div>
