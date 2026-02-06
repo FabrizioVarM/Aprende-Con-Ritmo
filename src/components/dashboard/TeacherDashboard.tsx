@@ -32,8 +32,10 @@ export default function TeacherDashboard() {
   const teacherId = '2'; // ID del Prof. Carlos
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
 
+  // Efecto para cargar los horarios cuando cambia la fecha o se abre el diálogo
   useEffect(() => {
     const data = getDayAvailability(teacherId, selectedDate);
+    // Clonamos los slots para que la edición local no afecte al store hasta guardar
     setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
   }, [selectedDate, isOpen, getDayAvailability, teacherId]);
 
@@ -78,25 +80,27 @@ export default function TeacherDashboard() {
     updateAvailability(teacherId, selectedDate, localSlots);
     toast({
       title: "Disponibilidad Guardada ✅",
-      description: `Horarios para el día ${selectedDate.toLocaleDateString('es-ES')} actualizados.`,
+      description: `Horarios para el día ${selectedDate.toLocaleDateString('es-ES')} actualizados con éxito.`,
     });
+    setIsOpen(false);
   };
 
   const currentDayBookedSlots = useMemo(() => {
-    return getDayAvailability(teacherId, selectedDate).slots.filter(s => s.isBooked);
-  }, [selectedDate, getDayAvailability, teacherId]);
+    const data = getDayAvailability(teacherId, selectedDate);
+    return data.slots.filter(s => s.isBooked);
+  }, [selectedDate, getDayAvailability, teacherId, availabilities]); // Añadido availabilities si fuera necesario, pero la store usa localStorage
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-foreground font-headline">Panel del Prof. Carlos 🎻</h1>
-          <p className="text-muted-foreground mt-1 text-lg">Gestiona tu disponibilidad y sigue a tus alumnos.</p>
+          <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">Panel del Prof. Carlos 🎻</h1>
+          <p className="text-muted-foreground mt-1 text-lg font-medium">Gestiona tu agenda y el progreso de tus alumnos.</p>
         </div>
         
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-lg shadow-accent/20 hover:scale-105 transition-transform">
+            <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all">
               <Clock className="w-5 h-5" /> Gestionar Horarios
             </Button>
           </DialogTrigger>
@@ -107,8 +111,8 @@ export default function TeacherDashboard() {
                   <CalendarIcon className="w-8 h-8 text-accent" />
                   Configuración de Agenda Diaria
                 </DialogTitle>
-                <DialogDescription className="text-lg text-secondary-foreground/70">
-                  Selecciona un día en el calendario y personaliza tus horarios de clase.
+                <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
+                  Selecciona una fecha y define tus bloques de clase personalizados.
                 </DialogDescription>
               </DialogHeader>
             </div>
@@ -117,12 +121,12 @@ export default function TeacherDashboard() {
               <div className="flex flex-col lg:flex-row gap-12">
                 <div className="flex-1 space-y-6">
                   <div className="flex items-center justify-between mb-4">
-                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">1. Elige Fecha</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground">1. Elige Fecha</Label>
                     <Badge variant="secondary" className="bg-accent text-white px-4 py-1.5 rounded-full font-bold">
                       {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </Badge>
                   </div>
-                  <div className="border border-primary/10 rounded-[2rem] p-6 bg-primary/5 shadow-inner flex justify-center">
+                  <div className="border border-primary/10 rounded-[2.5rem] p-4 bg-primary/5 shadow-inner flex justify-center">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
@@ -134,18 +138,18 @@ export default function TeacherDashboard() {
                 
                 <div className="flex-[1.5] space-y-6">
                   <div className="flex justify-between items-center mb-4">
-                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">2. Configura los Bloques</Label>
+                    <Label className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground">2. Configura los Bloques</Label>
                     <Button 
                       size="sm" 
                       variant="outline" 
                       onClick={addSlot}
-                      className="rounded-full border-accent text-accent hover:bg-accent hover:text-white gap-2 font-black px-5 h-10 transition-all"
+                      className="rounded-full border-accent text-accent hover:bg-accent hover:text-white gap-2 font-black px-6 h-10 transition-all"
                     >
                       <Plus className="w-4 h-4" /> Nuevo Rango
                     </Button>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-4 max-h-[450px] overflow-y-auto pr-4 custom-scrollbar pb-4">
+                  <div className="grid grid-cols-1 gap-4 max-h-[450px] overflow-y-auto pr-4 pb-4">
                     {localSlots.length > 0 ? (
                       localSlots.map((slot, i) => (
                         <div 
@@ -163,7 +167,7 @@ export default function TeacherDashboard() {
                                 onChange={(e) => updateSlotTime(i, e.target.value)}
                                 disabled={slot.isBooked}
                                 placeholder="Ej: 08:00 - 09:00"
-                                className="h-14 pl-12 text-lg rounded-2xl font-bold bg-white border-primary/10"
+                                className="h-14 pl-12 text-lg rounded-2xl font-bold bg-white border-primary/10 focus:ring-accent"
                               />
                             </div>
                             {slot.isBooked && (
@@ -175,12 +179,12 @@ export default function TeacherDashboard() {
                           
                           <div className="flex items-center gap-6">
                             <div className="flex flex-col items-center gap-2">
-                              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">¿Libre?</span>
+                              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tighter">¿Habilitar?</span>
                               <Checkbox 
                                 checked={slot.isAvailable || slot.isBooked} 
                                 disabled={slot.isBooked}
                                 onCheckedChange={() => toggleSlotAvailability(i)}
-                                className="h-7 w-7 rounded-xl data-[state=checked]:bg-green-600 border-2"
+                                className="h-8 w-8 rounded-xl data-[state=checked]:bg-green-600 border-2"
                               />
                             </div>
                             
@@ -199,8 +203,8 @@ export default function TeacherDashboard() {
                     ) : (
                       <div className="text-center py-20 bg-muted/5 rounded-[3rem] border-4 border-dashed border-primary/10">
                         <Plus className="w-12 h-12 mx-auto text-primary/20 mb-4" />
-                        <p className="text-xl font-bold text-muted-foreground">Sin horarios para hoy.</p>
-                        <p className="text-sm text-muted-foreground mt-2">Usa el botón "+ Nuevo Rango" para crear espacios de clase.</p>
+                        <p className="text-xl font-bold text-muted-foreground">Sin horarios para este día.</p>
+                        <p className="text-sm text-muted-foreground mt-2">Usa el botón para crear tus primeros espacios de clase.</p>
                       </div>
                     )}
                   </div>
@@ -213,7 +217,7 @@ export default function TeacherDashboard() {
                 Cancelar
               </Button>
               <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black text-lg gap-2 shadow-xl shadow-accent/20 hover:scale-[1.02] transition-transform">
-                <Save className="w-6 h-6" /> Guardar Agenda del Día
+                <Save className="w-6 h-6" /> Guardar Cambios
               </Button>
             </div>
           </DialogContent>
@@ -221,9 +225,9 @@ export default function TeacherDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="rounded-3xl border-none shadow-sm bg-blue-50/50">
+        <Card className="rounded-[2rem] border-none shadow-sm bg-blue-50/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase text-blue-600">Estudiantes</CardTitle>
+            <CardTitle className="text-xs font-black uppercase tracking-widest text-blue-600">Estudiantes</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-black text-blue-900">24</div>
@@ -231,28 +235,28 @@ export default function TeacherDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="rounded-3xl border-none shadow-sm bg-green-50/50">
+        <Card className="rounded-[2rem] border-none shadow-sm bg-green-50/50">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase text-green-600">Asistencia</CardTitle>
+            <CardTitle className="text-xs font-black uppercase tracking-widest text-green-600">Asistencia</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-black text-green-900">94%</div>
-            <p className="text-xs text-green-500 font-bold mt-1">Buen ritmo</p>
+            <p className="text-xs text-green-500 font-bold mt-1">Excelente ritmo</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-none shadow-sm bg-accent/5">
+        <Card className="rounded-[2rem] border-none shadow-sm bg-accent/5">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase text-accent">Materiales</CardTitle>
+            <CardTitle className="text-xs font-black uppercase tracking-widest text-accent">Materiales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-black text-accent-foreground">12</div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-none shadow-sm bg-secondary/20">
+        <Card className="rounded-[2rem] border-none shadow-sm bg-secondary/20">
           <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase text-secondary-foreground">Horas Totales</CardTitle>
+            <CardTitle className="text-xs font-black uppercase tracking-widest text-secondary-foreground">Horas Totales</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-black text-secondary-foreground">120</div>
@@ -261,51 +265,51 @@ export default function TeacherDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 rounded-3xl border-none shadow-md overflow-hidden bg-white">
+        <Card className="lg:col-span-2 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
           <CardHeader className="bg-primary/5 p-6 border-b">
-            <CardTitle className="flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-accent" />
+            <CardTitle className="flex items-center gap-2 font-black">
+              <GraduationCap className="w-6 h-6 text-accent" />
               Seguimiento de Alumnos
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-8 space-y-6">
+          <CardContent className="p-8 space-y-8">
             {[
               { name: 'Ana García', level: 'Guitarra 2', progress: 85 },
               { name: 'Liam Smith', level: 'Piano 1', progress: 45 },
               { name: 'Emma Wilson', level: 'Violín 3', progress: 72 },
             ].map((student, i) => (
-              <div key={i} className="space-y-3">
+              <div key={i} className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="font-bold">{student.name}</span>
-                  <span className="text-sm font-bold text-muted-foreground">{student.level} • {student.progress}%</span>
+                  <span className="font-black text-lg">{student.name}</span>
+                  <span className="text-sm font-black text-muted-foreground">{student.level} • {student.progress}%</span>
                 </div>
-                <Progress value={student.progress} className="h-2 rounded-full" />
+                <Progress value={student.progress} className="h-3 rounded-full" />
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-none shadow-md overflow-hidden bg-white">
+        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
           <CardHeader className="bg-accent/5 p-6 border-b">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-accent" />
-              Sesiones Hoy
+            <CardTitle className="text-lg flex items-center gap-2 font-black">
+              <CheckCircle2 className="w-6 h-6 text-accent" />
+              Sesiones de Hoy
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {currentDayBookedSlots.length > 0 ? (
               currentDayBookedSlots.map((cls, i) => (
-                <div key={i} className="flex items-center justify-between p-5 border-b last:border-0 hover:bg-accent/5">
+                <div key={i} className="flex items-center justify-between p-6 border-b last:border-0 hover:bg-accent/5 transition-colors">
                   <div>
-                    <div className="font-black text-base">{cls.time}</div>
+                    <div className="font-black text-lg leading-tight">{cls.time}</div>
                     <div className="text-sm text-muted-foreground font-bold">{cls.bookedBy}</div>
                   </div>
-                  <Button size="sm" className="bg-accent text-white rounded-xl">Iniciar</Button>
+                  <Button size="sm" className="bg-accent text-white rounded-xl font-black px-5">Iniciar</Button>
                 </div>
               ))
             ) : (
-              <div className="p-12 text-center text-muted-foreground italic">
-                <p>No hay clases reservadas para hoy.</p>
+              <div className="p-16 text-center text-muted-foreground italic font-medium">
+                <p>No hay clases reservadas para la fecha seleccionada.</p>
               </div>
             )}
           </CardContent>
