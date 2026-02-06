@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -6,8 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Users } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 
 export default function SchedulePage() {
@@ -15,9 +13,9 @@ export default function SchedulePage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
 
   const CLASSES = [
-    { time: '09:00 AM', title: 'Advanced Rhythms', teacher: 'Carlos V.', type: 'Online', duration: '60 min' },
-    { time: '11:30 AM', title: 'Music Theory 101', teacher: 'Elena S.', type: 'In-person', duration: '45 min' },
-    { time: '02:00 PM', title: 'Guitar Workshop', teacher: 'Carlos V.', type: 'In-person', duration: '90 min' },
+    { time: '09:00 AM', title: 'Ritmos Avanzados', teacher: 'Carlos V.', type: 'En línea', duration: '60 min' },
+    { time: '11:30 AM', title: 'Teoría Musical 101', teacher: 'Elena S.', type: 'Presencial', duration: '45 min' },
+    { time: '02:00 PM', title: 'Taller de Guitarra', teacher: 'Carlos V.', type: 'Presencial', duration: '90 min' },
   ];
 
   return (
@@ -25,18 +23,18 @@ export default function SchedulePage() {
       <div className="space-y-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold text-foreground font-headline">Class Schedule 📅</h1>
-            <p className="text-muted-foreground mt-1 text-lg">Manage your sessions and availability.</p>
+            <h1 className="text-3xl font-extrabold text-foreground font-headline">Horario de Clases 📅</h1>
+            <p className="text-muted-foreground mt-1 text-lg">Gestiona tus sesiones y disponibilidad.</p>
           </div>
           <Button className="bg-accent text-white rounded-xl gap-2 h-12 px-6">
-            <Plus className="w-5 h-5" /> Book Class
+            <Plus className="w-5 h-5" /> Reservar Clase
           </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <Card className="rounded-3xl border-none shadow-md overflow-hidden bg-white">
             <CardHeader className="bg-primary/20">
-              <CardTitle>Calendar View</CardTitle>
+              <CardTitle>Vista de Calendario</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
               <Calendar
@@ -50,7 +48,7 @@ export default function SchedulePage() {
 
           <div className="lg:col-span-2 space-y-6">
             <h3 className="text-xl font-bold flex items-center gap-2">
-              Classes for {date?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              Clases para el {date?.toLocaleDateString('es-ES', { weekday: 'long', month: 'long', day: 'numeric' })}
             </h3>
             
             {CLASSES.map((cls, i) => (
@@ -68,15 +66,15 @@ export default function SchedulePage() {
                       <span className="flex items-center gap-1 font-medium"><Users className="w-4 h-4" /> {cls.teacher}</span>
                       <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {cls.duration}</span>
                       <span className="flex items-center gap-1">
-                        {cls.type === 'Online' ? <Video className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
+                        {cls.type === 'En línea' ? <Video className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
                         {cls.type}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="outline" className="rounded-xl border-primary">Reschedule</Button>
-                    <Button className="bg-accent text-white rounded-xl">View Details</Button>
+                    <Button variant="outline" className="rounded-xl border-primary">Reprogramar</Button>
+                    <Button className="bg-accent text-white rounded-xl">Ver Detalles</Button>
                   </div>
                 </CardContent>
               </Card>

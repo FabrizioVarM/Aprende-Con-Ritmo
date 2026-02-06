@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -29,24 +28,24 @@ export default function LoginPage() {
           <div className="bg-accent p-3 rounded-2xl shadow-lg mb-4">
             <Music className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold font-headline">Welcome Back</h2>
-          <p className="text-muted-foreground mt-2">Sign in to continue your musical journey</p>
+          <h2 className="text-3xl font-bold font-headline">Bienvenido de nuevo</h2>
+          <p className="text-muted-foreground mt-2">Inicia sesión para continuar tu viaje musical</p>
         </div>
 
         <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-3xl p-2">
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access your dashboard</CardDescription>
+            <CardTitle>Iniciar Sesión</CardTitle>
+            <CardDescription>Ingresa tus credenciales para acceder al panel</CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Correo Electrónico</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input 
                     id="email" 
-                    placeholder="name@example.com" 
+                    placeholder="nombre@ejemplo.com" 
                     className="pl-10 rounded-xl"
                     required
                     value={email}
@@ -55,7 +54,7 @@ export default function LoginPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Contraseña</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                   <Input 
@@ -70,19 +69,19 @@ export default function LoginPage() {
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
               <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-white rounded-xl py-6 text-lg">
-                Login
+                Ingresar
               </Button>
               <p className="text-sm text-center text-muted-foreground">
-                Don&apos;t have an account? <Link href="/register" className="text-accent font-bold hover:underline">Sign up</Link>
+                ¿No tienes una cuenta? <Link href="/register" className="text-accent font-bold hover:underline">Regístrate</Link>
               </p>
             </CardFooter>
           </form>
         </Card>
         
         <div className="grid grid-cols-3 gap-4 text-xs font-medium opacity-50">
-          <Button variant="ghost" className="h-auto p-2" onClick={() => setEmail('ana@example.com')}>Student Demo</Button>
-          <Button variant="ghost" className="h-auto p-2" onClick={() => setEmail('carlos@example.com')}>Teacher Demo</Button>
-          <Button variant="ghost" className="h-auto p-2" onClick={() => setEmail('admin@example.com')}>Admin Demo</Button>
+          <Button variant="ghost" className="h-auto p-2" onClick={() => setEmail('ana@example.com')}>Demo Estudiante</Button>
+          <Button variant="ghost" className="h-auto p-2" onClick={() => setEmail('carlos@example.com')}>Demo Profesor</Button>
+          <Button variant="ghost" className="h-auto p-2" onClick={() => setEmail('admin@example.com')}>Demo Admin</Button>
         </div>
       </div>
     </div>

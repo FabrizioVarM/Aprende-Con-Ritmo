@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -7,25 +6,26 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Filter, BookOpen, Music, Download, Play } from 'lucide-react';
+import { Search, BookOpen, Download, Play } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { cn } from '@/lib/utils';
 
 const RESOURCES = [
-  { id: 1, title: 'Guitar Chords Basics', category: 'Guitar', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[0] },
-  { id: 2, title: 'Piano Scales Masterclass', category: 'Piano', type: 'Video', icon: Play, img: PlaceHolderImages[1] },
-  { id: 3, title: 'Violin Tuning Guide', category: 'Violin', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[2] },
-  { id: 4, title: 'Advanced Theory Vol 1', category: 'Theory', type: 'Book', icon: BookOpen, img: PlaceHolderImages[3] },
-  { id: 5, title: 'Fingerstyle Essentials', category: 'Guitar', type: 'Video', icon: Play, img: PlaceHolderImages[0] },
-  { id: 6, title: 'Sight Reading Practice', category: 'Piano', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[1] },
+  { id: 1, title: 'Básicos de Acordes de Guitarra', category: 'Guitarra', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[0] },
+  { id: 2, title: 'Masterclass de Escalas de Piano', category: 'Piano', type: 'Video', icon: Play, img: PlaceHolderImages[1] },
+  { id: 3, title: 'Guía de Afinación de Violín', category: 'Violín', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[2] },
+  { id: 4, title: 'Teoría Avanzada Vol 1', category: 'Teoría', type: 'Libro', icon: BookOpen, img: PlaceHolderImages[3] },
+  { id: 5, title: 'Esenciales de Fingerstyle', category: 'Guitarra', type: 'Video', icon: Play, img: PlaceHolderImages[0] },
+  { id: 6, title: 'Práctica de Lectura a Primera Vista', category: 'Piano', type: 'PDF', icon: BookOpen, img: PlaceHolderImages[1] },
 ];
 
 export default function LibraryPage() {
-  const [filter, setFilter] = useState('All');
+  const [filter, setFilter] = useState('Todos');
   const [search, setSearch] = useState('');
 
   const filtered = RESOURCES.filter(res => 
-    (filter === 'All' || res.category === filter) &&
+    (filter === 'Todos' || res.category === filter) &&
     (res.title.toLowerCase().includes(search.toLowerCase()))
   );
 
@@ -33,22 +33,22 @@ export default function LibraryPage() {
     <AppLayout>
       <div className="space-y-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-foreground font-headline">Resource Library 📚</h1>
-          <p className="text-muted-foreground mt-1 text-lg">Curated materials to accelerate your learning.</p>
+          <h1 className="text-3xl font-extrabold text-foreground font-headline">Biblioteca de Recursos 📚</h1>
+          <p className="text-muted-foreground mt-1 text-lg">Materiales curados para acelerar tu aprendizaje.</p>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
           <div className="relative w-full md:max-w-md">
             <Search className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
             <Input 
-              placeholder="Search resources..." 
+              placeholder="Buscar recursos..." 
               className="pl-10 rounded-2xl h-11 border-primary/50"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto">
-            {['All', 'Guitar', 'Piano', 'Violin', 'Theory'].map((cat) => (
+            {['Todos', 'Guitarra', 'Piano', 'Violín', 'Teoría'].map((cat) => (
               <Button
                 key={cat}
                 variant={filter === cat ? 'default' : 'outline'}
@@ -85,12 +85,12 @@ export default function LibraryPage() {
               <CardContent>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <res.icon className="w-4 h-4" />
-                  <span>{res.type} Content</span>
+                  <span>Contenido {res.type}</span>
                 </div>
               </CardContent>
               <CardFooter className="flex gap-2">
                 <Button className="flex-1 bg-accent hover:bg-accent/90 text-white rounded-xl gap-2">
-                  <Download className="w-4 h-4" /> Download
+                  <Download className="w-4 h-4" /> Descargar
                 </Button>
                 <Button variant="outline" className="rounded-xl px-3 border-primary">
                   <Play className="w-4 h-4" />

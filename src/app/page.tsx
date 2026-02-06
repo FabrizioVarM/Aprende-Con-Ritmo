@@ -1,7 +1,5 @@
-
 "use client"
 
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-store';
 import { Music, ArrowRight } from 'lucide-react';
@@ -30,8 +28,8 @@ export default function Home() {
         </h1>
         
         <p className="text-xl text-muted-foreground leading-relaxed">
-          The all-in-one platform for modern music schools. Manage schedules, 
-          track progress, and share resources with ease.
+          La plataforma todo en uno para escuelas de música modernas. Gestiona horarios, 
+          sigue el progreso y comparte recursos con facilidad.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -40,7 +38,7 @@ export default function Home() {
             className="rounded-full px-8 py-7 text-lg shadow-lg hover:shadow-accent/20 bg-accent text-white hover:bg-accent/90"
             onClick={() => router.push('/register')}
           >
-            Start Learning Now
+            Empieza a aprender ahora
           </Button>
           <Button 
             variant="outline" 
@@ -48,7 +46,7 @@ export default function Home() {
             className="rounded-full px-8 py-7 text-lg bg-white/50 border-primary"
             onClick={() => router.push('/login')}
           >
-            Sign In to Account <ArrowRight className="ml-2 w-5 h-5" />
+            Iniciar sesión <ArrowRight className="ml-2 w-5 h-5" />
           </Button>
         </div>
       </div>

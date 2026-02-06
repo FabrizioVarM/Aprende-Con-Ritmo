@@ -1,4 +1,3 @@
-
 "use client"
 
 import React from 'react';
@@ -12,8 +11,7 @@ import {
   Users, 
   LogOut,
   Music,
-  Menu,
-  ChevronRight
+  Menu
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
 import { Button } from '@/components/ui/button';
@@ -33,11 +31,11 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'teacher', 'admin'] },
-  { label: 'Schedule', href: '/schedule', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
-  { label: 'Library', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
-  { label: 'Progress', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher'] },
-  { label: 'User Management', href: '/users', icon: Users, roles: ['admin'] },
+  { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'teacher', 'admin'] },
+  { label: 'Horario', href: '/schedule', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
+  { label: 'Biblioteca', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
+  { label: 'Progreso', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher'] },
+  { label: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -68,7 +66,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           return (
             <Link key={item.href} href={item.href}>
               <span className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group",
+                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer",
                 isActive 
                   ? "bg-secondary text-secondary-foreground font-semibold shadow-sm" 
                   : "text-muted-foreground hover:bg-primary/30 hover:text-foreground"
@@ -92,7 +90,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Avatar>
           <div className="flex flex-col overflow-hidden">
             <span className="text-sm font-bold truncate">{user.name}</span>
-            <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+            <span className="text-xs text-muted-foreground capitalize">{user.role === 'student' ? 'Estudiante' : user.role === 'teacher' ? 'Profesor' : 'Administrador'}</span>
           </div>
         </div>
         <Button 
@@ -104,7 +102,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           }}
         >
           <LogOut className="w-5 h-5" />
-          Logout
+          Cerrar Sesión
         </Button>
       </div>
     </div>
@@ -112,12 +110,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Desktop Sidebar */}
+      {/* Sidebar de Escritorio */}
       <aside className="hidden md:block w-72 h-screen sticky top-0">
         <SidebarContent />
       </aside>
 
-      {/* Main Content */}
+      {/* Contenido Principal */}
       <main className="flex-1 min-w-0">
         <header className="md:hidden flex items-center justify-between p-4 bg-white/80 border-b">
           <div className="flex items-center gap-2">
