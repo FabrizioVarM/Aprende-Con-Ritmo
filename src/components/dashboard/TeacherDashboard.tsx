@@ -1,7 +1,6 @@
-
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -16,10 +15,11 @@ import {
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { Calendar } from '@/components/ui/calendar';
-import { useBookingStore, STANDARD_SLOTS, TimeSlot } from '@/lib/booking-store';
-import { Clock, Calendar as CalendarIcon, User } from 'lucide-react';
+import { useBookingStore, TimeSlot } from '@/lib/booking-store';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save } from 'lucide-react';
 
 export default function TeacherDashboard() {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,20 +28,47 @@ export default function TeacherDashboard() {
   const { getDayAvailability, updateAvailability } = useBookingStore();
 
   const teacherId = '2'; // ID del Prof. Carlos
-  const currentAvail = selectedDate ? getDayAvailability(teacherId, selectedDate) : null;
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
 
   // Sincronizar slots locales cuando se abre el diálogo o cambia la fecha
-  const handleOpenDialog = () => {
-    if (currentAvail) {
-      setLocalSlots(currentAvail.slots);
+  useEffect(() => {
+    if (selectedDate && isOpen) {
+      setLocalSlots(getDayAvailability(teacherId, selectedDate).slots);
     }
-    setIsOpen(true);
-  };
+  }, [selectedDate, isOpen]);
 
   const toggleSlot = (slotIndex: number) => {
     const newSlots = [...localSlots];
     newSlots[slotIndex].isAvailable = !newSlots[slotIndex].isAvailable;
+    setLocalSlots(newSlots);
+  };
+
+  const updateSlotTime = (index: number, newTime: string) => {
+    const newSlots = [...localSlots];
+    newSlots[index].time = newTime;
+    setLocalSlots(newSlots);
+  };
+
+  const addSlot = () => {
+    const newSlot: TimeSlot = {
+      id: Math.random().toString(36).substr(2, 9),
+      time: "00:00 - 00:00",
+      isAvailable: true,
+      isBooked: false
+    };
+    setLocalSlots([...localSlots, newSlot]);
+  };
+
+  const removeSlot = (index: number) => {
+    if (localSlots[index].isBooked) {
+      toast({
+        variant: "destructive",
+        title: "No se puede eliminar",
+        description: "Este horario ya ha sido reservado por un alumno.",
+      });
+      return;
+    }
+    const newSlots = localSlots.filter((_, i) => i !== index);
     setLocalSlots(newSlots);
   };
 
@@ -50,7 +77,7 @@ export default function TeacherDashboard() {
       updateAvailability(teacherId, selectedDate, localSlots);
       toast({
         title: "Disponibilidad Actualizada ✅",
-        description: `Horarios guardados para el ${selectedDate.toLocaleDateString('es-ES')}.`,
+        description: `Los horarios para el ${selectedDate.toLocaleDateString('es-ES')} han sido guardados correctamente.`,
       });
       setIsOpen(false);
     }
@@ -66,69 +93,113 @@ export default function TeacherDashboard() {
         
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button onClick={handleOpenDialog} className="bg-accent text-white rounded-xl gap-2 h-12 shadow-lg shadow-accent/20">
-              <Clock className="w-5 h-5" /> Configurar Disponibilidad
+            <Button className="bg-accent text-white rounded-xl gap-2 h-12 shadow-lg shadow-accent/20">
+              <Clock className="w-5 h-5" /> Gestionar Horarios
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="rounded-3xl max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold">Gestionar Horarios 🕒</DialogTitle>
+              <DialogTitle className="text-2xl font-bold">Configuración de Horarios 🕒</DialogTitle>
               <DialogDescription>
-                Define qué horas estarás disponible para el día seleccionado.
+                Añade, edita o elimina los rangos horarios disponibles para el día seleccionado.
               </DialogDescription>
             </DialogHeader>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-              <div className="space-y-4">
-                <Label className="font-bold">1. Selecciona el Día</Label>
-                <div className="border rounded-2xl p-2 bg-muted/20">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => {
-                      setSelectedDate(date);
-                      if (date) {
-                        setLocalSlots(getDayAvailability(teacherId, date).slots);
-                      }
-                    }}
-                    className="w-full flex justify-center"
-                  />
+            <div className="flex-1 overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-4">
+                <div className="space-y-4">
+                  <Label className="font-bold text-lg block">1. Selecciona el Día</Label>
+                  <div className="border rounded-2xl p-4 bg-muted/20">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      className="w-full flex justify-center"
+                    />
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-4">
-                <Label className="font-bold">2. Marca Horas Libres</Label>
-                <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[300px] pr-2">
-                  {localSlots.map((slot, i) => (
-                    <div 
-                      key={slot.time} 
-                      className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                        slot.isBooked ? 'bg-orange-50 border-orange-200' : 
-                        slot.isAvailable ? 'bg-green-50 border-green-200' : 'bg-white'
-                      }`}
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Label className="font-bold text-lg">2. Define los Horarios</Label>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={addSlot}
+                      className="rounded-full border-accent text-accent hover:bg-accent hover:text-white gap-1"
                     >
-                      <div className="flex flex-col">
-                        <span className="font-bold text-sm">{slot.time}</span>
-                        {slot.isBooked && (
-                          <span className="text-[10px] text-orange-600 font-medium">Ocupado por {slot.bookedBy}</span>
-                        )}
+                      <Plus className="w-4 h-4" /> Nuevo Rango
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {localSlots.length > 0 ? (
+                      localSlots.map((slot, i) => (
+                        <div 
+                          key={slot.id} 
+                          className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${
+                            slot.isBooked ? 'bg-orange-50 border-orange-200 shadow-inner' : 
+                            slot.isAvailable ? 'bg-green-50 border-green-200' : 'bg-white border-border'
+                          }`}
+                        >
+                          <div className="flex-1 flex flex-col gap-1">
+                            <Input
+                              value={slot.time}
+                              onChange={(e) => updateSlotTime(i, e.target.value)}
+                              disabled={slot.isBooked}
+                              placeholder="Ej: 08:00 - 09:00"
+                              className="h-9 rounded-lg border-none bg-transparent font-bold focus-visible:ring-1 focus-visible:ring-accent/50"
+                            />
+                            {slot.isBooked && (
+                              <span className="text-[10px] text-orange-600 font-bold px-1 flex items-center gap-1">
+                                <User className="w-3 h-3" /> Ocupado por {slot.bookedBy}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <div className="flex flex-col items-center gap-1">
+                              <span className="text-[10px] text-muted-foreground font-medium">Libre</span>
+                              <Checkbox 
+                                checked={slot.isAvailable || slot.isBooked} 
+                                disabled={slot.isBooked}
+                                onCheckedChange={() => toggleSlot(i)}
+                                className="rounded-md h-5 w-5"
+                              />
+                            </div>
+                            
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => removeSlot(i)}
+                              disabled={slot.isBooked}
+                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full h-8 w-8"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-10 bg-muted/10 rounded-3xl border-2 border-dashed border-muted">
+                        <p className="text-muted-foreground text-sm italic">No hay horarios definidos para este día.</p>
+                        <Button variant="link" onClick={addSlot} className="text-accent font-bold mt-2">
+                          Crear el primer rango
+                        </Button>
                       </div>
-                      <Checkbox 
-                        id={`slot-${i}`} 
-                        checked={slot.isAvailable || slot.isBooked} 
-                        disabled={slot.isBooked}
-                        onCheckedChange={() => toggleSlot(i)}
-                        className="rounded-full"
-                      />
-                    </div>
-                  ))}
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <DialogFooter className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 border-primary">Cerrar</Button>
-              <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-xl flex-1">Guardar Disponibilidad</Button>
+            <DialogFooter className="pt-6 border-t mt-4 flex gap-3">
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 border-primary font-bold">
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-xl flex-1 font-bold gap-2">
+                <Save className="w-4 h-4" /> Guardar Todos los Cambios
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -179,7 +250,7 @@ export default function TeacherDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 rounded-3xl border-none shadow-md">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Seguimiento de Progreso</CardTitle>
+            <CardTitle>Seguimiento de Alumnos</CardTitle>
             <Button variant="outline" size="sm" className="rounded-xl border-primary">Ver Todos</Button>
           </CardHeader>
           <CardContent className="space-y-6">

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -17,8 +16,8 @@ export interface DayAvailability {
   slots: TimeSlot[];
 }
 
-// Horas estándar de la escuela
-export const STANDARD_SLOTS = [
+// Horas estándar iniciales (solo como sugerencia)
+export const INITIAL_SLOTS = [
   "08:00 - 09:00",
   "09:00 - 10:00",
   "10:00 - 11:00",
@@ -51,11 +50,16 @@ export function useBookingStore() {
     
     if (existing) return existing;
 
-    // Si no existe, devolvemos una estructura vacía/por defecto
+    // Si no existe, devolvemos los slots iniciales como base
     return {
       date: dateStr,
       teacherId,
-      slots: STANDARD_SLOTS.map(s => ({ id: Math.random().toString(36), time: s, isAvailable: false, isBooked: false }))
+      slots: INITIAL_SLOTS.map(s => ({ 
+        id: Math.random().toString(36).substr(2, 9), 
+        time: s, 
+        isAvailable: false, 
+        isBooked: false 
+      }))
     };
   };
 
@@ -77,6 +81,15 @@ export function useBookingStore() {
       }
       return a;
     });
+    
+    // Si no existía disponibilidad para ese día aún, la creamos (caso raro si el alumno puede reservar)
+    const exists = availabilities.some(a => a.teacherId === teacherId && a.date === dateStr);
+    if (!exists) {
+      const current = getDayAvailability(teacherId, date);
+      current.slots = current.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, isAvailable: false } : s);
+      updated.push(current);
+    }
+
     saveToStorage(updated);
   };
 
