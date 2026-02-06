@@ -17,24 +17,121 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
+import { Calendar } from '@/components/ui/calendar';
+import { useBookingStore, STANDARD_SLOTS, TimeSlot } from '@/lib/booking-store';
+import { Clock, Calendar as CalendarIcon, User } from 'lucide-react';
 
 export default function TeacherDashboard() {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
+  const { getDayAvailability, updateAvailability } = useBookingStore();
+
+  const teacherId = '2'; // ID del Prof. Carlos
+  const currentAvail = selectedDate ? getDayAvailability(teacherId, selectedDate) : null;
+  const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
+
+  // Sincronizar slots locales cuando se abre el diálogo o cambia la fecha
+  const handleOpenDialog = () => {
+    if (currentAvail) {
+      setLocalSlots(currentAvail.slots);
+    }
+    setIsOpen(true);
+  };
+
+  const toggleSlot = (slotIndex: number) => {
+    const newSlots = [...localSlots];
+    newSlots[slotIndex].isAvailable = !newSlots[slotIndex].isAvailable;
+    setLocalSlots(newSlots);
+  };
 
   const handleSaveAvailability = () => {
-    toast({
-      title: "Disponibilidad Actualizada ✅",
-      description: "Tus horarios de disponibilidad han sido guardados con éxito.",
-    });
-    setIsOpen(false);
+    if (selectedDate) {
+      updateAvailability(teacherId, selectedDate, localSlots);
+      toast({
+        title: "Disponibilidad Actualizada ✅",
+        description: `Horarios guardados para el ${selectedDate.toLocaleDateString('es-ES')}.`,
+      });
+      setIsOpen(false);
+    }
   };
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-extrabold text-foreground font-headline">Panel del Prof. Carlos 🎻</h1>
-        <p className="text-muted-foreground mt-1 text-lg">Tienes 4 clases programadas para hoy.</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-foreground font-headline">Panel del Prof. Carlos 🎻</h1>
+          <p className="text-muted-foreground mt-1 text-lg">Gestiona tu disponibilidad y sigue a tus alumnos.</p>
+        </div>
+        
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={handleOpenDialog} className="bg-accent text-white rounded-xl gap-2 h-12 shadow-lg shadow-accent/20">
+              <Clock className="w-5 h-5" /> Configurar Disponibilidad
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="rounded-3xl max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">Gestionar Horarios 🕒</DialogTitle>
+              <DialogDescription>
+                Define qué horas estarás disponible para el día seleccionado.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+              <div className="space-y-4">
+                <Label className="font-bold">1. Selecciona el Día</Label>
+                <div className="border rounded-2xl p-2 bg-muted/20">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      setSelectedDate(date);
+                      if (date) {
+                        setLocalSlots(getDayAvailability(teacherId, date).slots);
+                      }
+                    }}
+                    className="w-full flex justify-center"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <Label className="font-bold">2. Marca Horas Libres</Label>
+                <div className="grid grid-cols-1 gap-2 overflow-y-auto max-h-[300px] pr-2">
+                  {localSlots.map((slot, i) => (
+                    <div 
+                      key={slot.time} 
+                      className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+                        slot.isBooked ? 'bg-orange-50 border-orange-200' : 
+                        slot.isAvailable ? 'bg-green-50 border-green-200' : 'bg-white'
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-bold text-sm">{slot.time}</span>
+                        {slot.isBooked && (
+                          <span className="text-[10px] text-orange-600 font-medium">Ocupado por {slot.bookedBy}</span>
+                        )}
+                      </div>
+                      <Checkbox 
+                        id={`slot-${i}`} 
+                        checked={slot.isAvailable || slot.isBooked} 
+                        disabled={slot.isBooked}
+                        onCheckedChange={() => toggleSlot(i)}
+                        className="rounded-full"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 border-primary">Cerrar</Button>
+              <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-xl flex-1">Guardar Disponibilidad</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -103,57 +200,36 @@ export default function TeacherDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-3xl border-none shadow-md overflow-hidden">
-          <CardHeader className="border-b bg-white/50">
-            <CardTitle>Clases de Hoy</CardTitle>
+        <Card className="rounded-3xl border-none shadow-md overflow-hidden bg-white">
+          <CardHeader className="border-b bg-primary/10">
+            <CardTitle className="text-lg">Próximas Sesiones Ocupadas</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {[
-              { time: '10:00 AM', student: 'Ana García', mode: 'Presencial' },
-              { time: '11:30 AM', student: 'Liam Smith', mode: 'En línea' },
-              { time: '02:00 PM', student: 'Lección Grupal', mode: 'Taller' },
-              { time: '04:00 PM', student: 'Emma Wilson', mode: 'Presencial' },
-            ].map((cls, i) => (
-              <div key={i} className="flex items-center justify-between p-4 border-b last:border-0 hover:bg-muted/50 transition-colors">
-                <div>
-                  <div className="font-bold">{cls.time}</div>
-                  <div className="text-sm text-muted-foreground">{cls.student}</div>
-                </div>
-                <Button variant="ghost" size="sm" className="text-accent font-bold">
-                  Iniciar
-                </Button>
-              </div>
-            ))}
-            <div className="p-4 bg-muted/30">
-              <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full bg-accent text-white rounded-xl">Gestionar Disponibilidad</Button>
-                </DialogTrigger>
-                <DialogContent className="rounded-3xl max-w-md">
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold">Gestionar Disponibilidad 🕒</DialogTitle>
-                    <DialogDescription>
-                      Selecciona los días y rangos horarios en los que estás disponible para nuevas clases.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].map((day) => (
-                      <div key={day} className="flex items-center justify-between border-b pb-2">
-                        <div className="flex items-center gap-3">
-                          <Checkbox id={day} defaultChecked />
-                          <Label htmlFor={day} className="font-bold cursor-pointer">{day}</Label>
-                        </div>
-                        <span className="text-sm text-muted-foreground">09:00 - 18:00</span>
+            {selectedDate && getDayAvailability(teacherId, selectedDate).slots.filter(s => s.isBooked).length > 0 ? (
+              getDayAvailability(teacherId, selectedDate).slots.filter(s => s.isBooked).map((cls, i) => (
+                <div key={i} className="flex items-center justify-between p-4 border-b last:border-0 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-accent/10 rounded-lg">
+                      <Clock className="w-4 h-4 text-accent" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm">{cls.time}</div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <User className="w-3 h-3" /> {cls.bookedBy}
                       </div>
-                    ))}
+                    </div>
                   </div>
-                  <DialogFooter className="flex gap-2">
-                    <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 border-primary">Cancelar</Button>
-                    <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-xl flex-1">Guardar Cambios</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
+                  <Button variant="ghost" size="sm" className="text-accent font-bold hover:bg-accent/10">
+                    Iniciar
+                  </Button>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center text-muted-foreground italic space-y-2">
+                <CalendarIcon className="w-8 h-8 mx-auto opacity-20" />
+                <p>No hay clases reservadas para este día.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
