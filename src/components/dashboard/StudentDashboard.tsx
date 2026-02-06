@@ -63,7 +63,7 @@ export default function StudentDashboard() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">¡Hola, {user?.name.split(' ')[0]}! 👋</h1>
-          <p className="text-muted-foreground mt-1 text-lg font-medium">¿Lista para tu próximo avance musical?</p>
+          <p className="text-muted-foreground mt-1 text-lg font-medium">¿Listo para tu próximo avance musical?</p>
         </div>
         
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -145,7 +145,7 @@ export default function StudentDashboard() {
                           </span>
                           {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 animate-in zoom-in" />}
                         </Button>
-                      ))}
+                      ))
                     ) : (
                       <div className="bg-muted/10 p-12 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5">
                         <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
