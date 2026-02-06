@@ -34,7 +34,7 @@ export default function TeacherDashboard() {
   useEffect(() => {
     const data = getDayAvailability(teacherId, selectedDate);
     setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
-  }, [selectedDate, isOpen]);
+  }, [selectedDate, isOpen, getDayAvailability, teacherId]);
 
   const toggleSlotAvailability = (index: number) => {
     const newSlots = [...localSlots];
@@ -83,7 +83,7 @@ export default function TeacherDashboard() {
 
   const currentDayBookedSlots = useMemo(() => {
     return getDayAvailability(teacherId, selectedDate).slots.filter(s => s.isBooked);
-  }, [selectedDate, isOpen, getDayAvailability]);
+  }, [selectedDate, getDayAvailability, teacherId]);
 
   return (
     <div className="space-y-8">
@@ -99,87 +99,87 @@ export default function TeacherDashboard() {
               <Clock className="w-5 h-5" /> Gestionar Horarios
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl max-w-5xl max-h-[95vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
-            <div className="bg-primary/10 p-6 border-b">
+          <DialogContent className="rounded-[2.5rem] max-w-5xl max-h-[95vh] overflow-hidden flex flex-col p-0 border-none shadow-2xl">
+            <div className="bg-primary/10 p-8 border-b">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-2">
-                  <CalendarIcon className="w-6 h-6 text-accent" />
+                <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
+                  <CalendarIcon className="w-8 h-8 text-accent" />
                   Configuración de Agenda Diaria
                 </DialogTitle>
-                <DialogDescription className="text-base text-secondary-foreground/70">
-                  Selecciona un día y personaliza tus horas de clase disponibles de forma independiente.
+                <DialogDescription className="text-lg text-secondary-foreground/70">
+                  Selecciona un día en el calendario y personaliza tus horarios de clase.
                 </DialogDescription>
               </DialogHeader>
             </div>
             
             <div className="flex-1 overflow-y-auto p-8 bg-white">
-              <div className="flex flex-col lg:flex-row gap-10">
+              <div className="flex flex-col lg:flex-row gap-12">
                 <div className="flex-1 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">1. Selecciona Fecha</Label>
-                    <Badge variant="outline" className="bg-accent/5 text-accent border-accent/20 px-3 py-1 font-bold">
+                  <div className="flex items-center justify-between mb-4">
+                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">1. Elige Fecha</Label>
+                    <Badge variant="secondary" className="bg-accent text-white px-4 py-1.5 rounded-full font-bold">
                       {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </Badge>
                   </div>
-                  <div className="border border-primary/20 rounded-[2rem] p-6 bg-white shadow-inner flex justify-center">
+                  <div className="border border-primary/10 rounded-[2rem] p-6 bg-primary/5 shadow-inner flex justify-center">
                     <Calendar
                       mode="single"
                       selected={selectedDate}
                       onSelect={(date) => date && setSelectedDate(date)}
-                      className="w-full max-w-sm"
+                      className="w-full"
                     />
                   </div>
                 </div>
                 
                 <div className="flex-[1.5] space-y-6">
-                  <div className="flex justify-between items-center">
-                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">2. Configura Rangos Horarios</Label>
+                  <div className="flex justify-between items-center mb-4">
+                    <Label className="font-black text-xs uppercase tracking-[0.2em] text-muted-foreground">2. Configura los Bloques</Label>
                     <Button 
                       size="sm" 
                       variant="outline" 
                       onClick={addSlot}
-                      className="rounded-full border-accent text-accent hover:bg-accent hover:text-white gap-2 font-black px-4"
+                      className="rounded-full border-accent text-accent hover:bg-accent hover:text-white gap-2 font-black px-5 h-10 transition-all"
                     >
-                      <Plus className="w-4 h-4" /> Agregar Horario
+                      <Plus className="w-4 h-4" /> Nuevo Rango
                     </Button>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
+                  <div className="grid grid-cols-1 gap-4 max-h-[450px] overflow-y-auto pr-4 custom-scrollbar pb-4">
                     {localSlots.length > 0 ? (
                       localSlots.map((slot, i) => (
                         <div 
                           key={slot.id} 
-                          className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all group ${
-                            slot.isBooked ? 'bg-orange-50 border-orange-200 shadow-sm' : 
-                            slot.isAvailable ? 'bg-green-50/50 border-green-200' : 'bg-gray-50 border-gray-100 opacity-70'
+                          className={`flex items-center gap-4 p-5 rounded-[1.5rem] border-2 transition-all ${
+                            slot.isBooked ? 'bg-orange-50 border-orange-200' : 
+                            slot.isAvailable ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-100 opacity-60'
                           }`}
                         >
                           <div className="flex-1 space-y-2">
                             <div className="relative">
-                              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                              <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                               <Input
                                 value={slot.time}
                                 onChange={(e) => updateSlotTime(i, e.target.value)}
                                 disabled={slot.isBooked}
                                 placeholder="Ej: 08:00 - 09:00"
-                                className="h-12 pl-10 text-base rounded-xl font-bold bg-white border-primary/10"
+                                className="h-14 pl-12 text-lg rounded-2xl font-bold bg-white border-primary/10"
                               />
                             </div>
                             {slot.isBooked && (
-                              <div className="flex items-center gap-1 text-[11px] text-orange-600 font-black uppercase tracking-widest ml-1">
-                                <CheckCircle2 className="w-3 h-3" /> Reservado por {slot.bookedBy}
+                              <div className="flex items-center gap-1.5 text-sm text-orange-600 font-black uppercase tracking-widest ml-1">
+                                <CheckCircle2 className="w-4 h-4" /> Reservado por {slot.bookedBy}
                               </div>
                             )}
                           </div>
                           
-                          <div className="flex items-center gap-4">
-                            <div className="flex flex-col items-center gap-1">
-                              <span className="text-[10px] font-black text-muted-foreground uppercase">Disponible</span>
+                          <div className="flex items-center gap-6">
+                            <div className="flex flex-col items-center gap-2">
+                              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">¿Libre?</span>
                               <Checkbox 
                                 checked={slot.isAvailable || slot.isBooked} 
                                 disabled={slot.isBooked}
                                 onCheckedChange={() => toggleSlotAvailability(i)}
-                                className="h-6 w-6 rounded-lg data-[state=checked]:bg-green-600"
+                                className="h-7 w-7 rounded-xl data-[state=checked]:bg-green-600 border-2"
                               />
                             </div>
                             
@@ -188,18 +188,18 @@ export default function TeacherDashboard() {
                               size="icon" 
                               onClick={() => removeSlot(i)}
                               disabled={slot.isBooked}
-                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-10 w-10 rounded-xl"
+                              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-12 w-12 rounded-2xl transition-colors"
                             >
-                              <Trash2 className="w-5 h-5" />
+                              <Trash2 className="w-6 h-6" />
                             </Button>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-20 bg-muted/5 rounded-[2.5rem] border-4 border-dashed border-primary/10">
-                        <Plus className="w-10 h-10 mx-auto text-primary/20 mb-3" />
-                        <p className="text-muted-foreground font-bold">Sin horarios definidos para hoy.</p>
-                        <p className="text-xs text-muted-foreground mt-1">Haz clic en "Agregar Horario" para empezar.</p>
+                      <div className="text-center py-20 bg-muted/5 rounded-[3rem] border-4 border-dashed border-primary/10">
+                        <Plus className="w-12 h-12 mx-auto text-primary/20 mb-4" />
+                        <p className="text-xl font-bold text-muted-foreground">Sin horarios para hoy.</p>
+                        <p className="text-sm text-muted-foreground mt-2">Usa el botón "+ Nuevo Rango" para crear espacios de clase.</p>
                       </div>
                     )}
                   </div>
@@ -207,12 +207,12 @@ export default function TeacherDashboard() {
               </div>
             </div>
 
-            <div className="p-8 bg-gray-50 border-t flex gap-4">
+            <div className="p-8 bg-gray-50 border-t flex gap-6">
               <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 border-primary/20 font-black text-lg">
-                Cerrar
+                Cancelar
               </Button>
               <Button onClick={handleSaveAvailability} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black text-lg gap-2 shadow-xl shadow-accent/20 hover:scale-[1.02] transition-transform">
-                <Save className="w-6 h-6" /> Guardar Cambios Diarios
+                <Save className="w-6 h-6" /> Guardar Agenda del Día
               </Button>
             </div>
           </DialogContent>

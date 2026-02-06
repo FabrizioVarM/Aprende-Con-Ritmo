@@ -34,12 +34,12 @@ function Calendar({
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse",
         head_row: "grid grid-cols-7 mb-2",
-        head_cell: "text-muted-foreground font-bold text-[0.75rem] uppercase text-center",
+        head_cell: "text-muted-foreground font-bold text-[0.7rem] uppercase text-center w-full",
         row: "grid grid-cols-7 w-full mt-1",
-        cell: "h-10 w-full text-center text-sm p-0 relative flex items-center justify-center",
+        cell: "h-9 w-full text-center text-sm p-0 relative flex items-center justify-center",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-accent/10 rounded-xl transition-all"
+          "h-8 w-8 p-0 font-normal aria-selected:opacity-100 hover:bg-accent/10 rounded-xl transition-all"
         ),
         day_range_end: "day-range-end",
         day_selected:
