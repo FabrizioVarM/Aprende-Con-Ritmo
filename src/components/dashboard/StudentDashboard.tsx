@@ -34,6 +34,7 @@ export default function StudentDashboard() {
   const [todayStr, setTodayStr] = useState<string>('');
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   
   const { toast } = useToast();
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
@@ -43,6 +44,7 @@ export default function StudentDashboard() {
     setTodayStr(now.toDateString());
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     setTodayTimestamp(startOfToday.getTime());
+    setCurrentTime(now);
   }, []);
 
   const availability = useMemo(() => {
@@ -54,7 +56,7 @@ export default function StudentDashboard() {
   }, [availability.slots]);
 
   const myUpcomingLessons = useMemo(() => {
-    if (!user) return [];
+    if (!user || !currentTime) return [];
     
     const lessons: any[] = [];
     availabilities.forEach(dayAvail => {
@@ -62,21 +64,34 @@ export default function StudentDashboard() {
         if (slot.isBooked && slot.bookedBy === user.name) {
           const teacher = TEACHERS.find(t => t.id === dayAvail.teacherId);
           const lessonDate = dayAvail.date;
-          const timeStart = slot.time.split(' ')[0];
           
-          lessons.push({
-            date: lessonDate,
-            time: slot.time,
-            teacherName: teacher?.name || 'Profesor',
-            instrument: teacher?.instrument || 'General',
-            sortDate: new Date(`${lessonDate}T${timeStart}:00`)
-          });
+          // slot.time format: "HH:mm - HH:mm"
+          const timeParts = slot.time.split(' - ');
+          const startTime = timeParts[0];
+          const endTime = timeParts[1];
+          
+          // Use the end time of the class to decide if it should still be shown
+          // This allows "in progress" classes to stay on the dashboard
+          const endDateTime = new Date(`${lessonDate}T${endTime}:00`);
+          
+          if (currentTime < endDateTime) {
+            lessons.push({
+              date: lessonDate,
+              time: slot.time,
+              teacherName: teacher?.name || 'Profesor',
+              instrument: teacher?.instrument || 'General',
+              sortDate: new Date(`${lessonDate}T${startTime}:00`)
+            });
+          }
         }
       });
     });
 
-    return lessons.sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime());
-  }, [availabilities, user]);
+    // Sort chronologically and limit to the top 4
+    return lessons
+      .sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime())
+      .slice(0, 4);
+  }, [availabilities, user, currentTime]);
 
   const nextLesson = myUpcomingLessons[0];
 
