@@ -43,29 +43,33 @@ export default function AdminDashboard() {
       return `${y}-${m}-${dd}`;
     });
 
-    let availableHours = 0;
-    let totalSlots = 0;
+    let totalEnabledHours = 0;
+    let totalEnabledSlots = 0;
+    let freeSlots = 0;
 
     availabilities.forEach(dayAvail => {
       if (dayAvail.teacherId === teacherId && weekDates.includes(dayAvail.date)) {
         dayAvail.slots.forEach(slot => {
-          if (slot.isAvailable && !slot.isBooked) {
+          // Contamos tanto los disponibles como los ya reservados (el total que el profesor habilitó)
+          if (slot.isAvailable || slot.isBooked) {
             try {
               const [start, end] = slot.time.split(' - ');
               const [h1, m1] = start.split(':').map(Number);
               const [h2, m2] = end.split(':').map(Number);
-              availableHours += (h2 * 60 + m2 - (h1 * 60 + m1)) / 60;
-              totalSlots++;
+              totalEnabledHours += (h2 * 60 + m2 - (h1 * 60 + m1)) / 60;
+              totalEnabledSlots++;
+              if (!slot.isBooked) freeSlots++;
             } catch (e) {
-              availableHours += 1;
-              totalSlots++;
+              totalEnabledHours += 1;
+              totalEnabledSlots++;
+              if (!slot.isBooked) freeSlots++;
             }
           }
         });
       }
     });
 
-    return { hours: availableHours, slots: totalSlots };
+    return { hours: totalEnabledHours, slots: totalEnabledSlots, freeSlots };
   };
 
   const teachersAvailability = useMemo(() => {
@@ -156,9 +160,9 @@ export default function AdminDashboard() {
             <div className="space-y-1">
               <CardTitle className="text-xl font-black flex items-center gap-3">
                 <CalendarDays className="w-6 h-6 text-accent" />
-                Disponibilidad Docente Semanal
+                Carga Horaria Semanal
               </CardTitle>
-              <p className="text-xs font-bold text-muted-foreground italic uppercase tracking-wider">Horas habilitadas por los profesores para reserva</p>
+              <p className="text-xs font-bold text-muted-foreground italic uppercase tracking-wider">Total de horas habilitadas por los profesores</p>
             </div>
             <Badge className="bg-accent text-white rounded-full px-4 py-1.5 font-black text-[10px] uppercase tracking-widest">Semana Actual</Badge>
           </CardHeader>
@@ -194,7 +198,7 @@ export default function AdminDashboard() {
                         <span className="text-2xl font-black text-accent">{t.availability.hours.toFixed(1)}h</span>
                       </div>
                       <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-1">
-                        {t.availability.slots} turnos libres
+                        {t.availability.slots} turnos habilitados
                       </p>
                     </div>
                     <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground/40 group-hover:text-accent transition-all group-hover:translate-x-1">
