@@ -77,7 +77,6 @@ export default function ProgressPage() {
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
   
-  // Usar todos los usuarios reales registrados
   const students = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
 
   useEffect(() => {
@@ -101,7 +100,6 @@ export default function ProgressPage() {
   useEffect(() => {
     if (currentStudent) {
       if (currentStudent.instruments && currentStudent.instruments.length > 0) {
-        // Solo permitir instrumentos que el alumno tiene en su perfil o Teoría
         if (!selectedInstrument || (!currentStudent.instruments.includes(selectedInstrument) && selectedInstrument !== 'Teoría Musical')) {
           setSelectedInstrument(currentStudent.instruments[0]);
         }
@@ -115,14 +113,12 @@ export default function ProgressPage() {
     if (!currentStudent) return {};
     const stats: Record<string, { points: number; completedHours: number; levelName: string; levelNum: number }> = {};
     
-    // Lista de instrumentos reales del estudiante
     const studentInstruments = [...(currentStudent.instruments || []), 'Teoría Musical'];
     
     studentInstruments.forEach(cat => {
       let points = 0;
       let completedHours = 0;
 
-      // Puntos por recursos completados
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(currentStudent.id)) {
           const resource = RESOURCES.find(r => r.id === comp.resourceId);
@@ -136,7 +132,6 @@ export default function ProgressPage() {
         }
       });
 
-      // Puntos por clases asistidas (20 puntos por hora)
       if (Array.isArray(availabilities)) {
         availabilities.forEach(avail => {
           if (avail.slots && Array.isArray(avail.slots)) {
@@ -152,7 +147,6 @@ export default function ProgressPage() {
                   
                   let matchesInstrument = normSlotInst === normCat;
                   
-                  // Si la clase es genérica ("Música"), asignarla al primer instrumento del alumno
                   if (!matchesInstrument && (normSlotInst === 'musica' || normSlotInst === 'música')) {
                     const primaryInst = currentStudent.instruments?.[0] || 'Teoría Musical';
                     if (normalizeStr(primaryInst) === normCat) {
@@ -162,7 +156,7 @@ export default function ProgressPage() {
 
                   if (matchesInstrument) {
                     const duration = calculateDuration(slot.time);
-                    points += Math.round(duration * 20); // 20 puntos por hora
+                    points += Math.round(duration * 20);
                     completedHours += duration;
                   }
                 }
@@ -172,7 +166,6 @@ export default function ProgressPage() {
         });
       }
 
-      // Puntos por evolución técnica (Skills)
       const instKey = cat === 'Teoría Musical' ? 'Teoría' : cat;
       const skillConfigs = DEFAULT_SKILLS_CONFIG[instKey] || [];
       skillConfigs.forEach(sc => {
@@ -392,8 +385,8 @@ export default function ProgressPage() {
                   <StarIcon className="w-6 h-6 text-accent fill-accent" />
                   Hitos de Carrera
                 </CardTitle>
-                <Badge className="bg-accent text-white rounded-full font-black px-3 py-1">
-                  {achievedMilestonesCount}/{MILESTONES.length}
+                <Badge className="bg-accent text-white rounded-full font-black px-4 py-2 text-sm shadow-lg shadow-accent/20">
+                  {achievedMilestonesCount}
                 </Badge>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
