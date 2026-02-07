@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -77,6 +78,16 @@ const getArtistName = (inst: string) => {
 
 // Lógica de Niveles
 const getLevelInfo = (inst: string, points: number) => {
+  // Nombres creativos para Teoría
+  if (inst === 'Teoría') {
+    if (points >= 9000) return { name: 'Sabio de la Composición', level: 6 };
+    if (points >= 6200) return { name: 'Virtuoso de la Estructura', level: 5 };
+    if (points >= 4000) return { name: 'Maestro del Solfeo', level: 4 };
+    if (points >= 2300) return { name: 'Arquitecto de Sonidos', level: 3 };
+    if (points >= 1000) return { name: 'Explorador del Pentagrama', level: 2 };
+    return { name: 'Aprendiz de Armonía', level: 1 };
+  }
+
   const artist = getArtistName(inst);
   if (points >= 9000) return { name: 'Maestro joven', level: 6 };
   if (points >= 6200) return { name: `Virtuoso con la ${inst}`, level: 5 };
@@ -124,11 +135,6 @@ export default function ProgressPage() {
       availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
           if (slot.isBooked && slot.bookedBy === user?.name) {
-            // Nota: Aquí asumimos que teacherId o el slot mismo está vinculado al instrumento. 
-            // Para el prototipo, comparamos el instrumento del docente si estuviera disponible, 
-            // o simplemente sumamos a la categoría si coincide (simulado).
-            // Para ser precisos, sumaremos a la categoría seleccionada si hay match.
-            // En este prototipo, las clases se agrupan en la categoría del instrumento principal del usuario.
             if (cat === user?.instruments?.[0]) {
               points += 100;
             }
