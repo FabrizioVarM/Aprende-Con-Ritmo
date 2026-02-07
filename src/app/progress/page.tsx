@@ -12,7 +12,7 @@ import { useCompletionStore } from '@/lib/completion-store';
 import { useBookingStore } from '@/lib/booking-store';
 import { useSkillsStore } from '@/lib/skills-store';
 import { RESOURCES } from '@/lib/resources';
-import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Users, ShieldCheck, Clock } from 'lucide-react';
+import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Clock, ShieldCheck, Star as StarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const DEFAULT_SKILLS_CONFIG: Record<string, { name: string; color: string; defaultLevel: number }[]> = {
@@ -154,7 +154,7 @@ export default function ProgressPage() {
       let points = 0;
       let completedHours = 0;
 
-      // 1. Puntos por recursos completados (150 pts cada uno)
+      // 1. Recursos
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(currentStudent.id)) {
           const resource = RESOURCES.find(r => r.id === comp.resourceId);
@@ -164,27 +164,35 @@ export default function ProgressPage() {
         }
       });
 
-      // 2. Puntos por clases COMPLETADAS (1 hora = 10 pts)
-      // Buscamos en TODA la base de datos de disponibilidades
+      // 2. Clases (Cálculo retroactivo exhaustivo)
       if (Array.isArray(availabilities)) {
         availabilities.forEach(avail => {
           if (avail.slots && Array.isArray(avail.slots)) {
             avail.slots.forEach(slot => {
-              // Matching robusto del estudiante (ID o nombre normalizado)
-              const isSameId = slot.studentId && String(slot.studentId) === String(currentStudent.id);
-              const isSameName = slot.bookedBy && normalizeStr(slot.bookedBy) === normalizeStr(currentStudent.name || '');
-              const isOurStudent = isSameId || isSameName;
+              if (slot.isBooked && slot.status === 'completed') {
+                const isSameId = slot.studentId && String(slot.studentId) === String(currentStudent.id);
+                const isSameName = slot.bookedBy && normalizeStr(slot.bookedBy) === normalizeStr(currentStudent.name || '');
+                
+                if (isSameId || isSameName) {
+                  const slotInst = slot.instrument || 'Música';
+                  const normSlotInst = normalizeStr(slotInst);
+                  const normCat = normalizeStr(cat);
+                  
+                  let matchesInstrument = normSlotInst === normCat;
+                  
+                  // Si el slot es genérico "Música", asignarlo al instrumento principal del alumno si coincide con la categoría actual
+                  if (!matchesInstrument && (normSlotInst === 'musica' || normSlotInst === 'música')) {
+                    const primaryInst = currentStudent.instruments?.[0] || 'Default';
+                    if (normalizeStr(primaryInst) === normCat) {
+                      matchesInstrument = true;
+                    }
+                  }
 
-              // Matching robusto del instrumento
-              const slotInst = slot.instrument || 'Default';
-              const isOurInstrument = normalizeStr(slotInst) === normalizeStr(cat) || 
-                                     (normalizeStr(slotInst) === 'musica' && normalizeStr(cat) === 'guitarra');
-
-              if (slot.isBooked && isOurStudent && isOurInstrument) {
-                if (slot.status === 'completed') {
-                  const duration = calculateDuration(slot.time);
-                  points += Math.round(duration * 10);
-                  completedHours += duration;
+                  if (matchesInstrument) {
+                    const duration = calculateDuration(slot.time);
+                    points += Math.round(duration * 10);
+                    completedHours += duration;
+                  }
                 }
               }
             });
@@ -192,7 +200,7 @@ export default function ProgressPage() {
         });
       }
 
-      // 3. Puntos por niveles de habilidades (nivel * 10)
+      // 3. Habilidades
       const skillConfigs = DEFAULT_SKILLS_CONFIG[cat] || [];
       skillConfigs.forEach(sc => {
         const level = getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel);
@@ -357,7 +365,7 @@ export default function ProgressPage() {
             <Card className="rounded-[2.5rem] border-none shadow-md bg-white">
               <CardHeader className="p-8 border-b bg-gray-50/50">
                 <CardTitle className="flex items-center gap-3 font-black text-xl">
-                  <Star className="w-6 h-6 text-accent fill-accent" />
+                  <StarIcon className="w-6 h-6 text-accent fill-accent" />
                   Hitos de Carrera
                 </CardTitle>
               </CardHeader>

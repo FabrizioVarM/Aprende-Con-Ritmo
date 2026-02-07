@@ -70,7 +70,7 @@ export function useBookingStore() {
   const saveToStorage = useCallback((data: DayAvailability[]) => {
     localStorage.setItem('ac_availabilities', JSON.stringify(data));
     setAvailabilities([...data]);
-    // Forzar evento de sincronización global para que componentes como ProgressPage reaccionen
+    // Forzar evento de sincronización global
     window.dispatchEvent(new CustomEvent('ac_sync_booking'));
   }, []);
 
@@ -159,9 +159,9 @@ export function useBookingStore() {
     saveToStorage(updated);
   }, [availabilities, saveToStorage]);
 
-  const setSlotStatus = useCallback((teacherId: string, date: string, slotId: string, status: 'pending' | 'completed') => {
+  const setSlotStatus = useCallback((teacherId: string, dateStr: string, slotId: string, status: 'pending' | 'completed') => {
     const updated = availabilities.map(a => {
-      if (a.teacherId === teacherId && a.date === date) {
+      if (a.teacherId === teacherId && a.date === dateStr) {
         return {
           ...a,
           slots: a.slots.map(s => s.id === slotId ? { ...s, status } : s)

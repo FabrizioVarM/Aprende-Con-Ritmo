@@ -33,8 +33,7 @@ export function useAuth() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Inicializar base de datos de usuarios y sesión
-  useEffect(() => {
+  const loadAllUsers = useCallback(() => {
     const savedAllUsers = localStorage.getItem('ac_all_users');
     let currentAllUsers = INITIAL_MOCK_USERS;
 
@@ -54,40 +53,52 @@ export function useAuth() {
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
-        // Sincronizar usuario actual con la "base de datos" por si hubo cambios en otra sesión
         const upToDateUser = currentAllUsers.find(u => u.id === parsedUser.id) || parsedUser;
         setUser(upToDateUser);
       } catch (e) {
         console.error("Error parsing current user", e);
       }
     }
-    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadAllUsers();
+    setLoading(false);
+
+    const handleSync = () => loadAllUsers();
+    window.addEventListener('ac_sync_auth', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('ac_sync_auth', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, [loadAllUsers]);
 
   const login = (email: string) => {
     const foundUser = allUsers.find(u => u.email === email) || allUsers[0];
     localStorage.setItem('ac_user', JSON.stringify(foundUser));
     setUser(foundUser);
+    window.dispatchEvent(new CustomEvent('ac_sync_auth'));
   };
 
   const logout = () => {
     localStorage.removeItem('ac_user');
     setUser(null);
+    window.dispatchEvent(new CustomEvent('ac_sync_auth'));
   };
 
   const updateUser = useCallback((updatedData: Partial<User>) => {
     if (!user) return;
     
     const newUser = { ...user, ...updatedData };
-    
-    // Actualizar usuario actual
     localStorage.setItem('ac_user', JSON.stringify(newUser));
     setUser(newUser);
 
-    // Actualizar en la lista global de usuarios
     const updatedAllUsers = allUsers.map(u => u.id === newUser.id ? newUser : u);
     localStorage.setItem('ac_all_users', JSON.stringify(updatedAllUsers));
     setAllUsers(updatedAllUsers);
+    
+    window.dispatchEvent(new CustomEvent('ac_sync_auth'));
   }, [user, allUsers]);
 
   const getTeachers = useCallback(() => {
