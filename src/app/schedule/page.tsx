@@ -30,6 +30,7 @@ const TEACHER_INFO = {
 
 export default function SchedulePage() {
   const { user } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
   const [date, setDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
@@ -39,10 +40,12 @@ export default function SchedulePage() {
   const { getDayAvailability, bookSlot, cancelBooking, availabilities } = useBookingStore();
 
   useEffect(() => {
+    setIsMounted(true);
     const now = new Date();
     setTodayStr(now.toDateString());
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     setTodayTimestamp(startOfToday.getTime());
+    setDate(now);
   }, []);
 
   const teacherId = TEACHER_INFO.id;
@@ -102,6 +105,10 @@ export default function SchedulePage() {
       return d;
     });
   }, [date]);
+
+  if (!isMounted) {
+    return null;
+  }
 
   const SlotCard = ({ slot, isMine }: { slot: any, isMine: boolean }) => (
     <Card className={cn(

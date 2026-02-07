@@ -30,6 +30,7 @@ const TEACHERS = [
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('2');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -43,11 +44,13 @@ export default function StudentDashboard() {
   const { getCompletionStatus } = useCompletionStore();
 
   useEffect(() => {
+    setIsMounted(true);
     const now = new Date();
     setTodayStr(now.toDateString());
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     setTodayTimestamp(startOfToday.getTime());
     setCurrentTime(now);
+    setSelectedDate(now);
   }, []);
 
   const availability = useMemo(() => {
@@ -133,6 +136,8 @@ export default function StudentDashboard() {
       return d;
     });
   }, [selectedDate]);
+
+  if (!isMounted) return null;
 
   return (
     <div className="space-y-8">

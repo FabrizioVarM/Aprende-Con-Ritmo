@@ -23,6 +23,7 @@ import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCa
 import { cn } from '@/lib/utils';
 
 export default function TeacherDashboard() {
+  const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
@@ -34,10 +35,12 @@ export default function TeacherDashboard() {
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
 
   useEffect(() => {
+    setIsMounted(true);
     const now = new Date();
     setTodayStr(now.toDateString());
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     setTodayTimestamp(startOfToday.getTime());
+    setSelectedDate(now);
   }, []);
 
   useEffect(() => {
@@ -143,6 +146,8 @@ export default function TeacherDashboard() {
     const dateCopy = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     return dateCopy.getTime() < todayTimestamp;
   }, [selectedDate, todayTimestamp]);
+
+  if (!isMounted) return null;
 
   return (
     <div className="space-y-8">
