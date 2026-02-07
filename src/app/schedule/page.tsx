@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -26,6 +25,15 @@ const TEACHER_INFO = {
   id: '2',
   name: 'Carlos',
   instrument: 'Guitarra'
+};
+
+const formatToAmPm = (timeRange: string) => {
+  const startPart = timeRange.split(' - ')[0];
+  const [hourStr, minStr] = startPart.split(':');
+  const hour = parseInt(hourStr);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minStr} ${ampm}`;
 };
 
 const getTimePeriod = (timeStr: string) => {
@@ -144,6 +152,7 @@ export default function SchedulePage() {
   const SlotCard = ({ slot, isMine }: { slot: any, isMine: boolean }) => {
     const period = getTimePeriod(slot.time);
     const PeriodIcon = period.icon;
+    const displayTime = formatToAmPm(slot.time);
 
     return (
       <Card className={cn(
@@ -155,10 +164,10 @@ export default function SchedulePage() {
         <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <div className={cn(
-              "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[85px] h-16 sm:h-20 rounded-2xl shrink-0",
+              "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[95px] h-16 sm:h-20 rounded-2xl shrink-0",
               isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
             )}>
-              <span className="text-base sm:text-xl font-black leading-none">{slot.time.split(' ')[0]}</span>
+              <span className="text-sm sm:text-base font-black leading-none text-center">{displayTime}</span>
               <div className={cn(
                 "flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border shadow-sm",
                 isMine 
@@ -257,6 +266,7 @@ export default function SchedulePage() {
                       {otherAvailableSlots.map((slot) => {
                         const period = getTimePeriod(slot.time);
                         const PeriodIcon = period.icon;
+                        const displayTime = formatToAmPm(slot.time);
                         
                         return (
                           <Button
@@ -278,7 +288,7 @@ export default function SchedulePage() {
                                 <PeriodIcon className="w-4 h-4 shrink-0" />
                               </div>
                               <div className="flex flex-col items-start min-w-0">
-                                  <span className="text-base font-black leading-tight">{slot.time}</span>
+                                  <span className="text-base font-black leading-tight">{displayTime}</span>
                                   <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-[10px] font-black uppercase text-muted-foreground/80">
                                       {TEACHER_INFO.name} • {TEACHER_INFO.instrument}
