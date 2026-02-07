@@ -9,13 +9,24 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
+import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from '@/hooks/use-toast';
-import { RESOURCES } from '@/lib/resources';
+import { Resource } from '@/lib/resources';
 
 const MOCK_STUDENTS = [
   { id: '1', name: 'Ana García', instruments: ['Guitarra', 'Canto'] },
@@ -27,16 +38,18 @@ const MOCK_STUDENTS = [
 export default function LibraryPage() {
   const { user } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
+  const { resources, updateResource } = useResourceStore();
   const { toast } = useToast();
   
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [isInitialFilterSet, setIsInitialFilterSet] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState('1'); 
+  const [editingResource, setEditingResource] = useState<Resource | null>(null);
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
-  // Efecto para inicializar los filtros según el perfil del usuario (si es alumno)
   useEffect(() => {
     if (user && user.role === 'student' && !isInitialFilterSet) {
       if (user.instruments && user.instruments.length > 0) {
@@ -46,12 +59,10 @@ export default function LibraryPage() {
     }
   }, [user, isInitialFilterSet]);
 
-  // Efecto para actualizar filtros automáticamente cuando el profesor cambia de alumno
   useEffect(() => {
     if (isStaff) {
       const student = MOCK_STUDENTS.find(s => s.id === selectedStudentId);
       if (student && student.instruments) {
-        // Al seleccionar un estudiante, se filtran TODOS sus instrumentos automáticamente
         setSelectedFilters([...student.instruments]);
       }
     }
@@ -69,7 +80,7 @@ export default function LibraryPage() {
     );
   };
 
-  const filtered = RESOURCES.filter(res => 
+  const filtered = resources.filter(res => 
     (selectedFilters.length === 0 || selectedFilters.includes(res.category)) &&
     (res.title.toLowerCase().includes(search.toLowerCase()))
   );
@@ -86,6 +97,17 @@ export default function LibraryPage() {
         ? `Has marcado "${title}" como completado para el alumno.`
         : `Se ha revertido el estado de "${title}".`,
     });
+  };
+
+  const handleSaveResourceEdit = () => {
+    if (editingResource) {
+      updateResource(editingResource.id, editingResource);
+      toast({
+        title: "Recurso Actualizado ✨",
+        description: "Los cambios se han guardado correctamente.",
+      });
+      setEditingResource(null);
+    }
   };
 
   return (
@@ -164,29 +186,35 @@ export default function LibraryPage() {
             return (
               <Card key={res.id} className="rounded-[2.5rem] border-none shadow-md group overflow-hidden bg-white hover:shadow-xl transition-all duration-300">
                 <div className="relative aspect-video overflow-hidden">
-                  {res.img ? (
-                    <Image 
-                      src={res.img.imageUrl} 
-                      alt={res.title}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      data-ai-hint={res.img.imageHint}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-muted flex items-center justify-center">
-                      <BookOpen className="w-12 h-12 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="absolute top-4 left-4">
+                  <Image 
+                    src={res.img.imageUrl} 
+                    alt={res.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    data-ai-hint={res.img.imageHint}
+                  />
+                  <div className="absolute top-4 left-4 flex gap-2">
                     <Badge className="bg-white/95 text-secondary-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none">{res.category}</Badge>
                   </div>
+                  {isAdmin && (
+                    <div className="absolute top-4 right-4">
+                      <Button 
+                        size="icon" 
+                        variant="secondary" 
+                        className="rounded-full w-10 h-10 shadow-lg bg-white/90 hover:bg-accent hover:text-white transition-all"
+                        onClick={() => setEditingResource(res)}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[3rem] line-clamp-2">{res.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-widest">
-                    <res.icon className="w-4 h-4 text-accent" />
+                    <BookOpen className="w-4 h-4 text-accent" />
                     <span>Contenido {res.type}</span>
                   </div>
 
@@ -227,10 +255,17 @@ export default function LibraryPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex gap-3 pt-2">
-                  <Button variant="outline" className="flex-none rounded-2xl border-2 border-primary/10 h-12 gap-2 font-black px-4 text-xs hover:border-accent hover:bg-accent/5">
+                  <Button 
+                    variant="outline" 
+                    className="flex-none rounded-2xl border-2 border-primary/10 h-12 gap-2 font-black px-4 text-xs hover:border-accent hover:bg-accent/5"
+                    onClick={() => res.downloadUrl && window.open(res.downloadUrl, '_blank')}
+                  >
                     <Download className="w-4 h-4" /> Descargar
                   </Button>
-                  <Button className="flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20">
+                  <Button 
+                    className="flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20"
+                    onClick={() => res.interactUrl && window.open(res.interactUrl, '_blank')}
+                  >
                     <Play className="w-4 h-4" /> Interactúa!
                   </Button>
                 </CardFooter>
@@ -246,6 +281,91 @@ export default function LibraryPage() {
           )}
         </div>
       </div>
+
+      <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
+        <DialogContent className="rounded-[2.5rem] max-w-xl border-none shadow-2xl p-0 overflow-hidden">
+          <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+            <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+              <Edit2 className="w-6 h-6 text-accent" />
+              Editar Recurso
+            </DialogTitle>
+            <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+              Modifica los detalles del material educativo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-8 space-y-6 bg-white overflow-y-auto max-h-[60vh]">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
+                  <Input 
+                    value={editingResource?.title || ''} 
+                    onChange={(e) => setEditingResource(prev => prev ? {...prev, title: e.target.value} : null)}
+                    className="h-12 rounded-xl border-2 font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
+                  <Select 
+                    value={editingResource?.category || ''} 
+                    onValueChange={(val) => setEditingResource(prev => prev ? {...prev, category: val} : null)}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                      <SelectValue placeholder="Categoría" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'].map(cat => (
+                        <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <ImageIcon className="w-3 h-3" /> URL de Imagen de Portada
+                </Label>
+                <Input 
+                  value={editingResource?.img.imageUrl || ''} 
+                  onChange={(e) => setEditingResource(prev => prev ? {...prev, img: {...prev.img, imageUrl: e.target.value}} : null)}
+                  className="h-12 rounded-xl border-2 font-bold"
+                  placeholder="https://images.unsplash.com/..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Download className="w-3 h-3" /> Enlace de Descarga
+                  </Label>
+                  <Input 
+                    value={editingResource?.downloadUrl || ''} 
+                    onChange={(e) => setEditingResource(prev => prev ? {...prev, downloadUrl: e.target.value} : null)}
+                    className="h-12 rounded-xl border-2 font-bold"
+                    placeholder="#"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <LinkIcon className="w-3 h-3" /> Enlace de Interacción
+                  </Label>
+                  <Input 
+                    value={editingResource?.interactUrl || ''} 
+                    onChange={(e) => setEditingResource(prev => prev ? {...prev, interactUrl: e.target.value} : null)}
+                    className="h-12 rounded-xl border-2 font-bold"
+                    placeholder="#"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="p-8 bg-gray-50 flex gap-3 border-t">
+            <Button variant="outline" onClick={() => setEditingResource(null)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
+            <Button onClick={handleSaveResourceEdit} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Guardar Cambios</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
