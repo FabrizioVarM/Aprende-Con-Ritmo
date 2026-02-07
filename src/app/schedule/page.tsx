@@ -30,9 +30,31 @@ const TEACHER_INFO = {
 
 const getTimePeriod = (timeStr: string) => {
   const hour = parseInt(timeStr.split(':')[0]);
-  if (hour >= 6 && hour < 12) return { label: 'Mañana', icon: Sunrise };
-  if (hour >= 12 && hour < 19) return { label: 'Tarde', icon: Sun };
-  return { label: 'Noche', icon: Moon };
+  if (hour >= 6 && hour < 12) {
+    return { 
+      label: 'Mañana', 
+      icon: Sunrise, 
+      color: 'text-amber-700', 
+      bg: 'bg-amber-100', 
+      border: 'border-amber-200' 
+    };
+  }
+  if (hour >= 12 && hour < 19) {
+    return { 
+      label: 'Tarde', 
+      icon: Sun, 
+      color: 'text-orange-700', 
+      bg: 'bg-orange-100', 
+      border: 'border-orange-200' 
+    };
+  }
+  return { 
+    label: 'Noche', 
+    icon: Moon, 
+    color: 'text-indigo-700', 
+    bg: 'bg-indigo-100', 
+    border: 'border-indigo-200' 
+  };
 };
 
 export default function SchedulePage() {
@@ -133,13 +155,18 @@ export default function SchedulePage() {
         <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <div className={cn(
-              "flex flex-col items-center justify-center min-w-[70px] sm:min-w-[80px] h-14 sm:h-16 rounded-2xl shrink-0",
+              "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[85px] h-16 sm:h-20 rounded-2xl shrink-0",
               isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
             )}>
-              <span className="text-base sm:text-lg font-black leading-none">{slot.time.split(' ')[0]}</span>
-              <div className="flex items-center gap-1 mt-1 opacity-80">
+              <span className="text-base sm:text-xl font-black leading-none">{slot.time.split(' ')[0]}</span>
+              <div className={cn(
+                "flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border shadow-sm",
+                isMine 
+                  ? "bg-white/20 border-white/30 text-white" 
+                  : `${period.bg} ${period.border} ${period.color}`
+              )}>
                 <PeriodIcon className="w-2.5 h-2.5" />
-                <span className="text-[8px] font-black uppercase tracking-tighter">{period.label}</span>
+                <span className="text-[7px] font-black uppercase tracking-tighter">{period.label}</span>
               </div>
             </div>
             
@@ -244,7 +271,12 @@ export default function SchedulePage() {
                             onClick={() => setSelectedSlotId(slot.id)}
                           >
                             <div className="flex items-center gap-3">
-                              <PeriodIcon className={cn("w-4 h-4 shrink-0", selectedSlotId === slot.id ? "text-white" : "text-accent")} />
+                              <div className={cn(
+                                "p-1.5 rounded-lg border",
+                                selectedSlotId === slot.id ? "bg-white/20 border-white/30" : `${period.bg} ${period.border} ${period.color}`
+                              )}>
+                                <PeriodIcon className="w-4 h-4 shrink-0" />
+                              </div>
                               <div className="flex flex-col items-start min-w-0">
                                   <span className="text-base font-black leading-tight">{slot.time}</span>
                                   <div className="flex items-center gap-2 flex-wrap">
@@ -410,4 +442,3 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
-
