@@ -20,7 +20,9 @@ import {
   Mic,
   Drum,
   BookOpen,
-  Guitar
+  Guitar,
+  ChevronLeft,
+  Check
 } from 'lucide-react';
 import {
   Dialog,
@@ -389,7 +391,35 @@ export default function StudentDashboard() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Selecciona el Día</label>
+                    <div className="flex justify-between items-center">
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Selecciona el Día</label>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => {
+                            const newDate = new Date(selectedDate);
+                            newDate.setDate(selectedDate.getDate() - 7);
+                            setSelectedDate(newDate);
+                          }}
+                          className="h-8 w-8 rounded-full hover:bg-accent/10"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => {
+                            const newDate = new Date(selectedDate);
+                            newDate.setDate(selectedDate.getDate() + 7);
+                            setSelectedDate(newDate);
+                          }}
+                          className="h-8 w-8 rounded-full hover:bg-accent/10"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
                     <div className="grid grid-cols-7 gap-2">
                       {weekDays.map((d, i) => {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
