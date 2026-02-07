@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -26,6 +26,13 @@ const TEACHER_INFO = {
   id: '2',
   name: 'Carlos',
   instrument: 'Guitarra'
+};
+
+const getTimePeriod = (timeStr: string) => {
+  const hour = parseInt(timeStr.split(':')[0]);
+  if (hour >= 6 && hour < 12) return { label: 'Mañana', icon: Sunrise };
+  if (hour >= 12 && hour < 19) return { label: 'Tarde', icon: Sun };
+  return { label: 'Noche', icon: Moon };
 };
 
 export default function SchedulePage() {
@@ -112,73 +119,82 @@ export default function SchedulePage() {
     return null;
   }
 
-  const SlotCard = ({ slot, isMine }: { slot: any, isMine: boolean }) => (
-    <Card className={cn(
-      "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden",
-      isMine 
-        ? 'bg-accent/5 border-accent shadow-lg shadow-accent/10' 
-        : 'bg-white border-primary/5 hover:border-accent/20'
-    )}>
-      <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-          <div className={cn(
-            "flex flex-col items-center justify-center min-w-[70px] sm:min-w-[80px] h-14 sm:h-16 rounded-2xl shrink-0",
-            isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
-          )}>
-            <span className="text-base sm:text-lg font-black leading-none">{slot.time.split(' ')[0]}</span>
-          </div>
-          
-          <div className="min-w-0 space-y-0.5 sm:space-y-1">
-            <h4 className={cn(
-              "text-base sm:text-lg font-black tracking-tight truncate",
-              isMine ? "text-accent" : "text-secondary-foreground"
+  const SlotCard = ({ slot, isMine }: { slot: any, isMine: boolean }) => {
+    const period = getTimePeriod(slot.time);
+    const PeriodIcon = period.icon;
+
+    return (
+      <Card className={cn(
+        "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden",
+        isMine 
+          ? 'bg-accent/5 border-accent shadow-lg shadow-accent/10' 
+          : 'bg-white border-primary/5 hover:border-accent/20'
+      )}>
+        <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+            <div className={cn(
+              "flex flex-col items-center justify-center min-w-[70px] sm:min-w-[80px] h-14 sm:h-16 rounded-2xl shrink-0",
+              isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
             )}>
-              {isMine ? `🌟 Clase de ${slot.instrument || 'Música'}` : 'Horario Disponible'}
-            </h4>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-              <span className="flex items-center gap-1 shrink-0"><Music className="w-3 h-3 text-accent" /> {TEACHER_INFO.name}</span>
-              <span className={cn(
-                  "flex items-center gap-1 shrink-0",
-                  slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+              <span className="text-base sm:text-lg font-black leading-none">{slot.time.split(' ')[0]}</span>
+              <div className="flex items-center gap-1 mt-1 opacity-80">
+                <PeriodIcon className="w-2.5 h-2.5" />
+                <span className="text-[8px] font-black uppercase tracking-tighter">{period.label}</span>
+              </div>
+            </div>
+            
+            <div className="min-w-0 space-y-0.5 sm:space-y-1">
+              <h4 className={cn(
+                "text-base sm:text-lg font-black tracking-tight truncate",
+                isMine ? "text-accent" : "text-secondary-foreground"
               )}>
-                {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                {slot.type === 'virtual' ? 'Online' : 'Sede'}
-              </span>
+                {isMine ? `🌟 Clase de ${slot.instrument || 'Música'}` : 'Horario Disponible'}
+              </h4>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                <span className="flex items-center gap-1 shrink-0"><Music className="w-3 h-3 text-accent" /> {TEACHER_INFO.name}</span>
+                <span className={cn(
+                    "flex items-center gap-1 shrink-0",
+                    slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                )}>
+                  {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                  {slot.type === 'virtual' ? 'Online' : 'Sede'}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="shrink-0 flex items-center gap-1 sm:gap-2">
-          {isMine ? (
-            <>
+          <div className="shrink-0 flex items-center gap-1 sm:gap-2">
+            {isMine ? (
+              <>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleCancel(slot.id)}
+                  className="text-destructive hover:bg-destructive/10 rounded-full h-9 w-9 sm:h-10 sm:w-10"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
+                <div className="bg-accent/10 p-2 rounded-full text-accent flex items-center">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+              </>
+            ) : (
               <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => handleCancel(slot.id)}
-                className="text-destructive hover:bg-destructive/10 rounded-full h-9 w-9 sm:h-10 sm:w-10"
+                size="sm"
+                className="bg-accent text-white rounded-xl font-black px-3 sm:px-4 h-9 sm:h-10"
+                onClick={() => {
+                  setSelectedSlotId(slot.id);
+                  setIsBookingOpen(true);
+                }}
               >
-                <Trash2 className="w-5 h-5" />
+                Reservar
               </Button>
-              <div className="bg-accent/10 p-2 rounded-full text-accent flex items-center">
-                <CheckCircle2 className="w-5 h-5" />
-              </div>
-            </>
-          ) : (
-            <Button 
-              size="sm"
-              className="bg-accent text-white rounded-xl font-black px-3 sm:px-4 h-9 sm:h-10"
-              onClick={() => {
-                setSelectedSlotId(slot.id);
-                setIsBookingOpen(true);
-              }}
-            >
-              Reservar
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <AppLayout>
@@ -211,41 +227,46 @@ export default function SchedulePage() {
                   
                   {otherAvailableSlots.length > 0 ? (
                     <div className="grid grid-cols-1 gap-2">
-                      {otherAvailableSlots.map((slot) => (
-                        <Button
-                          key={slot.id}
-                          variant={selectedSlotId === slot.id ? "default" : "outline"}
-                          className={cn(
-                            "justify-between rounded-2xl h-16 transition-all border-2 font-bold px-4 py-2",
-                            selectedSlotId === slot.id 
-                              ? 'bg-accent text-white border-accent shadow-md' 
-                              : 'border-primary/5 hover:border-accent/30 hover:bg-accent/5'
-                          )}
-                          onClick={() => setSelectedSlotId(slot.id)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Music className="w-4 h-4 shrink-0" />
-                            <div className="flex flex-col items-start min-w-0">
-                                <span className="text-base font-black leading-tight">{slot.time}</span>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-[10px] font-black uppercase text-muted-foreground/80">
-                                    {TEACHER_INFO.name} • {TEACHER_INFO.instrument}
-                                  </span>
-                                  <span className={cn(
-                                      "text-[9px] font-black uppercase flex items-center gap-1",
-                                      slot.type === 'virtual' 
-                                        ? (selectedSlotId === slot.id ? "text-white" : "text-blue-500") 
-                                        : (selectedSlotId === slot.id ? "text-white" : "text-red-500")
-                                  )}>
-                                      {slot.type === 'virtual' ? <Video className="w-2.5 h-2.5" /> : <MapPin className="w-2.5 h-2.5" />}
-                                      {slot.type}
-                                  </span>
-                                </div>
+                      {otherAvailableSlots.map((slot) => {
+                        const period = getTimePeriod(slot.time);
+                        const PeriodIcon = period.icon;
+                        
+                        return (
+                          <Button
+                            key={slot.id}
+                            variant={selectedSlotId === slot.id ? "default" : "outline"}
+                            className={cn(
+                              "justify-between rounded-2xl h-16 transition-all border-2 font-bold px-4 py-2",
+                              selectedSlotId === slot.id 
+                                ? 'bg-accent text-white border-accent shadow-md' 
+                                : 'border-primary/5 hover:border-accent/30 hover:bg-accent/5'
+                            )}
+                            onClick={() => setSelectedSlotId(slot.id)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <PeriodIcon className={cn("w-4 h-4 shrink-0", selectedSlotId === slot.id ? "text-white" : "text-accent")} />
+                              <div className="flex flex-col items-start min-w-0">
+                                  <span className="text-base font-black leading-tight">{slot.time}</span>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-[10px] font-black uppercase text-muted-foreground/80">
+                                      {TEACHER_INFO.name} • {TEACHER_INFO.instrument}
+                                    </span>
+                                    <span className={cn(
+                                        "text-[9px] font-black uppercase flex items-center gap-1",
+                                        slot.type === 'virtual' 
+                                          ? (selectedSlotId === slot.id ? "text-white" : "text-blue-500") 
+                                          : (selectedSlotId === slot.id ? "text-white" : "text-red-500")
+                                    )}>
+                                        {slot.type === 'virtual' ? <Video className="w-2.5 h-2.5" /> : <MapPin className="w-2.5 h-2.5" />}
+                                        {slot.type}
+                                    </span>
+                                  </div>
+                              </div>
                             </div>
-                          </div>
-                          {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 shrink-0" />}
-                        </Button>
-                      ))}
+                            {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 shrink-0" />}
+                          </Button>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10">
@@ -389,3 +410,4 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
+
