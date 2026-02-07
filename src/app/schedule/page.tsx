@@ -115,7 +115,6 @@ export default function SchedulePage() {
   const isTeacher = user?.role === 'teacher';
   const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
 
-  // Memo para el perfil del profesor actual y sus instrumentos
   const currentTeacherProfile = useMemo(() => {
     return allUsers.find(u => u.id === (isTeacher ? user?.id : DEFAULT_TEACHER_ID));
   }, [allUsers, isTeacher, user]);
@@ -124,12 +123,11 @@ export default function SchedulePage() {
     return currentTeacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT];
   }, [currentTeacherProfile]);
 
-  // Efecto para resetear el instrumento seleccionado al abrir el diálogo o cambiar de profesor
   useEffect(() => {
-    if (isBookingOpen && teacherInstruments.length > 0) {
+    if (isBookingOpen && teacherInstruments.length > 0 && !bookingInstrument) {
       setBookingInstrument(teacherInstruments[0]);
     }
-  }, [isBookingOpen, teacherInstruments]);
+  }, [isBookingOpen, teacherInstruments, bookingInstrument]);
 
   const dateStrKey = useMemo(() => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -193,6 +191,7 @@ export default function SchedulePage() {
     toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
     setIsBookingOpen(false);
     setSelectedSlotId(null);
+    setBookingInstrument('');
   };
 
   const handleCancel = (slotId: string) => {
@@ -377,7 +376,14 @@ export default function SchedulePage() {
                 </div>
               </>
             ) : (
-              <Button size="sm" className="bg-accent text-white rounded-xl font-black px-4 h-10 shadow-lg shadow-accent/20 hover:scale-105 transition-all">
+              <Button 
+                size="sm" 
+                className="bg-accent text-white rounded-xl font-black px-4 h-10 shadow-lg shadow-accent/20 hover:scale-105 transition-all"
+                onClick={() => {
+                  setSelectedSlotId(slot.id);
+                  setIsBookingOpen(true);
+                }}
+              >
                 Reservar
               </Button>
             )}
@@ -401,7 +407,16 @@ export default function SchedulePage() {
           </div>
           
           {!isTeacher && (
-            <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+            <Dialog 
+              open={isBookingOpen} 
+              onOpenChange={(open) => {
+                setIsBookingOpen(open);
+                if (!open) {
+                  setSelectedSlotId(null);
+                  setBookingInstrument('');
+                }
+              }}
+            >
               <DialogTrigger asChild>
                 <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
                   <Plus className="w-5 h-5" /> Nueva Reserva Rápida
