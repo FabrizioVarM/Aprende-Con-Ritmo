@@ -1,16 +1,23 @@
+
 "use client"
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-store';
 import { Music, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
 
 export default function Home() {
   const { user } = useAuth();
   const router = useRouter();
 
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
+
   if (user) {
-    router.push('/dashboard');
     return null;
   }
 

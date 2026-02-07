@@ -5,7 +5,23 @@ import { useState, useMemo, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar as CalendarIcon, PlayCircle, Star, Clock, ChevronRight, Music, CheckCircle2, AlertCircle, Video, MapPin } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  Calendar as CalendarIcon, 
+  PlayCircle, 
+  Star, 
+  Clock, 
+  ChevronRight, 
+  Music, 
+  CheckCircle2, 
+  AlertCircle, 
+  Video, 
+  MapPin,
+  Mic,
+  Drum,
+  BookOpen,
+  Keyboard
+} from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +46,15 @@ const TEACHERS = [
   { id: '8', name: 'Prof. Julián', instrument: 'Violín' },
   { id: '9', name: 'Prof. Marta', instrument: 'Canto' },
 ];
+
+const INSTRUMENT_ICONS: Record<string, any> = {
+  'Guitarra': Music,
+  'Piano': Keyboard,
+  'Violín': Music,
+  'Batería': Drum,
+  'Canto': Mic,
+  'Teoría': BookOpen,
+};
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -57,17 +82,14 @@ export default function StudentDashboard() {
     setSelectedDate(now);
   }, []);
 
-  // Obtener instrumentos únicos de la lista de profesores
   const availableInstruments = useMemo(() => {
     return Array.from(new Set(TEACHERS.map(t => t.instrument))).sort();
   }, []);
 
-  // Filtrar profesores según el instrumento seleccionado
   const filteredTeachers = useMemo(() => {
     return TEACHERS.filter(t => t.instrument === selectedInstrument);
   }, [selectedInstrument]);
 
-  // Asegurar que el profesor seleccionado pertenezca al instrumento elegido
   useEffect(() => {
     if (filteredTeachers.length > 0) {
       const isCurrentTeacherValid = filteredTeachers.some(t => t.id === selectedTeacherId);
@@ -191,37 +213,56 @@ export default function StudentDashboard() {
             <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1 max-h-[60vh]">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-3">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Instrumento</label>
                       <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2">
-                          <SelectValue placeholder="Instrumento" />
+                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-white">
+                          <SelectValue placeholder="¿Qué quieres practicar?" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl">
-                          {availableInstruments.map(inst => (
-                            <SelectItem key={inst} value={inst} className="font-bold py-3">
-                              {inst}
-                            </SelectItem>
-                          ))}
+                          {availableInstruments.map(inst => {
+                            const Icon = INSTRUMENT_ICONS[inst] || Music;
+                            return (
+                              <SelectItem key={inst} value={inst} className="font-bold py-3">
+                                <div className="flex items-center gap-3">
+                                  <Icon className="w-4 h-4 text-accent" />
+                                  <span>{inst}</span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-3">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Profesor</label>
-                      <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
-                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2">
-                          <SelectValue placeholder="Elige un profesor" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl">
-                          {filteredTeachers.map(t => (
-                            <SelectItem key={t.id} value={t.id} className="font-bold py-3">
-                              {t.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Elige tu Profesor</label>
+                      <div className="grid grid-cols-1 gap-2">
+                        {filteredTeachers.map(t => (
+                          <Button
+                            key={t.id}
+                            variant={selectedTeacherId === t.id ? "default" : "outline"}
+                            className={cn(
+                              "h-16 rounded-2xl justify-start px-4 border-2 font-black transition-all",
+                              selectedTeacherId === t.id 
+                                ? "bg-accent border-accent text-white shadow-lg" 
+                                : "hover:border-accent/30 hover:bg-accent/5"
+                            )}
+                            onClick={() => setSelectedTeacherId(t.id)}
+                          >
+                            <Avatar className="w-8 h-8 mr-3 border-2 border-white/20">
+                                <AvatarImage src={`https://picsum.photos/seed/${t.id}/100`} />
+                                <AvatarFallback>{t.name[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="text-left">
+                                <p className="text-sm leading-none">{t.name}</p>
+                                <p className="text-[10px] opacity-70 uppercase tracking-tighter mt-1">{t.instrument}</p>
+                            </div>
+                            {selectedTeacherId === t.id && <CheckCircle2 className="ml-auto w-5 h-5" />}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
@@ -287,7 +328,7 @@ export default function StudentDashboard() {
                                 <span className="text-lg">{slot.time}</span>
                                 <span className={cn(
                                     "text-xs font-black uppercase flex items-center gap-1",
-                                    slot.type === 'virtual' ? "text-blue-400" : "text-red-400"
+                                    slot.type === 'virtual' ? (selectedSlotId === slot.id ? "text-white/80" : "text-blue-400") : (selectedSlotId === slot.id ? "text-white/80" : "text-red-400")
                                 )}>
                                     {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
                                     {slot.type}
