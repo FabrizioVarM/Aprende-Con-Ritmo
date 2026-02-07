@@ -1,7 +1,6 @@
-
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
-import { Music, User, AtSign, Check, Camera, Plus } from 'lucide-react';
+import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const INSTRUMENTS_LIST = [
@@ -21,12 +20,14 @@ const INSTRUMENTS_LIST = [
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
   const [avatarSeed, setAvatarSeed] = useState('');
+  const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (user) {
@@ -35,6 +36,7 @@ export default function ProfilePage() {
       setEmail(user.email || '');
       setSelectedInstruments(user.instruments || []);
       setAvatarSeed(user.avatarSeed || user.id);
+      setPhotoUrl(user.photoUrl);
     }
   }, [user]);
 
@@ -43,7 +45,8 @@ export default function ProfilePage() {
       name,
       username,
       instruments: selectedInstruments,
-      avatarSeed
+      avatarSeed,
+      photoUrl
     });
     
     toast({
@@ -60,9 +63,34 @@ export default function ProfilePage() {
     );
   };
 
-  const changeAvatar = () => {
+  const generateRandomAvatar = () => {
     const newSeed = Math.random().toString(36).substring(7);
     setAvatarSeed(newSeed);
+    setPhotoUrl(undefined); // Al generar aleatorio, priorizamos el avatar por semilla
+    toast({
+      description: "Se ha generado un nuevo avatar aleatorio.",
+    });
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoUrl(reader.result as string);
+        toast({
+          description: "Foto cargada correctamente.",
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removePhoto = () => {
+    setPhotoUrl(undefined);
+    toast({
+      description: "Se ha vuelto al avatar aleatorio.",
+    });
   };
 
   if (!user) return null;
@@ -80,23 +108,74 @@ export default function ProfilePage() {
             <CardContent className="p-8 flex flex-col items-center text-center space-y-6">
               <div className="relative group">
                 <Avatar className="w-32 h-32 border-4 border-primary shadow-xl">
-                  <AvatarImage src={`https://picsum.photos/seed/${avatarSeed}/200`} />
+                  {photoUrl ? (
+                    <AvatarImage src={photoUrl} className="object-cover" />
+                  ) : (
+                    <AvatarImage src={`https://picsum.photos/seed/${avatarSeed}/200`} />
+                  )}
                   <AvatarFallback className="text-4xl">{name[0]}</AvatarFallback>
                 </Avatar>
-                <button 
-                  onClick={changeAvatar}
-                  className="absolute bottom-0 right-0 bg-accent text-white p-3 rounded-2xl shadow-lg hover:scale-110 transition-transform"
-                >
-                  <Camera className="w-5 h-5" />
-                </button>
+                
+                <div className="absolute -bottom-2 flex gap-2 w-full justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-accent text-white p-2 rounded-xl shadow-lg hover:scale-110 transition-transform"
+                    title="Subir foto propia"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={generateRandomAvatar}
+                    className="bg-secondary text-secondary-foreground p-2 rounded-xl shadow-lg hover:scale-110 transition-transform"
+                    title="Generar avatar aleatorio"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+                  {photoUrl && (
+                    <button 
+                      onClick={removePhoto}
+                      className="bg-destructive text-white p-2 rounded-xl shadow-lg hover:scale-110 transition-transform"
+                      title="Eliminar foto propia"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handlePhotoUpload} 
+                />
               </div>
               
-              <div>
+              <div className="pt-4">
                 <h2 className="text-xl font-black text-secondary-foreground">{name}</h2>
                 <p className="text-sm font-bold text-accent uppercase tracking-widest mt-1">@{username || 'usuario'}</p>
                 <Badge variant="secondary" className="mt-3 bg-primary/20 text-secondary-foreground rounded-full px-4 capitalize font-bold">
                   {user.role === 'student' ? 'Estudiante' : user.role === 'teacher' ? 'Profesor' : 'Administrador'}
                 </Badge>
+              </div>
+
+              <div className="flex flex-col gap-2 w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="rounded-xl border-2 border-primary/20 font-bold"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Camera className="w-4 h-4 mr-2" /> Subir Foto
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="rounded-xl font-bold text-muted-foreground"
+                  onClick={generateRandomAvatar}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" /> Avatar Aleatorio
+                </Button>
               </div>
             </CardContent>
           </Card>

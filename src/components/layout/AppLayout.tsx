@@ -1,4 +1,3 @@
-
 "use client"
 
 import React from 'react';
@@ -91,7 +90,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="mt-auto pt-6 border-t border-border">
         <Link href="/profile" className="flex items-center gap-3 px-4 py-4 mb-4 hover:bg-primary/10 rounded-2xl transition-all">
           <Avatar className="w-10 h-10 border-2 border-primary">
-            <AvatarImage src={`https://picsum.photos/seed/${user.avatarSeed || user.id}/100`} />
+            {user.photoUrl ? (
+              <AvatarImage src={user.photoUrl} className="object-cover" />
+            ) : (
+              <AvatarImage src={`https://picsum.photos/seed/${user.avatarSeed || user.id}/100`} />
+            )}
             <AvatarFallback className="bg-primary">{user.name[0]}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col overflow-hidden">

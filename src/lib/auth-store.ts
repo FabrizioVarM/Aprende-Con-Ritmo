@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -13,6 +12,7 @@ export interface User {
   username?: string;
   instruments?: string[];
   avatarSeed?: string;
+  photoUrl?: string;
 }
 
 const MOCK_USERS: User[] = [
