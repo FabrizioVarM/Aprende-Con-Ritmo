@@ -367,7 +367,7 @@ export default function StudentDashboard() {
                 </div>
 
                 <div className="space-y-6">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">4. Horarios Libres</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">HORARIOS LIBRES RESTANTES</label>
                   <div className="grid grid-cols-1 gap-2">
                     {freeSlots.length > 0 ? (
                       freeSlots.map((slot) => (
