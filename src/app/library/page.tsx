@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,12 +20,26 @@ export default function LibraryPage() {
   const { user } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
   const { toast } = useToast();
+  
   const [filter, setFilter] = useState('Todos');
   const [search, setSearch] = useState('');
+  const [isInitialFilterSet, setIsInitialFilterSet] = useState(false);
 
+  // Simulación de un ID de alumno para el modo evaluación del profesor
   const [selectedStudentId] = useState('1'); 
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
+
+  // Efecto para inicializar el filtro según el perfil del alumno
+  useEffect(() => {
+    if (user && !isInitialFilterSet) {
+      if (user.role === 'student' && user.instruments && user.instruments.length > 0) {
+        // Establecer el primer instrumento del perfil como filtro inicial
+        setFilter(user.instruments[0]);
+      }
+      setIsInitialFilterSet(true);
+    }
+  }, [user, isInitialFilterSet]);
 
   const filtered = RESOURCES.filter(res => 
     (filter === 'Todos' || res.category === filter) &&
