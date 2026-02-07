@@ -461,7 +461,12 @@ export default function TeacherDashboard() {
                       </div>
                       <div>
                         <div className="font-black text-lg leading-tight">{cls.time}</div>
-                        <div className="text-sm text-muted-foreground font-bold">{cls.bookedBy} • {cls.instrument}</div>
+                        <div className="text-sm text-muted-foreground font-bold flex items-center gap-2">
+                          <span>{cls.bookedBy}</span>
+                          <span>•</span>
+                          <InstrumentIcon className="w-3 h-3 text-accent" />
+                          <span>{cls.instrument}</span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

@@ -458,7 +458,10 @@ export default function StudentDashboard() {
                         <InstrumentIcon className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                       </div>
                       <div className="min-w-0">
-                        <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate">Lección de {lesson.instrument}</div>
+                        <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate flex items-center gap-2">
+                          <InstrumentIcon className="w-4 h-4 text-accent" />
+                          <span>Lección de {lesson.instrument}</span>
+                        </div>
                         <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
                           {new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}
                         </div>

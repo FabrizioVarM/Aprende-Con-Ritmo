@@ -365,7 +365,7 @@ export default function SchedulePage() {
               </div>
 
               <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                 <Button 
                   onClick={handleBook} 
                   disabled={!selectedSlotId}
