@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useSkillsStore } from '@/lib/skills-store';
+import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
 import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Check, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -171,21 +172,25 @@ export default function TeacherDashboard() {
             const isCompleted = slot.status === 'completed';
             
             if (existing) {
-              existing.sessions += 1;
-              if (isCompleted) existing.hours += duration;
+              if (isCompleted) {
+                existing.sessions += 1;
+                existing.hours += duration;
+              }
             } else {
               const studentName = slot.bookedBy || allUsers.find(u => u.id === studentId)?.name || 'Alumno';
               const instrument = slot.instrument || 'Música';
-              const skills = ['Precisión de Ritmo', 'Técnica', 'Lectura de Notas'];
-              const avgProgress = Math.round(
-                skills.reduce((acc, skill) => acc + getSkillLevel(studentId, instrument, skill, 10), 0) / skills.length
-              );
+              
+              // Calcular progreso basado en la configuración compartida
+              const config = DEFAULT_SKILLS_CONFIG[instrument] || DEFAULT_SKILLS_CONFIG['Default'];
+              const avgProgress = config.length > 0 
+                ? Math.round(config.reduce((acc, skill) => acc + getSkillLevel(studentId, instrument, skill.name, skill.defaultLevel), 0) / config.length)
+                : 10;
 
               studentsMap.set(studentId, {
                 id: studentId,
                 name: studentName,
                 instrument: instrument,
-                sessions: 1,
+                sessions: isCompleted ? 1 : 0,
                 hours: isCompleted ? duration : 0,
                 progress: avgProgress
               });

@@ -11,51 +11,10 @@ import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useBookingStore } from '@/lib/booking-store';
 import { useSkillsStore } from '@/lib/skills-store';
+import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
 import { RESOURCES } from '@/lib/resources';
 import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Clock, ShieldCheck, Star as StarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const DEFAULT_SKILLS_CONFIG: Record<string, { name: string; color: string; defaultLevel: number }[]> = {
-  'Guitarra': [
-    { name: 'Precisión de Ritmo', color: 'bg-accent', defaultLevel: 20 },
-    { name: 'Lectura de Notas', color: 'bg-blue-500', defaultLevel: 10 },
-    { name: 'Dinámicas', color: 'bg-orange-500', defaultLevel: 5 },
-    { name: 'Técnica', color: 'bg-green-500', defaultLevel: 15 },
-  ],
-  'Piano': [
-    { name: 'Independencia de manos', color: 'bg-accent', defaultLevel: 15 },
-    { name: 'Lectura en Clave de Fa', color: 'bg-blue-500', defaultLevel: 20 },
-    { name: 'Escalas Mayores', color: 'bg-orange-500', defaultLevel: 30 },
-    { name: 'Uso del Pedal', color: 'bg-green-500', defaultLevel: 10 },
-  ],
-  'Violín': [
-    { name: 'Postura del Arco', color: 'bg-accent', defaultLevel: 30 },
-    { name: 'Intonación', color: 'bg-blue-500', defaultLevel: 15 },
-    { name: 'Vibrato', color: 'bg-orange-500', defaultLevel: 5 },
-    { name: 'Lectura Rápida', color: 'bg-green-500', defaultLevel: 10 },
-  ],
-  'Batería': [
-    { name: 'Coordinación', color: 'bg-accent', defaultLevel: 25 },
-    { name: 'Velocidad', color: 'bg-blue-500', defaultLevel: 20 },
-    { name: 'Rudimentos', color: 'bg-orange-500', defaultLevel: 30 },
-    { name: 'Groove', color: 'bg-green-500', defaultLevel: 20 },
-  ],
-  'Canto': [
-    { name: 'Respiración', color: 'bg-accent', defaultLevel: 40 },
-    { name: 'Afinación', color: 'bg-blue-500', defaultLevel: 30 },
-    { name: 'Proyección', color: 'bg-orange-500', defaultLevel: 20 },
-    { name: 'Dicción', color: 'bg-green-500', defaultLevel: 35 },
-  ],
-  'Teoría': [
-    { name: 'Lectura de Pentagrama', color: 'bg-accent', defaultLevel: 10 },
-    { name: 'Intervalos', color: 'bg-blue-500', defaultLevel: 5 },
-    { name: 'Armonía Básica', color: 'bg-orange-500', defaultLevel: 0 },
-  ],
-  'Default': [
-    { name: 'Teoría Musical', color: 'bg-accent', defaultLevel: 10 },
-    { name: 'Entrenamiento Auditivo', color: 'bg-blue-500', defaultLevel: 5 },
-  ]
-};
 
 const MILESTONES = [
   { title: 'Nivel 1 Completado', date: 'Oct 2023', achieved: true },
@@ -164,7 +123,7 @@ export default function ProgressPage() {
         }
       });
 
-      // 2. Clases (Cálculo retroactivo exhaustivo)
+      // 2. Clases
       if (Array.isArray(availabilities)) {
         availabilities.forEach(avail => {
           if (avail.slots && Array.isArray(avail.slots)) {
@@ -180,7 +139,6 @@ export default function ProgressPage() {
                   
                   let matchesInstrument = normSlotInst === normCat;
                   
-                  // Si el slot es genérico "Música", asignarlo al instrumento principal del alumno si coincide con la categoría actual
                   if (!matchesInstrument && (normSlotInst === 'musica' || normSlotInst === 'música')) {
                     const primaryInst = currentStudent.instruments?.[0] || 'Default';
                     if (normalizeStr(primaryInst) === normCat) {
