@@ -35,7 +35,6 @@ const INSTRUMENT_ICONS: Record<string, any> = {
   'Flauta': Music,
 };
 
-// Función auxiliar para calcular duración en horas desde un string "HH:mm - HH:mm"
 const calculateDuration = (timeStr: string): number => {
   try {
     const [start, end] = timeStr.split(' - ');
@@ -45,7 +44,7 @@ const calculateDuration = (timeStr: string): number => {
     const endMinutes = h2 * 60 + m2;
     return (endMinutes - startMinutes) / 60;
   } catch (e) {
-    return 1; // Default a 1 hora si falla el parseo
+    return 1;
   }
 };
 
@@ -57,10 +56,10 @@ export default function TeacherDashboard() {
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const { toast } = useToast();
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
-  const { allUsers } = useAuth();
+  const { user, allUsers } = useAuth();
   const { getSkillLevel } = useSkillsStore();
 
-  const teacherId = '2'; 
+  const teacherId = user?.id || '2'; 
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
 
   useEffect(() => {
@@ -107,7 +106,8 @@ export default function TeacherDashboard() {
       time: "08:00 - 09:00",
       isAvailable: true,
       isBooked: false,
-      type: 'presencial'
+      type: 'presencial',
+      status: 'pending'
     };
     setLocalSlots([...localSlots, newSlot]);
   };
@@ -127,56 +127,30 @@ export default function TeacherDashboard() {
 
   const clearAllSlots = () => {
     const bookedSlots = localSlots.filter(s => s.isBooked);
-    if (bookedSlots.length === localSlots.length && localSlots.length > 0) {
-      toast({
-        variant: "destructive",
-        title: "No se puede limpiar",
-        description: "Todos los horarios actuales están reservados.",
-      });
-      return;
-    }
-    
     setLocalSlots(bookedSlots);
-    toast({
-      title: "Día Limpiado 🧹",
-      description: "Se han eliminado los horarios no reservados.",
-    });
+    toast({ title: "Día Limpiado 🧹", description: "Se han eliminado los horarios no reservados." });
   };
 
   const handleSaveAvailability = () => {
     updateAvailability(teacherId, selectedDate, localSlots);
-    toast({
-      title: "Disponibilidad Guardada ✅",
-      description: `Horarios para el día ${selectedDate.toLocaleDateString('es-ES')} actualizados.`,
-    });
+    toast({ title: "Disponibilidad Guardada ✅", description: "Horarios actualizados." });
     setIsOpen(false);
   };
 
   const currentDayBookedSlots = useMemo(() => {
     const data = getDayAvailability(teacherId, selectedDate);
     const now = new Date();
-    
-    // Filtramos para mostrar solo las sesiones que son hoy y no han terminado, y que están pendientes
     return data.slots.filter(s => {
       if (!s.isBooked) return false;
-      
-      // Obtener hora de fin para verificar si ya pasó
       const timeParts = s.time.split(' - ');
       const endTimeStr = timeParts[1]?.trim() || timeParts[0].trim();
       const [h, m] = endTimeStr.split(':').map(Number);
-      
       const slotEndDate = new Date(selectedDate);
       slotEndDate.setHours(h, m, 0, 0);
-      
-      const isFinished = now > slotEndDate;
-      const isPending = s.status !== 'completed';
-      
-      // Solo mostrar sesiones pendientes que no han terminado aún
-      return isPending && !isFinished;
+      return s.status !== 'completed' && now < slotEndDate;
     });
   }, [selectedDate, getDayAvailability, teacherId, availabilities]);
 
-  // Cálculo dinámico de alumnos rastreados por este profesor
   const trackedStudents = useMemo(() => {
     const studentsMap = new Map<string, { 
       id: string, 
@@ -194,14 +168,14 @@ export default function TeacherDashboard() {
             const studentId = slot.studentId || slot.bookedBy!;
             const existing = studentsMap.get(studentId);
             const duration = calculateDuration(slot.time);
+            const isCompleted = slot.status === 'completed';
             
             if (existing) {
               existing.sessions += 1;
-              existing.hours += duration;
+              if (isCompleted) existing.hours += duration;
             } else {
               const studentName = slot.bookedBy || allUsers.find(u => u.id === studentId)?.name || 'Alumno';
               const instrument = slot.instrument || 'Música';
-              
               const skills = ['Precisión de Ritmo', 'Técnica', 'Lectura de Notas'];
               const avgProgress = Math.round(
                 skills.reduce((acc, skill) => acc + getSkillLevel(studentId, instrument, skill, 10), 0) / skills.length
@@ -212,7 +186,7 @@ export default function TeacherDashboard() {
                 name: studentName,
                 instrument: instrument,
                 sessions: 1,
-                hours: duration,
+                hours: isCompleted ? duration : 0,
                 progress: avgProgress
               });
             }
@@ -229,7 +203,6 @@ export default function TeacherDashboard() {
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
-
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(startOfWeek);
       d.setDate(startOfWeek.getDate() + i);
@@ -249,7 +222,7 @@ export default function TeacherDashboard() {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">Panel del Prof. Carlos 🎻</h1>
+          <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">Panel del Prof. {user?.name.split(' ')[0]} 🎻</h1>
           <p className="text-muted-foreground mt-1 text-lg font-medium">Gestiona tu agenda y el progreso de tus alumnos.</p>
         </div>
         
@@ -384,12 +357,6 @@ export default function TeacherDashboard() {
                                 <span className="text-[10px] font-black text-orange-600 uppercase">Reservado por {slot.bookedBy}</span>
                               </div>
                             )}
-                            {slot.isAvailable && !slot.isBooked && (
-                              <div className="flex items-center gap-1 mt-1 ml-2">
-                                <Check className="w-3 h-3 text-emerald-600" />
-                                <span className="text-[10px] font-black text-emerald-600 uppercase">Visible para alumnos</span>
-                              </div>
-                            )}
                           </div>
                           
                           <div className="flex flex-col gap-3">
@@ -420,10 +387,6 @@ export default function TeacherDashboard() {
                                 checked={slot.isAvailable || slot.isBooked} 
                                 disabled={slot.isBooked || isSelectedDatePast}
                                 onCheckedChange={() => toggleSlotAvailability(i)}
-                                className={cn(
-                                  "data-[state=checked]:bg-emerald-500",
-                                  !slot.isBooked && !isSelectedDatePast && "hover:scale-110 transition-transform"
-                                )}
                               />
                             </div>
                             <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="text-muted-foreground hover:text-destructive h-8 w-8 mx-auto">
@@ -436,9 +399,6 @@ export default function TeacherDashboard() {
                       <div className="col-span-full text-center py-16 bg-muted/5 rounded-[2.5rem] border-4 border-dashed border-primary/10">
                         <Clock className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
                         <p className="font-black text-muted-foreground">Sin horarios configurados</p>
-                        {!isSelectedDatePast && (
-                          <Button variant="link" onClick={addSlot} className="text-accent font-black mt-2">Crea el primer bloque aquí</Button>
-                        )}
                       </div>
                     )}
                   </div>

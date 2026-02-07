@@ -87,7 +87,6 @@ export default function SchedulePage() {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const { toast } = useToast();
   const { getDayAvailability, bookSlot, cancelBooking, availabilities, setSlotStatus } = useBookingStore();
-  const { getSkillLevel, updateSkill } = useSkillsStore();
 
   useEffect(() => {
     setIsMounted(true);
@@ -101,8 +100,10 @@ export default function SchedulePage() {
   const isTeacher = user?.role === 'teacher';
   const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
 
-  // Normalizar la fecha para las consultas
-  const dateStrKey = useMemo(() => date.toISOString().split('T')[0], [date]);
+  // Normalizar la fecha para las consultas (Formato robusto YYYY-MM-DD)
+  const dateStrKey = useMemo(() => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }, [date]);
 
   const availability = useMemo(() => {
     return getDayAvailability(teacherId!, date);

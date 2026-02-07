@@ -72,7 +72,6 @@ const MILESTONES = [
   { title: 'Eficiencia Nivel 2', date: 'Esperado Abr 2024', achieved: false },
 ];
 
-// Función auxiliar para calcular duración en horas desde un string "HH:mm - HH:mm"
 const calculateDuration = (timeStr: string): number => {
   try {
     const [start, end] = timeStr.split(' - ');
@@ -82,7 +81,7 @@ const calculateDuration = (timeStr: string): number => {
     const endMinutes = h2 * 60 + m2;
     return (endMinutes - startMinutes) / 60;
   } catch (e) {
-    return 1; // Default a 1 hora si falla el parseo
+    return 1;
   }
 };
 
@@ -163,8 +162,7 @@ export default function ProgressPage() {
         }
       });
 
-      // 2. Puntos por clases completadas (1 hora = 10 pts)
-      // Se calculan dinámicamente según la duración real de la sesión
+      // 2. Puntos por clases COMPLETADAS (1 hora = 10 pts)
       availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
           if (slot.isBooked && (slot.studentId === currentStudent.id || slot.bookedBy === currentStudent.name) && slot.instrument === cat) {
@@ -192,7 +190,7 @@ export default function ProgressPage() {
   }, [completions, availabilities, currentStudent, getSkillLevel]);
 
   const totalAchievementPoints = useMemo(() => {
-    const basePoints = Object.values(instrumentStats).reduce((sum, s) => sum + s.points, 0);
+    const basePoints = Object.values(instrumentStats).reduce((sum, s) => sum + (s?.points || 0), 0);
     const milestonePoints = MILESTONES.filter(m => m.achieved).length * 200;
     return basePoints + milestonePoints;
   }, [instrumentStats]);
@@ -276,7 +274,7 @@ export default function ProgressPage() {
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground/60">Rango en {selectedInstrument}</p>
                   <h4 className="font-black text-xl text-secondary-foreground mt-1">
-                    {instrumentStats[selectedInstrument]?.levelName} (Nv. {instrumentStats[selectedInstrument]?.levelNum})
+                    {instrumentStats[selectedInstrument]?.levelName || 'Aprendiz'} (Nv. {instrumentStats[selectedInstrument]?.levelNum || 1})
                   </h4>
                 </div>
               </Card>
@@ -285,7 +283,7 @@ export default function ProgressPage() {
                 <Music className="w-10 h-10 text-accent" />
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
-                  <h4 className="font-black text-2xl text-accent mt-1">{instrumentStats[selectedInstrument]?.points.toLocaleString()} pts</h4>
+                  <h4 className="font-black text-2xl text-accent mt-1">{(instrumentStats[selectedInstrument]?.points || 0).toLocaleString()} pts</h4>
                 </div>
               </Card>
 
@@ -293,7 +291,7 @@ export default function ProgressPage() {
                 <Clock className="w-10 h-10 text-blue-600" />
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-blue-700/70">Horas de Clase</p>
-                  <h4 className="font-black text-2xl text-blue-800 mt-1">{instrumentStats[selectedInstrument]?.completedHours.toFixed(1)} h</h4>
+                  <h4 className="font-black text-2xl text-blue-800 mt-1">{(instrumentStats[selectedInstrument]?.completedHours || 0).toFixed(1)} h</h4>
                 </div>
               </Card>
             </div>
