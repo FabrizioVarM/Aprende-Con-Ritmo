@@ -264,13 +264,15 @@ export default function ProgressPage() {
 
               <Card className="rounded-[2.5rem] border-none shadow-sm bg-accent/5 p-8 flex flex-col items-center text-center space-y-4">
                 <Music className="w-10 h-10 text-accent" />
-                <div>
-                  <div className="flex items-center justify-center gap-1.5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
+                <div className="flex flex-col items-center">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
+                  <h4 className="font-black text-2xl text-accent mt-1">{(instrumentStats[selectedInstrument]?.points || 0).toLocaleString()} pts</h4>
+                  
+                  <div className="mt-2">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Info className="w-3.5 h-3.5 text-accent/50 cursor-help hover:text-accent transition-colors" />
+                          <Info className="w-5 h-5 text-accent/50 cursor-help hover:text-accent transition-colors" />
                         </TooltipTrigger>
                         <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-white border-2 border-accent/20 shadow-xl">
                           <p className="font-black text-xs text-secondary-foreground mb-2 uppercase tracking-widest">¿Cómo sumas puntos?</p>
@@ -292,7 +294,6 @@ export default function ProgressPage() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                  <h4 className="font-black text-2xl text-accent mt-1">{(instrumentStats[selectedInstrument]?.points || 0).toLocaleString()} pts</h4>
                 </div>
               </Card>
 
