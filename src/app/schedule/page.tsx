@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, Guitar } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -24,12 +24,28 @@ import {
 } from "@/components/ui/tooltip"
 import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
-import { useSkillsStore } from '@/lib/skills-store';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 
-// Icono de Violín personalizado
+// Icono de Guitarra Realista
+const GuitarIcon = (props: any) => (
+  <svg
+    {...props}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9" />
+    <path d="M15 13a3 3 0 0 0 3-3V6a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a3 3 0 0 0 3 3Z" />
+    <circle cx="16" cy="16" r="2" />
+  </svg>
+);
+
+// Icono de Violín Realista
 const ViolinIcon = (props: any) => (
   <svg
     {...props}
@@ -49,7 +65,7 @@ const ViolinIcon = (props: any) => (
   </svg>
 );
 
-// Icono de Piano personalizado
+// Icono de Piano Realista
 const PianoIcon = (props: any) => (
   <svg
     {...props}
@@ -60,29 +76,67 @@ const PianoIcon = (props: any) => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <rect x="2" y="5" width="20" height="14" rx="2" />
-    <path d="M6 5v8" />
-    <path d="M10 5v8" />
-    <path d="M14 5v8" />
-    <path d="M18 5v8" />
+    <rect x="2" y="3" width="20" height="18" rx="2" />
     <path d="M2 13h20" />
+    <path d="M6 13v8" />
+    <path d="M10 13v8" />
+    <path d="M14 13v8" />
+    <path d="M18 13v8" />
+    <rect x="5" y="13" width="2" height="5" fill="currentColor" />
+    <rect x="9" y="13" width="2" height="5" fill="currentColor" />
+    <rect x="13" y="13" width="2" height="5" fill="currentColor" />
+    <rect x="17" y="13" width="2" height="5" fill="currentColor" />
+  </svg>
+);
+
+// Icono de Batería Realista
+const DrumsIcon = (props: any) => (
+  <svg
+    {...props}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <ellipse cx="12" cy="7" rx="9" ry="3.5" />
+    <path d="M3 7v10c0 1.93 4.03 3.5 9 3.5s9-1.57 9-3.5V7" />
+    <path d="M7 10v6" />
+    <path d="M17 10v6" />
+  </svg>
+);
+
+// Icono de Canto Realista
+const SingingIcon = (props: any) => (
+  <svg
+    {...props}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="9" y="2" width="6" height="12" rx="3" />
+    <path d="M5 10a7 7 0 0 0 14 0" />
+    <line x1="12" y1="17" x2="12" y2="22" />
   </svg>
 );
 
 // Configuración visual de instrumentos: Icono, Color de texto y Color de fondo
 const INSTRUMENT_CONFIG: Record<string, { icon: any, color: string, bg: string, border: string }> = {
-  'Guitarra': { icon: Guitar, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
+  'Guitarra': { icon: GuitarIcon, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
   'Piano': { icon: PianoIcon, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
   'Violín': { icon: ViolinIcon, color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
-  'Batería': { icon: Drum, color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
-  'Canto': { icon: Mic, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
+  'Batería': { icon: DrumsIcon, color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
+  'Canto': { icon: SingingIcon, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
   'Teoría': { icon: BookOpen, color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
-  'Bajo': { icon: Guitar, color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
+  'Bajo': { icon: GuitarIcon, color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
   'Flauta': { icon: Music, color: 'text-teal-600', bg: 'bg-teal-100', border: 'border-teal-200' },
   'Default': { icon: Music, color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
 };
 
-// Simulación de datos de profesores para la vista de agenda (para alumnos)
 const DEFAULT_TEACHER_ID = '2';
 const DEFAULT_TEACHER_NAME = 'Carlos';
 const DEFAULT_TEACHER_INSTRUMENT = 'Guitarra';
@@ -253,7 +307,7 @@ export default function SchedulePage() {
 
     return (
       <Card className={cn(
-        "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden",
+        "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden shadow-sm hover:shadow-md",
         isMine || isTeacherView
           ? (isCompleted ? 'bg-emerald-50 border-emerald-200' : 'bg-accent/5 border-accent shadow-lg shadow-accent/10') 
           : 'bg-white border-primary/5 hover:border-accent/20'
@@ -261,7 +315,7 @@ export default function SchedulePage() {
         <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <div className={cn(
-              "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[95px] h-16 sm:h-20 rounded-2xl shrink-0",
+              "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[95px] h-16 sm:h-20 rounded-2xl shrink-0 shadow-inner",
               isMine || isTeacherView ? (isCompleted ? "bg-emerald-500 text-white" : "bg-accent text-white") : "bg-primary/10 text-secondary-foreground"
             )}>
               <span className="text-sm sm:text-base font-black leading-none text-center">{displayTime}</span>
@@ -273,14 +327,16 @@ export default function SchedulePage() {
                 (isMine || isTeacherView) ? (isCompleted ? "text-emerald-700" : "text-accent") : "text-secondary-foreground"
               )}>
                 {slot.isBooked ? (
-                  <>
-                    <InstrumentIcon className={cn("w-5 h-5", instConfig.color)} />
+                  <div className="flex items-center gap-2">
+                    <div className={cn("p-1.5 rounded-xl border shadow-sm", instConfig.bg, instConfig.border)}>
+                      <InstrumentIcon className={cn("w-5 h-5", instConfig.color)} />
+                    </div>
                     <span>Clase de {slot.instrument || 'Música'}</span>
-                  </>
+                  </div>
                 ) : (
-                  <div className="flex items-center gap-2 overflow-hidden">
+                  <div className="flex items-center gap-3 overflow-hidden">
                     <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
-                    <div className="flex items-center gap-1.5 truncate">
+                    <div className="flex items-center gap-2 truncate p-1">
                       {teacherInstruments.map((inst, idx) => {
                         const config = INSTRUMENT_CONFIG[inst] || INSTRUMENT_CONFIG['Default'];
                         const Icon = config.icon;
@@ -289,7 +345,7 @@ export default function SchedulePage() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div className={cn(
-                                  "p-1.5 rounded-lg border transition-all hover:scale-110",
+                                  "p-2 rounded-xl border transition-all hover:scale-110 shadow-sm",
                                   config.bg,
                                   config.border
                                 )}>
@@ -363,7 +419,7 @@ export default function SchedulePage() {
                 </div>
               </>
             ) : (
-              <Button size="sm" className="bg-accent text-white rounded-xl font-black px-4 h-10" onClick={() => { setSelectedSlotId(slot.id); setIsBookingOpen(true); }}>
+              <Button size="sm" className="bg-accent text-white rounded-xl font-black px-4 h-10 shadow-lg shadow-accent/20 hover:scale-105 transition-all">
                 Reservar
               </Button>
             )}
@@ -474,7 +530,7 @@ export default function SchedulePage() {
 
           <div className="lg:col-span-8 space-y-8">
             <div className="flex items-center gap-4 bg-primary/5 p-4 rounded-3xl border border-primary/10">
-              <div className="bg-accent/10 p-3 rounded-2xl"><Clock className="w-6 h-6 text-accent" /></div>
+              <div className="bg-accent/10 p-3 rounded-2xl shadow-sm"><Clock className="w-6 h-6 text-accent" /></div>
               <div>
                 <h3 className="text-xl font-black text-secondary-foreground capitalize leading-tight">{date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
                 <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Resumen del día</p>
