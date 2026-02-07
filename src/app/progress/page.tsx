@@ -85,6 +85,8 @@ const calculateDuration = (timeStr: string): number => {
   }
 };
 
+const normalizeStr = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
 const getLevelInfo = (inst: string, points: number) => {
   const getBaseName = (p: number, i: string) => {
     if (i === 'Teoría') {
@@ -163,11 +165,13 @@ export default function ProgressPage() {
       });
 
       // 2. Puntos por clases COMPLETADAS (1 hora = 10 pts)
-      // Escaneamos todas las disponibilidades históricas
       availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
-          // Normalización del ID del estudiante para el matching
-          const isOurStudent = slot.studentId === currentStudent.id || slot.bookedBy === currentStudent.name;
+          // Normalización robusta para el matching
+          const isSameId = slot.studentId === currentStudent.id;
+          const isSameName = slot.bookedBy && normalizeStr(slot.bookedBy) === normalizeStr(currentStudent.name || '');
+          const isOurStudent = isSameId || isSameName;
+
           // Matching del instrumento
           const isOurInstrument = slot.instrument === cat || (!slot.instrument && cat === 'Default');
 

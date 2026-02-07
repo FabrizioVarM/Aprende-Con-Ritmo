@@ -70,6 +70,7 @@ export function useBookingStore() {
   const saveToStorage = useCallback((data: DayAvailability[]) => {
     localStorage.setItem('ac_availabilities', JSON.stringify(data));
     setAvailabilities([...data]);
+    // Forzar evento de sincronización
     window.dispatchEvent(new CustomEvent('ac_sync_booking'));
   }, []);
 
