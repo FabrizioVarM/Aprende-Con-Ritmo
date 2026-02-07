@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -6,53 +5,62 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useBookingStore } from '@/lib/booking-store';
+import { useSkillsStore } from '@/lib/skills-store';
 import { RESOURCES } from '@/lib/resources';
-import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target } from 'lucide-react';
+import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Users, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Definición de las habilidades por defecto
-const DEFAULT_SKILLS: Record<string, { name: string; level: number; color: string }[]> = {
+// Mock de estudiantes para el personal
+const MOCK_STUDENTS = [
+  { id: '1', name: 'Ana García', instruments: ['Guitarra', 'Canto'] },
+  { id: '4', name: 'Liam Smith', instruments: ['Piano', 'Teoría'] },
+  { id: '5', name: 'Emma Wilson', instruments: ['Violín'] },
+  { id: '6', name: 'Tom Holland', instruments: ['Batería', 'Guitarra'] },
+];
+
+const DEFAULT_SKILLS_CONFIG: Record<string, { name: string; color: string; defaultLevel: number }[]> = {
   'Guitarra': [
-    { name: 'Precisión de Ritmo', level: 85, color: 'bg-accent' },
-    { name: 'Lectura de Notas', level: 60, color: 'bg-blue-500' },
-    { name: 'Dinámicas', level: 45, color: 'bg-orange-500' },
-    { name: 'Técnica', level: 72, color: 'bg-green-500' },
+    { name: 'Precisión de Ritmo', color: 'bg-accent', defaultLevel: 20 },
+    { name: 'Lectura de Notas', color: 'bg-blue-500', defaultLevel: 10 },
+    { name: 'Dinámicas', color: 'bg-orange-500', defaultLevel: 5 },
+    { name: 'Técnica', color: 'bg-green-500', defaultLevel: 15 },
   ],
   'Piano': [
-    { name: 'Independencia de manos', level: 40, color: 'bg-accent' },
-    { name: 'Lectura en Clave de Fa', level: 75, color: 'bg-blue-500' },
-    { name: 'Escalas Mayores', level: 90, color: 'bg-orange-500' },
-    { name: 'Uso del Pedal', level: 30, color: 'bg-green-500' },
+    { name: 'Independencia de manos', color: 'bg-accent', defaultLevel: 15 },
+    { name: 'Lectura en Clave de Fa', color: 'bg-blue-500', defaultLevel: 20 },
+    { name: 'Escalas Mayores', color: 'bg-orange-500', defaultLevel: 30 },
+    { name: 'Uso del Pedal', color: 'bg-green-500', defaultLevel: 10 },
   ],
   'Violín': [
-    { name: 'Postura del Arco', level: 65, color: 'bg-accent' },
-    { name: 'Intonación', level: 50, color: 'bg-blue-500' },
-    { name: 'Vibrato', level: 20, color: 'bg-orange-500' },
-    { name: 'Lectura Rápida', level: 40, color: 'bg-green-500' },
+    { name: 'Postura del Arco', color: 'bg-accent', defaultLevel: 30 },
+    { name: 'Intonación', color: 'bg-blue-500', defaultLevel: 15 },
+    { name: 'Vibrato', color: 'bg-orange-500', defaultLevel: 5 },
+    { name: 'Lectura Rápida', color: 'bg-green-500', defaultLevel: 10 },
   ],
   'Batería': [
-    { name: 'Coordinación', level: 70, color: 'bg-accent' },
-    { name: 'Velocidad', level: 55, color: 'bg-blue-500' },
-    { name: 'Rudimentos', level: 80, color: 'bg-orange-500' },
-    { name: 'Groove', level: 65, color: 'bg-green-500' },
+    { name: 'Coordinación', color: 'bg-accent', defaultLevel: 25 },
+    { name: 'Velocidad', color: 'bg-blue-500', defaultLevel: 20 },
+    { name: 'Rudimentos', color: 'bg-orange-500', defaultLevel: 30 },
+    { name: 'Groove', color: 'bg-green-500', defaultLevel: 20 },
   ],
   'Canto': [
-    { name: 'Respiración', level: 90, color: 'bg-accent' },
-    { name: 'Afinación', level: 75, color: 'bg-blue-500' },
-    { name: 'Proyección', level: 60, color: 'bg-orange-500' },
-    { name: 'Dicción', level: 85, color: 'bg-green-500' },
+    { name: 'Respiración', color: 'bg-accent', defaultLevel: 40 },
+    { name: 'Afinación', color: 'bg-blue-500', defaultLevel: 30 },
+    { name: 'Proyección', color: 'bg-orange-500', defaultLevel: 20 },
+    { name: 'Dicción', color: 'bg-green-500', defaultLevel: 35 },
   ],
   'Teoría': [
-    { name: 'Lectura de Pentagrama', level: 55, color: 'bg-accent' },
-    { name: 'Intervalos', level: 40, color: 'bg-blue-500' },
-    { name: 'Armonía Básica', level: 30, color: 'bg-orange-500' },
+    { name: 'Lectura de Pentagrama', color: 'bg-accent', defaultLevel: 10 },
+    { name: 'Intervalos', color: 'bg-blue-500', defaultLevel: 5 },
+    { name: 'Armonía Básica', color: 'bg-orange-500', defaultLevel: 0 },
   ],
   'Default': [
-    { name: 'Teoría Musical', level: 50, color: 'bg-accent' },
-    { name: 'Entrenamiento Auditivo', level: 30, color: 'bg-blue-500' },
+    { name: 'Teoría Musical', color: 'bg-accent', defaultLevel: 10 },
+    { name: 'Entrenamiento Auditivo', color: 'bg-blue-500', defaultLevel: 5 },
   ]
 };
 
@@ -63,118 +71,117 @@ const MILESTONES = [
   { title: 'Eficiencia Nivel 2', date: 'Esperado Abr 2024', achieved: false },
 ];
 
-// Helper para nombres de artistas
-const getArtistName = (inst: string) => {
-  switch (inst) {
-    case 'Guitarra': return 'Guitarrista';
-    case 'Piano': return 'Pianista';
-    case 'Violín': return 'Violinista';
-    case 'Batería': return 'Baterista';
-    case 'Canto': return 'Cantante';
-    case 'Teoría': return 'Teórico';
-    default: return 'Músico';
-  }
-};
-
-// Lógica de Niveles
 const getLevelInfo = (inst: string, points: number) => {
-  // Nombres creativos para Teoría
-  if (inst === 'Teoría') {
-    if (points >= 9000) return { name: 'Sabio de la Composición', level: 6 };
-    if (points >= 6200) return { name: 'Virtuoso de la Estructura', level: 5 };
-    if (points >= 4000) return { name: 'Maestro del Solfeo', level: 4 };
-    if (points >= 2300) return { name: 'Arquitecto de Sonidos', level: 3 };
-    if (points >= 1000) return { name: 'Explorador del Pentagrama', level: 2 };
-    return { name: 'Aprendiz de Armonía', level: 1 };
-  }
+  const getBaseName = (p: number, i: string) => {
+    if (i === 'Teoría') {
+      if (p >= 9000) return 'Sabio de la Composición';
+      if (p >= 6200) return 'Virtuoso de la Estructura';
+      if (p >= 4000) return 'Maestro del Solfeo';
+      if (p >= 2300) return 'Arquitecto de Sonidos';
+      if (p >= 1000) return 'Explorador del Pentagrama';
+      return 'Aprendiz de Armonía';
+    }
+    const suffix = i === 'Batería' ? 'ista' : i === 'Piano' ? 'ista' : i === 'Guitarra' ? 'ista' : i === 'Violín' ? 'ista' : i === 'Canto' ? 'ante' : 'ista';
+    const artist = i.replace(/a$|o$/, '') + suffix;
 
-  const artist = getArtistName(inst);
-  if (points >= 9000) return { name: 'Maestro joven', level: 6 };
-  if (points >= 6200) return { name: `Virtuoso con la ${inst}`, level: 5 };
-  if (points >= 4000) return { name: `${artist} Preparado`, level: 4 };
-  if (points >= 2300) return { name: `${artist} en formación`, level: 3 };
-  if (points >= 1000) return { name: `Entusiasta de ${inst}`, level: 2 };
-  return { name: `Aprendiz de ${inst}`, level: 1 };
+    if (p >= 9000) return 'Maestro joven';
+    if (p >= 6200) return `Virtuoso con la ${i}`;
+    if (p >= 4000) return `${artist} Preparado`;
+    if (p >= 2300) return `${artist} en formación`;
+    if (p >= 1000) return `Entusiasta de ${i}`;
+    return `Aprendiz de ${i}`;
+  };
+
+  const levelNum = points >= 9000 ? 6 : points >= 6200 ? 5 : points >= 4000 ? 4 : points >= 2300 ? 3 : points >= 1000 ? 2 : 1;
+  return { name: getBaseName(points, inst), level: levelNum };
 };
 
 export default function ProgressPage() {
   const { user } = useAuth();
   const { completions } = useCompletionStore();
   const { availabilities } = useBookingStore();
+  const { updateSkill, getSkillLevel } = useSkillsStore();
+  
+  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
 
+  const isStaff = user?.role === 'teacher' || user?.role === 'admin';
+
   useEffect(() => {
     setIsMounted(true);
-    if (user && user.instruments && user.instruments.length > 0 && !selectedInstrument) {
-      setSelectedInstrument(user.instruments[0]);
-    } else if (user && (!user.instruments || user.instruments.length === 0) && !selectedInstrument) {
+    if (user) {
+      const initialStudentId = isStaff ? MOCK_STUDENTS[0].id : user.id;
+      setSelectedStudentId(initialStudentId);
+    }
+  }, [user, isStaff]);
+
+  const currentStudent = useMemo(() => {
+    if (isStaff) return MOCK_STUDENTS.find(s => s.id === selectedStudentId);
+    return user ? { id: user.id, name: user.name, instruments: user.instruments || [] } : null;
+  }, [selectedStudentId, isStaff, user]);
+
+  useEffect(() => {
+    if (currentStudent && currentStudent.instruments?.length > 0) {
+      if (!selectedInstrument || !currentStudent.instruments.includes(selectedInstrument)) {
+        setSelectedInstrument(currentStudent.instruments[0]);
+      }
+    } else if (currentStudent) {
       setSelectedInstrument('Default');
     }
-  }, [user, selectedInstrument]);
+  }, [currentStudent, selectedInstrument]);
 
-  // CÁLCULO DINÁMICO DE PUNTOS
   const instrumentStats = useMemo(() => {
+    if (!currentStudent) return {};
     const stats: Record<string, { points: number; levelName: string; levelNum: number }> = {};
     const categories = ['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría', 'Default'];
     
     categories.forEach(cat => {
       let points = 0;
-
-      // 1. Puntos por Material Completado (150 pts c/u)
       completions.forEach(comp => {
-        if (comp.isCompleted && (user?.role === 'student' ? comp.studentId === user.id : true)) {
+        if (comp.isCompleted && comp.studentId === currentStudent.id) {
           const resource = RESOURCES.find(r => r.id === comp.resourceId);
-          if (resource && resource.category === cat) {
-            points += 150;
-          }
+          if (resource && resource.category === cat) points += 150;
         }
       });
 
-      // 2. Puntos por Horas de Clase (100 pts c/u)
       availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
-          if (slot.isBooked && slot.bookedBy === user?.name) {
-            if (cat === user?.instruments?.[0]) {
-              points += 100;
-            }
+          if (slot.isBooked && slot.bookedBy === currentStudent.name) {
+            if (currentStudent.instruments?.includes(cat)) points += 100;
           }
         });
       });
 
-      // 3. Puntos por Mejora de Habilidad (10 pts por cada 1%)
-      const skills = DEFAULT_SKILLS[cat] || [];
-      skills.forEach(s => {
-        points += (s.level * 10);
+      const skillConfigs = DEFAULT_SKILLS_CONFIG[cat] || [];
+      skillConfigs.forEach(sc => {
+        const level = getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel);
+        points += (level * 10);
       });
 
       const levelInfo = getLevelInfo(cat, points);
-      stats[cat] = { 
-        points, 
-        levelName: levelInfo.name, 
-        levelNum: levelInfo.level 
-      };
+      stats[cat] = { points, levelName: levelInfo.name, levelNum: levelInfo.level };
     });
 
     return stats;
-  }, [completions, availabilities, user]);
+  }, [completions, availabilities, currentStudent, getSkillLevel]);
 
   const totalAchievementPoints = useMemo(() => {
-    // Suma de todos los puntos de instrumentos + Hitos (200 pts c/u)
     const basePoints = Object.values(instrumentStats).reduce((sum, s) => sum + s.points, 0);
     const milestonePoints = MILESTONES.filter(m => m.achieved).length * 200;
     return basePoints + milestonePoints;
   }, [instrumentStats]);
 
-  const currentData = useMemo(() => {
-    const stats = instrumentStats[selectedInstrument] || instrumentStats['Default'];
-    return {
-      ...stats,
-      skills: DEFAULT_SKILLS[selectedInstrument] || DEFAULT_SKILLS['Default']
-    };
-  }, [selectedInstrument, instrumentStats]);
+  const currentSkills = useMemo(() => {
+    if (!currentStudent || !selectedInstrument) return [];
+    const configs = DEFAULT_SKILLS_CONFIG[selectedInstrument] || DEFAULT_SKILLS_CONFIG['Default'];
+    return configs.map(sc => ({
+      ...sc,
+      level: getSkillLevel(currentStudent.id, selectedInstrument, sc.name, sc.defaultLevel)
+    }));
+  }, [currentStudent, selectedInstrument, getSkillLevel]);
 
-  if (!isMounted) return null;
+  if (!isMounted || !user) return null;
 
   return (
     <AppLayout>
@@ -182,41 +189,57 @@ export default function ProgressPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">
-              {user?.role === 'teacher' ? 'Seguimiento del Alumno' : 'Mi Viaje de Aprendizaje 🚀'}
+              {isStaff ? 'Seguimiento del Alumno 👩‍🏫' : 'Mi Viaje de Aprendizaje 🚀'}
             </h1>
-            <p className="text-muted-foreground mt-1 text-lg font-medium">Visualizando tu crecimiento musical y logros.</p>
+            <p className="text-muted-foreground mt-1 text-lg font-medium">Visualizando el crecimiento musical y logros.</p>
           </div>
 
-          <Card className="rounded-3xl border-none shadow-xl bg-accent text-white px-8 py-4 flex items-center gap-4 hover:scale-105 transition-transform duration-300">
-            <Trophy className="w-10 h-10" />
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Puntos de Logro Globales</p>
-              <h2 className="text-3xl font-black">{totalAchievementPoints.toLocaleString()} pts</h2>
-            </div>
-          </Card>
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            {isStaff && (
+              <Card className="rounded-[2rem] border-2 border-accent/20 p-2 pl-4 flex items-center gap-4 bg-white shadow-sm">
+                <ShieldCheck className="w-6 h-6 text-accent shrink-0" />
+                <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                  <SelectTrigger className="w-48 h-10 rounded-xl border-none font-black text-secondary-foreground">
+                    <SelectValue placeholder="Alumno" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {MOCK_STUDENTS.map(s => (
+                      <SelectItem key={s.id} value={s.id} className="font-bold">{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Card>
+            )}
+            
+            <Card className="rounded-[2rem] border-none shadow-xl bg-accent text-white px-8 py-4 flex items-center gap-4 shrink-0">
+              <Trophy className="w-8 h-8" />
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Puntos Globales</p>
+                <h2 className="text-2xl font-black">{totalAchievementPoints.toLocaleString()} pts</h2>
+              </div>
+            </Card>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 space-y-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-8 bg-accent rounded-full" />
-                <h2 className="text-2xl font-black text-secondary-foreground">Progreso por Instrumento</h2>
+                <h2 className="text-2xl font-black text-secondary-foreground">Habilidades y Nivel</h2>
               </div>
               
-              <div className="w-64">
+              <div className="w-full md:w-64">
                 <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
                   <SelectTrigger className="h-12 rounded-2xl border-2 font-black text-secondary-foreground bg-white shadow-sm">
-                    <SelectValue placeholder="Elige un instrumento" />
+                    <SelectValue placeholder="Instrumento" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
-                    {user?.instruments?.map(inst => (
-                      <SelectItem key={inst} value={inst} className="font-bold py-3">
-                        {inst}
-                      </SelectItem>
+                    {currentStudent?.instruments?.map(inst => (
+                      <SelectItem key={inst} value={inst} className="font-bold py-3">{inst}</SelectItem>
                     ))}
                     <SelectItem value="Teoría" className="font-bold py-3">Teoría Musical</SelectItem>
-                    <SelectItem value="Default" className="font-bold py-3 text-muted-foreground">Otros / General</SelectItem>
+                    <SelectItem value="Default" className="font-bold py-3 text-muted-foreground">Otros</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -224,22 +247,20 @@ export default function ProgressPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="rounded-[2.5rem] border-none shadow-sm bg-secondary/20 p-8 flex flex-col items-center text-center space-y-4">
-                <div className="p-5 bg-white rounded-[2rem] shadow-sm border border-primary/10">
-                  <Target className="w-10 h-10 text-secondary-foreground" />
-                </div>
+                <Target className="w-10 h-10 text-secondary-foreground" />
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground/60">Rango Alcanzado</p>
-                  <h4 className="font-black text-2xl text-secondary-foreground mt-1">{currentData.levelName} (Nv. {currentData.levelNum})</h4>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground/60">Rango en {selectedInstrument}</p>
+                  <h4 className="font-black text-xl text-secondary-foreground mt-1">
+                    {instrumentStats[selectedInstrument]?.levelName} (Nv. {instrumentStats[selectedInstrument]?.levelNum})
+                  </h4>
                 </div>
               </Card>
 
               <Card className="rounded-[2.5rem] border-none shadow-sm bg-accent/5 p-8 flex flex-col items-center text-center space-y-4">
-                <div className="p-5 bg-white rounded-[2rem] shadow-sm border border-accent/10">
-                  <Music className="w-10 h-10 text-accent" />
-                </div>
+                <Music className="w-10 h-10 text-accent" />
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
-                  <h4 className="font-black text-3xl text-accent mt-1">{currentData.points.toLocaleString()} pts</h4>
+                  <h4 className="font-black text-2xl text-accent mt-1">{instrumentStats[selectedInstrument]?.points.toLocaleString()} pts</h4>
                 </div>
               </Card>
             </div>
@@ -248,17 +269,31 @@ export default function ProgressPage() {
               <CardHeader className="bg-primary/5 p-8 border-b">
                 <CardTitle className="flex items-center gap-3 font-black text-xl">
                   <TrendingUp className="w-6 h-6 text-accent" />
-                  Habilidades Técnicas: {selectedInstrument}
+                  Evolución Técnica: {selectedInstrument}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                {currentData.skills.map((skill, i) => (
-                  <div key={i} className="space-y-3">
+              <CardContent className="p-8 space-y-10">
+                {currentSkills.map((skill, i) => (
+                  <div key={i} className="space-y-4">
                     <div className="flex justify-between items-center font-black">
                       <span className="text-lg text-secondary-foreground">{skill.name}</span>
-                      <span className="text-accent bg-accent/10 px-3 py-1 rounded-full text-sm">{skill.level}%</span>
+                      <span className="text-accent bg-accent/10 px-4 py-1 rounded-full text-sm font-black">{skill.level}%</span>
                     </div>
-                    <Progress value={skill.level} className="h-4 rounded-full bg-primary/10" />
+                    
+                    {isStaff ? (
+                      <div className="flex items-center gap-6">
+                        <Slider 
+                          value={[skill.level]} 
+                          max={100} 
+                          step={1} 
+                          className="flex-1"
+                          onValueChange={(vals) => updateSkill(currentStudent!.id, selectedInstrument, skill.name, vals[0])}
+                        />
+                        <span className="text-xs font-black text-muted-foreground w-8">Editar</span>
+                      </div>
+                    ) : (
+                      <Progress value={skill.level} className="h-4 rounded-full bg-primary/10" />
+                    )}
                   </div>
                 ))}
               </CardContent>
@@ -268,7 +303,7 @@ export default function ProgressPage() {
           <div className="lg:col-span-4 space-y-8">
             <div className="flex items-center gap-3">
               <div className="w-2 h-8 bg-secondary-foreground rounded-full" />
-              <h2 className="text-2xl font-black text-secondary-foreground">Trayectoria Global</h2>
+              <h2 className="text-2xl font-black text-secondary-foreground">Trayectoria</h2>
             </div>
 
             <Card className="rounded-[2.5rem] border-none shadow-md bg-white">
@@ -282,7 +317,7 @@ export default function ProgressPage() {
                 {MILESTONES.map((m, i) => (
                   <div key={i} className="flex gap-5 items-start group">
                     <div className={cn(
-                      "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 transition-all",
+                      "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2",
                       m.achieved 
                         ? "bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm" 
                         : "bg-muted/30 border-dashed border-muted-foreground/20 text-muted-foreground/40"
