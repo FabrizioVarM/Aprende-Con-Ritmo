@@ -1,14 +1,14 @@
 
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/lib/auth-store';
-import { Star, Award, TrendingUp, Music, CheckCircle2, ChevronDown } from 'lucide-react';
+import { Star, Award, TrendingUp, Music, CheckCircle2, Trophy, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Mock data for different instruments to demonstrate functionality
@@ -96,7 +96,19 @@ export default function ProgressPage() {
     }
   }, [user, selectedInstrument]);
 
-  const currentData = PROGRESS_DATA_BY_INSTRUMENT[selectedInstrument] || PROGRESS_DATA_BY_INSTRUMENT['Default'];
+  const currentData = useMemo(() => {
+    return PROGRESS_DATA_BY_INSTRUMENT[selectedInstrument] || PROGRESS_DATA_BY_INSTRUMENT['Default'];
+  }, [selectedInstrument]);
+
+  // Cálculo de Puntos de Logro Globales (Suma de todos los instrumentos del usuario)
+  const totalAchievementPoints = useMemo(() => {
+    if (!user?.instruments || user.instruments.length === 0) {
+      return PROGRESS_DATA_BY_INSTRUMENT['Default'].points;
+    }
+    return user.instruments.reduce((sum, inst) => {
+      return sum + (PROGRESS_DATA_BY_INSTRUMENT[inst]?.points || 0);
+    }, 0);
+  }, [user]);
 
   return (
     <AppLayout>
@@ -109,33 +121,70 @@ export default function ProgressPage() {
             <p className="text-muted-foreground mt-1 text-lg font-medium">Visualizando tu crecimiento musical y logros.</p>
           </div>
 
-          {(user?.instruments && user.instruments.length > 0) && (
-            <div className="w-full md:w-64 space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Ver progreso de:</label>
-              <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                <SelectTrigger className="h-14 rounded-2xl border-2 font-black text-secondary-foreground bg-white shadow-sm">
-                  <SelectValue placeholder="Elige un instrumento" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl">
-                  {user.instruments.map(inst => (
-                    <SelectItem key={inst} value={inst} className="font-bold py-3">
-                      {inst}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="Default" className="font-bold py-3 text-muted-foreground">Teoría / General</SelectItem>
-                </SelectContent>
-              </Select>
+          <Card className="rounded-3xl border-none shadow-xl bg-accent text-white px-8 py-4 flex items-center gap-4 hover:scale-105 transition-transform duration-300">
+            <Trophy className="w-10 h-10" />
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Puntos de Logro Totales</p>
+              <h2 className="text-3xl font-black">{totalAchievementPoints.toLocaleString()} pts</h2>
             </div>
-          )}
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Columna de Instrumento Seleccionado (8 columnas) */}
+          <div className="lg:col-span-8 space-y-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-8 bg-accent rounded-full" />
+                <h2 className="text-2xl font-black text-secondary-foreground">Progreso por Instrumento</h2>
+              </div>
+              
+              {(user?.instruments && user.instruments.length > 0) && (
+                <div className="w-64">
+                  <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+                    <SelectTrigger className="h-12 rounded-2xl border-2 font-black text-secondary-foreground bg-white shadow-sm">
+                      <SelectValue placeholder="Elige un instrumento" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl">
+                      {user.instruments.map(inst => (
+                        <SelectItem key={inst} value={inst} className="font-bold py-3">
+                          {inst}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="Default" className="font-bold py-3 text-muted-foreground">Teoría / General</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="rounded-[2.5rem] border-none shadow-sm bg-secondary/20 p-8 flex flex-col items-center text-center space-y-4">
+                <div className="p-5 bg-white rounded-[2rem] shadow-sm border border-primary/10">
+                  <Target className="w-10 h-10 text-secondary-foreground" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground/60">Nivel Alcanzado</p>
+                  <h4 className="font-black text-2xl text-secondary-foreground mt-1">{currentData.level}</h4>
+                </div>
+              </Card>
+
+              <Card className="rounded-[2.5rem] border-none shadow-sm bg-accent/5 p-8 flex flex-col items-center text-center space-y-4">
+                <div className="p-5 bg-white rounded-[2rem] shadow-sm border border-accent/10">
+                  <Music className="w-10 h-10 text-accent" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument === 'Default' ? 'Música' : selectedInstrument}</p>
+                  <h4 className="font-black text-3xl text-accent mt-1">{currentData.points.toLocaleString()} pts</h4>
+                </div>
+              </Card>
+            </div>
+
             <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
               <CardHeader className="bg-primary/5 p-8 border-b">
                 <CardTitle className="flex items-center gap-3 font-black text-xl">
                   <TrendingUp className="w-6 h-6 text-accent" />
-                  Habilidades en {selectedInstrument === 'Default' ? 'Música' : selectedInstrument}
+                  Habilidades Técnicas: {selectedInstrument === 'Default' ? 'General' : selectedInstrument}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
@@ -150,63 +199,50 @@ export default function ProgressPage() {
                 ))}
               </CardContent>
             </Card>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <Card className="rounded-[2.5rem] border-none shadow-sm bg-secondary/30 p-8 flex flex-col items-center text-center space-y-4">
-                <div className="p-5 bg-white rounded-[2rem] shadow-sm border border-primary/10">
-                  <Music className="w-10 h-10 text-secondary-foreground" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground/60">Nivel Alcanzado</p>
-                  <h4 className="font-black text-2xl text-secondary-foreground mt-1">{currentData.level}</h4>
-                </div>
-              </Card>
-
-              <Card className="rounded-[2.5rem] border-none shadow-sm bg-accent/10 p-8 flex flex-col items-center text-center space-y-4">
-                <div className="p-5 bg-white rounded-[2rem] shadow-sm border border-accent/10">
-                  <Award className="w-10 h-10 text-accent" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de Ritmo</p>
-                  <h4 className="font-black text-3xl text-accent mt-1">{currentData.points.toLocaleString()} pts</h4>
-                </div>
-              </Card>
-            </div>
           </div>
 
-          <Card className="rounded-[2.5rem] border-none shadow-md bg-white">
-            <CardHeader className="p-8 border-b bg-gray-50/50">
-              <CardTitle className="flex items-center gap-3 font-black text-xl">
-                <Star className="w-6 h-6 text-accent fill-accent" />
-                Hitos Globales
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8 space-y-8">
-              {MILESTONES.map((m, i) => (
-                <div key={i} className="flex gap-5 items-start group">
-                  <div className={cn(
-                    "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 transition-all",
-                    m.achieved 
-                      ? "bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm" 
-                      : "bg-muted/30 border-dashed border-muted-foreground/20 text-muted-foreground/40"
-                  )}>
-                    {m.achieved ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
-                  </div>
-                  <div className="space-y-1">
+          {/* Columna Global (Hitos) (4 columnas) */}
+          <div className="lg:col-span-4 space-y-8">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-8 bg-secondary-foreground rounded-full" />
+              <h2 className="text-2xl font-black text-secondary-foreground">Trayectoria Global</h2>
+            </div>
+
+            <Card className="rounded-[2.5rem] border-none shadow-md bg-white">
+              <CardHeader className="p-8 border-b bg-gray-50/50">
+                <CardTitle className="flex items-center gap-3 font-black text-xl">
+                  <Star className="w-6 h-6 text-accent fill-accent" />
+                  Hitos de Carrera
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8 space-y-8">
+                {MILESTONES.map((m, i) => (
+                  <div key={i} className="flex gap-5 items-start group">
                     <div className={cn(
-                      "font-black text-lg leading-tight",
-                      m.achieved ? "text-secondary-foreground" : "text-muted-foreground/60"
+                      "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 transition-all",
+                      m.achieved 
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm" 
+                        : "bg-muted/30 border-dashed border-muted-foreground/20 text-muted-foreground/40"
                     )}>
-                      {m.title}
+                      {m.achieved ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
                     </div>
-                    <div className="text-sm font-bold text-muted-foreground">{m.date}</div>
+                    <div className="space-y-1">
+                      <div className={cn(
+                        "font-black text-lg leading-tight",
+                        m.achieved ? "text-secondary-foreground" : "text-muted-foreground/60"
+                      )}>
+                        {m.title}
+                      </div>
+                      <div className="text-sm font-bold text-muted-foreground">{m.date}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </AppLayout>
   );
 }
+
