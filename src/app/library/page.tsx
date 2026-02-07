@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
@@ -21,7 +21,7 @@ export default function LibraryPage() {
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
   const { toast } = useToast();
   
-  const [filter, setFilter] = useState('Todos');
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [isInitialFilterSet, setIsInitialFilterSet] = useState(false);
 
@@ -30,19 +30,31 @@ export default function LibraryPage() {
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
 
-  // Efecto para inicializar el filtro según el perfil del alumno
+  // Efecto para inicializar los filtros según el perfil del alumno
   useEffect(() => {
     if (user && !isInitialFilterSet) {
       if (user.role === 'student' && user.instruments && user.instruments.length > 0) {
-        // Establecer el primer instrumento del perfil como filtro inicial
-        setFilter(user.instruments[0]);
+        // Establecer todos los instrumentos del perfil como filtros iniciales
+        setSelectedFilters(user.instruments);
       }
       setIsInitialFilterSet(true);
     }
   }, [user, isInitialFilterSet]);
 
+  const toggleFilter = (cat: string) => {
+    if (cat === 'Todos') {
+      setSelectedFilters([]);
+      return;
+    }
+    setSelectedFilters(prev => 
+      prev.includes(cat) 
+        ? prev.filter(c => c !== cat) 
+        : [...prev, cat]
+    );
+  };
+
   const filtered = RESOURCES.filter(res => 
-    (filter === 'Todos' || res.category === filter) &&
+    (selectedFilters.length === 0 || selectedFilters.includes(res.category)) &&
     (res.title.toLowerCase().includes(search.toLowerCase()))
   );
 
@@ -89,19 +101,23 @@ export default function LibraryPage() {
             />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto">
-            {['Todos', 'Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'].map((cat) => (
-              <Button
-                key={cat}
-                variant={filter === cat ? 'default' : 'outline'}
-                className={cn(
-                  "rounded-full px-6",
-                  filter === cat ? "bg-accent text-white" : "border-primary"
-                )}
-                onClick={() => setFilter(cat)}
-              >
-                {cat}
-              </Button>
-            ))}
+            {['Todos', 'Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'].map((cat) => {
+              const isActive = cat === 'Todos' ? selectedFilters.length === 0 : selectedFilters.includes(cat);
+              return (
+                <Button
+                  key={cat}
+                  variant={isActive ? 'default' : 'outline'}
+                  className={cn(
+                    "rounded-full px-4 sm:px-6 transition-all",
+                    isActive ? "bg-accent text-white" : "border-primary"
+                  )}
+                  onClick={() => toggleFilter(cat)}
+                >
+                  {cat}
+                  {isActive && cat !== 'Todos' && <Check className="ml-1 w-3 h-3" />}
+                </Button>
+              );
+            })}
           </div>
         </div>
 
