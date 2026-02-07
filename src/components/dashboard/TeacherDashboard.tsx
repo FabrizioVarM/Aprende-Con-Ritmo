@@ -174,25 +174,26 @@ export default function TeacherDashboard() {
       if (day.teacherId === teacherId) {
         day.slots.forEach(slot => {
           if (slot.isBooked && (slot.studentId || slot.bookedBy)) {
-            const studentId = slot.studentId || slot.bookedBy!;
-            const studentProfile = allUsers.find(u => u.id === studentId || u.name === slot.bookedBy);
+            const rawId = slot.studentId || slot.bookedBy!;
+            const studentProfile = allUsers.find(u => u.id === rawId || u.name === slot.bookedBy);
+            const actualId = studentProfile?.id || rawId;
             
             const duration = calculateDuration(slot.time);
             const isCompleted = slot.status === 'completed';
             
-            let studentData = studentsMap.get(studentId);
+            let studentData = studentsMap.get(actualId);
             if (!studentData) {
-              const resCount = completions.filter(c => c.studentId === studentId && c.isCompleted).length;
+              const resCount = completions.filter(c => String(c.studentId) === String(actualId) && c.isCompleted).length;
               
               studentData = { 
-                id: studentId, 
+                id: actualId, 
                 name: studentProfile?.name || slot.bookedBy || 'Alumno', 
                 instruments: studentProfile?.instruments || [],
                 hoursByInstrument: new Map(),
                 completedResourcesCount: resCount,
                 lastClassTimestamp: 0
               };
-              studentsMap.set(studentId, studentData);
+              studentsMap.set(actualId, studentData);
             }
 
             if (isCompleted) {
