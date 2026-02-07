@@ -465,7 +465,7 @@ export default function SchedulePage() {
             <div className="flex items-center gap-4 bg-primary/5 p-4 rounded-3xl border border-primary/10">
               <div className="bg-accent/10 p-3 rounded-2xl shadow-sm"><Clock className="w-6 h-6 text-accent" /></div>
               <div>
-                <h3 className="text-xl font-black text-secondary-foreground capitalize leading-tight">{date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
+                <h3 className="text-3xl font-black text-secondary-foreground capitalize leading-tight">{date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
                 <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Resumen del día</p>
               </div>
             </div>
