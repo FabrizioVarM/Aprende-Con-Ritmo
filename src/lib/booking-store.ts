@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -11,6 +10,7 @@ export interface TimeSlot {
   bookedBy?: string;
   instrument?: string;
   type: 'virtual' | 'presencial';
+  status?: 'pending' | 'completed';
 }
 
 export interface DayAvailability {
@@ -64,7 +64,8 @@ export function useBookingStore() {
         time: s, 
         isAvailable: false, 
         isBooked: false,
-        type: 'presencial'
+        type: 'presencial',
+        status: 'pending'
       }))
     };
   }, [availabilities]);
@@ -86,7 +87,7 @@ export function useBookingStore() {
         if (a.teacherId === teacherId && a.date === dateStr) {
           return {
             ...a,
-            slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, isAvailable: false, instrument } : s)
+            slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, isAvailable: false, instrument, status: 'pending' } : s)
           };
         }
         return a;
@@ -104,7 +105,8 @@ export function useBookingStore() {
             isBooked: id === slotId,
             bookedBy: id === slotId ? studentName : undefined,
             instrument: id === slotId ? instrument : undefined,
-            type: 'presencial'
+            type: 'presencial',
+            status: 'pending'
           };
         })
       };
@@ -122,7 +124,7 @@ export function useBookingStore() {
           ...a,
           slots: a.slots.map(s => 
             s.id === slotId 
-              ? { ...s, isBooked: false, bookedBy: undefined, isAvailable: true, instrument: undefined } 
+              ? { ...s, isBooked: false, bookedBy: undefined, isAvailable: true, instrument: undefined, status: 'pending' } 
               : s
           )
         };
@@ -132,5 +134,18 @@ export function useBookingStore() {
     saveToStorage(updated);
   }, [availabilities, saveToStorage]);
 
-  return { availabilities, getDayAvailability, updateAvailability, bookSlot, cancelBooking };
+  const setSlotStatus = useCallback((teacherId: string, date: string, slotId: string, status: 'pending' | 'completed') => {
+    const updated = availabilities.map(a => {
+      if (a.teacherId === teacherId && a.date === date) {
+        return {
+          ...a,
+          slots: a.slots.map(s => s.id === slotId ? { ...s, status } : s)
+        };
+      }
+      return a;
+    });
+    saveToStorage(updated);
+  }, [availabilities, saveToStorage]);
+
+  return { availabilities, getDayAvailability, updateAvailability, bookSlot, cancelBooking, setSlotStatus };
 }
