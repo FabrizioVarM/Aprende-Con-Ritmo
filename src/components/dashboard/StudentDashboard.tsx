@@ -441,7 +441,7 @@ export default function StudentDashboard() {
           <CardHeader className="p-0 pb-4">
             <CardTitle className="text-sm font-black uppercase tracking-widest text-secondary-foreground flex items-center gap-2">
               <CalendarIcon className="w-5 h-5 text-accent" />
-              Siguiente Cita
+              CLASE MÁS PROXIMA
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
