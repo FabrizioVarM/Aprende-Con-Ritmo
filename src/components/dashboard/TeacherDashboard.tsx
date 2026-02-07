@@ -383,7 +383,7 @@ export default function TeacherDashboard() {
           <div className="text-3xl font-black text-green-900 mt-1">{totalWeeklyEnabledHours.toFixed(1)} h</div>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm bg-accent/5 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-accent">Materiales</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-accent">Materiales disponibles</p>
           <div className="text-3xl font-black text-accent-foreground mt-1">12</div>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm bg-secondary/20 p-4">
