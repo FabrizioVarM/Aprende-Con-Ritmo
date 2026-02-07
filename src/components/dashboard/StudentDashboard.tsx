@@ -31,7 +31,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useBookingStore } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
@@ -208,7 +208,6 @@ export default function StudentDashboard() {
 
   const nextLesson = myUpcomingLessons[0];
 
-  // Cálculo del instrumento principal basado en puntos de progreso
   const topInstrument = useMemo(() => {
     if (!user) return 'Música';
     
@@ -218,7 +217,6 @@ export default function StudentDashboard() {
     studentInstruments.forEach(cat => {
       let points = 0;
       
-      // Puntos por recursos completados
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(user.id)) {
           const resource = RESOURCES.find(r => r.id === comp.resourceId);
@@ -230,7 +228,6 @@ export default function StudentDashboard() {
         }
       });
 
-      // Puntos por clases completadas
       availabilities.forEach(day => {
         day.slots.forEach(slot => {
           if (slot.isBooked && slot.status === 'completed' && String(slot.studentId) === String(user.id)) {
@@ -245,7 +242,6 @@ export default function StudentDashboard() {
       stats[cat] = points;
     });
 
-    // Encontrar el instrumento con más puntos
     let maxPts = -1;
     let bestInst = user.instruments?.[0] || 'Música';
     
@@ -500,7 +496,7 @@ export default function StudentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className={cn("text-4xl font-black truncate", topInstConfig.color.replace('text-', 'text-'))}>
+            <div className={cn("text-4xl font-black truncate", topInstConfig.color)}>
               {topInstrument}
             </div>
             <p className={cn("text-sm font-bold mt-1 opacity-60", topInstConfig.color)}>Máximo Progreso</p>
@@ -530,7 +526,7 @@ export default function StudentDashboard() {
           <CardHeader className="p-0 pb-4">
             <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-600 flex items-center gap-2">
               <Clock className="w-5 h-5 text-accent" />
-              Total Reservas Pendientes
+              TOTAL RESERVAS PENDIENTES
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
