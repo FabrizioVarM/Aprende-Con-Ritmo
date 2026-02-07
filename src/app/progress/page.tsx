@@ -214,14 +214,14 @@ export default function ProgressPage() {
           <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             {isStaff && (
               <Card className="rounded-[2rem] border-2 border-accent/20 p-2 pl-4 flex items-center gap-4 bg-white shadow-sm">
-                <ShieldCheck className="w-6 h-6 text-accent shrink-0" />
+                <ShieldCheck className="w-8 h-8 text-accent shrink-0" />
                 <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                  <SelectTrigger className="w-48 h-10 rounded-xl border-none font-black text-secondary-foreground">
-                    <SelectValue placeholder="Alumno" />
+                  <SelectTrigger className="w-64 h-12 rounded-xl border-none font-black text-xl text-secondary-foreground focus:ring-0">
+                    <SelectValue placeholder="Seleccionar Alumno" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
                     {students.map(s => (
-                      <SelectItem key={s.id} value={s.id} className="font-bold">{s.name}</SelectItem>
+                      <SelectItem key={s.id} value={s.id} className="font-bold text-lg">{s.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -382,10 +382,10 @@ export default function ProgressPage() {
             <Card className="rounded-[2.5rem] border-none shadow-md bg-white">
               <CardHeader className="p-8 border-b bg-gray-50/50 flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-3 font-black text-xl">
-                  <StarIcon className="w-6 h-6 text-accent fill-accent" />
+                  <StarIcon className="w-8 h-8 text-accent fill-accent" />
                   Hitos de Carrera
                 </CardTitle>
-                <Badge className="bg-accent text-white rounded-full font-black px-4 py-2 text-sm shadow-lg shadow-accent/20">
+                <Badge className="bg-accent text-white rounded-full font-black px-6 py-3 text-xl shadow-lg shadow-accent/20">
                   {achievedMilestonesCount}
                 </Badge>
               </CardHeader>

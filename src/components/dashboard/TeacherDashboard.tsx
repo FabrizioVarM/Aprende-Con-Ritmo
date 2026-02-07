@@ -24,17 +24,6 @@ import { useSkillsStore } from '@/lib/skills-store';
 import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const INSTRUMENT_ICONS: Record<string, any> = {
-  'Guitarra': Music,
-  'Piano': Keyboard,
-  'Violín': Music,
-  'Batería': Drum,
-  'Canto': Mic,
-  'Teoría': BookOpen,
-  'Bajo': Music,
-  'Flauta': Music,
-};
-
 const calculateDuration = (timeStr: string): number => {
   try {
     const [start, end] = timeStr.split(' - ');
@@ -81,14 +70,6 @@ export default function TeacherDashboard() {
     const newSlots = [...localSlots];
     if (!newSlots[index].isBooked) {
       newSlots[index].isAvailable = !newSlots[index].isAvailable;
-      setLocalSlots(newSlots);
-    }
-  };
-
-  const toggleSlotType = (index: number) => {
-    const newSlots = [...localSlots];
-    if (!newSlots[index].isBooked) {
-      newSlots[index].type = newSlots[index].type === 'virtual' ? 'presencial' : 'virtual';
       setLocalSlots(newSlots);
     }
   };
@@ -154,7 +135,8 @@ export default function TeacherDashboard() {
     const studentsMap = new Map<string, { 
       id: string, 
       name: string, 
-      byInstrument: Map<string, { hours: number }>
+      instruments: string[],
+      hoursByInstrument: Map<string, number>
     }>();
 
     availabilities.forEach(day => {
@@ -164,34 +146,27 @@ export default function TeacherDashboard() {
             const studentId = slot.studentId || slot.bookedBy!;
             const studentProfile = allUsers.find(u => u.id === studentId || u.name === slot.bookedBy);
             
-            let instrument = slot.instrument;
-            if (!instrument || instrument === 'Música') {
-              instrument = studentProfile?.instruments?.[0] || 'Instrumento';
-            }
-
             const duration = calculateDuration(slot.time);
             const isCompleted = slot.status === 'completed';
             
             let studentData = studentsMap.get(studentId);
             if (!studentData) {
-              const studentName = studentProfile?.name || slot.bookedBy || 'Alumno';
-              studentData = { id: studentId, name: studentName, byInstrument: new Map() };
-              
-              studentProfile?.instruments?.forEach(inst => {
-                studentData!.byInstrument.set(inst, { hours: 0 });
-              });
-              
+              studentData = { 
+                id: studentId, 
+                name: studentProfile?.name || slot.bookedBy || 'Alumno', 
+                instruments: studentProfile?.instruments || [],
+                hoursByInstrument: new Map()
+              };
               studentsMap.set(studentId, studentData);
             }
 
-            let instData = studentData.byInstrument.get(instrument);
-            if (!instData) {
-              instData = { hours: 0 };
-              studentData.byInstrument.set(instrument, instData);
-            }
-
             if (isCompleted) {
-              instData.hours += duration;
+              let instrument = slot.instrument;
+              if (!instrument || instrument === 'Música') {
+                instrument = studentProfile?.instruments?.[0] || 'Música';
+              }
+              const currentHours = studentData.hoursByInstrument.get(instrument) || 0;
+              studentData.hoursByInstrument.set(instrument, currentHours + duration);
             }
           }
         });
@@ -232,14 +207,14 @@ export default function TeacherDashboard() {
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="bg-accent text-white rounded-xl gap-2 h-12 px-6 shadow-lg shadow-accent/20 hover:scale-105 transition-all font-black">
-              <Clock className="w-5 h-5" /> Agenda
+              <Clock className="w-5 h-5" /> Gestionar Horarios
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-[2rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
             <DialogHeader className="bg-primary/10 p-6 border-b space-y-2 shrink-0">
               <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
                 <CalendarIcon className="w-6 h-6 text-accent" />
-                Configurar Agenda
+                Gestionar Horarios
               </DialogTitle>
             </DialogHeader>
             
@@ -376,7 +351,7 @@ export default function TeacherDashboard() {
           <div className="text-3xl font-black text-secondary-foreground mt-1">
             {Math.round(trackedStudents.reduce((acc, s) => {
               let h = 0;
-              s.byInstrument.forEach(inst => h += inst.hours);
+              s.hoursByInstrument.forEach(val => h += val);
               return acc + h;
             }, 0))}
           </div>
@@ -385,34 +360,44 @@ export default function TeacherDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 rounded-[2rem] border-none shadow-md overflow-hidden bg-white">
-          <CardHeader className="bg-primary/5 p-4 border-b">
-            <CardTitle className="flex items-center gap-2 font-black text-lg">
-              <GraduationCap className="w-5 h-5 text-accent" />
+          <CardHeader className="bg-primary/5 p-6 border-b">
+            <CardTitle className="flex items-center gap-2 font-black text-xl">
+              <GraduationCap className="w-6 h-6 text-accent" />
               Seguimiento de Alumnos
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 space-y-4">
+          <CardContent className="p-6 space-y-4">
             {trackedStudents.length > 0 ? trackedStudents.map((student) => (
-              <div key={student.id} className="flex items-center gap-4 p-3 rounded-2xl border border-primary/5 bg-white shadow-sm hover:shadow-md transition-all">
-                <Avatar className="w-10 h-10 border-2 border-accent shrink-0">
-                  <AvatarImage src={`https://picsum.photos/seed/${student.id}/100`} />
-                  <AvatarFallback className="bg-primary text-secondary-foreground font-black text-xs">{student.name[0]}</AvatarFallback>
-                </Avatar>
-                
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-black text-sm text-secondary-foreground truncate">{student.name}</h4>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {Array.from(student.byInstrument.entries()).map(([instName, instStats]) => (
-                      <Badge key={instName} variant="secondary" className="bg-primary/10 text-[10px] font-bold px-2 py-0 h-5 flex items-center gap-1">
-                        {instName}: <span className="font-black text-accent">{instStats.hours.toFixed(1)} h</span>
-                      </Badge>
-                    ))}
+              <div key={student.id} className="flex flex-col gap-4 p-4 rounded-3xl border border-primary/10 bg-white hover:shadow-lg transition-all">
+                <div className="flex items-center gap-4">
+                  <Avatar className="w-12 h-12 border-2 border-accent shrink-0 shadow-sm">
+                    <AvatarImage src={`https://picsum.photos/seed/${student.id}/100`} />
+                    <AvatarFallback className="bg-primary text-secondary-foreground font-black">{student.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <h4 className="font-black text-lg text-secondary-foreground truncate leading-tight">{student.name}</h4>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Resumen Académico</p>
                   </div>
+                </div>
+                
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {student.instruments.map(inst => {
+                    const hours = student.hoursByInstrument.get(inst) || 0;
+                    return (
+                      <div key={inst} className="bg-primary/5 rounded-2xl p-2 px-3 flex items-center justify-between border border-primary/5">
+                        <span className="text-xs font-bold text-secondary-foreground">{inst}</span>
+                        <Badge variant="secondary" className="bg-accent text-white rounded-lg px-2 py-0.5 text-[10px] font-black shadow-sm">
+                          {hours.toFixed(1)} h
+                        </Badge>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )) : (
-              <div className="py-12 text-center text-muted-foreground italic text-xs font-medium">
-                <p>Sin alumnos registrados esta semana.</p>
+              <div className="py-20 text-center">
+                <GraduationCap className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
+                <p className="text-muted-foreground font-bold italic">No hay alumnos con clases registradas todavía.</p>
               </div>
             )}
           </CardContent>
@@ -434,7 +419,7 @@ export default function TeacherDashboard() {
                     <div className="min-w-0">
                       <div className="text-xs font-black truncate">{cls.bookedBy}</div>
                       <div className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
-                        <Music className="w-2.5 h-2.5" /> {cls.instrument}
+                        <Music className="w-2.5 h-2.5" /> {cls.instrument || 'Música'}
                       </div>
                     </div>
                   </div>
