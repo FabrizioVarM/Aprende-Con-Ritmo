@@ -203,6 +203,11 @@ export default function SchedulePage() {
     const isCompleted = slot.status === 'completed';
     const isPast = isPastSlot(slot.time);
 
+    // Get teacher information for available slots
+    const currentTeacherId = isTeacherView || isTeacher ? teacherId : DEFAULT_TEACHER_ID;
+    const teacherProfile = allUsers.find(u => u.id === currentTeacherId);
+    const teacherInstruments = teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT];
+
     return (
       <Card className={cn(
         "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden",
@@ -232,12 +237,12 @@ export default function SchedulePage() {
                 ) : (
                   <>
                     <Music className="w-5 h-5" />
-                    <span>Horario Disponible</span>
+                    <span className="truncate">Disponible: {teacherInstruments.join(', ')}</span>
                   </>
                 )}
               </h4>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                <span className="flex items-center gap-1 shrink-0"><UserIcon className="w-3 h-3 text-accent" /> {isTeacherView ? slot.bookedBy : (isTeacher ? 'Tú' : DEFAULT_TEACHER_NAME)}</span>
+                <span className="flex items-center gap-1 shrink-0"><UserIcon className="w-3 h-3 text-accent" /> {isTeacherView ? slot.bookedBy : (isTeacher ? 'Tú' : (teacherProfile?.name || DEFAULT_TEACHER_NAME))}</span>
                 <span className={cn(
                     "flex items-center gap-1 shrink-0",
                     slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
