@@ -26,12 +26,16 @@ const TEACHERS = [
   { id: '2', name: 'Prof. Carlos', instrument: 'Guitarra' },
   { id: '4', name: 'Prof. Elena', instrument: 'Teoría' },
   { id: '5', name: 'Prof. Marcos', instrument: 'Piano' },
+  { id: '7', name: 'Prof. Sofía', instrument: 'Guitarra' },
+  { id: '8', name: 'Prof. Julián', instrument: 'Violín' },
+  { id: '9', name: 'Prof. Marta', instrument: 'Canto' },
 ];
 
 export default function StudentDashboard() {
   const { user } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedInstrument, setSelectedInstrument] = useState<string>('Guitarra');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('2');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
@@ -52,6 +56,26 @@ export default function StudentDashboard() {
     setCurrentTime(now);
     setSelectedDate(now);
   }, []);
+
+  // Obtener instrumentos únicos de la lista de profesores
+  const availableInstruments = useMemo(() => {
+    return Array.from(new Set(TEACHERS.map(t => t.instrument))).sort();
+  }, []);
+
+  // Filtrar profesores según el instrumento seleccionado
+  const filteredTeachers = useMemo(() => {
+    return TEACHERS.filter(t => t.instrument === selectedInstrument);
+  }, [selectedInstrument]);
+
+  // Asegurar que el profesor seleccionado pertenezca al instrumento elegido
+  useEffect(() => {
+    if (filteredTeachers.length > 0) {
+      const isCurrentTeacherValid = filteredTeachers.some(t => t.id === selectedTeacherId);
+      if (!isCurrentTeacherValid) {
+        setSelectedTeacherId(filteredTeachers[0].id);
+      }
+    }
+  }, [selectedInstrument, filteredTeachers, selectedTeacherId]);
 
   const availability = useMemo(() => {
     return getDayAvailability(selectedTeacherId, selectedDate);
@@ -160,31 +184,49 @@ export default function StudentDashboard() {
                 Agendar Sesión
               </DialogTitle>
               <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
-                Elige a tu profesor y encuentra el horario perfecto.
+                Elige tu instrumento y profesor para encontrar el horario perfecto.
               </DialogDescription>
             </DialogHeader>
 
             <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1 max-h-[60vh]">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
-                  <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Profesor</label>
-                    <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
-                      <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2">
-                        <SelectValue placeholder="Elige un profesor" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-2xl">
-                        {TEACHERS.map(t => (
-                          <SelectItem key={t.id} value={t.id} className="font-bold py-3">
-                            {t.name} ({t.instrument})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Instrumento</label>
+                      <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2">
+                          <SelectValue placeholder="Instrumento" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl">
+                          {availableInstruments.map(inst => (
+                            <SelectItem key={inst} value={inst} className="font-bold py-3">
+                              {inst}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Profesor</label>
+                      <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2">
+                          <SelectValue placeholder="Elige un profesor" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl">
+                          {filteredTeachers.map(t => (
+                            <SelectItem key={t.id} value={t.id} className="font-bold py-3">
+                              {t.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Selecciona el Día</label>
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Selecciona el Día</label>
                     <div className="grid grid-cols-7 gap-2">
                       {weekDays.map((d, i) => {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
@@ -224,7 +266,7 @@ export default function StudentDashboard() {
                 </div>
 
                 <div className="space-y-6">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Horarios Libres</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">4. Horarios Libres</label>
                   <div className="grid grid-cols-1 gap-2">
                     {freeSlots.length > 0 ? (
                       freeSlots.map((slot) => (
