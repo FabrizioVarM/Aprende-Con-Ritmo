@@ -124,6 +124,18 @@ const SingingIcon = (props: any) => (
   </svg>
 );
 
+const INSTRUMENT_EMOJIS: Record<string, string> = {
+  'Guitarra': '🎸',
+  'Piano': '🎹',
+  'Violín': '🎻',
+  'Batería': '🥁',
+  'Canto': '🎤',
+  'Teoría': '📖',
+  'Bajo': '🎸',
+  'Flauta': '🪈',
+  'Música': '🎵'
+};
+
 // Configuración visual de instrumentos: Icono, Color de texto y Color de fondo
 const INSTRUMENT_CONFIG: Record<string, { icon: any, color: string, bg: string, border: string }> = {
   'Guitarra': { icon: GuitarIcon, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
@@ -338,18 +350,13 @@ export default function SchedulePage() {
                     <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
                     <div className="flex items-center gap-2 truncate p-1">
                       {teacherInstruments.map((inst, idx) => {
-                        const config = INSTRUMENT_CONFIG[inst] || INSTRUMENT_CONFIG['Default'];
-                        const Icon = config.icon;
+                        const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
                         return (
                           <TooltipProvider key={idx}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className={cn(
-                                  "p-2 rounded-xl border transition-all hover:scale-110 shadow-sm",
-                                  config.bg,
-                                  config.border
-                                )}>
-                                  <Icon className={cn("w-4 h-4", config.color)} />
+                                <div className="text-2xl hover:scale-125 transition-transform cursor-help">
+                                  {emoji}
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
@@ -487,7 +494,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                   <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>
