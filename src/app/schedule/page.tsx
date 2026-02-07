@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, User as UserIcon } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, User as UserIcon, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -113,6 +113,7 @@ export default function SchedulePage() {
   }, []);
 
   const isTeacher = user?.role === 'teacher';
+  const isAdmin = user?.role === 'admin';
   const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
 
   const currentTeacherProfile = useMemo(() => {
@@ -176,6 +177,28 @@ export default function SchedulePage() {
     });
   }, [allDaySlots, date, currentTime, todayTimestamp]);
 
+  // All bookings for admin view
+  const allBookings = useMemo(() => {
+    if (!isAdmin) return [];
+    const list: any[] = [];
+    availabilities.forEach(day => {
+      if (day.date === dateStrKey) {
+        day.slots.forEach(slot => {
+          if (slot.isBooked) {
+            const teacher = allUsers.find(u => u.id === day.teacherId);
+            list.push({
+              ...slot,
+              teacherId: day.teacherId,
+              teacherName: teacher?.name || 'Profesor',
+              date: day.date
+            });
+          }
+        });
+      }
+    });
+    return list.sort((a, b) => a.time.localeCompare(b.time));
+  }, [isAdmin, availabilities, dateStrKey, allUsers]);
+
   const teacherPendingClasses = useMemo(() => 
     mySlots.filter(s => !isPastSlot(s.time)),
   [mySlots]);
@@ -194,17 +217,19 @@ export default function SchedulePage() {
     setBookingInstrument('');
   };
 
-  const handleCancel = (slotId: string) => {
-    if (!teacherId) return;
-    cancelBooking(teacherId, date, slotId);
+  const handleCancel = (slotId: string, customTeacherId?: string) => {
+    const tId = customTeacherId || teacherId;
+    if (!tId) return;
+    cancelBooking(tId, date, slotId);
     toast({ title: "Clase Cancelada 🗑️", description: "La reserva ha sido eliminada." });
   };
 
-  const handleToggleStatus = (slot: TimeSlot) => {
-    if (!teacherId) return;
+  const handleToggleStatus = (slot: any, customTeacherId?: string) => {
+    const tId = customTeacherId || teacherId;
+    if (!tId) return;
 
     const newStatus = slot.status === 'completed' ? 'pending' : 'completed';
-    setSlotStatus(teacherId, dateStrKey, slot.id, newStatus);
+    setSlotStatus(tId, dateStrKey, slot.id, newStatus);
 
     if (newStatus === 'completed') {
       toast({
@@ -237,7 +262,7 @@ export default function SchedulePage() {
     });
   }, [date]);
 
-  const SlotCard = ({ slot, isMine, isTeacherView }: { slot: any, isMine: boolean, isTeacherView?: boolean }) => {
+  const SlotCard = ({ slot, isMine, isStaffView, customTeacherId }: { slot: any, isMine: boolean, isStaffView?: boolean, customTeacherId?: string }) => {
     const period = getTimePeriod(slot.time);
     const PeriodIcon = period.icon;
     const displayTime = formatToAmPm(slot.time);
@@ -245,14 +270,14 @@ export default function SchedulePage() {
     const isPast = isPastSlot(slot.time);
     const emoji = INSTRUMENT_EMOJIS[slot.instrument || 'Música'] || '🎵';
 
-    const currentTeacherId = isTeacherView || isTeacher ? teacherId : DEFAULT_TEACHER_ID;
+    const currentTeacherId = customTeacherId || (isStaffView || isTeacher ? teacherId : DEFAULT_TEACHER_ID);
     const teacherProfile = allUsers.find(u => u.id === currentTeacherId);
     const teacherInstrumentsList = (teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT]);
 
     return (
       <Card className={cn(
         "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden shadow-sm hover:shadow-md",
-        isMine || isTeacherView
+        isMine || isStaffView
           ? (isCompleted ? 'bg-emerald-50 border-emerald-200' : (isPast && isMine ? 'bg-orange-50 border-orange-200' : 'bg-accent/5 border-accent shadow-lg shadow-accent/10')) 
           : 'bg-white border-primary/5 hover:border-accent/20'
       )}>
@@ -260,7 +285,7 @@ export default function SchedulePage() {
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <div className={cn(
               "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[95px] h-16 sm:h-20 rounded-2xl shrink-0 shadow-inner",
-              isMine || isTeacherView ? (isCompleted ? "bg-emerald-500 text-white" : (isPast && isMine ? "bg-orange-500 text-white" : "bg-accent text-white")) : "bg-primary/10 text-secondary-foreground"
+              isMine || isStaffView ? (isCompleted ? "bg-emerald-500 text-white" : (isPast && isMine ? "bg-orange-500 text-white" : "bg-accent text-white")) : "bg-primary/10 text-secondary-foreground"
             )}>
               <span className="text-sm sm:text-base font-black leading-none text-center">{displayTime}</span>
             </div>
@@ -268,7 +293,7 @@ export default function SchedulePage() {
             <div className="min-w-0 space-y-0.5 sm:space-y-1">
               <h4 className={cn(
                 "text-base sm:text-lg font-black tracking-tight truncate flex items-center gap-2",
-                (isMine || isTeacherView) ? (isCompleted ? "text-emerald-700" : (isPast && isMine ? "text-orange-700" : "text-accent")) : "text-secondary-foreground"
+                (isMine || isStaffView) ? (isCompleted ? "text-emerald-700" : (isPast && isMine ? "text-orange-700" : "text-accent")) : "text-secondary-foreground"
               )}>
                 {slot.isBooked ? (
                   <div className="flex items-center gap-2">
@@ -305,7 +330,7 @@ export default function SchedulePage() {
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                 <span className="flex items-center gap-1 shrink-0 text-secondary-foreground">
                   <UserIcon className="w-3 h-3 text-accent" /> 
-                  {isTeacherView ? slot.bookedBy : (isTeacher ? 'Tú' : (teacherProfile?.name || DEFAULT_TEACHER_NAME))}
+                  {slot.isBooked ? (isAdmin ? `Prof. ${slot.teacherName} • ${slot.bookedBy}` : (isTeacher ? slot.bookedBy : (teacherProfile?.name || DEFAULT_TEACHER_NAME))) : (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
                 </span>
                 <span className={cn(
                     "flex items-center gap-1 shrink-0",
@@ -326,7 +351,7 @@ export default function SchedulePage() {
           </div>
 
           <div className="shrink-0 flex items-center gap-2">
-            {isTeacherView ? (
+            {(isStaffView || isTeacher || isAdmin) && slot.isBooked ? (
               <div className="flex items-center gap-3">
                 {isPast && (
                   <div className="flex flex-col items-center gap-1.5 border-r border-primary/10 pr-3">
@@ -335,14 +360,14 @@ export default function SchedulePage() {
                     </span>
                     <Switch 
                       checked={isCompleted} 
-                      onCheckedChange={() => handleToggleStatus(slot)} 
+                      onCheckedChange={() => handleToggleStatus(slot, customTeacherId)} 
                     />
                   </div>
                 )}
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  onClick={() => handleCancel(slot.id)} 
+                  onClick={() => handleCancel(slot.id, customTeacherId)} 
                   className="text-destructive hover:bg-destructive/10 rounded-full h-10 w-10 shrink-0"
                   title="Eliminar reserva"
                 >
@@ -376,16 +401,18 @@ export default function SchedulePage() {
                 </div>
               </>
             ) : (
-              <Button 
-                size="sm" 
-                className="bg-accent text-white rounded-xl font-black px-4 h-10 shadow-lg shadow-accent/20 hover:scale-105 transition-all"
-                onClick={() => {
-                  setSelectedSlotId(slot.id);
-                  setIsBookingOpen(true);
-                }}
-              >
-                Reservar
-              </Button>
+              !slot.isBooked && (
+                <Button 
+                  size="sm" 
+                  className="bg-accent text-white rounded-xl font-black px-4 h-10 shadow-lg shadow-accent/20 hover:scale-105 transition-all"
+                  onClick={() => {
+                    setSelectedSlotId(slot.id);
+                    setIsBookingOpen(true);
+                  }}
+                >
+                  Reservar
+                </Button>
+              )
             )}
           </div>
         </CardContent>
@@ -399,14 +426,16 @@ export default function SchedulePage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-black text-foreground font-headline tracking-tight">
-              {isTeacher ? 'Gestión de Clases 👩‍🏫' : 'Tu Agenda Musical 📅'}
+              {isAdmin ? 'Monitor Global de Clases 🏢' : (isTeacher ? 'Gestión de Clases 👩‍🏫' : 'Tu Agenda Musical 📅')}
             </h1>
             <p className="text-muted-foreground mt-1 text-lg font-medium">
-              {isTeacher ? 'Controla tus sesiones, marca completadas y suma puntos a tus alumnos.' : 'Gestiona tus clases y descubre nuevos horarios.'}
+              {isAdmin 
+                ? 'Supervisa todas las actividades de la academia en tiempo real.' 
+                : (isTeacher ? 'Controla tus sesiones, marca completadas y suma puntos a tus alumnos.' : 'Gestiona tus clases y descubre nuevos horarios.')}
             </p>
           </div>
           
-          {!isTeacher && (
+          {!isTeacher && !isAdmin && (
             <Dialog 
               open={isBookingOpen} 
               onOpenChange={(open) => {
@@ -505,7 +534,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                   <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>
@@ -556,7 +585,32 @@ export default function SchedulePage() {
             </div>
             
             <div className="space-y-10">
-              {isTeacher ? (
+              {isAdmin ? (
+                <section className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-6 h-6 text-accent" />
+                    <h2 className="text-xl font-black text-secondary-foreground">Todas las Reservas de la Academia 🌟</h2>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    {allBookings.length > 0 ? (
+                      allBookings.map((slot) => (
+                        <SlotCard 
+                          key={`${slot.teacherId}-${slot.id}`} 
+                          slot={slot} 
+                          isMine={false} 
+                          isStaffView={true} 
+                          customTeacherId={slot.teacherId} 
+                        />
+                      ))
+                    ) : (
+                      <div className="py-20 text-center bg-primary/5 rounded-[2rem] border-2 border-dashed border-primary/10">
+                        <CalendarIcon className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
+                        <p className="text-muted-foreground font-bold italic">No hay clases reservadas para este día en toda la academia.</p>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              ) : isTeacher ? (
                 <>
                   <section className="space-y-4">
                     <div className="flex items-center gap-2">
@@ -565,7 +619,7 @@ export default function SchedulePage() {
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {teacherPendingClasses.length > 0 ? (
-                        teacherPendingClasses.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} isTeacherView={true} />)
+                        teacherPendingClasses.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} isStaffView={true} />)
                       ) : (
                         <div className="py-8 text-center bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/10">
                           <p className="text-sm font-bold text-muted-foreground">No hay clases pendientes para el resto del día.</p>
@@ -581,7 +635,7 @@ export default function SchedulePage() {
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {teacherPastClasses.length > 0 ? (
-                        teacherPastClasses.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} isTeacherView={true} />)
+                        teacherPastClasses.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} isStaffView={true} />)
                       ) : (
                         <div className="py-8 text-center bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
                           <p className="text-sm font-bold text-muted-foreground">No hay clases pasadas para validar hoy.</p>
