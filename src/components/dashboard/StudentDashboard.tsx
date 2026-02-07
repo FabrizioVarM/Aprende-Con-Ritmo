@@ -134,6 +134,17 @@ const SingingIcon = (props: any) => (
   </svg>
 );
 
+const INSTRUMENT_EMOJIS: Record<string, string> = {
+  'Guitarra': '🎸',
+  'Piano': '🎹',
+  'Violín': '🎻',
+  'Batería': '🥁',
+  'Canto': '🎤',
+  'Teoría': '📖',
+  'Bajo': '🎸',
+  'Música': '🎵'
+};
+
 const INSTRUMENT_CONFIG: Record<string, { icon: any, color: string, bg: string, border: string }> = {
   'Guitarra': { icon: GuitarIcon, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
   'Piano': { icon: PianoIcon, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
@@ -334,12 +345,12 @@ export default function StudentDashboard() {
                         <SelectContent className="rounded-2xl">
                           {availableInstruments.map(inst => {
                             const config = INSTRUMENT_CONFIG[inst] || INSTRUMENT_CONFIG['Default'];
-                            const Icon = config.icon;
+                            const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
                             return (
                               <SelectItem key={inst} value={inst} className="font-bold py-3">
                                 <div className="flex items-center gap-3">
-                                  <div className={cn("p-1.5 rounded-xl border shadow-sm", config.bg, config.border)}>
-                                    <Icon className={cn("w-4 h-4", config.color)} />
+                                  <div className={cn("w-10 h-10 flex items-center justify-center text-xl rounded-xl border shadow-sm", config.bg, config.border)}>
+                                    {emoji}
                                   </div>
                                   <span>{inst}</span>
                                 </div>
@@ -546,12 +557,12 @@ export default function StudentDashboard() {
             {myUpcomingLessons.length > 0 ? (
               myUpcomingLessons.map((lesson, i) => {
                 const config = INSTRUMENT_CONFIG[lesson.instrument] || INSTRUMENT_CONFIG['Default'];
-                const InstrumentIcon = config.icon;
+                const emoji = INSTRUMENT_EMOJIS[lesson.instrument] || '🎵';
                 return (
                   <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
                     <div className="flex gap-3 sm:gap-4 items-center min-w-0">
-                      <div className={cn("p-2 sm:p-4 rounded-3xl shadow-md border shrink-0", config.bg, config.border)}>
-                        <InstrumentIcon className={cn("w-6 h-6 sm:w-8 sm:h-8", config.color)} />
+                      <div className={cn("w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-3xl sm:text-4xl rounded-3xl shadow-md border shrink-0", config.bg, config.border)}>
+                        {emoji}
                       </div>
                       <div className="min-w-0">
                         <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate flex items-center gap-2">

@@ -306,9 +306,9 @@ export default function SchedulePage() {
     const PeriodIcon = period.icon;
     const displayTime = formatToAmPm(slot.time);
     const instConfig = (slot.instrument && INSTRUMENT_CONFIG[slot.instrument]) || INSTRUMENT_CONFIG['Default'];
-    const InstrumentIcon = instConfig.icon;
     const isCompleted = slot.status === 'completed';
     const isPast = isPastSlot(slot.time);
+    const emoji = INSTRUMENT_EMOJIS[slot.instrument || 'Música'] || '🎵';
 
     const currentTeacherId = isTeacherView || isTeacher ? teacherId : DEFAULT_TEACHER_ID;
     const teacherProfile = allUsers.find(u => u.id === currentTeacherId);
@@ -337,8 +337,8 @@ export default function SchedulePage() {
               )}>
                 {slot.isBooked ? (
                   <div className="flex items-center gap-2">
-                    <div className={cn("p-1.5 rounded-xl border shadow-sm", instConfig.bg, instConfig.border)}>
-                      <InstrumentIcon className={cn("w-5 h-5", instConfig.color)} />
+                    <div className={cn("w-10 h-10 flex items-center justify-center text-2xl rounded-xl border shadow-sm", instConfig.bg, instConfig.border)}>
+                      {emoji}
                     </div>
                     <span>Clase de {slot.instrument || 'Música'}</span>
                   </div>
