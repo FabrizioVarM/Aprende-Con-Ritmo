@@ -18,10 +18,10 @@ import { useToast } from '@/hooks/use-toast';
 import { RESOURCES } from '@/lib/resources';
 
 const MOCK_STUDENTS = [
-  { id: '1', name: 'Ana García', instruments: ['Guitarra'] },
-  { id: '4', name: 'Liam Smith', instruments: ['Piano'] },
+  { id: '1', name: 'Ana García', instruments: ['Guitarra', 'Canto'] },
+  { id: '4', name: 'Liam Smith', instruments: ['Piano', 'Teoría'] },
   { id: '5', name: 'Emma Wilson', instruments: ['Violín'] },
-  { id: '6', name: 'Tom Holland', instruments: ['Batería'] },
+  { id: '6', name: 'Tom Holland', instruments: ['Batería', 'Guitarra'] },
 ];
 
 export default function LibraryPage() {
@@ -40,7 +40,7 @@ export default function LibraryPage() {
   useEffect(() => {
     if (user && user.role === 'student' && !isInitialFilterSet) {
       if (user.instruments && user.instruments.length > 0) {
-        setSelectedFilters(user.instruments);
+        setSelectedFilters([...user.instruments]);
       }
       setIsInitialFilterSet(true);
     }
@@ -51,7 +51,8 @@ export default function LibraryPage() {
     if (isStaff) {
       const student = MOCK_STUDENTS.find(s => s.id === selectedStudentId);
       if (student && student.instruments) {
-        setSelectedFilters(student.instruments);
+        // Al seleccionar un estudiante, se filtran TODOS sus instrumentos automáticamente
+        setSelectedFilters([...student.instruments]);
       }
     }
   }, [selectedStudentId, isStaff]);
@@ -86,8 +87,6 @@ export default function LibraryPage() {
         : `Se ha revertido el estado de "${title}".`,
     });
   };
-
-  const currentStudentName = MOCK_STUDENTS.find(s => s.id === selectedStudentId)?.name || 'Alumno';
 
   return (
     <AppLayout>
