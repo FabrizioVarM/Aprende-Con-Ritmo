@@ -368,7 +368,7 @@ export default function TeacherDashboard() {
           <div className="text-3xl font-black text-accent-foreground mt-1">12</div>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm bg-secondary/20 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground">Horas Totales</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground">Total de horas ejercidas</p>
           <div className="text-3xl font-black text-secondary-foreground mt-1">
             {Math.round(trackedStudents.reduce((acc, s) => {
               let h = 0;
