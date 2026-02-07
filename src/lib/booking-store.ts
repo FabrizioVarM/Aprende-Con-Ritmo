@@ -9,6 +9,7 @@ export interface TimeSlot {
   isAvailable: boolean;
   isBooked: boolean;
   bookedBy?: string;
+  instrument?: string;
   type: 'virtual' | 'presencial';
 }
 
@@ -75,7 +76,7 @@ export function useBookingStore() {
     saveToStorage(newAvailabilities);
   }, [availabilities, saveToStorage]);
 
-  const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string) => {
+  const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string, instrument: string) => {
     const dateStr = date.toISOString().split('T')[0];
     const exists = availabilities.some(a => a.teacherId === teacherId && a.date === dateStr);
     
@@ -85,7 +86,7 @@ export function useBookingStore() {
         if (a.teacherId === teacherId && a.date === dateStr) {
           return {
             ...a,
-            slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, isAvailable: false } : s)
+            slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, isAvailable: false, instrument } : s)
           };
         }
         return a;
@@ -102,6 +103,7 @@ export function useBookingStore() {
             isAvailable: false,
             isBooked: id === slotId,
             bookedBy: id === slotId ? studentName : undefined,
+            instrument: id === slotId ? instrument : undefined,
             type: 'presencial'
           };
         })
@@ -120,7 +122,7 @@ export function useBookingStore() {
           ...a,
           slots: a.slots.map(s => 
             s.id === slotId 
-              ? { ...s, isBooked: false, bookedBy: undefined, isAvailable: true } 
+              ? { ...s, isBooked: false, bookedBy: undefined, isAvailable: true, instrument: undefined } 
               : s
           )
         };

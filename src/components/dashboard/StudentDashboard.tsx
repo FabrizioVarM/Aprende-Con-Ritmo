@@ -130,7 +130,7 @@ export default function StudentDashboard() {
               date: lessonDate,
               time: slot.time,
               teacherName: teacher?.name || 'Profesor',
-              instrument: teacher?.instruments?.includes(selectedInstrument) ? selectedInstrument : (teacher?.instruments?.[0] || 'Música'),
+              instrument: slot.instrument || (teacher?.instruments?.includes(selectedInstrument) ? selectedInstrument : (teacher?.instruments?.[0] || 'Música')),
               type: slot.type,
               sortDate: new Date(`${lessonDate}T${startTime}:00`)
             });
@@ -161,7 +161,7 @@ export default function StudentDashboard() {
   const handleBookLesson = () => {
     if (!selectedSlotId || !user || !selectedTeacherId) return;
 
-    bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name);
+    bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, selectedInstrument);
     
     toast({
       title: "¡Reserva Exitosa! 🎸",

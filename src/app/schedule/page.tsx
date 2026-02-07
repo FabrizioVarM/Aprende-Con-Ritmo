@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { useBookingStore } from '@/lib/booking-store';
+import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 
@@ -67,7 +67,9 @@ export default function SchedulePage() {
   const handleBook = () => {
     if (!selectedSlotId || !date || !user) return;
 
-    bookSlot(teacherId, date, selectedSlotId, user.name);
+    // Para la reserva rápida, asumimos el instrumento principal o el del profesor
+    const instrument = user.instruments?.[0] || TEACHER_INFO.instrument;
+    bookSlot(teacherId, date, selectedSlotId, user.name, instrument);
     
     toast({
       title: "¡Reserva Exitosa! 🎸",
@@ -131,7 +133,7 @@ export default function SchedulePage() {
               "text-base sm:text-lg font-black tracking-tight truncate",
               isMine ? "text-accent" : "text-secondary-foreground"
             )}>
-              {isMine ? '🌟 Tu Clase' : 'Horario Disponible'}
+              {isMine ? `🌟 Clase de ${slot.instrument || 'Música'}` : 'Horario Disponible'}
             </h4>
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
               <span className="flex items-center gap-1 shrink-0"><Music className="w-3 h-3 text-accent" /> {TEACHER_INFO.name}</span>
