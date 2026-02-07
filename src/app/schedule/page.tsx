@@ -58,9 +58,9 @@ const getTimePeriod = (timeStr: string) => {
     return { 
       label: 'Turno Mañana', 
       icon: Sunrise, 
-      color: 'text-amber-700', 
-      bg: 'bg-amber-100', 
-      border: 'border-amber-200' 
+      color: 'text-yellow-600', 
+      bg: 'bg-yellow-50', 
+      border: 'border-yellow-200' 
     };
   }
   if (hour >= 12 && hour < 19) {
@@ -139,11 +139,12 @@ export default function SchedulePage() {
     return allDaySlots.filter(s => {
       if (!s.isAvailable || s.isBooked) return false;
 
+      const startTimeStr = s.time.split(' - ')[0];
+      const [h, m] = startTimeStr.split(':').map(Number);
+      const slotStartTime = new Date(date);
+      slotStartTime.setHours(h, m, 0, 0);
+
       if (isToday) {
-        const startTimeStr = s.time.split(' - ')[0];
-        const [h, m] = startTimeStr.split(':').map(Number);
-        const slotStartTime = new Date(date);
-        slotStartTime.setHours(h, m, 0, 0);
         return currentTime.getTime() < slotStartTime.getTime();
       }
 
@@ -419,7 +420,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                   <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>
