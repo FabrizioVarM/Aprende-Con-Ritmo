@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -22,6 +22,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { cn } from '@/lib/utils';
@@ -90,6 +97,8 @@ export default function SchedulePage() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [bookingInstrument, setBookingInstrument] = useState<string>('');
+  
   const { toast } = useToast();
   const { getDayAvailability, bookSlot, cancelBooking, availabilities, setSlotStatus } = useBookingStore();
 
@@ -105,6 +114,22 @@ export default function SchedulePage() {
 
   const isTeacher = user?.role === 'teacher';
   const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
+
+  // Memo para el perfil del profesor actual y sus instrumentos
+  const currentTeacherProfile = useMemo(() => {
+    return allUsers.find(u => u.id === (isTeacher ? user?.id : DEFAULT_TEACHER_ID));
+  }, [allUsers, isTeacher, user]);
+
+  const teacherInstruments = useMemo(() => {
+    return currentTeacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT];
+  }, [currentTeacherProfile]);
+
+  // Efecto para resetear el instrumento seleccionado al abrir el diálogo o cambiar de profesor
+  useEffect(() => {
+    if (isBookingOpen && teacherInstruments.length > 0) {
+      setBookingInstrument(teacherInstruments[0]);
+    }
+  }, [isBookingOpen, teacherInstruments]);
 
   const dateStrKey = useMemo(() => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -163,7 +188,7 @@ export default function SchedulePage() {
 
   const handleBook = () => {
     if (!selectedSlotId || !date || !user) return;
-    const instrument = user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
+    const instrument = bookingInstrument || user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
     bookSlot(teacherId!, date, selectedSlotId, user.name, user.id, instrument);
     toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
     setIsBookingOpen(false);
@@ -223,7 +248,7 @@ export default function SchedulePage() {
 
     const currentTeacherId = isTeacherView || isTeacher ? teacherId : DEFAULT_TEACHER_ID;
     const teacherProfile = allUsers.find(u => u.id === currentTeacherId);
-    const teacherInstruments = (teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT]);
+    const teacherInstrumentsList = (teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT]);
 
     return (
       <Card className={cn(
@@ -257,7 +282,7 @@ export default function SchedulePage() {
                   <div className="flex items-center gap-3 overflow-hidden">
                     <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
                     <div className="flex items-center gap-2 truncate p-1">
-                      {teacherInstruments.map((inst, idx) => {
+                      {teacherInstrumentsList.map((inst, idx) => {
                         const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
                         return (
                           <TooltipProvider key={idx}>
@@ -362,10 +387,6 @@ export default function SchedulePage() {
     );
   };
 
-  const UserIcon = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-  );
-
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -395,20 +416,69 @@ export default function SchedulePage() {
                 </DialogHeader>
                 <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white max-h-[60vh]">
                   {otherAvailableSlots.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 gap-4">
                       {otherAvailableSlots.map((slot) => {
+                        const isSelected = selectedSlotId === slot.id;
                         const period = getTimePeriod(slot.time);
                         return (
-                          <Button key={slot.id} variant={selectedSlotId === slot.id ? "default" : "outline"} className={cn("justify-between rounded-2xl h-16 transition-all border-2 font-bold px-4 py-2", selectedSlotId === slot.id ? 'bg-accent text-white border-accent shadow-md' : 'border-primary/5 hover:border-accent/30 hover:bg-accent/5')} onClick={() => setSelectedSlotId(slot.id)}>
-                            <div className="flex items-center gap-3">
-                              <div className={cn("p-1.5 rounded-lg border", selectedSlotId === slot.id ? "bg-white/20 border-white/30" : `${period.bg} ${period.border} ${period.color}`)}><period.icon className="w-4 h-4 shrink-0" /></div>
-                              <div className="flex flex-col items-start min-w-0">
-                                <span className="text-base font-black leading-tight">{formatToAmPm(slot.time)}</span>
-                                <span className="text-[10px] font-black uppercase text-muted-foreground/80">{DEFAULT_TEACHER_NAME} • {DEFAULT_TEACHER_INSTRUMENT}</span>
+                          <div 
+                            key={slot.id} 
+                            className={cn(
+                              "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
+                              isSelected 
+                                ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
+                                : "bg-white border-primary/10 hover:border-accent/30"
+                            )}
+                            onClick={() => {
+                              setSelectedSlotId(slot.id);
+                              if (!bookingInstrument && teacherInstruments.length > 0) {
+                                setBookingInstrument(teacherInstruments[0]);
+                              }
+                            }}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-4">
+                                <div className={cn(
+                                  "p-2.5 rounded-2xl border shadow-inner",
+                                  isSelected ? "bg-accent text-white border-accent" : `${period.bg} ${period.border} ${period.color}`
+                                )}>
+                                  <period.icon className="w-5 h-5 shrink-0" />
+                                </div>
+                                <div className="flex flex-col items-start min-w-0">
+                                  <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-secondary-foreground")}>
+                                    {formatToAmPm(slot.time)}
+                                  </span>
+                                  <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
+                                    {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME} • {isSelected ? 'Configurando...' : 'Disponible'}
+                                  </span>
+                                </div>
                               </div>
+                              {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
                             </div>
-                            {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 shrink-0" />}
-                          </Button>
+
+                            {isSelected && (
+                              <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                                  <Music className="w-3 h-3" /> ¿Qué instrumento tocarás?
+                                </Label>
+                                <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
+                                  <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-white font-black text-secondary-foreground focus:ring-accent">
+                                    <SelectValue placeholder="Seleccionar instrumento" />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-2xl border-2">
+                                    {teacherInstruments.map(inst => (
+                                      <SelectItem key={inst} value={inst} className="font-bold py-3">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
+                                          <span>{inst}</span>
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -465,7 +535,7 @@ export default function SchedulePage() {
             <div className="flex items-center gap-4 bg-primary/5 p-4 rounded-3xl border border-primary/10">
               <div className="bg-accent/10 p-3 rounded-2xl shadow-sm"><Clock className="w-6 h-6 text-accent" /></div>
               <div>
-                <h3 className="text-3xl font-black text-secondary-foreground capitalize leading-tight">{date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
+                <h3 className="text-4xl font-black text-secondary-foreground capitalize leading-tight">{date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
                 <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Resumen del día</p>
               </div>
             </div>
