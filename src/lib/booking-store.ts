@@ -9,14 +9,14 @@ export interface TimeSlot {
   isAvailable: boolean;
   isBooked: boolean;
   bookedBy?: string;
-  studentId?: string; // Añadido para identificación unívoca
+  studentId?: string;
   instrument?: string;
   type: 'virtual' | 'presencial';
   status?: 'pending' | 'completed';
 }
 
 export interface DayAvailability {
-  date: string; // ISO string YYYY-MM-DD
+  date: string; // Formato YYYY-MM-DD local
   teacherId: string;
   slots: TimeSlot[];
 }
@@ -33,10 +33,18 @@ export const INITIAL_SLOTS = [
   "17:00 - 18:00",
 ];
 
+// Helper para fecha local consistente YYYY-MM-DD
+const toLocalDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export function useBookingStore() {
   const [availabilities, setAvailabilities] = useState<DayAvailability[]>([]);
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     const saved = localStorage.getItem('ac_availabilities');
     if (saved) {
       try {
@@ -47,13 +55,26 @@ export function useBookingStore() {
     }
   }, []);
 
+  useEffect(() => {
+    loadData();
+    // Escuchar cambios de otras instancias o pestañas
+    const handleSync = () => loadData();
+    window.addEventListener('ac_sync_booking', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('ac_sync_booking', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, [loadData]);
+
   const saveToStorage = useCallback((data: DayAvailability[]) => {
     localStorage.setItem('ac_availabilities', JSON.stringify(data));
     setAvailabilities([...data]);
+    window.dispatchEvent(new CustomEvent('ac_sync_booking'));
   }, []);
 
   const getDayAvailability = useCallback((teacherId: string, date: Date): DayAvailability => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = toLocalDateString(date);
     const existing = availabilities.find(a => a.teacherId === teacherId && a.date === dateStr);
     
     if (existing) return existing;
@@ -73,14 +94,14 @@ export function useBookingStore() {
   }, [availabilities]);
 
   const updateAvailability = useCallback((teacherId: string, date: Date, slots: TimeSlot[]) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = toLocalDateString(date);
     const newAvailabilities = availabilities.filter(a => !(a.teacherId === teacherId && a.date === dateStr));
     newAvailabilities.push({ teacherId, date: dateStr, slots });
     saveToStorage(newAvailabilities);
   }, [availabilities, saveToStorage]);
 
   const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = toLocalDateString(date);
     const exists = availabilities.some(a => a.teacherId === teacherId && a.date === dateStr);
     
     let updated: DayAvailability[];
@@ -120,7 +141,7 @@ export function useBookingStore() {
   }, [availabilities, saveToStorage]);
 
   const cancelBooking = useCallback((teacherId: string, date: Date, slotId: string) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = toLocalDateString(date);
     const updated = availabilities.map(a => {
       if (a.teacherId === teacherId && a.date === dateStr) {
         return {

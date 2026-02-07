@@ -163,9 +163,15 @@ export default function ProgressPage() {
       });
 
       // 2. Puntos por clases COMPLETADAS (1 hora = 10 pts)
+      // Escaneamos todas las disponibilidades históricas
       availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
-          if (slot.isBooked && (slot.studentId === currentStudent.id || slot.bookedBy === currentStudent.name) && slot.instrument === cat) {
+          // Normalización del ID del estudiante para el matching
+          const isOurStudent = slot.studentId === currentStudent.id || slot.bookedBy === currentStudent.name;
+          // Matching del instrumento
+          const isOurInstrument = slot.instrument === cat || (!slot.instrument && cat === 'Default');
+
+          if (slot.isBooked && isOurStudent && isOurInstrument) {
             if (slot.status === 'completed') {
               const duration = calculateDuration(slot.time);
               points += Math.round(duration * 10);
