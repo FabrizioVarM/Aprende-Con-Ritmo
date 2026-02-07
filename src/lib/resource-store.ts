@@ -4,14 +4,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Resource, INITIAL_RESOURCES } from './resources';
 
+const DEFAULT_DESCRIPTION = "Materiales curados para acelerar tu aprendizaje. ¡Descarga el material para tus prácticas, o interactúa directamente reproduciendo y escuchando en tiempo real! Edita la velocidad, repite indefinidamente y más. Completa el examen del material con tu profesor, y gana más puntos de progreso.";
+
 export function useResourceStore() {
   const [resources, setResources] = useState<Resource[]>([]);
+  const [libraryDescription, setLibraryDescription] = useState<string>(DEFAULT_DESCRIPTION);
 
   const loadData = useCallback(() => {
-    const saved = localStorage.getItem('ac_library_resources');
-    if (saved) {
+    // Load resources
+    const savedResources = localStorage.getItem('ac_library_resources');
+    if (savedResources) {
       try {
-        setResources(JSON.parse(saved));
+        setResources(JSON.parse(savedResources));
       } catch (e) {
         console.error("Error loading resources", e);
         setResources(INITIAL_RESOURCES);
@@ -19,6 +23,15 @@ export function useResourceStore() {
     } else {
       setResources(INITIAL_RESOURCES);
       localStorage.setItem('ac_library_resources', JSON.stringify(INITIAL_RESOURCES));
+    }
+
+    // Load description
+    const savedDesc = localStorage.getItem('ac_library_description');
+    if (savedDesc) {
+      setLibraryDescription(savedDesc);
+    } else {
+      setLibraryDescription(DEFAULT_DESCRIPTION);
+      localStorage.setItem('ac_library_description', DEFAULT_DESCRIPTION);
     }
   }, []);
 
@@ -43,5 +56,11 @@ export function useResourceStore() {
     window.dispatchEvent(new CustomEvent('ac_sync_resources'));
   }, [resources]);
 
-  return { resources, updateResource, addResource };
+  const updateLibraryDescription = useCallback((newDesc: string) => {
+    localStorage.setItem('ac_library_description', newDesc);
+    setLibraryDescription(newDesc);
+    window.dispatchEvent(new CustomEvent('ac_sync_resources'));
+  }, []);
+
+  return { resources, libraryDescription, updateResource, addResource, updateLibraryDescription };
 }

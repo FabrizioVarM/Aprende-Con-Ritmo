@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Dialog, 
   DialogContent, 
@@ -19,7 +20,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
@@ -38,7 +39,7 @@ const MOCK_STUDENTS = [
 export default function LibraryPage() {
   const { user } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
-  const { resources, updateResource } = useResourceStore();
+  const { resources, libraryDescription, updateResource, updateLibraryDescription } = useResourceStore();
   const { toast } = useToast();
   
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
@@ -46,6 +47,8 @@ export default function LibraryPage() {
   const [isInitialFilterSet, setIsInitialFilterSet] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState('1'); 
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [tempDescription, setTempDescription] = useState(libraryDescription);
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
@@ -110,15 +113,40 @@ export default function LibraryPage() {
     }
   };
 
+  const handleSaveDescription = () => {
+    updateLibraryDescription(tempDescription);
+    toast({
+      title: "Descripción Actualizada ✨",
+      description: "El texto informativo de la biblioteca ha sido actualizado.",
+    });
+    setIsEditingDescription(false);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="max-w-4xl">
             <h1 className="text-3xl font-extrabold text-foreground font-headline tracking-tight">Biblioteca de Recursos 📚</h1>
-            <p className="text-muted-foreground mt-2 text-lg font-medium leading-relaxed">
-              Materiales curados para acelerar tu aprendizaje. ¡Descarga el material para tus prácticas, o interactúa directamente reproduciendo y escuchando en tiempo real! Edita la velocidad, repite indefinidamente y más. Completa el examen del material con tu profesor, y gana más puntos de progreso.
-            </p>
+            <div className="mt-2 group relative">
+              <p className="text-muted-foreground text-lg font-medium leading-relaxed pr-10">
+                {libraryDescription}
+              </p>
+              {isAdmin && (
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="absolute right-0 top-0 opacity-0 group-hover:opacity-100 transition-opacity rounded-full h-8 w-8 hover:bg-accent hover:text-white"
+                  onClick={() => {
+                    setTempDescription(libraryDescription);
+                    setIsEditingDescription(true);
+                  }}
+                  title="Editar descripción"
+                >
+                  <Edit2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
           {isStaff && (
             <div className="bg-white border-2 border-accent/20 p-2 pl-4 rounded-[2rem] flex flex-col sm:flex-row items-center gap-4 shadow-sm shrink-0">
@@ -365,6 +393,35 @@ export default function LibraryPage() {
           <DialogFooter className="p-8 bg-gray-50 flex gap-3 border-t">
             <Button variant="outline" onClick={() => setEditingResource(null)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
             <Button onClick={handleSaveResourceEdit} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Guardar Cambios</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditingDescription} onOpenChange={setIsEditingDescription}>
+        <DialogContent className="rounded-[2.5rem] max-w-xl border-none shadow-2xl p-0 overflow-hidden">
+          <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
+            <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+              <FileText className="w-6 h-6 text-accent" />
+              Editar Descripción de la Biblioteca
+            </DialogTitle>
+            <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+              Personaliza el mensaje de bienvenida y las instrucciones para tus alumnos.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-8 bg-white">
+            <div className="space-y-4">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Texto Descriptivo</Label>
+              <Textarea 
+                value={tempDescription}
+                onChange={(e) => setTempDescription(e.target.value)}
+                className="min-h-[200px] rounded-2xl border-2 font-bold p-4 focus:border-accent"
+                placeholder="Escribe aquí la descripción..."
+              />
+            </div>
+          </div>
+          <DialogFooter className="p-8 bg-gray-50 flex gap-3 border-t">
+            <Button variant="outline" onClick={() => setIsEditingDescription(false)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
+            <Button onClick={handleSaveDescription} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Guardar Descripción</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
