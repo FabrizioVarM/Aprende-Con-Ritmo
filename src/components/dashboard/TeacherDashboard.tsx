@@ -154,7 +154,26 @@ export default function TeacherDashboard() {
 
   const currentDayBookedSlots = useMemo(() => {
     const data = getDayAvailability(teacherId, selectedDate);
-    return data.slots.filter(s => s.isBooked);
+    const now = new Date();
+    
+    // Filtramos para mostrar solo las sesiones que son hoy y no han terminado, y que están pendientes
+    return data.slots.filter(s => {
+      if (!s.isBooked) return false;
+      
+      // Obtener hora de fin para verificar si ya pasó
+      const timeParts = s.time.split(' - ');
+      const endTimeStr = timeParts[1]?.trim() || timeParts[0].trim();
+      const [h, m] = endTimeStr.split(':').map(Number);
+      
+      const slotEndDate = new Date(selectedDate);
+      slotEndDate.setHours(h, m, 0, 0);
+      
+      const isFinished = now > slotEndDate;
+      const isPending = s.status !== 'completed';
+      
+      // Solo mostrar sesiones pendientes que no han terminado aún
+      return isPending && !isFinished;
+    });
   }, [selectedDate, getDayAvailability, teacherId, availabilities]);
 
   // Cálculo dinámico de alumnos rastreados por este profesor
@@ -183,8 +202,6 @@ export default function TeacherDashboard() {
               const studentName = slot.bookedBy || allUsers.find(u => u.id === studentId)?.name || 'Alumno';
               const instrument = slot.instrument || 'Música';
               
-              // Calcular progreso promedio basado en habilidades registradas
-              // (Aquí simplificamos usando un par de habilidades clave para el ejemplo)
               const skills = ['Precisión de Ritmo', 'Técnica', 'Lectura de Notas'];
               const avgProgress = Math.round(
                 skills.reduce((acc, skill) => acc + getSkillLevel(studentId, instrument, skill, 10), 0) / skills.length
@@ -574,7 +591,7 @@ export default function TeacherDashboard() {
               })
             ) : (
               <div className="p-16 text-center text-muted-foreground italic font-medium">
-                <p>No hay clases reservadas hoy.</p>
+                <p>No hay sesiones pendientes para el resto del día.</p>
               </div>
             )}
           </CardContent>
