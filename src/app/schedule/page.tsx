@@ -500,7 +500,7 @@ export default function SchedulePage() {
                   ) : (
                     <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10">
                       <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
-                      <p className="text-sm font-bold text-muted-foreground">Sin cupos libres</p>
+                      <p className="text-sm font-bold text-muted-foreground">¡Sin más cupos libres!</p>
                     </div>
                   )}
                 </div>
