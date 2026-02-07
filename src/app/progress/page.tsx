@@ -7,13 +7,14 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useBookingStore } from '@/lib/booking-store';
 import { useSkillsStore } from '@/lib/skills-store';
 import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
 import { RESOURCES } from '@/lib/resources';
-import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Clock, ShieldCheck, Star as StarIcon } from 'lucide-react';
+import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Clock, ShieldCheck, Star as StarIcon, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MILESTONES = [
@@ -40,7 +41,7 @@ const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u03
 
 const getLevelInfo = (inst: string, points: number) => {
   const getBaseName = (p: number, i: string) => {
-    if (i === 'Teoría') {
+    if (i === 'Teoría' || i === 'Teoría Musical') {
       if (p >= 9000) return 'Sabio de la Composición';
       if (p >= 6200) return 'Virtuoso de la Estructura';
       if (p >= 4000) return 'Maestro del Solfeo';
@@ -97,13 +98,11 @@ export default function ProgressPage() {
   useEffect(() => {
     if (currentStudent) {
       if (currentStudent.instruments && currentStudent.instruments.length > 0) {
-        // Si el instrumento seleccionado no está en la lista del alumno y no es Teoría, reseteamos al primero
-        if (!selectedInstrument || (!currentStudent.instruments.includes(selectedInstrument) && selectedInstrument !== 'Teoría')) {
+        if (!selectedInstrument || (!currentStudent.instruments.includes(selectedInstrument) && selectedInstrument !== 'Teoría Musical')) {
           setSelectedInstrument(currentStudent.instruments[0]);
         }
       } else {
-        // Si no tiene instrumentos elegidos, por defecto mostramos Teoría
-        setSelectedInstrument('Teoría');
+        setSelectedInstrument('Teoría Musical');
       }
     }
   }, [currentStudent, selectedInstrument]);
@@ -111,23 +110,21 @@ export default function ProgressPage() {
   const instrumentStats = useMemo(() => {
     if (!currentStudent) return {};
     const stats: Record<string, { points: number; completedHours: number; levelName: string; levelNum: number }> = {};
-    const categories = ['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'];
+    const categories = ['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría Musical'];
     
     categories.forEach(cat => {
       let points = 0;
       let completedHours = 0;
 
-      // 1. Recursos
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(currentStudent.id)) {
           const resource = RESOURCES.find(r => r.id === comp.resourceId);
-          if (resource && normalizeStr(resource.category) === normalizeStr(cat)) {
+          if (resource && (normalizeStr(resource.category) === normalizeStr(cat) || (cat === 'Teoría Musical' && normalizeStr(resource.category) === 'teoria'))) {
             points += 150;
           }
         }
       });
 
-      // 2. Clases
       if (Array.isArray(availabilities)) {
         availabilities.forEach(avail => {
           if (avail.slots && Array.isArray(avail.slots)) {
@@ -144,7 +141,7 @@ export default function ProgressPage() {
                   let matchesInstrument = normSlotInst === normCat;
                   
                   if (!matchesInstrument && (normSlotInst === 'musica' || normSlotInst === 'música')) {
-                    const primaryInst = currentStudent.instruments?.[0] || 'Teoría';
+                    const primaryInst = currentStudent.instruments?.[0] || 'Teoría Musical';
                     if (normalizeStr(primaryInst) === normCat) {
                       matchesInstrument = true;
                     }
@@ -162,8 +159,7 @@ export default function ProgressPage() {
         });
       }
 
-      // 3. Habilidades
-      const skillConfigs = DEFAULT_SKILLS_CONFIG[cat] || [];
+      const skillConfigs = DEFAULT_SKILLS_CONFIG[cat === 'Teoría Musical' ? 'Teoría' : cat] || [];
       skillConfigs.forEach(sc => {
         const level = getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel);
         points += (level * 10);
@@ -184,7 +180,8 @@ export default function ProgressPage() {
 
   const currentSkills = useMemo(() => {
     if (!currentStudent || !selectedInstrument) return [];
-    const configs = DEFAULT_SKILLS_CONFIG[selectedInstrument] || DEFAULT_SKILLS_CONFIG['Teoría'];
+    const instKey = selectedInstrument === 'Teoría Musical' ? 'Teoría' : selectedInstrument;
+    const configs = DEFAULT_SKILLS_CONFIG[instKey] || DEFAULT_SKILLS_CONFIG['Teoría'];
     return configs.map(sc => ({
       ...sc,
       level: getSkillLevel(currentStudent.id, selectedInstrument, sc.name, sc.defaultLevel)
@@ -248,7 +245,7 @@ export default function ProgressPage() {
                     {currentStudent?.instruments?.map(inst => (
                       <SelectItem key={inst} value={inst} className="font-bold py-3">{inst}</SelectItem>
                     ))}
-                    <SelectItem value="Teoría" className="font-bold py-3">Teoría Musical</SelectItem>
+                    <SelectItem value="Teoría Musical" className="font-bold py-3">Teoría Musical</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -268,7 +265,33 @@ export default function ProgressPage() {
               <Card className="rounded-[2.5rem] border-none shadow-sm bg-accent/5 p-8 flex flex-col items-center text-center space-y-4">
                 <Music className="w-10 h-10 text-accent" />
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
+                  <div className="flex items-center justify-center gap-1.5">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="w-3.5 h-3.5 text-accent/50 cursor-help hover:text-accent transition-colors" />
+                        </TooltipTrigger>
+                        <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-white border-2 border-accent/20 shadow-xl">
+                          <p className="font-black text-xs text-secondary-foreground mb-2 uppercase tracking-widest">¿Cómo sumas puntos?</p>
+                          <ul className="text-[11px] font-bold space-y-2 text-muted-foreground text-left">
+                            <li className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
+                              <span><b>Recursos:</b> +150 pts por material completado en la biblioteca.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
+                              <span><b>Clases:</b> ~10 pts por cada hora de clase asistida y validada.</span>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
+                              <span><b>Habilidades:</b> +10 pts por cada punto porcentual de evolución técnica.</span>
+                            </li>
+                          </ul>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <h4 className="font-black text-2xl text-accent mt-1">{(instrumentStats[selectedInstrument]?.points || 0).toLocaleString()} pts</h4>
                 </div>
               </Card>
