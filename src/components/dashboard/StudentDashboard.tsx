@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -38,102 +39,6 @@ import { RESOURCES } from '@/lib/resources';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
-// Icono de Guitarra Realista
-const GuitarIcon = (props: any) => (
-  <svg
-    {...props}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9" />
-    <path d="M15 13a3 3 0 0 0 3-3V6a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v4a3 3 0 0 0 3 3Z" />
-    <circle cx="16" cy="16" r="2" />
-  </svg>
-);
-
-// Icono de Violín Realista
-const ViolinIcon = (props: any) => (
-  <svg
-    {...props}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 22a5 5 0 0 0 5-5c0-1.5-1-2.5-1-4 0-1.5 1-2.5 1-4a5 5 0 0 0-10 0c0 1.5 1 2.5 1 4 0 1.5-1 2.5-1 4a5 5 0 0 0 5 5Z" />
-    <path d="M12 11V7" />
-    <path d="M12 2v2" />
-    <circle cx="12" cy="15" r="1" />
-    <path d="M17 13c1 1 2 1 3 0" />
-    <path d="M7 13c-1 1-2 1-3 0" />
-  </svg>
-);
-
-// Icono de Piano Realista
-const PianoIcon = (props: any) => (
-  <svg
-    {...props}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="2" y="3" width="20" height="18" rx="2" />
-    <path d="M2 13h20" />
-    <path d="M6 13v8" />
-    <path d="M10 13v8" />
-    <path d="M14 13v8" />
-    <path d="M18 13v8" />
-    <rect x="5" y="13" width="2" height="5" fill="currentColor" />
-    <rect x="9" y="13" width="2" height="5" fill="currentColor" />
-    <rect x="13" y="13" width="2" height="5" fill="currentColor" />
-    <rect x="17" y="13" width="2" height="5" fill="currentColor" />
-  </svg>
-);
-
-// Icono de Batería Realista
-const DrumsIcon = (props: any) => (
-  <svg
-    {...props}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <ellipse cx="12" cy="7" rx="9" ry="3.5" />
-    <path d="M3 7v10c0 1.93 4.03 3.5 9 3.5s9-1.57 9-3.5V7" />
-    <path d="M7 10v6" />
-    <path d="M17 10v6" />
-  </svg>
-);
-
-// Icono de Canto Realista
-const SingingIcon = (props: any) => (
-  <svg
-    {...props}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="9" y="2" width="6" height="12" rx="3" />
-    <path d="M5 10a7 7 0 0 0 14 0" />
-    <line x1="12" y1="17" x2="12" y2="22" />
-  </svg>
-);
-
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
   'Piano': '🎹',
@@ -145,15 +50,15 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Música': '🎵'
 };
 
-const INSTRUMENT_CONFIG: Record<string, { icon: any, color: string, bg: string, border: string }> = {
-  'Guitarra': { icon: GuitarIcon, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
-  'Piano': { icon: PianoIcon, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
-  'Violín': { icon: ViolinIcon, color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
-  'Batería': { icon: DrumsIcon, color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
-  'Canto': { icon: SingingIcon, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
-  'Teoría': { icon: BookOpen, color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
-  'Bajo': { icon: GuitarIcon, color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
-  'Default': { icon: Music, color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
+const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: string }> = {
+  'Guitarra': { color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
+  'Piano': { color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
+  'Violín': { color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
+  'Batería': { color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
+  'Canto': { color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
+  'Teoría': { color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
+  'Bajo': { color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
+  'Default': { color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
 };
 
 export default function StudentDashboard() {
@@ -188,7 +93,9 @@ export default function StudentDashboard() {
   const availableInstruments = useMemo(() => {
     const instruments = new Set<string>();
     teachers.forEach(t => {
-      t.instruments?.forEach(inst => instruments.add(inst));
+      t.instruments?.forEach(inst => {
+        if (inst !== 'Flauta') instruments.add(inst);
+      });
     });
     return Array.from(instruments).sort();
   }, [teachers]);

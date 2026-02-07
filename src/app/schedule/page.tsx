@@ -204,7 +204,7 @@ export default function SchedulePage() {
 
     const currentTeacherId = isTeacherView || isTeacher ? teacherId : DEFAULT_TEACHER_ID;
     const teacherProfile = allUsers.find(u => u.id === currentTeacherId);
-    const teacherInstruments = teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT];
+    const teacherInstruments = (teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT]).filter(i => i !== 'Flauta');
 
     return (
       <Card className={cn(

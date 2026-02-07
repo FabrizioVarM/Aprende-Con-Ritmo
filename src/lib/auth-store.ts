@@ -47,13 +47,22 @@ export function useAuth() {
       localStorage.setItem('ac_all_users', JSON.stringify(INITIAL_MOCK_USERS));
     }
     
-    setAllUsers(currentAllUsers);
+    // Filtro de seguridad para eliminar Flauta si quedó en localStorage
+    const filteredAllUsers = currentAllUsers.map(u => ({
+      ...u,
+      instruments: u.instruments?.filter(inst => inst !== 'Flauta')
+    }));
+    
+    setAllUsers(filteredAllUsers);
 
     const savedUser = localStorage.getItem('ac_user');
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
-        const upToDateUser = currentAllUsers.find(u => u.id === parsedUser.id) || parsedUser;
+        const upToDateUser = filteredAllUsers.find(u => u.id === parsedUser.id) || parsedUser;
+        if (upToDateUser.instruments) {
+          upToDateUser.instruments = upToDateUser.instruments.filter((i: string) => i !== 'Flauta');
+        }
         setUser(upToDateUser);
       } catch (e) {
         console.error("Error parsing current user", e);
@@ -91,6 +100,9 @@ export function useAuth() {
     if (!user) return;
     
     const newUser = { ...user, ...updatedData };
+    if (newUser.instruments) {
+      newUser.instruments = newUser.instruments.filter(i => i !== 'Flauta');
+    }
     localStorage.setItem('ac_user', JSON.stringify(newUser));
     setUser(newUser);
 
