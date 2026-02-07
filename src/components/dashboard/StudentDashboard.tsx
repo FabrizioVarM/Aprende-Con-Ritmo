@@ -20,7 +20,8 @@ import {
   Mic,
   Drum,
   BookOpen,
-  Keyboard
+  Keyboard,
+  Guitar
 } from 'lucide-react';
 import {
   Dialog,
@@ -40,13 +41,13 @@ import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
 const INSTRUMENT_ICONS: Record<string, any> = {
-  'Guitarra': Music,
+  'Guitarra': Guitar,
   'Piano': Keyboard,
   'Violín': Music,
   'Batería': Drum,
   'Canto': Mic,
   'Teoría': BookOpen,
-  'Bajo': Music,
+  'Bajo': Guitar,
   'Flauta': Music,
 };
 

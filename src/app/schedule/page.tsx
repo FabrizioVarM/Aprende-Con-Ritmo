@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Keyboard, Mic, BookOpen, Check, Info } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Keyboard, Mic, BookOpen, Check, Info, Guitar } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -35,13 +35,13 @@ const DEFAULT_TEACHER_NAME = 'Carlos';
 const DEFAULT_TEACHER_INSTRUMENT = 'Guitarra';
 
 const INSTRUMENT_ICONS: Record<string, any> = {
-  'Guitarra': Music,
+  'Guitarra': Guitar,
   'Piano': Keyboard,
   'Violín': Music,
   'Batería': Drum,
   'Canto': Mic,
   'Teoría': BookOpen,
-  'Bajo': Music,
+  'Bajo': Guitar,
   'Flauta': Music,
 };
 
@@ -242,28 +242,25 @@ export default function SchedulePage() {
                   </>
                 ) : (
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <Music className="w-5 h-5 shrink-0" />
+                    <span className="text-muted-foreground shrink-0 text-sm">Disponible:</span>
                     <div className="flex items-center gap-1.5 truncate">
-                      <span className="text-muted-foreground shrink-0">Disponible:</span>
-                      <div className="flex items-center gap-1">
-                        {teacherInstruments.map((inst, idx) => {
-                          const Icon = INSTRUMENT_ICONS[inst] || Music;
-                          return (
-                            <TooltipProvider key={idx}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="p-1 bg-accent/10 rounded-lg border border-accent/20 hover:bg-accent/20 transition-colors">
-                                    <Icon className="w-3.5 h-3.5 text-accent" />
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
-                                  {inst}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          );
-                        })}
-                      </div>
+                      {teacherInstruments.map((inst, idx) => {
+                        const Icon = INSTRUMENT_ICONS[inst] || Music;
+                        return (
+                          <TooltipProvider key={idx}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="p-1.5 bg-accent/10 rounded-lg border border-accent/20 hover:bg-accent/20 transition-colors">
+                                  <Icon className="w-4 h-4 text-accent" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
+                                {inst}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
