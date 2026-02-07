@@ -158,32 +158,40 @@ export default function ProgressPage() {
 
       // 1. Puntos por recursos completados (150 pts cada uno)
       completions.forEach(comp => {
-        if (comp.isCompleted && comp.studentId === currentStudent.id) {
+        if (comp.isCompleted && String(comp.studentId) === String(currentStudent.id)) {
           const resource = RESOURCES.find(r => r.id === comp.resourceId);
-          if (resource && resource.category === cat) points += 150;
+          if (resource && normalizeStr(resource.category) === normalizeStr(cat)) {
+            points += 150;
+          }
         }
       });
 
       // 2. Puntos por clases COMPLETADAS (1 hora = 10 pts)
-      availabilities.forEach(avail => {
-        avail.slots.forEach(slot => {
-          // Normalización robusta para el matching
-          const isSameId = slot.studentId === currentStudent.id;
-          const isSameName = slot.bookedBy && normalizeStr(slot.bookedBy) === normalizeStr(currentStudent.name || '');
-          const isOurStudent = isSameId || isSameName;
+      if (Array.isArray(availabilities)) {
+        availabilities.forEach(avail => {
+          if (avail.slots && Array.isArray(avail.slots)) {
+            avail.slots.forEach(slot => {
+              // Matching robusto del estudiante
+              const isSameId = String(slot.studentId) === String(currentStudent.id);
+              const isSameName = slot.bookedBy && normalizeStr(slot.bookedBy) === normalizeStr(currentStudent.name || '');
+              const isOurStudent = isSameId || isSameName;
 
-          // Matching del instrumento
-          const isOurInstrument = slot.instrument === cat || (!slot.instrument && cat === 'Default');
+              // Matching robusto del instrumento
+              const slotInst = slot.instrument || 'Default';
+              const isOurInstrument = normalizeStr(slotInst) === normalizeStr(cat) || 
+                                     (normalizeStr(slotInst) === 'musica' && normalizeStr(cat) === 'guitarra'); // Fallback para mock data
 
-          if (slot.isBooked && isOurStudent && isOurInstrument) {
-            if (slot.status === 'completed') {
-              const duration = calculateDuration(slot.time);
-              points += Math.round(duration * 10);
-              completedHours += duration;
-            }
+              if (slot.isBooked && isOurStudent && isOurInstrument) {
+                if (slot.status === 'completed') {
+                  const duration = calculateDuration(slot.time);
+                  points += Math.round(duration * 10);
+                  completedHours += duration;
+                }
+              }
+            });
           }
         });
-      });
+      }
 
       // 3. Puntos por niveles de habilidades (nivel * 10)
       const skillConfigs = DEFAULT_SKILLS_CONFIG[cat] || [];
