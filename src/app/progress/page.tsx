@@ -332,7 +332,7 @@ export default function ProgressPage() {
               <Card className="rounded-[2.5rem] border-none shadow-sm bg-blue-50 p-8 flex flex-col items-center text-center space-y-4">
                 <Clock className="w-10 h-10 text-blue-600" />
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-700/70">Horas de Clase</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-700/70">Horas de Clase con {selectedInstrument}</p>
                   <h4 className="font-black text-2xl text-blue-800 mt-1">{(instrumentStats[selectedInstrument]?.completedHours || 0).toFixed(1)} h</h4>
                 </div>
               </Card>
