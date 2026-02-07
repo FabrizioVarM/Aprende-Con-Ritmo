@@ -13,8 +13,8 @@ import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useBookingStore } from '@/lib/booking-store';
 import { useSkillsStore } from '@/lib/skills-store';
+import { useResourceStore } from '@/lib/resource-store';
 import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
-import { RESOURCES } from '@/lib/resources';
 import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Clock, ShieldCheck, Star as StarIcon, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -70,6 +70,7 @@ export default function ProgressPage() {
   const { completions } = useCompletionStore();
   const { availabilities } = useBookingStore();
   const { updateSkill, getSkillLevel } = useSkillsStore();
+  const { resources } = useResourceStore();
   
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
@@ -121,7 +122,7 @@ export default function ProgressPage() {
 
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(currentStudent.id)) {
-          const resource = RESOURCES.find(r => r.id === comp.resourceId);
+          const resource = resources.find(r => r.id === comp.resourceId);
           if (resource) {
             const isTarget = normalizeStr(resource.category) === normalizeStr(cat) || 
                             (cat === 'Teoría Musical' && normalizeStr(resource.category) === 'teoria');
@@ -178,7 +179,7 @@ export default function ProgressPage() {
     });
 
     return stats;
-  }, [completions, availabilities, currentStudent, getSkillLevel]);
+  }, [completions, availabilities, currentStudent, getSkillLevel, resources]);
 
   const totalAchievementPoints = useMemo(() => {
     const basePoints = Object.values(instrumentStats).reduce((sum, s) => sum + (s?.points || 0), 0);

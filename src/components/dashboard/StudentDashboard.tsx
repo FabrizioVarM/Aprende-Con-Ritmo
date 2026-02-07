@@ -5,7 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { 
   Calendar as CalendarIcon, 
   PlayCircle, 
@@ -22,6 +22,7 @@ import {
   BookOpen,
   Guitar,
   ChevronLeft,
+  ChevronRight as ChevronRightIcon,
   Check
 } from 'lucide-react';
 import {
@@ -37,7 +38,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useBookingStore } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
-import { RESOURCES } from '@/lib/resources';
+import { useResourceStore } from '@/lib/resource-store';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
@@ -96,6 +97,7 @@ export default function StudentDashboard() {
   const router = useRouter();
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
   const { completions, getCompletionStatus } = useCompletionStore();
+  const { resources } = useResourceStore();
 
   useEffect(() => {
     setIsMounted(true);
@@ -221,7 +223,7 @@ export default function StudentDashboard() {
       
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(user.id)) {
-          const resource = RESOURCES.find(r => r.id === comp.resourceId);
+          const resource = resources.find(r => r.id === comp.resourceId);
           if (resource) {
             const isTarget = normalizeStr(resource.category) === normalizeStr(cat) || 
                             (cat === 'Teoría Musical' && normalizeStr(resource.category) === 'teoria');
@@ -255,19 +257,19 @@ export default function StudentDashboard() {
     });
 
     return bestInst;
-  }, [user, completions, availabilities]);
+  }, [user, completions, availabilities, resources]);
 
   const recommendedResources = useMemo(() => {
     if (!user) return [];
     
     const userInstruments = user.instruments || [];
     
-    return RESOURCES.filter(res => {
+    return resources.filter(res => {
       const isRelevant = userInstruments.includes(res.category) || res.category === 'Teoría';
       const isCompleted = getCompletionStatus(res.id, user.id);
       return isRelevant && !isCompleted;
     }).slice(0, 3);
-  }, [user, getCompletionStatus]);
+  }, [user, getCompletionStatus, resources]);
 
   const handleBookLesson = () => {
     if (!selectedSlotId || !user || !selectedTeacherId) return;
@@ -416,7 +418,7 @@ export default function StudentDashboard() {
                           }}
                           className="h-8 w-8 rounded-full hover:bg-accent/10"
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRightIcon className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -533,7 +535,7 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="rounded-[2.5rem] border-none shadow-sm bg-emerald-100/50 p-6">
+        <Card className="rounded-[2.5rem] border-none shadow-sm bg-emerald-50 p-6">
           <CardHeader className="p-0 pb-4">
             <CardTitle className="text-sm font-black uppercase tracking-widest text-secondary-foreground flex items-center gap-2">
               <CalendarIcon className="w-5 h-5 text-accent" />
@@ -636,7 +638,7 @@ export default function StudentDashboard() {
                 <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0">
                   <div className="flex gap-3 sm:gap-4 items-center min-w-0">
                     <div className="bg-white p-2 sm:p-4 rounded-3xl shadow-md border border-primary/10 shrink-0">
-                      <resource.icon className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
+                      <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
                     </div>
                     <div className="min-w-0">
                       <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate">{resource.title}</div>
