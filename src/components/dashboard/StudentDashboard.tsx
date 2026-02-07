@@ -31,7 +31,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/select"
 import { useBookingStore } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
@@ -46,6 +46,7 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Batería': '🥁',
   'Canto': '🎤',
   'Teoría': '📖',
+  'Teoría Musical': '📖',
   'Bajo': '🎸',
   'Música': '🎵'
 };
@@ -57,8 +58,24 @@ const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: str
   'Batería': { color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
   'Canto': { color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
   'Teoría': { color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
+  'Teoría Musical': { color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
   'Bajo': { color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
   'Default': { color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
+};
+
+const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
+
+const calculateDuration = (timeStr: string): number => {
+  try {
+    const [start, end] = timeStr.split(' - ');
+    const [h1, m1] = start.split(':').map(Number);
+    const [h2, m2] = end.split(':').map(Number);
+    const startMinutes = h1 * 60 + m1;
+    const endMinutes = h2 * 60 + m2;
+    return (endMinutes - startMinutes) / 60;
+  } catch (e) {
+    return 1;
+  }
 };
 
 export default function StudentDashboard() {
@@ -76,7 +93,7 @@ export default function StudentDashboard() {
   const { toast } = useToast();
   const router = useRouter();
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
-  const { getCompletionStatus } = useCompletionStore();
+  const { completions, getCompletionStatus } = useCompletionStore();
 
   useEffect(() => {
     setIsMounted(true);
@@ -94,7 +111,7 @@ export default function StudentDashboard() {
     const instruments = new Set<string>();
     teachers.forEach(t => {
       t.instruments?.forEach(inst => {
-        if (inst !== 'Flauta') instruments.add(inst);
+        instruments.add(inst);
       });
     });
     return Array.from(instruments).sort();
@@ -128,13 +145,13 @@ export default function StudentDashboard() {
     return availability.slots.filter(s => {
       if (!s.isAvailable || s.isBooked) return false;
       
-      if (isToday) {
-        const startTimeStr = s.time.split(' - ')[0];
-        const [h, m] = startTimeStr.split(':').map(Number);
-        const slotStartTime = new Date(selectedDate);
-        slotStartTime.setHours(h, m, 0, 0);
-        
-        return currentTime.getTime() < slotStartTime.getTime();
+      const startTimeStr = s.time.split(' - ')[0];
+      const [h, m] = startTimeStr.split(':').map(Number);
+      const slotStartTime = new Date(selectedDate);
+      slotStartTime.setHours(h, m, 0, 0);
+
+      if (isToday && currentTime.getTime() >= slotStartTime.getTime()) {
+        return false;
       }
       
       const selectedDateStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).getTime();
@@ -191,6 +208,57 @@ export default function StudentDashboard() {
 
   const nextLesson = myUpcomingLessons[0];
 
+  // Cálculo del instrumento principal basado en puntos de progreso
+  const topInstrument = useMemo(() => {
+    if (!user) return 'Música';
+    
+    const studentInstruments = [...(user.instruments || []), 'Teoría Musical'];
+    const stats: Record<string, number> = {};
+
+    studentInstruments.forEach(cat => {
+      let points = 0;
+      
+      // Puntos por recursos completados
+      completions.forEach(comp => {
+        if (comp.isCompleted && String(comp.studentId) === String(user.id)) {
+          const resource = RESOURCES.find(r => r.id === comp.resourceId);
+          if (resource) {
+            const isTarget = normalizeStr(resource.category) === normalizeStr(cat) || 
+                            (cat === 'Teoría Musical' && normalizeStr(resource.category) === 'teoria');
+            if (isTarget) points += 150;
+          }
+        }
+      });
+
+      // Puntos por clases completadas
+      availabilities.forEach(day => {
+        day.slots.forEach(slot => {
+          if (slot.isBooked && slot.status === 'completed' && String(slot.studentId) === String(user.id)) {
+            const slotInst = slot.instrument || 'Música';
+            if (normalizeStr(slotInst) === normalizeStr(cat)) {
+              points += Math.round(calculateDuration(slot.time) * 20);
+            }
+          }
+        });
+      });
+
+      stats[cat] = points;
+    });
+
+    // Encontrar el instrumento con más puntos
+    let maxPts = -1;
+    let bestInst = user.instruments?.[0] || 'Música';
+    
+    Object.entries(stats).forEach(([inst, pts]) => {
+      if (pts > maxPts) {
+        maxPts = pts;
+        bestInst = inst;
+      }
+    });
+
+    return bestInst;
+  }, [user, completions, availabilities]);
+
   const recommendedResources = useMemo(() => {
     if (!user) return [];
     
@@ -231,6 +299,8 @@ export default function StudentDashboard() {
   }, [selectedDate]);
 
   if (!isMounted) return null;
+
+  const topInstConfig = INSTRUMENT_CONFIG[topInstrument] || INSTRUMENT_CONFIG['Default'];
 
   return (
     <div className="space-y-8">
@@ -422,18 +492,18 @@ export default function StudentDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="rounded-[2.5rem] border-none shadow-sm bg-secondary/30 p-6">
+        <Card className={cn("rounded-[2.5rem] border-none shadow-sm p-6", topInstConfig.bg.replace('/10', '/30'))}>
           <CardHeader className="p-0 pb-4">
-            <CardTitle className="text-sm font-black uppercase tracking-widest text-secondary-foreground flex items-center gap-2">
-              <Star className="w-5 h-5 text-accent fill-accent" />
-              Tu Instrumento
+            <CardTitle className={cn("text-sm font-black uppercase tracking-widest flex items-center gap-2", topInstConfig.color)}>
+              <Star className="w-5 h-5 fill-current" />
+              Tu Instrumento Principal
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-4xl font-black text-secondary-foreground truncate">
-              {user?.instruments?.[0] || 'Música'}
+            <div className={cn("text-4xl font-black truncate", topInstConfig.color.replace('text-', 'text-'))}>
+              {topInstrument}
             </div>
-            <p className="text-sm text-secondary-foreground/60 font-bold mt-1">Instrumento Principal</p>
+            <p className={cn("text-sm font-bold mt-1 opacity-60", topInstConfig.color)}>Máximo Progreso</p>
           </CardContent>
         </Card>
         
