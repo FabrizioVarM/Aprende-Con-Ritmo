@@ -11,7 +11,6 @@ import { useBookingStore } from '@/lib/booking-store';
 import { 
   Users, 
   Music, 
-  DollarSign, 
   TrendingUp, 
   UserPlus, 
   Settings,
@@ -19,7 +18,8 @@ import {
   CalendarDays,
   ChevronRight,
   CheckCircle2,
-  Trophy
+  Trophy,
+  History
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -97,6 +97,32 @@ export default function AdminDashboard() {
     })).sort((a, b) => b.stats.globalCompletedHours - a.stats.globalCompletedHours);
   }, [teachers, availabilities]);
 
+  // Global metrics for the cards
+  const globalStats = useMemo(() => {
+    let totalHours = 0;
+    let totalCount = 0;
+    
+    availabilities.forEach(dayAvail => {
+      dayAvail.slots.forEach(slot => {
+        if (slot.isBooked && slot.status === 'completed') {
+          let duration = 0;
+          try {
+            const [start, end] = slot.time.split(' - ');
+            const [h1, m1] = start.split(':').map(Number);
+            const [h2, m2] = end.split(':').map(Number);
+            duration = (h2 * 60 + m2 - (h1 * 60 + m1)) / 60;
+          } catch (e) {
+            duration = 1;
+          }
+          totalHours += duration;
+          totalCount++;
+        }
+      });
+    });
+    
+    return { totalHours, totalCount };
+  }, [availabilities]);
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -147,11 +173,11 @@ export default function AdminDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-green-100 rounded-2xl">
-                <DollarSign className="w-6 h-6 text-green-600" />
+                <CheckCircle2 className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Ingresos (Sim)</p>
-                <h3 className="text-2xl font-black text-secondary-foreground">$42,500</h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Clases Completadas</p>
+                <h3 className="text-2xl font-black text-secondary-foreground">{globalStats.totalCount.toLocaleString()}</h3>
               </div>
             </div>
           </CardContent>
@@ -161,11 +187,11 @@ export default function AdminDashboard() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-accent/20 rounded-2xl">
-                <TrendingUp className="w-6 h-6 text-accent" />
+                <History className="w-6 h-6 text-accent" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Retención</p>
-                <h3 className="text-2xl font-black text-secondary-foreground">92%</h3>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Horas Ejercidas (Tot)</p>
+                <h3 className="text-2xl font-black text-secondary-foreground">{globalStats.totalHours.toFixed(1)} h</h3>
               </div>
             </div>
           </CardContent>
@@ -228,7 +254,7 @@ export default function AdminDashboard() {
                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                         <span className="text-xl font-black text-emerald-600">{t.stats.completedHours.toFixed(1)}h</span>
                       </div>
-                      <p className="text-[8px] font-bold text-emerald-700/70">
+                      <p className="text-[8px] font-bold text-muted-foreground">
                         {t.stats.hours > 0 
                           ? ((t.stats.completedHours / t.stats.hours) * 100).toFixed(0) 
                           : 0}% eficiencia
