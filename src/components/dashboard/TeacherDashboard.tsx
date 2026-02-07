@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -34,7 +33,6 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Teoría': '📖',
   'Teoría Musical': '📖',
   'Bajo': '🎸',
-  'Flauta': '🪈',
   'Música': '🎵'
 };
 

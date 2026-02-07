@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -124,24 +123,6 @@ const SingingIcon = (props: any) => (
   </svg>
 );
 
-// Icono de Flauta Realista
-const FluteIcon = (props: any) => (
-  <svg
-    {...props}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 22 22 2" />
-    <circle cx="8" cy="16" r="1" />
-    <circle cx="12" cy="12" r="1" />
-    <circle cx="16" cy="8" r="1" />
-  </svg>
-);
-
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
   'Piano': '🎹',
@@ -150,7 +131,6 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Canto': '🎤',
   'Teoría': '📖',
   'Bajo': '🎸',
-  'Flauta': '🪈',
   'Música': '🎵'
 };
 
@@ -163,7 +143,6 @@ const INSTRUMENT_CONFIG: Record<string, { icon: any, color: string, bg: string, 
   'Canto': { icon: SingingIcon, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
   'Teoría': { icon: BookOpen, color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
   'Bajo': { icon: GuitarIcon, color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
-  'Flauta': { icon: FluteIcon, color: 'text-teal-600', bg: 'bg-teal-100', border: 'border-teal-200' },
   'Default': { icon: Music, color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
 };
 
@@ -512,7 +491,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                   <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>

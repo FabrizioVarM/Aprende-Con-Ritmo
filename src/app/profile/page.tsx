@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useRef } from 'react';
@@ -15,7 +14,7 @@ import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X } from 'lucide
 import { cn } from '@/lib/utils';
 
 const INSTRUMENTS_LIST = [
-  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Flauta', 'Teoría'
+  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
 ];
 
 export default function ProfilePage() {
