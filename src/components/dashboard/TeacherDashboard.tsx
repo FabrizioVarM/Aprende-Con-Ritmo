@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   Dialog,
   DialogContent,
@@ -153,13 +154,11 @@ export default function TeacherDashboard() {
   }, [selectedDate, getDayAvailability, teacherId, availabilities]);
 
   const trackedStudents = useMemo(() => {
+    // Map de StudentID -> { id, name, instruments: Map<NombreInst, { sessions, hours, progress }> }
     const studentsMap = new Map<string, { 
       id: string, 
       name: string, 
-      instrument: string, 
-      sessions: number, 
-      hours: number,
-      progress: number 
+      byInstrument: Map<string, { sessions: number, hours: number, progress: number }>
     }>();
 
     availabilities.forEach(day => {
@@ -167,33 +166,32 @@ export default function TeacherDashboard() {
         day.slots.forEach(slot => {
           if (slot.isBooked && (slot.studentId || slot.bookedBy)) {
             const studentId = slot.studentId || slot.bookedBy!;
-            const existing = studentsMap.get(studentId);
+            const instrument = slot.instrument || 'Música';
             const duration = calculateDuration(slot.time);
             const isCompleted = slot.status === 'completed';
             
-            if (existing) {
-              if (isCompleted) {
-                existing.sessions += 1;
-                existing.hours += duration;
-              }
-            } else {
+            let studentData = studentsMap.get(studentId);
+            if (!studentData) {
               const studentName = slot.bookedBy || allUsers.find(u => u.id === studentId)?.name || 'Alumno';
-              const instrument = slot.instrument || 'Música';
-              
-              // Calcular progreso basado en la configuración compartida
+              studentData = { id: studentId, name: studentName, byInstrument: new Map() };
+              studentsMap.set(studentId, studentData);
+            }
+
+            let instData = studentData.byInstrument.get(instrument);
+            if (!instData) {
+              // Calcular progreso basado en la configuración del instrumento
               const config = DEFAULT_SKILLS_CONFIG[instrument] || DEFAULT_SKILLS_CONFIG['Default'];
               const avgProgress = config.length > 0 
                 ? Math.round(config.reduce((acc, skill) => acc + getSkillLevel(studentId, instrument, skill.name, skill.defaultLevel), 0) / config.length)
-                : 10;
+                : 0;
 
-              studentsMap.set(studentId, {
-                id: studentId,
-                name: studentName,
-                instrument: instrument,
-                sessions: isCompleted ? 1 : 0,
-                hours: isCompleted ? duration : 0,
-                progress: avgProgress
-              });
+              instData = { sessions: 0, hours: 0, progress: avgProgress };
+              studentData.byInstrument.set(instrument, instData);
+            }
+
+            if (isCompleted) {
+              instData.sessions += 1;
+              instData.hours += duration;
             }
           }
         });
@@ -463,7 +461,11 @@ export default function TeacherDashboard() {
           </CardHeader>
           <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
             <div className="text-3xl md:text-4xl font-black text-secondary-foreground">
-              {Math.round(trackedStudents.reduce((acc, s) => acc + s.hours, 0))}
+              {Math.round(trackedStudents.reduce((acc, s) => {
+                let h = 0;
+                s.byInstrument.forEach(inst => h += inst.hours);
+                return acc + h;
+              }, 0))}
             </div>
           </CardContent>
         </Card>
@@ -477,33 +479,50 @@ export default function TeacherDashboard() {
               Seguimiento de Alumnos
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-8 space-y-8">
+          <CardContent className="p-8 space-y-10">
             {trackedStudents.length > 0 ? trackedStudents.map((student) => {
-              const InstrumentIcon = INSTRUMENT_ICONS[student.instrument] || Music;
               return (
-                <div key={student.id} className="space-y-4 p-4 rounded-[1.5rem] hover:bg-primary/5 transition-all group">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-white border-2 border-primary/10 flex items-center justify-center text-accent shadow-sm group-hover:scale-110 transition-transform">
-                        <InstrumentIcon className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h4 className="font-black text-lg text-secondary-foreground">{student.name}</h4>
-                        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                          <span className="text-accent">{student.instrument}</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1"><CalendarIcon className="w-3 h-3" /> {student.sessions} sesiones</span>
-                          <span>•</span>
-                          <span className="flex items-center gap-1"><Timer className="w-3 h-3" /> {student.hours.toFixed(1)} h</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-secondary/30 px-4 py-2 rounded-2xl text-right">
-                      <span className="text-[10px] font-black uppercase text-muted-foreground block">Progreso Técnico</span>
-                      <span className="text-xl font-black text-secondary-foreground">{student.progress}%</span>
+                <div key={student.id} className="space-y-6 p-6 rounded-[2rem] border-2 border-primary/5 bg-white shadow-sm hover:shadow-md transition-all">
+                  <div className="flex items-center gap-4 border-b border-primary/10 pb-4">
+                    <Avatar className="w-12 h-12 border-2 border-accent shadow-sm">
+                      <AvatarImage src={`https://picsum.photos/seed/${student.id}/100`} />
+                      <AvatarFallback className="bg-primary text-secondary-foreground font-black">{student.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h4 className="font-black text-xl text-secondary-foreground">{student.name}</h4>
+                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Resumen Académico por Instrumento</p>
                     </div>
                   </div>
-                  <Progress value={student.progress} className="h-3 rounded-full bg-primary/10" />
+                  
+                  <div className="grid grid-cols-1 gap-6">
+                    {Array.from(student.byInstrument.entries()).map(([instName, instStats]) => {
+                      const InstrumentIcon = INSTRUMENT_ICONS[instName] || Music;
+                      return (
+                        <div key={instName} className="space-y-4 p-5 rounded-[1.5rem] bg-primary/5 border border-primary/10 group">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-white border-2 border-primary/10 flex items-center justify-center text-accent shadow-sm group-hover:scale-110 transition-transform">
+                                <InstrumentIcon className="w-6 h-6" />
+                              </div>
+                              <div>
+                                <h5 className="font-black text-lg text-secondary-foreground">{instName}</h5>
+                                <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                                  <span className="flex items-center gap-1"><CalendarIcon className="w-3.5 h-3.5 text-accent" /> {instStats.sessions} sesiones</span>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-1"><Timer className="w-3.5 h-3.5 text-accent" /> {instStats.hours.toFixed(1)} h</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="bg-white px-4 py-2 rounded-2xl text-right border border-primary/10 shadow-sm">
+                              <span className="text-[9px] font-black uppercase text-muted-foreground block">Progreso Técnico</span>
+                              <span className="text-xl font-black text-accent">{instStats.progress}%</span>
+                            </div>
+                          </div>
+                          <Progress value={instStats.progress} className="h-3 rounded-full bg-white border border-primary/10" />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               );
             }) : (
