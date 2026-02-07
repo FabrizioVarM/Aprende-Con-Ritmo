@@ -18,7 +18,8 @@ import {
   Clock,
   CalendarDays,
   ChevronRight,
-  CheckCircle2
+  CheckCircle2,
+  Trophy
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -29,7 +30,7 @@ export default function AdminDashboard() {
   const teachers = useMemo(() => getTeachers(), [getTeachers]);
   const studentsCount = useMemo(() => allUsers.filter(u => u.role === 'student').length, [allUsers]);
 
-  const calculateWeeklyAvailability = (teacherId: string) => {
+  const calculateTeacherStats = (teacherId: string) => {
     const now = new Date();
     const day = now.getDay();
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
@@ -44,45 +45,56 @@ export default function AdminDashboard() {
       return `${y}-${m}-${dd}`;
     });
 
-    let totalEnabledHours = 0;
-    let totalEnabledSlots = 0;
-    let freeSlots = 0;
-    let completedHours = 0;
+    let weeklyEnabledHours = 0;
+    let weeklyEnabledSlots = 0;
+    let weeklyCompletedHours = 0;
+    let globalCompletedHours = 0;
 
     availabilities.forEach(dayAvail => {
-      if (dayAvail.teacherId === teacherId && weekDates.includes(dayAvail.date)) {
+      if (dayAvail.teacherId === teacherId) {
+        const isThisWeek = weekDates.includes(dayAvail.date);
+        
         dayAvail.slots.forEach(slot => {
-          if (slot.isAvailable || slot.isBooked) {
-            let duration = 0;
-            try {
-              const [start, end] = slot.time.split(' - ');
-              const [h1, m1] = start.split(':').map(Number);
-              const [h2, m2] = end.split(':').map(Number);
-              duration = (h2 * 60 + m2 - (h1 * 60 + m1)) / 60;
-            } catch (e) {
-              duration = 1;
-            }
+          let duration = 0;
+          try {
+            const [start, end] = slot.time.split(' - ');
+            const [h1, m1] = start.split(':').map(Number);
+            const [h2, m2] = end.split(':').map(Number);
+            duration = (h2 * 60 + m2 - (h1 * 60 + m1)) / 60;
+          } catch (e) {
+            duration = 1;
+          }
 
-            totalEnabledHours += duration;
-            totalEnabledSlots++;
-            if (!slot.isBooked) freeSlots++;
-            
+          // Stats for current week
+          if (isThisWeek && (slot.isAvailable || slot.isBooked)) {
+            weeklyEnabledHours += duration;
+            weeklyEnabledSlots++;
             if (slot.isBooked && slot.status === 'completed') {
-              completedHours += duration;
+              weeklyCompletedHours += duration;
             }
+          }
+
+          // Global historical stats
+          if (slot.isBooked && slot.status === 'completed') {
+            globalCompletedHours += duration;
           }
         });
       }
     });
 
-    return { hours: totalEnabledHours, slots: totalEnabledSlots, freeSlots, completedHours };
+    return { 
+      hours: weeklyEnabledHours, 
+      slots: weeklyEnabledSlots, 
+      completedHours: weeklyCompletedHours,
+      globalCompletedHours 
+    };
   };
 
-  const teachersAvailability = useMemo(() => {
+  const teachersWithStats = useMemo(() => {
     return teachers.map(t => ({
       ...t,
-      availability: calculateWeeklyAvailability(t.id)
-    })).sort((a, b) => b.availability.hours - a.availability.hours);
+      stats: calculateTeacherStats(t.id)
+    })).sort((a, b) => b.stats.globalCompletedHours - a.stats.globalCompletedHours);
   }, [teachers, availabilities]);
 
   return (
@@ -166,16 +178,16 @@ export default function AdminDashboard() {
             <div className="space-y-1">
               <CardTitle className="text-xl font-black flex items-center gap-3">
                 <CalendarDays className="w-6 h-6 text-accent" />
-                Carga Horaria Semanal
+                Desempeño Docente
               </CardTitle>
-              <p className="text-xs font-bold text-muted-foreground italic uppercase tracking-wider">Total de horas habilitadas por los profesores</p>
+              <p className="text-xs font-bold text-muted-foreground italic uppercase tracking-wider">Seguimiento de horas habilitadas y ejercidas</p>
             </div>
-            <Badge className="bg-accent text-white rounded-full px-4 py-1.5 font-black text-[10px] uppercase tracking-widest">Semana Actual</Badge>
+            <Badge className="bg-accent text-white rounded-full px-4 py-1.5 font-black text-[10px] uppercase tracking-widest">Semana Actual & Histórico</Badge>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
-              {teachersAvailability.length > 0 ? teachersAvailability.map((t) => (
-                <div key={t.id} className="flex items-center justify-between p-6 hover:bg-muted/30 transition-colors group">
+              {teachersWithStats.length > 0 ? teachersWithStats.map((t) => (
+                <div key={t.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 hover:bg-muted/30 transition-colors group gap-6">
                   <div className="flex items-center gap-4">
                     <Avatar className="w-14 h-14 border-2 border-primary/20 shadow-sm transition-transform group-hover:scale-105">
                       {t.photoUrl ? (
@@ -197,30 +209,43 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-8">
+                  <div className="flex flex-wrap items-center gap-6 sm:gap-10 w-full sm:w-auto">
+                    {/* Weekly Stats */}
                     <div className="text-right">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Esta Semana</p>
                       <div className="flex items-center justify-end gap-2">
                         <Clock className="w-4 h-4 text-accent" />
-                        <span className="text-2xl font-black text-accent">{t.availability.hours.toFixed(1)}h</span>
+                        <span className="text-xl font-black text-accent">{t.stats.hours.toFixed(1)}h</span>
                       </div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-1">
-                        {t.availability.slots} turnos habilitados
+                      <p className="text-[8px] font-bold text-muted-foreground">
+                        {t.stats.slots} turnos
                       </p>
                     </div>
 
-                    <div className="text-right border-l border-primary/10 pl-8 hidden sm:block">
+                    <div className="text-right border-l border-primary/10 pl-6 sm:pl-10">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Completado (Sem)</p>
                       <div className="flex items-center justify-end gap-2">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <span className="text-2xl font-black text-emerald-600">{t.availability.completedHours.toFixed(1)}h</span>
+                        <span className="text-xl font-black text-emerald-600">{t.stats.completedHours.toFixed(1)}h</span>
                       </div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-1">
-                        {t.availability.hours > 0 
-                          ? ((t.availability.completedHours / t.availability.hours) * 100).toFixed(0) 
+                      <p className="text-[8px] font-bold text-emerald-700/70">
+                        {t.stats.hours > 0 
+                          ? ((t.stats.completedHours / t.stats.hours) * 100).toFixed(0) 
                           : 0}% eficiencia
                       </p>
                     </div>
 
-                    <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground/40 group-hover:text-accent transition-all group-hover:translate-x-1">
+                    {/* Global Historical Stats */}
+                    <div className="text-right border-l border-primary/10 pl-6 sm:pl-10 bg-accent/5 p-2 rounded-2xl">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-accent mb-1">Histórico Global</p>
+                      <div className="flex items-center justify-end gap-2">
+                        <Trophy className="w-4 h-4 text-accent" />
+                        <span className="text-xl font-black text-secondary-foreground">{t.stats.globalCompletedHours.toFixed(1)}h</span>
+                      </div>
+                      <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-tighter">Horas Ejercidas</p>
+                    </div>
+
+                    <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground/40 group-hover:text-accent transition-all group-hover:translate-x-1 hidden sm:flex">
                       <ChevronRight className="w-6 h-6" />
                     </Button>
                   </div>
