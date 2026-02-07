@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -11,7 +12,7 @@ import { useCompletionStore } from '@/lib/completion-store';
 import { useBookingStore } from '@/lib/booking-store';
 import { useSkillsStore } from '@/lib/skills-store';
 import { RESOURCES } from '@/lib/resources';
-import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Users, ShieldCheck } from 'lucide-react';
+import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Users, ShieldCheck, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Mock de estudiantes para el personal
@@ -133,11 +134,14 @@ export default function ProgressPage() {
 
   const instrumentStats = useMemo(() => {
     if (!currentStudent) return {};
-    const stats: Record<string, { points: number; levelName: string; levelNum: number }> = {};
+    const stats: Record<string, { points: number; completedHours: number; levelName: string; levelNum: number }> = {};
     const categories = ['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría', 'Default'];
     
     categories.forEach(cat => {
       let points = 0;
+      let completedHours = 0;
+
+      // 1. Puntos por recursos completados (150 pts cada uno)
       completions.forEach(comp => {
         if (comp.isCompleted && comp.studentId === currentStudent.id) {
           const resource = RESOURCES.find(r => r.id === comp.resourceId);
@@ -145,14 +149,19 @@ export default function ProgressPage() {
         }
       });
 
+      // 2. Puntos por clases completadas (1 hora = 10 pts)
       availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
-          if (slot.isBooked && slot.bookedBy === currentStudent.name) {
-            if (currentStudent.instruments?.includes(cat)) points += 100;
+          if (slot.isBooked && slot.bookedBy === currentStudent.name && slot.instrument === cat) {
+            if (slot.status === 'completed') {
+              points += 10;
+              completedHours += 1;
+            }
           }
         });
       });
 
+      // 3. Puntos por niveles de habilidades (nivel * 10)
       const skillConfigs = DEFAULT_SKILLS_CONFIG[cat] || [];
       skillConfigs.forEach(sc => {
         const level = getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel);
@@ -160,7 +169,7 @@ export default function ProgressPage() {
       });
 
       const levelInfo = getLevelInfo(cat, points);
-      stats[cat] = { points, levelName: levelInfo.name, levelNum: levelInfo.level };
+      stats[cat] = { points, completedHours, levelName: levelInfo.name, levelNum: levelInfo.level };
     });
 
     return stats;
@@ -245,7 +254,7 @@ export default function ProgressPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="rounded-[2.5rem] border-none shadow-sm bg-secondary/20 p-8 flex flex-col items-center text-center space-y-4">
                 <Target className="w-10 h-10 text-secondary-foreground" />
                 <div>
@@ -261,6 +270,14 @@ export default function ProgressPage() {
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
                   <h4 className="font-black text-2xl text-accent mt-1">{instrumentStats[selectedInstrument]?.points.toLocaleString()} pts</h4>
+                </div>
+              </Card>
+
+              <Card className="rounded-[2.5rem] border-none shadow-sm bg-blue-50 p-8 flex flex-col items-center text-center space-y-4">
+                <Clock className="w-10 h-10 text-blue-600" />
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-700/70">Horas de Clase</p>
+                  <h4 className="font-black text-2xl text-blue-800 mt-1">{instrumentStats[selectedInstrument]?.completedHours} h</h4>
                 </div>
               </Card>
             </div>
