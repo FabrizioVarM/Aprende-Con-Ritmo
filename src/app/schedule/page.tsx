@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2 } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -83,9 +83,16 @@ export default function SchedulePage() {
     });
   };
 
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    const newDate = new Date(date);
+    newDate.setDate(date.getDate() + (direction === 'next' ? 7 : -7));
+    setDate(newDate);
+  };
+
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(date);
     const day = startOfWeek.getDay();
+    // Ajustar para que la semana empiece en Lunes (1) en lugar de Domingo (0)
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
 
@@ -257,11 +264,19 @@ export default function SchedulePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-4 space-y-6">
             <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
-              <CardHeader className="bg-primary/5 p-6">
+              <CardHeader className="bg-primary/5 p-6 flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-black flex items-center gap-2">
                   <CalendarIcon className="w-5 h-5 text-accent" />
                   Semana Actual
                 </CardTitle>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => navigateWeek('prev')} className="h-8 w-8 rounded-full">
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => navigateWeek('next')} className="h-8 w-8 rounded-full">
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 gap-2">
