@@ -126,11 +126,9 @@ export default function StudentDashboard() {
     const isToday = selectedDate.toDateString() === currentTime.toDateString();
     
     return availability.slots.filter(s => {
-      // Basic availability check
       if (!s.isAvailable || s.isBooked) return false;
       
       if (isToday) {
-        // If it's today, check if slot start time is in the future
         const startTimeStr = s.time.split(' - ')[0];
         const [h, m] = startTimeStr.split(':').map(Number);
         const slotStartTime = new Date(selectedDate);
@@ -139,8 +137,6 @@ export default function StudentDashboard() {
         return currentTime.getTime() < slotStartTime.getTime();
       }
       
-      // For future dates, all available slots are shown
-      // For past dates (if somehow accessed), they are filtered out
       const selectedDateStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).getTime();
       return selectedDateStart >= todayTimestamp;
     });
@@ -464,7 +460,7 @@ export default function StudentDashboard() {
           <CardHeader className="p-0 pb-4">
             <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-600 flex items-center gap-2">
               <Clock className="w-5 h-5 text-accent" />
-              Total Reservas
+              Total Reservas Pendientes
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
