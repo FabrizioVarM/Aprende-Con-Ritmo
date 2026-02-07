@@ -101,6 +101,9 @@ export default function SchedulePage() {
   const isTeacher = user?.role === 'teacher';
   const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
 
+  // Normalizar la fecha para las consultas
+  const dateStrKey = useMemo(() => date.toISOString().split('T')[0], [date]);
+
   const availability = useMemo(() => {
     return getDayAvailability(teacherId, date);
   }, [teacherId, date, getDayAvailability, availabilities]);
@@ -140,25 +143,26 @@ export default function SchedulePage() {
   const handleBook = () => {
     if (!selectedSlotId || !date || !user) return;
     const instrument = user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
-    bookSlot(teacherId, date, selectedSlotId, user.name, user.id, instrument);
+    bookSlot(teacherId!, date, selectedSlotId, user.name, user.id, instrument);
     toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
     setIsBookingOpen(false);
     setSelectedSlotId(null);
   };
 
   const handleCancel = (slotId: string) => {
+    if (!teacherId) return;
     cancelBooking(teacherId, date, slotId);
     toast({ title: "Clase Cancelada 🗑️", description: "La reserva ha sido eliminada." });
   };
 
   const handleToggleStatus = (slot: TimeSlot) => {
-    if (!slot.studentId || !slot.instrument) return;
+    if (!teacherId) return;
 
     const newStatus = slot.status === 'completed' ? 'pending' : 'completed';
-    setSlotStatus(teacherId, date.toISOString().split('T')[0], slot.id, newStatus);
+    setSlotStatus(teacherId, dateStrKey, slot.id, newStatus);
 
-    // Si se marca como completado, sumamos 10 puntos al alumno
-    if (newStatus === 'completed') {
+    // Si se marca como completado y tenemos datos del alumno, sumamos puntos
+    if (newStatus === 'completed' && (slot.studentId || slot.bookedBy) && slot.instrument) {
       const student = allUsers.find(u => u.id === slot.studentId || u.name === slot.bookedBy);
       if (student) {
         const currentLevel = getSkillLevel(student.id, slot.instrument, 'Progreso General', 0);
@@ -266,7 +270,10 @@ export default function SchedulePage() {
                     <span className={cn("text-[9px] font-black uppercase", isCompleted ? "text-emerald-600" : "text-orange-600")}>
                       {isCompleted ? 'Completado' : 'Pendiente'}
                     </span>
-                    <Switch checked={isCompleted} onCheckedChange={() => handleToggleStatus(slot)} />
+                    <Switch 
+                      checked={isCompleted} 
+                      onCheckedChange={() => handleToggleStatus(slot)} 
+                    />
                   </div>
                 ) : (
                   <Button variant="ghost" size="icon" onClick={() => handleCancel(slot.id)} className="text-destructive hover:bg-destructive/10 rounded-full">
