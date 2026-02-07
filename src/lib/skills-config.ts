@@ -1,3 +1,4 @@
+
 "use client"
 
 export const DEFAULT_SKILLS_CONFIG: Record<string, { name: string; color: string; defaultLevel: number }[]> = {
