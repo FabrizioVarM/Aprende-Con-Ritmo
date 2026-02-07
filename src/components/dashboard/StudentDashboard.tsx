@@ -37,15 +37,7 @@ import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { RESOURCES } from '@/lib/resources';
 import { cn } from '@/lib/utils';
-
-const TEACHERS = [
-  { id: '2', name: 'Prof. Carlos', instrument: 'Guitarra' },
-  { id: '4', name: 'Prof. Elena', instrument: 'Teoría' },
-  { id: '5', name: 'Prof. Marcos', instrument: 'Piano' },
-  { id: '7', name: 'Prof. Sofía', instrument: 'Guitarra' },
-  { id: '8', name: 'Prof. Julián', instrument: 'Violín' },
-  { id: '9', name: 'Prof. Marta', instrument: 'Canto' },
-];
+import { useRouter } from 'next/navigation';
 
 const INSTRUMENT_ICONS: Record<string, any> = {
   'Guitarra': Music,
@@ -57,11 +49,11 @@ const INSTRUMENT_ICONS: Record<string, any> = {
 };
 
 export default function StudentDashboard() {
-  const { user } = useAuth();
+  const { user, getTeachers } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<string>('Guitarra');
-  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('2');
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
@@ -69,6 +61,7 @@ export default function StudentDashboard() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   
   const { toast } = useToast();
+  const router = useRouter();
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
   const { getCompletionStatus } = useCompletionStore();
 
@@ -82,13 +75,19 @@ export default function StudentDashboard() {
     setSelectedDate(now);
   }, []);
 
+  const teachers = useMemo(() => getTeachers(), [getTeachers]);
+
   const availableInstruments = useMemo(() => {
-    return Array.from(new Set(TEACHERS.map(t => t.instrument))).sort();
-  }, []);
+    const instruments = new Set<string>();
+    teachers.forEach(t => {
+      t.instruments?.forEach(inst => instruments.add(inst));
+    });
+    return Array.from(instruments).sort();
+  }, [teachers]);
 
   const filteredTeachers = useMemo(() => {
-    return TEACHERS.filter(t => t.instrument === selectedInstrument);
-  }, [selectedInstrument]);
+    return teachers.filter(t => t.instruments?.includes(selectedInstrument));
+  }, [selectedInstrument, teachers]);
 
   useEffect(() => {
     if (filteredTeachers.length > 0) {
@@ -96,10 +95,13 @@ export default function StudentDashboard() {
       if (!isCurrentTeacherValid) {
         setSelectedTeacherId(filteredTeachers[0].id);
       }
+    } else {
+      setSelectedTeacherId('');
     }
   }, [selectedInstrument, filteredTeachers, selectedTeacherId]);
 
   const availability = useMemo(() => {
+    if (!selectedTeacherId) return { slots: [] };
     return getDayAvailability(selectedTeacherId, selectedDate);
   }, [selectedTeacherId, selectedDate, getDayAvailability, availabilities]);
 
@@ -114,7 +116,7 @@ export default function StudentDashboard() {
     availabilities.forEach(dayAvail => {
       dayAvail.slots.forEach(slot => {
         if (slot.isBooked && slot.bookedBy === user.name) {
-          const teacher = TEACHERS.find(t => t.id === dayAvail.teacherId);
+          const teacher = teachers.find(t => t.id === dayAvail.teacherId);
           const lessonDate = dayAvail.date;
           
           const timeParts = slot.time.split(' - ');
@@ -128,7 +130,7 @@ export default function StudentDashboard() {
               date: lessonDate,
               time: slot.time,
               teacherName: teacher?.name || 'Profesor',
-              instrument: teacher?.instrument || 'General',
+              instrument: teacher?.instruments?.includes(selectedInstrument) ? selectedInstrument : (teacher?.instruments?.[0] || 'Música'),
               type: slot.type,
               sortDate: new Date(`${lessonDate}T${startTime}:00`)
             });
@@ -140,7 +142,7 @@ export default function StudentDashboard() {
     return lessons
       .sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime())
       .slice(0, 4);
-  }, [availabilities, user, currentTime]);
+  }, [availabilities, user, currentTime, teachers, selectedInstrument]);
 
   const nextLesson = myUpcomingLessons[0];
 
@@ -157,7 +159,7 @@ export default function StudentDashboard() {
   }, [user, getCompletionStatus]);
 
   const handleBookLesson = () => {
-    if (!selectedSlotId || !user) return;
+    if (!selectedSlotId || !user || !selectedTeacherId) return;
 
     bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name);
     
@@ -239,7 +241,7 @@ export default function StudentDashboard() {
                     <div className="space-y-3">
                       <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Elige tu Profesor</label>
                       <div className="grid grid-cols-1 gap-2">
-                        {filteredTeachers.map(t => (
+                        {filteredTeachers.length > 0 ? filteredTeachers.map(t => (
                           <Button
                             key={t.id}
                             variant={selectedTeacherId === t.id ? "default" : "outline"}
@@ -252,16 +254,22 @@ export default function StudentDashboard() {
                             onClick={() => setSelectedTeacherId(t.id)}
                           >
                             <Avatar className="w-8 h-8 mr-3 border-2 border-white/20">
-                                <AvatarImage src={`https://picsum.photos/seed/${t.id}/100`} />
+                                {t.photoUrl ? (
+                                  <AvatarImage src={t.photoUrl} className="object-cover" />
+                                ) : (
+                                  <AvatarImage src={`https://picsum.photos/seed/${t.avatarSeed || t.id}/100`} />
+                                )}
                                 <AvatarFallback>{t.name[0]}</AvatarFallback>
                             </Avatar>
                             <div className="text-left">
                                 <p className="text-sm leading-none">{t.name}</p>
-                                <p className="text-[10px] opacity-70 uppercase tracking-tighter mt-1">{t.instrument}</p>
+                                <p className="text-[10px] opacity-70 uppercase tracking-tighter mt-1">{selectedInstrument}</p>
                             </div>
                             {selectedTeacherId === t.id && <CheckCircle2 className="ml-auto w-5 h-5" />}
                           </Button>
-                        ))}
+                        )) : (
+                          <p className="text-sm font-bold text-muted-foreground text-center py-4 italic">No hay profesores disponibles para este instrumento.</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -485,7 +493,7 @@ export default function StudentDashboard() {
                       <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length} • {resource.type}</div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0" onClick={() => window.location.href = '/library'}>
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0" onClick={() => router.push('/library')}>
                     <ChevronRight className="w-6 h-6 text-accent" />
                   </Button>
                 </div>
