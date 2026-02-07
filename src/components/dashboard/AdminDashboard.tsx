@@ -4,6 +4,8 @@
 import { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/lib/auth-store';
 import { useBookingStore } from '@/lib/booking-store';
 import { 
@@ -15,10 +17,7 @@ import {
   Settings,
   Clock,
   CalendarDays,
-  ChevronRight,
-  Avatar,
-  AvatarImage,
-  AvatarFallback
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -84,7 +83,7 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground mt-1 text-lg font-medium">Resumen de las operaciones y crecimiento de la escuela.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="rounded-2xl gap-2 h-12 border-2">
+          <Button variant="outline" className="rounded-2xl gap-2 h-12 border-2 font-black">
             <Settings className="w-4 h-4" /> Ajustes
           </Button>
           <Button className="bg-accent text-white rounded-2xl gap-2 h-12 shadow-lg shadow-accent/20 font-black px-6">
@@ -169,7 +168,11 @@ export default function AdminDashboard() {
                 <div key={t.id} className="flex items-center justify-between p-6 hover:bg-muted/30 transition-colors group">
                   <div className="flex items-center gap-4">
                     <Avatar className="w-14 h-14 border-2 border-primary/20 shadow-sm transition-transform group-hover:scale-105">
-                      <AvatarImage src={`https://picsum.photos/seed/${t.id}/150`} />
+                      {t.photoUrl ? (
+                        <AvatarImage src={t.photoUrl} className="object-cover" />
+                      ) : (
+                        <AvatarImage src={`https://picsum.photos/seed/${t.id}/150`} />
+                      )}
                       <AvatarFallback className="bg-primary text-secondary-foreground font-black">{t.name[0]}</AvatarFallback>
                     </Avatar>
                     <div className="space-y-1">
