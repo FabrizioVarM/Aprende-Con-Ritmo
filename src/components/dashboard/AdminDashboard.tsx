@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/lib/auth-store';
 import { useBookingStore } from '@/lib/booking-store';
+import { useCompletionStore } from '@/lib/completion-store';
+import { useResourceStore } from '@/lib/resource-store';
 import { 
   Users, 
   Music, 
@@ -19,13 +21,16 @@ import {
   ChevronRight,
   CheckCircle2,
   Trophy,
-  History
+  History,
+  BookOpen
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function AdminDashboard() {
   const { allUsers, getTeachers } = useAuth();
   const { availabilities } = useBookingStore();
+  const { completions } = useCompletionStore();
+  const { resources } = useResourceStore();
 
   const teachers = useMemo(() => getTeachers(), [getTeachers]);
   const studentsCount = useMemo(() => allUsers.filter(u => u.role === 'student').length, [allUsers]);
@@ -65,7 +70,6 @@ export default function AdminDashboard() {
             duration = 1;
           }
 
-          // Stats for current week
           if (isThisWeek && (slot.isAvailable || slot.isBooked)) {
             weeklyEnabledHours += duration;
             weeklyEnabledSlots++;
@@ -74,7 +78,6 @@ export default function AdminDashboard() {
             }
           }
 
-          // Global historical stats
           if (slot.isBooked && slot.status === 'completed') {
             globalCompletedHours += duration;
           }
@@ -97,7 +100,6 @@ export default function AdminDashboard() {
     })).sort((a, b) => b.stats.globalCompletedHours - a.stats.globalCompletedHours);
   }, [teachers, availabilities]);
 
-  // Global metrics for the cards
   const globalStats = useMemo(() => {
     let totalHours = 0;
     let totalCount = 0;
@@ -122,6 +124,51 @@ export default function AdminDashboard() {
     
     return { totalHours, totalCount };
   }, [availabilities]);
+
+  const recentActivity = useMemo(() => {
+    const list: any[] = [];
+
+    // Clases completadas
+    availabilities.forEach(day => {
+      day.slots.forEach(slot => {
+        if (slot.isBooked && slot.status === 'completed') {
+          const startTime = slot.time.split(' - ')[0];
+          const timestamp = new Date(`${day.date}T${startTime}:00`).getTime();
+          list.push({
+            id: `class-${slot.id}-${day.date}`,
+            type: 'class',
+            user: slot.bookedBy || 'Alumno',
+            action: `Clase de ${slot.instrument || 'Música'} completada`,
+            timestamp,
+            timeLabel: new Date(timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+            icon: CheckCircle2,
+            color: 'text-emerald-600',
+            bg: 'bg-emerald-50'
+          });
+        }
+      });
+    });
+
+    // Recursos completados
+    completions.filter(c => c.isCompleted).forEach(c => {
+      const resource = resources.find(r => r.id === c.resourceId);
+      const student = allUsers.find(u => u.id === c.studentId);
+      const timestamp = new Date(c.date).getTime();
+      list.push({
+        id: `res-${c.resourceId}-${c.studentId}`,
+        type: 'resource',
+        user: student?.name || 'Alumno',
+        action: `Material "${resource?.title || 'Material'}" completado`,
+        timestamp,
+        timeLabel: new Date(timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+        icon: BookOpen,
+        color: 'text-accent',
+        bg: 'bg-accent/5'
+      });
+    });
+
+    return list.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+  }, [availabilities, completions, resources, allUsers]);
 
   return (
     <div className="space-y-8">
@@ -236,7 +283,6 @@ export default function AdminDashboard() {
                   </div>
                   
                   <div className="flex flex-wrap items-center gap-6 sm:gap-10 w-full sm:w-auto">
-                    {/* Weekly Stats */}
                     <div className="text-right">
                       <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Esta Semana</p>
                       <div className="flex items-center justify-end gap-2">
@@ -261,7 +307,6 @@ export default function AdminDashboard() {
                       </p>
                     </div>
 
-                    {/* Global Historical Stats */}
                     <div className="text-right border-l border-primary/10 pl-6 sm:pl-10 bg-accent/5 p-2 rounded-2xl">
                       <p className="text-[9px] font-black uppercase tracking-widest text-accent mb-1">Histórico Global</p>
                       <div className="flex items-center justify-end gap-2">
@@ -294,22 +339,26 @@ export default function AdminDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {[
-              { user: 'Juan Pérez', action: 'Nueva Inscripción', time: 'Hace 10m' },
-              { user: 'Prof. Carlos', action: 'Agenda Actualizada', time: 'Hace 1h' },
-              { user: 'Emma Lou', action: 'Clase Reservada', time: 'Hace 2h' },
-              { user: 'Sistema', action: 'Sincronización OK', time: 'Hace 4h' },
-              { user: 'Alex Doe', action: 'Nueva Disponibilidad', time: 'Hace 1d' },
-            ].map((act, i) => (
-              <div key={i} className="flex items-center gap-4 p-5 border-b last:border-0 hover:bg-muted/50 transition-colors">
-                <div className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                <div className="flex-1">
-                  <div className="text-sm font-black text-secondary-foreground">{act.action}</div>
-                  <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{act.user}</div>
+            {recentActivity.length > 0 ? recentActivity.map((act) => {
+              const Icon = act.icon;
+              return (
+                <div key={act.id} className="flex items-center gap-4 p-5 border-b last:border-0 hover:bg-muted/50 transition-colors">
+                  <div className={cn("p-2 rounded-xl shrink-0", act.bg)}>
+                    <Icon className={cn("w-4 h-4", act.color)} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-black text-secondary-foreground truncate">{act.action}</div>
+                    <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest truncate">{act.user}</div>
+                  </div>
+                  <div className="text-[10px] text-muted-foreground italic font-medium shrink-0">{act.timeLabel}</div>
                 </div>
-                <div className="text-[10px] text-muted-foreground italic font-medium">{act.time}</div>
+              );
+            }) : (
+              <div className="p-12 text-center">
+                <Clock className="w-8 h-8 text-muted-foreground/20 mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground italic">Sin actividad reciente registrada.</p>
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
       </div>
