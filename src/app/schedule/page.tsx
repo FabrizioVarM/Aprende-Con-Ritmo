@@ -87,6 +87,7 @@ export default function SchedulePage() {
   const [date, setDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -99,6 +100,7 @@ export default function SchedulePage() {
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     setTodayTimestamp(startOfToday.getTime());
     setDate(now);
+    setCurrentTime(now);
   }, []);
 
   const isTeacher = user?.role === 'teacher';
@@ -120,7 +122,7 @@ export default function SchedulePage() {
     const [h, m] = slotEndTimeStr.split(':');
     const slotEndDate = new Date(date);
     slotEndDate.setHours(parseInt(h), parseInt(m), 0, 0);
-    return now > slotEndDate;
+    return (currentTime || now) > slotEndDate;
   };
 
   const mySlots = useMemo(() => {
@@ -130,9 +132,25 @@ export default function SchedulePage() {
     return allDaySlots.filter(s => s.isBooked && (s.studentId === user?.id || s.bookedBy === user?.name));
   }, [allDaySlots, user, isTeacher]);
 
-  const otherAvailableSlots = useMemo(() => 
-    allDaySlots.filter(s => s.isAvailable && !s.isBooked),
-  [allDaySlots]);
+  const otherAvailableSlots = useMemo(() => {
+    if (!currentTime) return [];
+    const isToday = date.toDateString() === currentTime.toDateString();
+
+    return allDaySlots.filter(s => {
+      if (!s.isAvailable || s.isBooked) return false;
+
+      if (isToday) {
+        const startTimeStr = s.time.split(' - ')[0];
+        const [h, m] = startTimeStr.split(':').map(Number);
+        const slotStartTime = new Date(date);
+        slotStartTime.setHours(h, m, 0, 0);
+        return currentTime.getTime() < slotStartTime.getTime();
+      }
+
+      const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+      return dateStart >= todayTimestamp;
+    });
+  }, [allDaySlots, date, currentTime, todayTimestamp]);
 
   const teacherPendingClasses = useMemo(() => 
     mySlots.filter(s => !isPastSlot(s.time)),
@@ -386,7 +404,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                   <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>

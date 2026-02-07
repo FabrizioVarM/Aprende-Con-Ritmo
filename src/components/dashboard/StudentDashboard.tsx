@@ -121,8 +121,30 @@ export default function StudentDashboard() {
   }, [selectedTeacherId, selectedDate, getDayAvailability, availabilities]);
 
   const freeSlots = useMemo(() => {
-    return availability.slots.filter(s => s.isAvailable && !s.isBooked);
-  }, [availability.slots]);
+    if (!currentTime || !selectedDate) return [];
+    
+    const isToday = selectedDate.toDateString() === currentTime.toDateString();
+    
+    return availability.slots.filter(s => {
+      // Basic availability check
+      if (!s.isAvailable || s.isBooked) return false;
+      
+      if (isToday) {
+        // If it's today, check if slot start time is in the future
+        const startTimeStr = s.time.split(' - ')[0];
+        const [h, m] = startTimeStr.split(':').map(Number);
+        const slotStartTime = new Date(selectedDate);
+        slotStartTime.setHours(h, m, 0, 0);
+        
+        return currentTime.getTime() < slotStartTime.getTime();
+      }
+      
+      // For future dates, all available slots are shown
+      // For past dates (if somehow accessed), they are filtered out
+      const selectedDateStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).getTime();
+      return selectedDateStart >= todayTimestamp;
+    });
+  }, [availability.slots, selectedDate, currentTime, todayTimestamp]);
 
   const myUpcomingLessons = useMemo(() => {
     if (!user || !currentTime) return [];
