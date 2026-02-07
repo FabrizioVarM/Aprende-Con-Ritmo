@@ -114,12 +114,14 @@ export default function LibraryPage() {
     <AppLayout>
       <div className="space-y-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
+          <div className="max-w-4xl">
             <h1 className="text-3xl font-extrabold text-foreground font-headline tracking-tight">Biblioteca de Recursos 📚</h1>
-            <p className="text-muted-foreground mt-1 text-lg font-medium">Materiales curados para acelerar tu aprendizaje.</p>
+            <p className="text-muted-foreground mt-2 text-lg font-medium leading-relaxed">
+              Materiales curados para acelerar tu aprendizaje. ¡Descarga el material para tus prácticas, o interactúa directamente reproduciendo y escuchando en tiempo real! Edita la velocidad, repite indefinidamente y más. Completa el examen del material con tu profesor, y gana más puntos de progreso.
+            </p>
           </div>
           {isStaff && (
-            <div className="bg-white border-2 border-accent/20 p-2 pl-4 rounded-[2rem] flex flex-col sm:flex-row items-center gap-4 shadow-sm">
+            <div className="bg-white border-2 border-accent/20 p-2 pl-4 rounded-[2rem] flex flex-col sm:flex-row items-center gap-4 shadow-sm shrink-0">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-6 h-6 text-accent" />
                 <div className="hidden sm:block">
