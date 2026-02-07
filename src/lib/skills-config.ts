@@ -32,6 +32,12 @@ export const DEFAULT_SKILLS_CONFIG: Record<string, { name: string; color: string
     { name: 'Proyección', color: 'bg-orange-500', defaultLevel: 20 },
     { name: 'Dicción', color: 'bg-green-500', defaultLevel: 35 },
   ],
+  'Flauta': [
+    { name: 'Emisión de Sonido', color: 'bg-accent', defaultLevel: 25 },
+    { name: 'Digitación', color: 'bg-blue-500', defaultLevel: 20 },
+    { name: 'Control de Aire', color: 'bg-orange-500', defaultLevel: 30 },
+    { name: 'Articulación', color: 'bg-green-500', defaultLevel: 15 },
+  ],
   'Teoría': [
     { name: 'Lectura de Pentagrama', color: 'bg-accent', defaultLevel: 10 },
     { name: 'Intervalos', color: 'bg-blue-500', defaultLevel: 5 },
