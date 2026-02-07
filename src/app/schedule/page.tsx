@@ -228,14 +228,14 @@ export default function SchedulePage() {
       <Card className={cn(
         "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden shadow-sm hover:shadow-md",
         isMine || isTeacherView
-          ? (isCompleted ? 'bg-emerald-50 border-emerald-200' : 'bg-accent/5 border-accent shadow-lg shadow-accent/10') 
+          ? (isCompleted ? 'bg-emerald-50 border-emerald-200' : (isPast && isMine ? 'bg-orange-50 border-orange-200' : 'bg-accent/5 border-accent shadow-lg shadow-accent/10')) 
           : 'bg-white border-primary/5 hover:border-accent/20'
       )}>
         <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <div className={cn(
               "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[95px] h-16 sm:h-20 rounded-2xl shrink-0 shadow-inner",
-              isMine || isTeacherView ? (isCompleted ? "bg-emerald-500 text-white" : "bg-accent text-white") : "bg-primary/10 text-secondary-foreground"
+              isMine || isTeacherView ? (isCompleted ? "bg-emerald-500 text-white" : (isPast && isMine ? "bg-orange-500 text-white" : "bg-accent text-white")) : "bg-primary/10 text-secondary-foreground"
             )}>
               <span className="text-sm sm:text-base font-black leading-none text-center">{displayTime}</span>
             </div>
@@ -243,7 +243,7 @@ export default function SchedulePage() {
             <div className="min-w-0 space-y-0.5 sm:space-y-1">
               <h4 className={cn(
                 "text-base sm:text-lg font-black tracking-tight truncate flex items-center gap-2",
-                (isMine || isTeacherView) ? (isCompleted ? "text-emerald-700" : "text-accent") : "text-secondary-foreground"
+                (isMine || isTeacherView) ? (isCompleted ? "text-emerald-700" : (isPast && isMine ? "text-orange-700" : "text-accent")) : "text-secondary-foreground"
               )}>
                 {slot.isBooked ? (
                   <div className="flex items-center gap-2">
@@ -333,7 +333,7 @@ export default function SchedulePage() {
                 )}
                 <div className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all", 
-                  isCompleted ? "bg-emerald-100 text-emerald-700" : "bg-accent/10 text-accent"
+                  isCompleted ? "bg-emerald-100 text-emerald-700" : (isPast ? "bg-orange-100 text-orange-700" : "bg-accent/10 text-accent")
                 )}>
                   {isCompleted ? (
                     <>
@@ -341,7 +341,12 @@ export default function SchedulePage() {
                       <span className="text-[10px] font-black uppercase tracking-widest">Completado</span>
                     </>
                   ) : (
-                    <CheckCircle2 className="w-5 h-5" />
+                    <>
+                      <CheckCircle2 className="w-5 h-5" />
+                      {isPast && (
+                        <span className="text-[10px] font-black uppercase tracking-widest">Revisando</span>
+                      )}
+                    </>
                   )}
                 </div>
               </>
