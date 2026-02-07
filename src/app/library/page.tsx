@@ -159,11 +159,11 @@ export default function LibraryPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex gap-2">
-                  <Button className="flex-1 bg-accent hover:bg-accent/90 text-white rounded-xl gap-2 font-bold h-11">
-                    <Download className="w-4 h-4" /> Descargar
+                  <Button variant="outline" className="flex-none rounded-xl border-primary h-11 gap-1.5 font-bold px-3 text-xs sm:text-sm">
+                    <Download className="w-4 h-4 shrink-0" /> Descargar
                   </Button>
-                  <Button variant="outline" className="rounded-xl px-3 border-primary h-11">
-                    <Play className="w-4 h-4" />
+                  <Button className="flex-1 bg-accent hover:bg-accent/90 text-white rounded-xl gap-2 font-bold h-11">
+                    <Play className="w-4 h-4 shrink-0" /> Interactúa!
                   </Button>
                 </CardFooter>
               </Card>
