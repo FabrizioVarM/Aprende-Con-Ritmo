@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -40,7 +41,7 @@ const getTimePeriod = (timeStr: string) => {
   const hour = parseInt(timeStr.split(':')[0]);
   if (hour >= 6 && hour < 12) {
     return { 
-      label: 'Mañana', 
+      label: 'Turno Mañana', 
       icon: Sunrise, 
       color: 'text-amber-700', 
       bg: 'bg-amber-100', 
@@ -49,7 +50,7 @@ const getTimePeriod = (timeStr: string) => {
   }
   if (hour >= 12 && hour < 19) {
     return { 
-      label: 'Tarde', 
+      label: 'Turno Tarde', 
       icon: Sun, 
       color: 'text-orange-700', 
       bg: 'bg-orange-100', 
@@ -57,7 +58,7 @@ const getTimePeriod = (timeStr: string) => {
     };
   }
   return { 
-    label: 'Noche', 
+    label: 'Turno Noche', 
     icon: Moon, 
     color: 'text-indigo-700', 
     bg: 'bg-indigo-100', 
@@ -168,15 +169,6 @@ export default function SchedulePage() {
               isMine ? "bg-accent text-white" : "bg-primary/10 text-secondary-foreground"
             )}>
               <span className="text-sm sm:text-base font-black leading-none text-center">{displayTime}</span>
-              <div className={cn(
-                "flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full border shadow-sm",
-                isMine 
-                  ? "bg-white/20 border-white/30 text-white" 
-                  : `${period.bg} ${period.border} ${period.color}`
-              )}>
-                <PeriodIcon className="w-2.5 h-2.5" />
-                <span className="text-[7px] font-black uppercase tracking-tighter">{period.label}</span>
-              </div>
             </div>
             
             <div className="min-w-0 space-y-0.5 sm:space-y-1">
@@ -194,6 +186,15 @@ export default function SchedulePage() {
                 )}>
                   {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
                   {slot.type === 'virtual' ? 'Online' : 'Sede'}
+                </span>
+                <span className={cn(
+                  "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
+                  isMine 
+                    ? "bg-accent/10 border-accent/20 text-accent" 
+                    : `${period.bg} ${period.border} ${period.color}`
+                )}>
+                  <PeriodIcon className="w-2.5 h-2.5" />
+                  {period.label}
                 </span>
               </div>
             </div>
@@ -301,6 +302,12 @@ export default function SchedulePage() {
                                     )}>
                                         {slot.type === 'virtual' ? <Video className="w-2.5 h-2.5" /> : <MapPin className="w-2.5 h-2.5" />}
                                         {slot.type}
+                                    </span>
+                                    <span className={cn(
+                                      "text-[9px] font-black uppercase flex items-center gap-1",
+                                      selectedSlotId === slot.id ? "text-white/80" : period.color
+                                    )}>
+                                      {period.label}
                                     </span>
                                   </div>
                               </div>
