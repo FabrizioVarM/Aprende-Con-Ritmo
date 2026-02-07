@@ -49,21 +49,23 @@ const ViolinIcon = (props: any) => (
   </svg>
 );
 
+// Configuración visual de instrumentos: Icono, Color de texto y Color de fondo
+const INSTRUMENT_CONFIG: Record<string, { icon: any, color: string, bg: string, border: string }> = {
+  'Guitarra': { icon: Guitar, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
+  'Piano': { icon: Keyboard, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
+  'Violín': { icon: ViolinIcon, color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
+  'Batería': { icon: Drum, color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
+  'Canto': { icon: Mic, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
+  'Teoría': { icon: BookOpen, color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
+  'Bajo': { icon: Guitar, color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
+  'Flauta': { icon: Music, color: 'text-teal-600', bg: 'bg-teal-100', border: 'border-teal-200' },
+  'Default': { icon: Music, color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
+};
+
 // Simulación de datos de profesores para la vista de agenda (para alumnos)
 const DEFAULT_TEACHER_ID = '2';
 const DEFAULT_TEACHER_NAME = 'Carlos';
 const DEFAULT_TEACHER_INSTRUMENT = 'Guitarra';
-
-const INSTRUMENT_ICONS: Record<string, any> = {
-  'Guitarra': Guitar,
-  'Piano': Keyboard,
-  'Violín': ViolinIcon,
-  'Batería': Drum,
-  'Canto': Mic,
-  'Teoría': BookOpen,
-  'Bajo': Guitar,
-  'Flauta': Music,
-};
 
 const formatToAmPm = (timeRange: string) => {
   const startPart = timeRange.split(' - ')[0];
@@ -126,7 +128,6 @@ export default function SchedulePage() {
   const isTeacher = user?.role === 'teacher';
   const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
 
-  // Normalizar la fecha para las consultas (Formato robusto YYYY-MM-DD)
   const dateStrKey = useMemo(() => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }, [date]);
@@ -137,7 +138,6 @@ export default function SchedulePage() {
   
   const allDaySlots = availability.slots;
 
-  // Filtrado y procesamiento de slots
   const now = new Date();
   const isPastSlot = (slotTime: string) => {
     const slotEndTimeStr = slotTime.split(' - ')[1];
@@ -158,7 +158,6 @@ export default function SchedulePage() {
     allDaySlots.filter(s => s.isAvailable && !s.isBooked),
   [allDaySlots]);
 
-  // Dividir clases del profesor entre pendientes (futuro) y por completar (pasado)
   const teacherPendingClasses = useMemo(() => 
     mySlots.filter(s => !isPastSlot(s.time)),
   [mySlots]);
@@ -219,17 +218,15 @@ export default function SchedulePage() {
     });
   }, [date]);
 
-  if (!isMounted) return null;
-
   const SlotCard = ({ slot, isMine, isTeacherView }: { slot: any, isMine: boolean, isTeacherView?: boolean }) => {
     const period = getTimePeriod(slot.time);
     const PeriodIcon = period.icon;
     const displayTime = formatToAmPm(slot.time);
-    const InstrumentIcon = (slot.instrument && INSTRUMENT_ICONS[slot.instrument]) || Music;
+    const instConfig = (slot.instrument && INSTRUMENT_CONFIG[slot.instrument]) || INSTRUMENT_CONFIG['Default'];
+    const InstrumentIcon = instConfig.icon;
     const isCompleted = slot.status === 'completed';
     const isPast = isPastSlot(slot.time);
 
-    // Get teacher information for available slots
     const currentTeacherId = isTeacherView || isTeacher ? teacherId : DEFAULT_TEACHER_ID;
     const teacherProfile = allUsers.find(u => u.id === currentTeacherId);
     const teacherInstruments = teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT];
@@ -257,21 +254,26 @@ export default function SchedulePage() {
               )}>
                 {slot.isBooked ? (
                   <>
-                    <InstrumentIcon className="w-5 h-5" />
+                    <InstrumentIcon className={cn("w-5 h-5", instConfig.color)} />
                     <span>Clase de {slot.instrument || 'Música'}</span>
                   </>
                 ) : (
                   <div className="flex items-center gap-2 overflow-hidden">
-                    <span className="text-muted-foreground shrink-0 text-sm">Disponible:</span>
+                    <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
                     <div className="flex items-center gap-1.5 truncate">
                       {teacherInstruments.map((inst, idx) => {
-                        const Icon = INSTRUMENT_ICONS[inst] || Music;
+                        const config = INSTRUMENT_CONFIG[inst] || INSTRUMENT_CONFIG['Default'];
+                        const Icon = config.icon;
                         return (
                           <TooltipProvider key={idx}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div className="p-1.5 bg-accent/10 rounded-lg border border-accent/20 hover:bg-accent/20 transition-colors">
-                                  <Icon className="w-4 h-4 text-accent" />
+                                <div className={cn(
+                                  "p-1.5 rounded-lg border transition-all hover:scale-110",
+                                  config.bg,
+                                  config.border
+                                )}>
+                                  <Icon className={cn("w-4 h-4", config.color)} />
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">

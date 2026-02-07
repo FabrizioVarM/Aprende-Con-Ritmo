@@ -60,15 +60,16 @@ const ViolinIcon = (props: any) => (
   </svg>
 );
 
-const INSTRUMENT_ICONS: Record<string, any> = {
-  'Guitarra': Guitar,
-  'Piano': Keyboard,
-  'Violín': ViolinIcon,
-  'Batería': Drum,
-  'Canto': Mic,
-  'Teoría': BookOpen,
-  'Bajo': Guitar,
-  'Flauta': Music,
+const INSTRUMENT_CONFIG: Record<string, { icon: any, color: string, bg: string, border: string }> = {
+  'Guitarra': { icon: Guitar, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
+  'Piano': { icon: Keyboard, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
+  'Violín': { icon: ViolinIcon, color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
+  'Batería': { icon: Drum, color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
+  'Canto': { icon: Mic, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
+  'Teoría': { icon: BookOpen, color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
+  'Bajo': { icon: Guitar, color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
+  'Flauta': { icon: Music, color: 'text-teal-600', bg: 'bg-teal-100', border: 'border-teal-200' },
+  'Default': { icon: Music, color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
 };
 
 export default function StudentDashboard() {
@@ -142,12 +143,10 @@ export default function StudentDashboard() {
           const teacher = teachers.find(t => t.id === dayAvail.teacherId);
           const lessonDate = dayAvail.date;
           
-          // Normalizar formato de tiempo (ej: "13:00 - 14:00" o "1:00 - 2:00")
           const timeParts = slot.time.split(' - ');
           let startTimeStr = timeParts[0].trim();
           let endTimeStr = timeParts[1]?.trim() || startTimeStr;
 
-          // Asegurar formato HH:mm
           const formatTime = (t: string) => {
             if (t.includes(':')) {
               const [h, m] = t.split(':');
@@ -161,7 +160,6 @@ export default function StudentDashboard() {
           
           const endDateTime = new Date(`${lessonDate}T${endTime}:00`);
           
-          // Si la clase termina después de ahora, es una clase próxima
           if (currentTime.getTime() < endDateTime.getTime()) {
             lessons.push({
               id: slot.id,
@@ -262,11 +260,12 @@ export default function StudentDashboard() {
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl">
                           {availableInstruments.map(inst => {
-                            const Icon = INSTRUMENT_ICONS[inst] || Music;
+                            const config = INSTRUMENT_CONFIG[inst] || INSTRUMENT_CONFIG['Default'];
+                            const Icon = config.icon;
                             return (
                               <SelectItem key={inst} value={inst} className="font-bold py-3">
                                 <div className="flex items-center gap-3">
-                                  <Icon className="w-4 h-4 text-accent" />
+                                  <Icon className={cn("w-4 h-4", config.color)} />
                                   <span>{inst}</span>
                                 </div>
                               </SelectItem>
@@ -471,16 +470,17 @@ export default function StudentDashboard() {
           <CardContent className="p-0">
             {myUpcomingLessons.length > 0 ? (
               myUpcomingLessons.map((lesson, i) => {
-                const InstrumentIcon = INSTRUMENT_ICONS[lesson.instrument] || Music;
+                const config = INSTRUMENT_CONFIG[lesson.instrument] || INSTRUMENT_CONFIG['Default'];
+                const InstrumentIcon = config.icon;
                 return (
                   <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
                     <div className="flex gap-3 sm:gap-4 items-center min-w-0">
-                      <div className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-primary/10 shrink-0">
-                        <InstrumentIcon className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+                      <div className={cn("p-2 sm:p-3 rounded-2xl shadow-sm border shrink-0", config.bg, config.border)}>
+                        <InstrumentIcon className={cn("w-5 h-5 sm:w-6 sm:h-6", config.color)} />
                       </div>
                       <div className="min-w-0">
                         <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate flex items-center gap-2">
-                          <InstrumentIcon className="w-4 h-4 text-accent" />
+                          <InstrumentIcon className={cn("w-4 h-4", config.color)} />
                           <span>Lección de {lesson.instrument}</span>
                         </div>
                         <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
