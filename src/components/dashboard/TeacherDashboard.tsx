@@ -51,6 +51,20 @@ const calculateDuration = (timeStr: string): number => {
   }
 };
 
+const formatTimeAgo = (timestamp: number) => {
+  if (timestamp === 0) return 'Nunca';
+  const now = new Date().getTime();
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (minutes < 1) return 'ahora mismo';
+  if (minutes < 60) return `hace ${minutes} min`;
+  if (hours < 24) return `hace ${hours} h`;
+  return `hace ${days} días`;
+};
+
 export default function TeacherDashboard() {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -152,7 +166,8 @@ export default function TeacherDashboard() {
       name: string, 
       instruments: string[],
       hoursByInstrument: Map<string, number>,
-      completedResourcesCount: number
+      completedResourcesCount: number,
+      lastClassTimestamp: number
     }>();
 
     availabilities.forEach(day => {
@@ -174,7 +189,8 @@ export default function TeacherDashboard() {
                 name: studentProfile?.name || slot.bookedBy || 'Alumno', 
                 instruments: studentProfile?.instruments || [],
                 hoursByInstrument: new Map(),
-                completedResourcesCount: resCount
+                completedResourcesCount: resCount,
+                lastClassTimestamp: 0
               };
               studentsMap.set(studentId, studentData);
             }
@@ -186,6 +202,18 @@ export default function TeacherDashboard() {
               }
               const currentHours = studentData.hoursByInstrument.get(instrument) || 0;
               studentData.hoursByInstrument.set(instrument, currentHours + duration);
+
+              // Update last class timestamp
+              try {
+                const startTime = slot.time.split(' - ')[0];
+                const classDate = new Date(`${day.date}T${startTime}:00`);
+                const ts = classDate.getTime();
+                if (ts > studentData.lastClassTimestamp) {
+                  studentData.lastClassTimestamp = ts;
+                }
+              } catch (e) {
+                // Ignore parse errors
+              }
             }
           }
         });
@@ -418,6 +446,9 @@ export default function TeacherDashboard() {
                     <div className="min-w-0">
                       <h4 className="font-black text-lg text-secondary-foreground truncate leading-tight">{student.name}</h4>
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Resumen Académico</p>
+                      <p className="text-[10px] font-bold text-muted-foreground mt-1">
+                        Última clase: <span className="text-accent">{formatTimeAgo(student.lastClassTimestamp)}</span>
+                      </p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1">
