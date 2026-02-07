@@ -503,7 +503,7 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="rounded-[2.5rem] border-none shadow-sm bg-primary/20 p-6">
+        <Card className="rounded-[2.5rem] border-none shadow-sm bg-emerald-100/50 p-6">
           <CardHeader className="p-0 pb-4">
             <CardTitle className="text-sm font-black uppercase tracking-widest text-secondary-foreground flex items-center gap-2">
               <CalendarIcon className="w-5 h-5 text-accent" />
