@@ -208,7 +208,7 @@ export default function SchedulePage() {
 
     if (newStatus === 'completed') {
       toast({
-        title: "Clase Completada ✅",
+        title: "Logro Validado ✅",
         description: `Se han sumado los puntos correspondientes al progreso del alumno.`,
       });
     } else {
@@ -500,12 +500,12 @@ export default function SchedulePage() {
                   ) : (
                     <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10">
                       <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
-                      <p className="text-sm font-bold text-muted-foreground">¡Sin más cupos libres!</p>
+                      <p className="text-sm font-bold text-muted-foreground">¡se llenaron todos los cupos!</p>
                     </div>
                   )}
                 </div>
                 <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                   <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>

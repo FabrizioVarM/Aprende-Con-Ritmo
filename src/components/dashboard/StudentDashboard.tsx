@@ -493,7 +493,7 @@ export default function StudentDashboard() {
                     ) : (
                       <div className="bg-muted/10 p-12 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5">
                         <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
-                        <p className="font-black text-muted-foreground">¡Sin más cupos libres!</p>
+                        <p className="font-black text-muted-foreground">¡se llenaron todos los cupos!</p>
                       </div>
                     )}
                   </div>
