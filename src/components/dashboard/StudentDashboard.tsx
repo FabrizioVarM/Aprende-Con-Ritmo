@@ -115,18 +115,33 @@ export default function StudentDashboard() {
     const lessons: any[] = [];
     availabilities.forEach(dayAvail => {
       dayAvail.slots.forEach(slot => {
-        if (slot.isBooked && slot.bookedBy === user.name) {
+        if (slot.isBooked && (slot.bookedBy === user.name || slot.bookedBy === user.id)) {
           const teacher = teachers.find(t => t.id === dayAvail.teacherId);
           const lessonDate = dayAvail.date;
           
+          // Normalizar formato de tiempo (ej: "13:00 - 14:00" o "1:00 - 2:00")
           const timeParts = slot.time.split(' - ');
-          const startTime = timeParts[0];
-          const endTime = timeParts[1];
+          let startTimeStr = timeParts[0].trim();
+          let endTimeStr = timeParts[1]?.trim() || startTimeStr;
+
+          // Asegurar formato HH:mm
+          const formatTime = (t: string) => {
+            if (t.includes(':')) {
+              const [h, m] = t.split(':');
+              return `${h.padStart(2, '0')}:${m.padStart(2, '0')}`;
+            }
+            return t.padStart(2, '0') + ':00';
+          };
+
+          const startTime = formatTime(startTimeStr);
+          const endTime = formatTime(endTimeStr);
           
           const endDateTime = new Date(`${lessonDate}T${endTime}:00`);
           
-          if (currentTime < endDateTime) {
+          // Si la clase termina después de ahora, es una clase próxima
+          if (currentTime.getTime() < endDateTime.getTime()) {
             lessons.push({
+              id: slot.id,
               date: lessonDate,
               time: slot.time,
               teacherName: teacher?.name || 'Profesor',
@@ -433,7 +448,7 @@ export default function StudentDashboard() {
           <CardContent className="p-0">
             {myUpcomingLessons.length > 0 ? (
               myUpcomingLessons.map((lesson, i) => (
-                <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
+                <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
                   <div className="flex gap-3 sm:gap-4 items-center min-w-0">
                     <div className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-primary/10 shrink-0">
                       <Music className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
