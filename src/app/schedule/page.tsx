@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Keyboard, Mic, BookOpen } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -26,6 +26,17 @@ const TEACHER_INFO = {
   id: '2',
   name: 'Carlos',
   instrument: 'Guitarra'
+};
+
+const INSTRUMENT_ICONS: Record<string, any> = {
+  'Guitarra': Music,
+  'Piano': Keyboard,
+  'Violín': Music,
+  'Batería': Drum,
+  'Canto': Mic,
+  'Teoría': BookOpen,
+  'Bajo': Music,
+  'Flauta': Music,
 };
 
 const formatToAmPm = (timeRange: string) => {
@@ -154,6 +165,7 @@ export default function SchedulePage() {
     const period = getTimePeriod(slot.time);
     const PeriodIcon = period.icon;
     const displayTime = formatToAmPm(slot.time);
+    const InstrumentIcon = isMine ? (INSTRUMENT_ICONS[slot.instrument] || Music) : Music;
 
     return (
       <Card className={cn(
@@ -173,13 +185,23 @@ export default function SchedulePage() {
             
             <div className="min-w-0 space-y-0.5 sm:space-y-1">
               <h4 className={cn(
-                "text-base sm:text-lg font-black tracking-tight truncate",
+                "text-base sm:text-lg font-black tracking-tight truncate flex items-center gap-2",
                 isMine ? "text-accent" : "text-secondary-foreground"
               )}>
-                {isMine ? `🌟 Clase de ${slot.instrument || 'Música'}` : 'Horario Disponible'}
+                {isMine ? (
+                  <>
+                    <InstrumentIcon className="w-5 h-5" />
+                    <span>Clase de {slot.instrument || 'Música'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Music className="w-5 h-5" />
+                    <span>Horario Disponible</span>
+                  </>
+                )}
               </h4>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                <span className="flex items-center gap-1 shrink-0"><Music className="w-3 h-3 text-accent" /> {TEACHER_INFO.name}</span>
+                <span className="flex items-center gap-1 shrink-0"><UserIcon className="w-3 h-3 text-accent" /> {TEACHER_INFO.name}</span>
                 <span className={cn(
                     "flex items-center gap-1 shrink-0",
                     slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
@@ -230,6 +252,24 @@ export default function SchedulePage() {
       </Card>
     );
   };
+
+  const UserIcon = ({ className }: { className?: string }) => (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
 
   return (
     <AppLayout>

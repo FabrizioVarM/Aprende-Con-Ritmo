@@ -19,8 +19,19 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Check, Video, MapPin } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Check, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const INSTRUMENT_ICONS: Record<string, any> = {
+  'Guitarra': Music,
+  'Piano': Keyboard,
+  'Violín': Music,
+  'Batería': Drum,
+  'Canto': Mic,
+  'Teoría': BookOpen,
+  'Bajo': Music,
+  'Flauta': Music,
+};
 
 export default function TeacherDashboard() {
   const [isMounted, setIsMounted] = useState(false);
@@ -440,24 +451,32 @@ export default function TeacherDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             {currentDayBookedSlots.length > 0 ? (
-              currentDayBookedSlots.map((cls, i) => (
-                <div key={i} className="flex items-center justify-between p-6 border-b last:border-0 hover:bg-accent/5 transition-colors">
-                  <div>
-                    <div className="font-black text-lg leading-tight">{cls.time}</div>
-                    <div className="text-sm text-muted-foreground font-bold">{cls.bookedBy}</div>
+              currentDayBookedSlots.map((cls, i) => {
+                const InstrumentIcon = INSTRUMENT_ICONS[cls.instrument] || Music;
+                return (
+                  <div key={i} className="flex items-center justify-between p-6 border-b last:border-0 hover:bg-accent/5 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-primary/10 p-2 rounded-xl">
+                        <InstrumentIcon className="w-5 h-5 text-accent" />
+                      </div>
+                      <div>
+                        <div className="font-black text-lg leading-tight">{cls.time}</div>
+                        <div className="text-sm text-muted-foreground font-bold">{cls.bookedBy} • {cls.instrument}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={cn(
+                          "rounded-full px-3 py-1 font-black",
+                          cls.type === 'virtual' ? "bg-blue-100 text-blue-600" : "bg-red-100 text-red-600"
+                      )}>
+                          {cls.type === 'virtual' ? <Video className="w-3 h-3 mr-1 inline" /> : <MapPin className="w-3 h-3 mr-1 inline" />}
+                          {cls.type === 'virtual' ? 'Online' : 'Presencial'}
+                      </Badge>
+                      <Button size="sm" className="bg-accent text-white rounded-xl font-black px-5">Iniciar</Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={cn(
-                        "rounded-full px-3 py-1 font-black",
-                        cls.type === 'virtual' ? "bg-blue-100 text-blue-600" : "bg-red-100 text-red-600"
-                    )}>
-                        {cls.type === 'virtual' ? <Video className="w-3 h-3 mr-1 inline" /> : <MapPin className="w-3 h-3 mr-1 inline" />}
-                        {cls.type === 'virtual' ? 'Online' : 'Presencial'}
-                    </Badge>
-                    <Button size="sm" className="bg-accent text-white rounded-xl font-black px-5">Iniciar</Button>
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="p-16 text-center text-muted-foreground italic font-medium">
                 <p>No hay clases reservadas hoy.</p>

@@ -46,6 +46,8 @@ const INSTRUMENT_ICONS: Record<string, any> = {
   'Batería': Drum,
   'Canto': Mic,
   'Teoría': BookOpen,
+  'Bajo': Music,
+  'Flauta': Music,
 };
 
 export default function StudentDashboard() {
@@ -447,31 +449,34 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             {myUpcomingLessons.length > 0 ? (
-              myUpcomingLessons.map((lesson, i) => (
-                <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
-                  <div className="flex gap-3 sm:gap-4 items-center min-w-0">
-                    <div className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-primary/10 shrink-0">
-                      <Music className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate">Lección de {lesson.instrument}</div>
-                      <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
-                        {new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}
+              myUpcomingLessons.map((lesson, i) => {
+                const InstrumentIcon = INSTRUMENT_ICONS[lesson.instrument] || Music;
+                return (
+                  <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
+                    <div className="flex gap-3 sm:gap-4 items-center min-w-0">
+                      <div className="bg-white p-2 sm:p-3 rounded-2xl shadow-sm border border-primary/10 shrink-0">
+                        <InstrumentIcon className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
                       </div>
-                      <div className={cn(
-                          "text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1 mt-1",
-                          lesson.type === 'virtual' ? "text-blue-500" : "text-red-500"
-                      )}>
-                        {lesson.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                        {lesson.type === 'virtual' ? 'Online' : 'Presencial'}
+                      <div className="min-w-0">
+                        <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate">Lección de {lesson.instrument}</div>
+                        <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
+                          {new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}
+                        </div>
+                        <div className={cn(
+                            "text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1 mt-1",
+                            lesson.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                        )}>
+                          {lesson.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                          {lesson.type === 'virtual' ? 'Online' : 'Presencial'}
+                        </div>
                       </div>
                     </div>
+                    <Badge className="hidden sm:inline-flex bg-secondary text-secondary-foreground font-black px-4 py-1 rounded-full shrink-0">
+                      {lesson.teacherName}
+                    </Badge>
                   </div>
-                  <Badge className="hidden sm:inline-flex bg-secondary text-secondary-foreground font-black px-4 py-1 rounded-full shrink-0">
-                    {lesson.teacherName}
-                  </Badge>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="p-16 text-center">
                 <Music className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
