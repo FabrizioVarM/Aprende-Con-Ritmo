@@ -161,7 +161,7 @@ export default function ProgressPage() {
 
                   if (matchesInstrument) {
                     const duration = calculateDuration(slot.time);
-                    points += Math.round(duration * 20); // CAMBIO: 20 puntos por hora
+                    points += Math.round(duration * 20); // 20 puntos por hora
                     completedHours += duration;
                   }
                 }
@@ -235,7 +235,29 @@ export default function ProgressPage() {
             <Card className="rounded-[2rem] border-none shadow-xl bg-accent text-white px-8 py-4 flex items-center gap-4 shrink-0">
               <Trophy className="w-8 h-8" />
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Puntos Globales</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Puntos Globales</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="w-3 h-3 text-white/70 cursor-help hover:text-white transition-colors" />
+                      </TooltipTrigger>
+                      <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-white text-secondary-foreground border-2 border-accent/20 shadow-xl">
+                        <p className="font-black text-xs mb-2 uppercase tracking-widest text-accent">Tu Puntuación Total</p>
+                        <ul className="text-[11px] font-bold space-y-2 text-muted-foreground">
+                          <li className="flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
+                            <span><b>Puntos de Instrumentos:</b> La suma de tus logros en todas tus clases.</span>
+                          </li>
+                          <li className="flex items-start gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
+                            <span><b>Hitos desbloqueados:</b> +200 pts por cada Hito de Carrera que hayas completado.</span>
+                          </li>
+                        </ul>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <h2 className="text-2xl font-black">{totalAchievementPoints.toLocaleString()} pts</h2>
               </div>
             </Card>
@@ -277,8 +299,8 @@ export default function ProgressPage() {
               </Card>
 
               <Card className="rounded-[2.5rem] border-none shadow-sm bg-accent/5 p-8 flex flex-col items-center text-center space-y-4">
-                <Music className="w-10 h-10 text-accent" />
-                <div className="flex flex-col items-center">
+                <div className="flex flex-col items-center w-full">
+                  <Music className="w-10 h-10 text-accent mb-2" />
                   <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
                   <h4 className="font-black text-2xl text-accent mt-1">{(instrumentStats[selectedInstrument]?.points || 0).toLocaleString()} pts</h4>
                   
