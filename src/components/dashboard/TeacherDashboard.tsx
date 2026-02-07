@@ -5,7 +5,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import {
   Dialog,
@@ -22,8 +21,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useSkillsStore } from '@/lib/skills-store';
-import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Check, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const INSTRUMENT_ICONS: Record<string, any> = {
@@ -59,7 +57,6 @@ export default function TeacherDashboard() {
   const { toast } = useToast();
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
   const { user, allUsers } = useAuth();
-  const { getSkillLevel } = useSkillsStore();
 
   const teacherId = user?.id || '2'; 
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
@@ -154,11 +151,10 @@ export default function TeacherDashboard() {
   }, [selectedDate, getDayAvailability, teacherId, availabilities]);
 
   const trackedStudents = useMemo(() => {
-    // Map de StudentID -> { id, name, instruments: Map<NombreInst, { sessions, hours, progress }> }
     const studentsMap = new Map<string, { 
       id: string, 
       name: string, 
-      byInstrument: Map<string, { sessions: number, hours: number, progress: number }>
+      byInstrument: Map<string, { hours: number }>
     }>();
 
     availabilities.forEach(day => {
@@ -179,18 +175,11 @@ export default function TeacherDashboard() {
 
             let instData = studentData.byInstrument.get(instrument);
             if (!instData) {
-              // Calcular progreso basado en la configuración del instrumento
-              const config = DEFAULT_SKILLS_CONFIG[instrument] || DEFAULT_SKILLS_CONFIG['Default'];
-              const avgProgress = config.length > 0 
-                ? Math.round(config.reduce((acc, skill) => acc + getSkillLevel(studentId, instrument, skill.name, skill.defaultLevel), 0) / config.length)
-                : 0;
-
-              instData = { sessions: 0, hours: 0, progress: avgProgress };
+              instData = { hours: 0 };
               studentData.byInstrument.set(instrument, instData);
             }
 
             if (isCompleted) {
-              instData.sessions += 1;
               instData.hours += duration;
             }
           }
@@ -199,7 +188,7 @@ export default function TeacherDashboard() {
     });
 
     return Array.from(studentsMap.values());
-  }, [availabilities, teacherId, allUsers, getSkillLevel]);
+  }, [availabilities, teacherId, allUsers]);
 
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(selectedDate);
@@ -483,42 +472,32 @@ export default function TeacherDashboard() {
             {trackedStudents.length > 0 ? trackedStudents.map((student) => {
               return (
                 <div key={student.id} className="space-y-6 p-6 rounded-[2rem] border-2 border-primary/5 bg-white shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center gap-4 border-b border-primary/10 pb-4">
+                  <div className="flex items-center gap-4">
                     <Avatar className="w-12 h-12 border-2 border-accent shadow-sm">
                       <AvatarImage src={`https://picsum.photos/seed/${student.id}/100`} />
                       <AvatarFallback className="bg-primary text-secondary-foreground font-black">{student.name[0]}</AvatarFallback>
                     </Avatar>
                     <div>
                       <h4 className="font-black text-xl text-secondary-foreground">{student.name}</h4>
-                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Resumen Académico por Instrumento</p>
+                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Resumen Académico</p>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-6">
+                  <div className="grid grid-cols-1 gap-4">
                     {Array.from(student.byInstrument.entries()).map(([instName, instStats]) => {
                       const InstrumentIcon = INSTRUMENT_ICONS[instName] || Music;
                       return (
-                        <div key={instName} className="space-y-4 p-5 rounded-[1.5rem] bg-primary/5 border border-primary/10 group">
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-2xl bg-white border-2 border-primary/10 flex items-center justify-center text-accent shadow-sm group-hover:scale-110 transition-transform">
-                                <InstrumentIcon className="w-6 h-6" />
-                              </div>
-                              <div>
-                                <h5 className="font-black text-lg text-secondary-foreground">{instName}</h5>
-                                <div className="flex items-center gap-3 text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                                  <span className="flex items-center gap-1"><CalendarIcon className="w-3.5 h-3.5 text-accent" /> {instStats.sessions} sesiones</span>
-                                  <span>•</span>
-                                  <span className="flex items-center gap-1"><Timer className="w-3.5 h-3.5 text-accent" /> {instStats.hours.toFixed(1)} h</span>
-                                </div>
-                              </div>
+                        <div key={instName} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-2xl bg-primary/5 border border-primary/10 gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-white border border-primary/10 flex items-center justify-center text-accent">
+                              <InstrumentIcon className="w-5 h-5" />
                             </div>
-                            <div className="bg-white px-4 py-2 rounded-2xl text-right border border-primary/10 shadow-sm">
-                              <span className="text-[9px] font-black uppercase text-muted-foreground block">Progreso Técnico</span>
-                              <span className="text-xl font-black text-accent">{instStats.progress}%</span>
-                            </div>
+                            <h5 className="font-black text-lg text-secondary-foreground">{instName}</h5>
                           </div>
-                          <Progress value={instStats.progress} className="h-3 rounded-full bg-white border border-primary/10" />
+                          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-primary/10 shadow-sm">
+                            <Timer className="w-4 h-4 text-accent" />
+                            <span className="text-base font-black text-secondary-foreground">{instStats.hours.toFixed(1)} h</span>
+                          </div>
                         </div>
                       );
                     })}
