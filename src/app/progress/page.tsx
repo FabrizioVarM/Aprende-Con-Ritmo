@@ -15,14 +15,6 @@ import { RESOURCES } from '@/lib/resources';
 import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Users, ShieldCheck, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Mock de estudiantes corregido para coincidir con auth-store.ts
-const MOCK_STUDENTS = [
-  { id: '1', name: 'Ana Garcia', instruments: ['Guitarra', 'Canto'] },
-  { id: '4', name: 'Liam Smith', instruments: ['Piano', 'Teoría'] },
-  { id: '5', name: 'Emma Wilson', instruments: ['Violín'] },
-  { id: '6', name: 'Tom Holland', instruments: ['Batería', 'Guitarra'] },
-];
-
 const DEFAULT_SKILLS_CONFIG: Record<string, { name: string; color: string; defaultLevel: number }[]> = {
   'Guitarra': [
     { name: 'Precisión de Ritmo', color: 'bg-accent', defaultLevel: 20 },
@@ -85,7 +77,7 @@ const calculateDuration = (timeStr: string): number => {
   }
 };
 
-const normalizeStr = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
 
 const getLevelInfo = (inst: string, points: number) => {
   const getBaseName = (p: number, i: string) => {
@@ -113,7 +105,7 @@ const getLevelInfo = (inst: string, points: number) => {
 };
 
 export default function ProgressPage() {
-  const { user } = useAuth();
+  const { user, allUsers } = useAuth();
   const { completions } = useCompletionStore();
   const { availabilities } = useBookingStore();
   const { updateSkill, getSkillLevel } = useSkillsStore();
@@ -123,19 +115,25 @@ export default function ProgressPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
+  const students = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
 
   useEffect(() => {
     setIsMounted(true);
     if (user) {
-      const initialStudentId = isStaff ? MOCK_STUDENTS[0].id : user.id;
-      setSelectedStudentId(initialStudentId);
+      if (isStaff) {
+        if (!selectedStudentId && students.length > 0) {
+          setSelectedStudentId(students[0].id);
+        }
+      } else {
+        setSelectedStudentId(user.id);
+      }
     }
-  }, [user, isStaff]);
+  }, [user, isStaff, students, selectedStudentId]);
 
   const currentStudent = useMemo(() => {
-    if (isStaff) return MOCK_STUDENTS.find(s => s.id === selectedStudentId);
+    if (isStaff) return students.find(s => s.id === selectedStudentId);
     return user ? { id: user.id, name: user.name, instruments: user.instruments || [] } : null;
-  }, [selectedStudentId, isStaff, user]);
+  }, [selectedStudentId, isStaff, user, students]);
 
   useEffect(() => {
     if (currentStudent && currentStudent.instruments?.length > 0) {
@@ -167,19 +165,20 @@ export default function ProgressPage() {
       });
 
       // 2. Puntos por clases COMPLETADAS (1 hora = 10 pts)
+      // Buscamos en TODA la base de datos de disponibilidades
       if (Array.isArray(availabilities)) {
         availabilities.forEach(avail => {
           if (avail.slots && Array.isArray(avail.slots)) {
             avail.slots.forEach(slot => {
-              // Matching robusto del estudiante
-              const isSameId = String(slot.studentId) === String(currentStudent.id);
+              // Matching robusto del estudiante (ID o nombre normalizado)
+              const isSameId = slot.studentId && String(slot.studentId) === String(currentStudent.id);
               const isSameName = slot.bookedBy && normalizeStr(slot.bookedBy) === normalizeStr(currentStudent.name || '');
               const isOurStudent = isSameId || isSameName;
 
               // Matching robusto del instrumento
               const slotInst = slot.instrument || 'Default';
               const isOurInstrument = normalizeStr(slotInst) === normalizeStr(cat) || 
-                                     (normalizeStr(slotInst) === 'musica' && normalizeStr(cat) === 'guitarra'); // Fallback para mock data
+                                     (normalizeStr(slotInst) === 'musica' && normalizeStr(cat) === 'guitarra');
 
               if (slot.isBooked && isOurStudent && isOurInstrument) {
                 if (slot.status === 'completed') {
@@ -244,7 +243,7 @@ export default function ProgressPage() {
                     <SelectValue placeholder="Alumno" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    {MOCK_STUDENTS.map(s => (
+                    {students.map(s => (
                       <SelectItem key={s.id} value={s.id} className="font-bold">{s.name}</SelectItem>
                     ))}
                   </SelectContent>
