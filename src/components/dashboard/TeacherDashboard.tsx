@@ -164,7 +164,6 @@ export default function TeacherDashboard() {
             const studentId = slot.studentId || slot.bookedBy!;
             const studentProfile = allUsers.find(u => u.id === studentId || u.name === slot.bookedBy);
             
-            // Resolve instrument: slot instrument or fallback to student's first instrument
             let instrument = slot.instrument;
             if (!instrument || instrument === 'Música') {
               instrument = studentProfile?.instruments?.[0] || 'Instrumento';
@@ -178,7 +177,6 @@ export default function TeacherDashboard() {
               const studentName = studentProfile?.name || slot.bookedBy || 'Alumno';
               studentData = { id: studentId, name: studentName, byInstrument: new Map() };
               
-              // Pre-populate with profile instruments if available
               studentProfile?.instruments?.forEach(inst => {
                 studentData!.byInstrument.set(inst, { hours: 0 });
               });
@@ -224,54 +222,51 @@ export default function TeacherDashboard() {
   if (!isMounted) return null;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">Panel del Prof. {user?.name.split(' ')[0]} 🎻</h1>
-          <p className="text-muted-foreground mt-1 text-lg font-medium">Gestiona tu agenda y el progreso de tus alumnos.</p>
+          <h1 className="text-3xl font-black text-foreground font-headline tracking-tight">Panel del Prof. {user?.name.split(' ')[0]} 🎻</h1>
+          <p className="text-muted-foreground mt-1 text-sm font-medium">Gestiona tu agenda y el progreso de tus alumnos.</p>
         </div>
         
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
-              <Clock className="w-5 h-5" /> Gestionar Horarios
+            <Button className="bg-accent text-white rounded-xl gap-2 h-12 px-6 shadow-lg shadow-accent/20 hover:scale-105 transition-all font-black">
+              <Clock className="w-5 h-5" /> Agenda
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-[2.5rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
-            <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
-              <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
-                <CalendarIcon className="w-8 h-8 text-accent" />
-                Configurar Agenda Semanal
+          <DialogContent className="rounded-[2rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+            <DialogHeader className="bg-primary/10 p-6 border-b space-y-2 shrink-0">
+              <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+                <CalendarIcon className="w-6 h-6 text-accent" />
+                Configurar Agenda
               </DialogTitle>
-              <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
-                Selecciona un día de la semana para definir tus bloques de clase.
-              </DialogDescription>
             </DialogHeader>
             
-            <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1 max-h-[60vh]">
-              <div className="flex flex-col gap-10">
-                <div className="space-y-6">
+            <div className="p-6 space-y-6 bg-white overflow-y-auto flex-1 max-h-[60vh]">
+              <div className="flex flex-col gap-6">
+                <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Elige el Día</Label>
-                    <div className="flex gap-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">1. Día</Label>
+                    <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={() => {
                         const prev = new Date(selectedDate);
                         prev.setDate(prev.getDate() - 7);
                         setSelectedDate(prev);
-                      }} className="rounded-full">
+                      }} className="rounded-full h-8 w-8">
                         <ChevronLeft className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => {
                         const next = new Date(selectedDate);
                         next.setDate(next.getDate() + 7);
                         setSelectedDate(next);
-                      }} className="rounded-full">
+                      }} className="rounded-full h-8 w-8">
                         <ChevronRight className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-7 gap-2 md:gap-4">
+                  <div className="grid grid-cols-7 gap-2">
                     {weekDays.map((d, i) => {
                       const isSelected = d.toDateString() === selectedDate.toDateString();
                       const isToday = d.toDateString() === todayStr;
@@ -284,290 +279,176 @@ export default function TeacherDashboard() {
                           disabled={isPast}
                           onClick={() => !isPast && setSelectedDate(d)}
                           className={cn(
-                            "flex flex-col items-center py-4 md:py-5 rounded-2xl transition-all border-2 relative group",
+                            "flex flex-col items-center py-2 md:py-3 rounded-xl transition-all border-2 relative group",
                             isSelected 
-                              ? "bg-accent border-accent text-white shadow-xl scale-105" 
+                              ? "bg-accent border-accent text-white shadow-md scale-105" 
                               : "bg-primary/5 border-transparent hover:border-accent/20",
                             isToday && !isSelected && "border-accent/30",
                             isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-gray-100 border-gray-200"
                           )}
                         >
-                          <span className="text-[9px] md:text-[11px] font-black uppercase tracking-wider mb-1">
+                          <span className="text-[8px] font-black uppercase tracking-wider">
                             {d.toLocaleDateString('es-ES', { weekday: 'short' })}
                           </span>
-                          <span className="text-xl md:text-2xl font-black">{d.getDate()}</span>
-                          {isToday && (
-                            <span className={cn(
-                              "text-[7px] md:text-[9px] font-black uppercase mt-1",
-                              isSelected ? "text-white/80" : "text-accent"
-                            )}>
-                              HOY
-                            </span>
-                          )}
+                          <span className="text-base font-black">{d.getDate()}</span>
                         </button>
                       );
                     })}
                   </div>
                 </div>
                 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <div className="flex flex-col">
-                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Bloques Horarios para:</Label>
-                      <p className="text-lg font-black text-secondary-foreground capitalize">
-                        {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                      </p>
-                    </div>
+                    <p className="text-base font-black text-secondary-foreground capitalize">
+                      {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
+                    </p>
                     {!isSelectedDatePast && (
                       <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={clearAllSlots} className="rounded-full border-destructive/50 text-destructive hover:bg-destructive/10 font-black gap-2 h-10 px-5">
-                          <Eraser className="w-4 h-4" /> Limpiar Día
+                        <Button size="sm" variant="outline" onClick={clearAllSlots} className="rounded-full border-destructive/50 text-destructive h-8 px-3 text-[10px] font-black">
+                          <Eraser className="w-3 h-3 mr-1" /> Limpiar
                         </Button>
-                        <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent font-black gap-2 h-10 px-5">
-                          <Plus className="w-4 h-4" /> Añadir Horario
+                        <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent h-8 px-3 text-[10px] font-black">
+                          <Plus className="w-3 h-3 mr-1" /> Añadir
                         </Button>
                       </div>
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {localSlots.length > 0 ? (
-                      localSlots.map((slot, i) => (
-                        <div key={slot.id} className={cn(
-                          "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300",
-                          slot.isBooked 
-                            ? "bg-orange-50 border-orange-300 shadow-sm" 
-                            : slot.isAvailable 
-                              ? "bg-emerald-50 border-emerald-400 shadow-emerald-100 shadow-md" 
-                              : "bg-gray-50 border-gray-100 opacity-60",
-                          isSelectedDatePast && "opacity-50 grayscale pointer-events-none"
-                        )}>
-                          <div className="flex-1 relative">
-                            <Clock className={cn(
-                              "absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors",
-                              slot.isAvailable ? "text-emerald-600" : "text-muted-foreground"
-                            )} />
-                            <Input
-                              value={slot.time}
-                              onChange={(e) => updateSlotTime(i, e.target.value)}
-                              disabled={slot.isBooked || isSelectedDatePast}
-                              className={cn(
-                                "h-12 pl-10 text-base rounded-xl font-bold bg-white border-2 transition-all",
-                                slot.isAvailable ? "border-emerald-100 focus:border-emerald-300" : "border-transparent"
-                              )}
-                            />
-                            {slot.isBooked && (
-                              <div className="flex items-center gap-1 mt-1 ml-2">
-                                <User className="w-3 h-3 text-orange-600" />
-                                <span className="text-[10px] font-black text-orange-600 uppercase">Reservado por {slot.bookedBy}</span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex flex-col gap-3">
-                            <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled={slot.isBooked || isSelectedDatePast}
-                                  onClick={() => toggleSlotType(i)}
-                                  className={cn(
-                                    "rounded-xl h-10 px-3 font-black gap-2 border-2",
-                                    slot.type === 'virtual' ? "bg-blue-50 border-blue-400 text-blue-600" : "bg-red-50 border-red-400 text-red-600"
-                                  )}
-                                >
-                                  {slot.type === 'virtual' ? <Video className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
-                                  <span className="text-[10px] uppercase">{slot.type === 'virtual' ? 'Online' : 'Presencial'}</span>
-                                </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {localSlots.map((slot, i) => (
+                      <div key={slot.id} className={cn(
+                        "flex items-center gap-3 p-3 rounded-xl border-2 transition-all",
+                        slot.isBooked ? "bg-orange-50 border-orange-200" : slot.isAvailable ? "bg-emerald-50 border-emerald-200" : "bg-gray-50 border-gray-100 opacity-60",
+                        isSelectedDatePast && "opacity-50 grayscale pointer-events-none"
+                      )}>
+                        <div className="flex-1 relative">
+                          <Input
+                            value={slot.time}
+                            onChange={(e) => updateSlotTime(i, e.target.value)}
+                            disabled={slot.isBooked || isSelectedDatePast}
+                            className="h-9 pl-3 text-xs rounded-lg font-bold bg-white border-2"
+                          />
+                          {slot.isBooked && (
+                            <div className="flex items-center gap-1 mt-0.5 ml-1">
+                              <User className="w-2 h-2 text-orange-600" />
+                              <span className="text-[8px] font-black text-orange-600 uppercase">{slot.bookedBy}</span>
                             </div>
-                            
-                            <div className="flex flex-col items-center gap-1">
-                              <span className={cn(
-                                "text-[9px] font-black uppercase tracking-tighter",
-                                slot.isAvailable ? "text-emerald-700" : "text-muted-foreground"
-                              )}>
-                                {slot.isAvailable ? 'Activo' : 'Inactivo'}
-                              </span>
-                              <Switch 
-                                checked={slot.isAvailable || slot.isBooked} 
-                                disabled={slot.isBooked || isSelectedDatePast}
-                                onCheckedChange={() => toggleSlotAvailability(i)}
-                              />
-                            </div>
-                            <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="text-muted-foreground hover:text-destructive h-8 w-8 mx-auto">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
+                          )}
                         </div>
-                      ))
-                    ) : (
-                      <div className="col-span-full text-center py-16 bg-muted/5 rounded-[2.5rem] border-4 border-dashed border-primary/10">
-                        <Clock className="w-10 h-10 mx-auto text-muted-foreground/30 mb-3" />
-                        <p className="font-black text-muted-foreground">Sin horarios configurados</p>
+                        <Switch 
+                          checked={slot.isAvailable || slot.isBooked} 
+                          disabled={slot.isBooked || isSelectedDatePast}
+                          onCheckedChange={() => toggleSlotAvailability(i)}
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="h-7 w-7">
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="p-8 bg-gray-50 border-t flex gap-6 shrink-0 mt-auto">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black">
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleSaveAvailability} 
-                disabled={isSelectedDatePast}
-                className="bg-accent text-white rounded-2xl flex-1 h-14 font-black gap-2 shadow-xl"
-              >
-                <Save className="w-6 h-6" /> Guardar Todos los Cambios
-              </Button>
+            <div className="p-6 bg-gray-50 border-t flex gap-3">
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 h-12 font-black">Cancelar</Button>
+              <Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-12 font-black gap-2">Guardar</Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-        <Card className="rounded-[2rem] border-none shadow-sm bg-blue-50/50">
-          <CardHeader className="pb-2 p-4 md:p-6">
-            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-blue-600">Alumnos</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-            <div className="text-3xl md:text-4xl font-black text-blue-900">{trackedStudents.length}</div>
-            <p className="text-[10px] md:text-xs text-blue-500 font-bold mt-1">Activos esta semana</p>
-          </CardContent>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="rounded-2xl border-none shadow-sm bg-blue-50/50 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">Alumnos Activos</p>
+          <div className="text-3xl font-black text-blue-900 mt-1">{trackedStudents.length}</div>
         </Card>
-        
-        <Card className="rounded-[2rem] border-none shadow-sm bg-green-50/50">
-          <CardHeader className="pb-2 p-4 md:p-6">
-            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-green-600">Asistencia</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-            <div className="text-3xl md:text-4xl font-black text-green-900">94%</div>
-            <p className="text-[10px] md:text-xs text-green-500 font-bold mt-1">Excelente ritmo</p>
-          </CardContent>
+        <Card className="rounded-2xl border-none shadow-sm bg-green-50/50 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-green-600">Asistencia</p>
+          <div className="text-3xl font-black text-green-900 mt-1">94%</div>
         </Card>
-
-        <Card className="rounded-[2rem] border-none shadow-sm bg-accent/5">
-          <CardHeader className="pb-2 p-4 md:p-6">
-            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-accent">Materiales</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-            <div className="text-3xl md:text-4xl font-black text-accent-foreground">12</div>
-          </CardContent>
+        <Card className="rounded-2xl border-none shadow-sm bg-accent/5 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-accent">Materiales</p>
+          <div className="text-3xl font-black text-accent-foreground mt-1">12</div>
         </Card>
-
-        <Card className="rounded-[2rem] border-none shadow-sm bg-secondary/20">
-          <CardHeader className="pb-2 p-4 md:p-6">
-            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-secondary-foreground">Horas Totales</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-            <div className="text-3xl md:text-4xl font-black text-secondary-foreground">
-              {Math.round(trackedStudents.reduce((acc, s) => {
-                let h = 0;
-                s.byInstrument.forEach(inst => h += inst.hours);
-                return acc + h;
-              }, 0))}
-            </div>
-          </CardContent>
+        <Card className="rounded-2xl border-none shadow-sm bg-secondary/20 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground">Horas Totales</p>
+          <div className="text-3xl font-black text-secondary-foreground mt-1">
+            {Math.round(trackedStudents.reduce((acc, s) => {
+              let h = 0;
+              s.byInstrument.forEach(inst => h += inst.hours);
+              return acc + h;
+            }, 0))}
+          </div>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
-          <CardHeader className="bg-primary/5 p-6 border-b">
-            <CardTitle className="flex items-center gap-2 font-black text-xl">
-              <GraduationCap className="w-6 h-6 text-accent" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 rounded-[2rem] border-none shadow-md overflow-hidden bg-white">
+          <CardHeader className="bg-primary/5 p-4 border-b">
+            <CardTitle className="flex items-center gap-2 font-black text-lg">
+              <GraduationCap className="w-5 h-5 text-accent" />
               Seguimiento de Alumnos
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-8 space-y-10">
-            {trackedStudents.length > 0 ? trackedStudents.map((student) => {
-              return (
-                <div key={student.id} className="space-y-6 p-6 rounded-[2rem] border-2 border-primary/5 bg-white shadow-sm hover:shadow-md transition-all">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="w-12 h-12 border-2 border-accent shadow-sm">
-                      <AvatarImage src={`https://picsum.photos/seed/${student.id}/100`} />
-                      <AvatarFallback className="bg-primary text-secondary-foreground font-black">{student.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h4 className="font-black text-xl text-secondary-foreground">{student.name}</h4>
-                      <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Resumen Académico</p>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 gap-4">
-                    {Array.from(student.byInstrument.entries()).map(([instName, instStats]) => {
-                      const InstrumentIcon = INSTRUMENT_ICONS[instName] || Music;
-                      return (
-                        <div key={instName} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 rounded-2xl bg-primary/5 border border-primary/10 gap-4">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-white border border-primary/10 flex items-center justify-center text-accent">
-                              <InstrumentIcon className="w-5 h-5" />
-                            </div>
-                            <h5 className="font-black text-lg text-secondary-foreground">{instName}</h5>
-                          </div>
-                          <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-primary/10 shadow-sm">
-                            <Timer className="w-4 h-4 text-accent" />
-                            <span className="text-base font-black text-secondary-foreground">{instStats.hours.toFixed(1)} h</span>
-                          </div>
-                        </div>
-                      );
-                    })}
+          <CardContent className="p-4 space-y-4">
+            {trackedStudents.length > 0 ? trackedStudents.map((student) => (
+              <div key={student.id} className="flex items-center gap-4 p-3 rounded-2xl border border-primary/5 bg-white shadow-sm hover:shadow-md transition-all">
+                <Avatar className="w-10 h-10 border-2 border-accent shrink-0">
+                  <AvatarImage src={`https://picsum.photos/seed/${student.id}/100`} />
+                  <AvatarFallback className="bg-primary text-secondary-foreground font-black text-xs">{student.name[0]}</AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-black text-sm text-secondary-foreground truncate">{student.name}</h4>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {Array.from(student.byInstrument.entries()).map(([instName, instStats]) => (
+                      <Badge key={instName} variant="secondary" className="bg-primary/10 text-[10px] font-bold px-2 py-0 h-5 flex items-center gap-1">
+                        {instName}: <span className="font-black text-accent">{instStats.hours.toFixed(1)} h</span>
+                      </Badge>
+                    ))}
                   </div>
                 </div>
-              );
-            }) : (
-              <div className="py-20 text-center text-muted-foreground italic font-medium">
-                <Music className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>Aún no hay alumnos con clases registradas.</p>
+              </div>
+            )) : (
+              <div className="py-12 text-center text-muted-foreground italic text-xs font-medium">
+                <p>Sin alumnos registrados esta semana.</p>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
-          <CardHeader className="bg-accent/5 p-6 border-b">
-            <CardTitle className="text-lg flex items-center gap-2 font-black">
-              <CheckCircle2 className="w-6 h-6 text-accent" />
-              Sesiones de Hoy
+        <Card className="rounded-[2rem] border-none shadow-md overflow-hidden bg-white">
+          <CardHeader className="bg-accent/5 p-4 border-b">
+            <CardTitle className="text-base flex items-center gap-2 font-black">
+              <CheckCircle2 className="w-5 h-5 text-accent" />
+              Sesiones Hoy
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {currentDayBookedSlots.length > 0 ? (
-              currentDayBookedSlots.map((cls, i) => {
-                const InstrumentIcon = INSTRUMENT_ICONS[cls.instrument || ''] || Music;
-                return (
-                  <div key={i} className="flex items-center justify-between p-6 border-b last:border-0 hover:bg-accent/5 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="bg-primary/10 p-2 rounded-xl">
-                        <InstrumentIcon className="w-5 h-5 text-accent" />
+              currentDayBookedSlots.map((cls, i) => (
+                <div key={i} className="flex items-center justify-between p-4 border-b last:border-0 hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="font-black text-xs">{cls.time.split(' ')[0]}</div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-black truncate">{cls.bookedBy}</div>
+                      <div className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
+                        <Music className="w-2.5 h-2.5" /> {cls.instrument}
                       </div>
-                      <div>
-                        <div className="font-black text-lg leading-tight">{cls.time}</div>
-                        <div className="text-sm text-muted-foreground font-bold flex items-center gap-2">
-                          <span>{cls.bookedBy}</span>
-                          <span>•</span>
-                          <InstrumentIcon className="w-3 h-3 text-accent" />
-                          <span>{cls.instrument}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={cn(
-                          "rounded-full px-3 py-1 font-black",
-                          cls.type === 'virtual' ? "bg-blue-100 text-blue-600" : "bg-red-100 text-red-600"
-                      )}>
-                          {cls.type === 'virtual' ? <Video className="w-3 h-3 mr-1 inline" /> : <MapPin className="w-3 h-3 mr-1 inline" />}
-                          {cls.type === 'virtual' ? 'Online' : 'Presencial'}
-                      </Badge>
                     </div>
                   </div>
-                );
-              })
+                  <Badge className={cn(
+                    "rounded-full px-2 py-0 text-[8px] font-black uppercase",
+                    cls.type === 'virtual' ? "bg-blue-100 text-blue-600" : "bg-red-100 text-red-600"
+                  )}>
+                    {cls.type === 'virtual' ? 'Online' : 'Sede'}
+                  </Badge>
+                </div>
+              ))
             ) : (
-              <div className="p-16 text-center text-muted-foreground italic font-medium">
-                <p>No hay sesiones pendientes para el resto del día.</p>
+              <div className="p-12 text-center text-muted-foreground italic text-xs font-medium">
+                <p>Sin sesiones pendientes.</p>
               </div>
             )}
           </CardContent>
