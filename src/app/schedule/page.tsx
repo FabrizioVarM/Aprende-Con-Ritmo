@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Keyboard, Mic, BookOpen, Check } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Keyboard, Mic, BookOpen, Check, Info } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -16,6 +16,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { useSkillsStore } from '@/lib/skills-store';
@@ -235,10 +241,31 @@ export default function SchedulePage() {
                     <span>Clase de {slot.instrument || 'Música'}</span>
                   </>
                 ) : (
-                  <>
-                    <Music className="w-5 h-5" />
-                    <span className="truncate">Disponible: {teacherInstruments.join(', ')}</span>
-                  </>
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <Music className="w-5 h-5 shrink-0" />
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span className="text-muted-foreground shrink-0">Disponible:</span>
+                      <div className="flex items-center gap-1">
+                        {teacherInstruments.map((inst, idx) => {
+                          const Icon = INSTRUMENT_ICONS[inst] || Music;
+                          return (
+                            <TooltipProvider key={idx}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="p-1 bg-accent/10 rounded-lg border border-accent/20 hover:bg-accent/20 transition-colors">
+                                    <Icon className="w-3.5 h-3.5 text-accent" />
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
+                                  {inst}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </h4>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
