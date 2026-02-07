@@ -222,7 +222,7 @@ export default function SchedulePage() {
 
     const currentTeacherId = isTeacherView || isTeacher ? teacherId : DEFAULT_TEACHER_ID;
     const teacherProfile = allUsers.find(u => u.id === currentTeacherId);
-    const teacherInstruments = (teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT]).filter(i => i !== 'Flauta');
+    const teacherInstruments = (teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT]);
 
     return (
       <Card className={cn(
@@ -278,7 +278,7 @@ export default function SchedulePage() {
                 )}
               </h4>
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                <span className="flex items-center gap-1 shrink-0">
+                <span className="flex items-center gap-1 shrink-0 text-secondary-foreground">
                   <UserIcon className="w-3 h-3 text-accent" /> 
                   {isTeacherView ? slot.bookedBy : (isTeacher ? 'Tú' : (teacherProfile?.name || DEFAULT_TEACHER_NAME))}
                 </span>
@@ -419,7 +419,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                   <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>
