@@ -188,6 +188,27 @@ export default function TeacherDashboard() {
     });
   }, [selectedDate]);
 
+  const totalWeeklyEnabledHours = useMemo(() => {
+    let total = 0;
+    const weekDateStrings = weekDays.map(d => {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    });
+
+    availabilities.forEach(day => {
+      if (day.teacherId === teacherId && weekDateStrings.includes(day.date)) {
+        day.slots.forEach(slot => {
+          if (slot.isAvailable || slot.isBooked) {
+            total += calculateDuration(slot.time);
+          }
+        });
+      }
+    });
+    return total;
+  }, [availabilities, teacherId, weekDays]);
+
   const isSelectedDatePast = useMemo(() => {
     if (!todayTimestamp) return false;
     const dateCopy = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
@@ -339,8 +360,8 @@ export default function TeacherDashboard() {
           <div className="text-3xl font-black text-blue-900 mt-1">{trackedStudents.length}</div>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm bg-green-50/50 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-green-600">Asistencia</p>
-          <div className="text-3xl font-black text-green-900 mt-1">94%</div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-green-600">Horas Semanales Habilitadas</p>
+          <div className="text-3xl font-black text-green-900 mt-1">{totalWeeklyEnabledHours.toFixed(1)} h</div>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm bg-accent/5 p-4">
           <p className="text-[10px] font-black uppercase tracking-widest text-accent">Materiales</p>
