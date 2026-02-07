@@ -150,7 +150,6 @@ export default function ProgressPage() {
       });
 
       // 2. Puntos por clases completadas (1 hora = 10 pts)
-      // Cambio Crítico: Ahora buscamos por ID de estudiante
       availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
           if (slot.isBooked && (slot.studentId === currentStudent.id || slot.bookedBy === currentStudent.name) && slot.instrument === cat) {
@@ -307,7 +306,7 @@ export default function ProgressPage() {
                           className="flex-1"
                           onValueChange={(vals) => updateSkill(currentStudent!.id, selectedInstrument, skill.name, vals[0])}
                         />
-                        <span className="text-xs font-black text-muted-foreground w-8">Editar</span>
+                        <span className="text-[10px] font-black text-accent w-10 uppercase tracking-widest">Editar</span>
                       </div>
                     ) : (
                       <Progress value={skill.level} className="h-4 rounded-full bg-primary/10" />
