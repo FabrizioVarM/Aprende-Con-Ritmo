@@ -72,6 +72,20 @@ const MILESTONES = [
   { title: 'Eficiencia Nivel 2', date: 'Esperado Abr 2024', achieved: false },
 ];
 
+// Función auxiliar para calcular duración en horas desde un string "HH:mm - HH:mm"
+const calculateDuration = (timeStr: string): number => {
+  try {
+    const [start, end] = timeStr.split(' - ');
+    const [h1, m1] = start.split(':').map(Number);
+    const [h2, m2] = end.split(':').map(Number);
+    const startMinutes = h1 * 60 + m1;
+    const endMinutes = h2 * 60 + m2;
+    return (endMinutes - startMinutes) / 60;
+  } catch (e) {
+    return 1; // Default a 1 hora si falla el parseo
+  }
+};
+
 const getLevelInfo = (inst: string, points: number) => {
   const getBaseName = (p: number, i: string) => {
     if (i === 'Teoría') {
@@ -150,12 +164,14 @@ export default function ProgressPage() {
       });
 
       // 2. Puntos por clases completadas (1 hora = 10 pts)
+      // Se calculan dinámicamente según la duración real de la sesión
       availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
           if (slot.isBooked && (slot.studentId === currentStudent.id || slot.bookedBy === currentStudent.name) && slot.instrument === cat) {
             if (slot.status === 'completed') {
-              points += 10;
-              completedHours += 1;
+              const duration = calculateDuration(slot.time);
+              points += Math.round(duration * 10);
+              completedHours += duration;
             }
           }
         });
@@ -277,7 +293,7 @@ export default function ProgressPage() {
                 <Clock className="w-10 h-10 text-blue-600" />
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest text-blue-700/70">Horas de Clase</p>
-                  <h4 className="font-black text-2xl text-blue-800 mt-1">{instrumentStats[selectedInstrument]?.completedHours} h</h4>
+                  <h4 className="font-black text-2xl text-blue-800 mt-1">{instrumentStats[selectedInstrument]?.completedHours.toFixed(1)} h</h4>
                 </div>
               </Card>
             </div>

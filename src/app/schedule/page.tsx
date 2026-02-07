@@ -105,7 +105,7 @@ export default function SchedulePage() {
   const dateStrKey = useMemo(() => date.toISOString().split('T')[0], [date]);
 
   const availability = useMemo(() => {
-    return getDayAvailability(teacherId, date);
+    return getDayAvailability(teacherId!, date);
   }, [teacherId, date, getDayAvailability, availabilities]);
   
   const allDaySlots = availability.slots;
@@ -161,22 +161,15 @@ export default function SchedulePage() {
     const newStatus = slot.status === 'completed' ? 'pending' : 'completed';
     setSlotStatus(teacherId, dateStrKey, slot.id, newStatus);
 
-    // Si se marca como completado y tenemos datos del alumno, sumamos puntos
-    if (newStatus === 'completed' && (slot.studentId || slot.bookedBy) && slot.instrument) {
-      const student = allUsers.find(u => u.id === slot.studentId || u.name === slot.bookedBy);
-      if (student) {
-        const currentLevel = getSkillLevel(student.id, slot.instrument, 'Progreso General', 0);
-        updateSkill(student.id, slot.instrument, 'Progreso General', Math.min(100, currentLevel + 10));
-        
-        toast({
-          title: "Clase Completada ✅",
-          description: `Se han sumado 10 puntos al progreso de ${slot.instrument} para ${student.name}.`,
-        });
-      }
+    if (newStatus === 'completed') {
+      toast({
+        title: "Clase Completada ✅",
+        description: `Se han sumado los puntos correspondientes al progreso del alumno.`,
+      });
     } else {
       toast({
         title: "Estado Actualizado",
-        description: "La clase ha vuelto a estado pendiente.",
+        description: "La clase ha vuelto a estado pendiente (puntos actualizados).",
       });
     }
   };
