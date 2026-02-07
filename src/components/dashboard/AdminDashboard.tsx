@@ -17,7 +17,8 @@ import {
   Settings,
   Clock,
   CalendarDays,
-  ChevronRight
+  ChevronRight,
+  CheckCircle2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -46,30 +47,35 @@ export default function AdminDashboard() {
     let totalEnabledHours = 0;
     let totalEnabledSlots = 0;
     let freeSlots = 0;
+    let completedHours = 0;
 
     availabilities.forEach(dayAvail => {
       if (dayAvail.teacherId === teacherId && weekDates.includes(dayAvail.date)) {
         dayAvail.slots.forEach(slot => {
-          // Contamos tanto los disponibles como los ya reservados (el total que el profesor habilitó)
           if (slot.isAvailable || slot.isBooked) {
+            let duration = 0;
             try {
               const [start, end] = slot.time.split(' - ');
               const [h1, m1] = start.split(':').map(Number);
               const [h2, m2] = end.split(':').map(Number);
-              totalEnabledHours += (h2 * 60 + m2 - (h1 * 60 + m1)) / 60;
-              totalEnabledSlots++;
-              if (!slot.isBooked) freeSlots++;
+              duration = (h2 * 60 + m2 - (h1 * 60 + m1)) / 60;
             } catch (e) {
-              totalEnabledHours += 1;
-              totalEnabledSlots++;
-              if (!slot.isBooked) freeSlots++;
+              duration = 1;
+            }
+
+            totalEnabledHours += duration;
+            totalEnabledSlots++;
+            if (!slot.isBooked) freeSlots++;
+            
+            if (slot.isBooked && slot.status === 'completed') {
+              completedHours += duration;
             }
           }
         });
       }
     });
 
-    return { hours: totalEnabledHours, slots: totalEnabledSlots, freeSlots };
+    return { hours: totalEnabledHours, slots: totalEnabledSlots, freeSlots, completedHours };
   };
 
   const teachersAvailability = useMemo(() => {
@@ -201,6 +207,19 @@ export default function AdminDashboard() {
                         {t.availability.slots} turnos habilitados
                       </p>
                     </div>
+
+                    <div className="text-right border-l border-primary/10 pl-8 hidden sm:block">
+                      <div className="flex items-center justify-end gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <span className="text-2xl font-black text-emerald-600">{t.availability.completedHours.toFixed(1)}h</span>
+                      </div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-1">
+                        {t.availability.hours > 0 
+                          ? ((t.availability.completedHours / t.availability.hours) * 100).toFixed(0) 
+                          : 0}% eficiencia
+                      </p>
+                    </div>
+
                     <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground/40 group-hover:text-accent transition-all group-hover:translate-x-1">
                       <ChevronRight className="w-6 h-6" />
                     </Button>
