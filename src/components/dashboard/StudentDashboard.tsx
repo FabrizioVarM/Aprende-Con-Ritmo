@@ -354,7 +354,7 @@ export default function StudentDashboard() {
                                     slot.type === 'virtual' ? (selectedSlotId === slot.id ? "text-white/80" : "text-blue-400") : (selectedSlotId === slot.id ? "text-white/80" : "text-red-400")
                                 )}>
                                     {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                                    {slot.type}
+                                    {slot.type === 'virtual' ? 'Online' : 'Presencial'}
                                 </span>
                             </div>
                           </div>
@@ -463,7 +463,7 @@ export default function StudentDashboard() {
                           lesson.type === 'virtual' ? "text-blue-500" : "text-red-500"
                       )}>
                         {lesson.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                        {lesson.type}
+                        {lesson.type === 'virtual' ? 'Online' : 'Presencial'}
                       </div>
                     </div>
                   </div>

@@ -309,7 +309,7 @@ export default function TeacherDashboard() {
                                   )}
                                 >
                                   {slot.type === 'virtual' ? <Video className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
-                                  <span className="text-[10px] uppercase">{slot.type}</span>
+                                  <span className="text-[10px] uppercase">{slot.type === 'virtual' ? 'Online' : 'Presencial'}</span>
                                 </Button>
                             </div>
                             
@@ -452,7 +452,7 @@ export default function TeacherDashboard() {
                         cls.type === 'virtual' ? "bg-blue-100 text-blue-600" : "bg-red-100 text-red-600"
                     )}>
                         {cls.type === 'virtual' ? <Video className="w-3 h-3 mr-1 inline" /> : <MapPin className="w-3 h-3 mr-1 inline" />}
-                        {cls.type}
+                        {cls.type === 'virtual' ? 'Online' : 'Presencial'}
                     </Badge>
                     <Button size="sm" className="bg-accent text-white rounded-xl font-black px-5">Iniciar</Button>
                   </div>

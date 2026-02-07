@@ -185,13 +185,11 @@ export default function SchedulePage() {
                     slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
                 )}>
                   {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                  {slot.type === 'virtual' ? 'Online' : 'Sede'}
+                  {slot.type === 'virtual' ? 'Online' : 'Presencial'}
                 </span>
                 <span className={cn(
                   "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
-                  isMine 
-                    ? "bg-accent/10 border-accent/20 text-accent" 
-                    : `${period.bg} ${period.border} ${period.color}`
+                  `${period.bg} ${period.border} ${period.color}`
                 )}>
                   <PeriodIcon className="w-2.5 h-2.5" />
                   {period.label}
@@ -301,7 +299,7 @@ export default function SchedulePage() {
                                           : (selectedSlotId === slot.id ? "text-white" : "text-red-500")
                                     )}>
                                         {slot.type === 'virtual' ? <Video className="w-2.5 h-2.5" /> : <MapPin className="w-2.5 h-2.5" />}
-                                        {slot.type}
+                                        {slot.type === 'virtual' ? 'Online' : 'Presencial'}
                                     </span>
                                     <span className={cn(
                                       "text-[9px] font-black uppercase flex items-center gap-1",
