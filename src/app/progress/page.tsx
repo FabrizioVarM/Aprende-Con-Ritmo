@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
@@ -202,6 +203,8 @@ export default function ProgressPage() {
     }));
   }, [currentStudent, selectedInstrument, getSkillLevel]);
 
+  const achievedMilestonesCount = useMemo(() => MILESTONES.filter(m => m.achieved).length, []);
+
   if (!isMounted || !user) return null;
 
   return (
@@ -384,11 +387,14 @@ export default function ProgressPage() {
             </div>
 
             <Card className="rounded-[2.5rem] border-none shadow-md bg-white">
-              <CardHeader className="p-8 border-b bg-gray-50/50">
+              <CardHeader className="p-8 border-b bg-gray-50/50 flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-3 font-black text-xl">
                   <StarIcon className="w-6 h-6 text-accent fill-accent" />
                   Hitos de Carrera
                 </CardTitle>
+                <Badge className="bg-accent text-white rounded-full font-black px-3 py-1">
+                  {achievedMilestonesCount}/{MILESTONES.length}
+                </Badge>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
                 {MILESTONES.map((m, i) => (
