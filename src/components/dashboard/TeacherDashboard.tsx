@@ -162,14 +162,27 @@ export default function TeacherDashboard() {
         day.slots.forEach(slot => {
           if (slot.isBooked && (slot.studentId || slot.bookedBy)) {
             const studentId = slot.studentId || slot.bookedBy!;
-            const instrument = slot.instrument || 'Música';
+            const studentProfile = allUsers.find(u => u.id === studentId || u.name === slot.bookedBy);
+            
+            // Resolve instrument: slot instrument or fallback to student's first instrument
+            let instrument = slot.instrument;
+            if (!instrument || instrument === 'Música') {
+              instrument = studentProfile?.instruments?.[0] || 'Instrumento';
+            }
+
             const duration = calculateDuration(slot.time);
             const isCompleted = slot.status === 'completed';
             
             let studentData = studentsMap.get(studentId);
             if (!studentData) {
-              const studentName = slot.bookedBy || allUsers.find(u => u.id === studentId)?.name || 'Alumno';
+              const studentName = studentProfile?.name || slot.bookedBy || 'Alumno';
               studentData = { id: studentId, name: studentName, byInstrument: new Map() };
+              
+              // Pre-populate with profile instruments if available
+              studentProfile?.instruments?.forEach(inst => {
+                studentData!.byInstrument.set(inst, { hours: 0 });
+              });
+              
               studentsMap.set(studentId, studentData);
             }
 
