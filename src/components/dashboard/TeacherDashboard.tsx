@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useSkillsStore } from '@/lib/skills-store';
+import { useCompletionStore } from '@/lib/completion-store';
 import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -46,6 +47,7 @@ export default function TeacherDashboard() {
   const { toast } = useToast();
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
   const { user, allUsers } = useAuth();
+  const { completions } = useCompletionStore();
 
   const teacherId = user?.id || '2'; 
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
@@ -136,7 +138,8 @@ export default function TeacherDashboard() {
       id: string, 
       name: string, 
       instruments: string[],
-      hoursByInstrument: Map<string, number>
+      hoursByInstrument: Map<string, number>,
+      completedResourcesCount: number
     }>();
 
     availabilities.forEach(day => {
@@ -151,11 +154,14 @@ export default function TeacherDashboard() {
             
             let studentData = studentsMap.get(studentId);
             if (!studentData) {
+              const resCount = completions.filter(c => c.studentId === studentId && c.isCompleted).length;
+              
               studentData = { 
                 id: studentId, 
                 name: studentProfile?.name || slot.bookedBy || 'Alumno', 
                 instruments: studentProfile?.instruments || [],
-                hoursByInstrument: new Map()
+                hoursByInstrument: new Map(),
+                completedResourcesCount: resCount
               };
               studentsMap.set(studentId, studentData);
             }
@@ -174,7 +180,7 @@ export default function TeacherDashboard() {
     });
 
     return Array.from(studentsMap.values());
-  }, [availabilities, teacherId, allUsers]);
+  }, [availabilities, teacherId, allUsers, completions]);
 
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(selectedDate);
@@ -390,14 +396,23 @@ export default function TeacherDashboard() {
           <CardContent className="p-6 space-y-4">
             {trackedStudents.length > 0 ? trackedStudents.map((student) => (
               <div key={student.id} className="flex flex-col gap-4 p-4 rounded-3xl border border-primary/10 bg-white hover:shadow-lg transition-all">
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-12 h-12 border-2 border-accent shrink-0 shadow-sm">
-                    <AvatarImage src={`https://picsum.photos/seed/${student.id}/100`} />
-                    <AvatarFallback className="bg-primary text-secondary-foreground font-black">{student.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0">
-                    <h4 className="font-black text-lg text-secondary-foreground truncate leading-tight">{student.name}</h4>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Resumen Académico</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="w-12 h-12 border-2 border-accent shrink-0 shadow-sm">
+                      <AvatarImage src={`https://picsum.photos/seed/${student.id}/100`} />
+                      <AvatarFallback className="bg-primary text-secondary-foreground font-black">{student.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <h4 className="font-black text-lg text-secondary-foreground truncate leading-tight">{student.name}</h4>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Resumen Académico</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-[8px] font-black uppercase tracking-tighter text-muted-foreground">Recursos</span>
+                    <Badge variant="outline" className="border-accent text-accent rounded-lg px-2 py-0.5 text-[10px] font-black gap-1">
+                      <BookOpen className="w-2.5 h-2.5" />
+                      {student.completedResourcesCount}
+                    </Badge>
                   </div>
                 </div>
                 
