@@ -1,0 +1,123 @@
+rules_version = '2';
+
+/**
+ * Aprende Con Ritmo - Firestore Security Rules
+ *
+ * CORE PHILOSOPHY:
+ * This ruleset implements a robust, owner-centric security model designed for an educational 
+ * platform. It prioritizes "Authorization Independence" by ensuring that all data required 
+ * for an access decision (like a teacher's ID on a class) is available directly on the 
+ * document being accessed. This eliminates expensive recursive lookups and ensures 
+ * high performance as the application scales.
+ *
+ * DATA STRUCTURE:
+ * - /users/{userId}: Private user profiles, only accessible by the account owner.
+ * - /classes/{classId}: Global class catalog. Managed by teachers (identified via 'teacherId').
+ * - /resources/{resourceId}: Public educational resource library.
+ * - /users/{studentId}/progress/{progressId}: Private student progress logs nested under the student's user path.
+ *
+ * KEY SECURITY DECISIONS:
+ * 1. Path-Based Ownership: User profiles and progress logs are secured based on the userId 
+ *    in the document path, ensuring strict data isolation.
+ * 2. Denormalized Authorization: The 'Class' entity contains a 'teacherId' field, allowing 
+ *    the rules to verify teacher permissions without fetching a separate User document.
+ * 3. Public Read Access: Classes and Resources are publicly listable and readable to 
+ *    facilitate discovery and learning, while write access is strictly controlled.
+ * 4. Relational Integrity: On creation and update, rules verify that internal fields 
+ *    (like 'studentId' or 'teacherId') match the authenticated user and remain immutable.
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- GLOBAL HELPER FUNCTIONS ---
+
+    /** 
+     * @description Simple check if the user is authenticated. 
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /** 
+     * @description Checks if the authenticated user's UID matches the provided userId.
+     * @param userId The UID to check against.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /** 
+     * @description Verifies ownership of an existing document before modification.
+     * @param userId The UID to check against.
+     */
+    function isExistingOwner(userId) {
+      return resource != null && isOwner(userId);
+    }
+
+    // --- COLLECTION RULES ---
+
+    /**
+     * @description Controls access to individual user profile documents.
+     * @path /users/{userId}
+     * @allow (create) if auth.uid matches userId.
+     * @deny (get) if auth.uid does not match userId.
+     * @principle Implements Ownership and Self-Creation patterns for profile management.
+     */
+    match /users/{userId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Controls access to student-specific progress entries.
+       * @path /users/{studentId}/progress/{progressId}
+       * @allow (list) if studentId matches auth.uid.
+       * @deny (update) if studentId in data is changed to another user.
+       * @principle Uses path-based authorization to secure private subcollections.
+       */
+      match /progress/{progressId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && request.resource.data.studentId == userId;
+        allow update: if isOwner(userId) && request.resource.data.studentId == resource.data.studentId;
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    /**
+     * @description Manages the class catalog. Teachers own their classes via 'teacherId'.
+     * @path /classes/{classId}
+     * @allow (get) for all users to view class details.
+     * @deny (update) if the authenticated user is not the teacherId stored in the document.
+     * @principle Public read with owner-only writes using denormalized relational fields.
+     */
+    match /classes/{classId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.teacherId == request.auth.uid;
+      allow update: if resource != null && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == resource.data.teacherId;
+      allow delete: if resource != null && resource.data.teacherId == request.auth.uid;
+    }
+
+    /**
+     * @description Global educational resource library.
+     * @path /resources/{resourceId}
+     * @allow (get) for all users.
+     * @deny (create) CRITICAL: No ownership field ('authorId') exists in the Resource schema.
+     * @principle Provides public visibility while locking down modifications due to missing schema metadata.
+     */
+    match /resources/{resourceId} {
+      allow get, list: if true;
+      // CRITICAL: Cannot implement owner-only writes. The 'Resource' entity is missing an 'ownerId' or 'authorId' field.
+      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+  }
+}
+
+/** 
+ * PROTOTYPING NOTE: 
+ * These rules enforce strict authorization logic while remaining flexible on data types 
+ * and specific object shapes to allow for rapid development. Only relational fields 
+ * required for security (IDs, owner references) are strictly validated.
+ */

@@ -1,0 +1,226 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user account in the system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "User's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "User's last name."
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role (e.g., student, teacher, admin)."
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "firstName",
+        "lastName",
+        "role"
+      ]
+    },
+    "Class": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Class",
+      "type": "object",
+      "description": "Represents a class or lesson.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the class entity."
+        },
+        "teacherId": {
+          "type": "string",
+          "description": "Reference to Teacher (User). (Relationship: User 1:N Class)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the class."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the class."
+        },
+        "schedule": {
+          "type": "string",
+          "description": "Schedule of the class (e.g., day and time)."
+        }
+      },
+      "required": [
+        "id",
+        "teacherId",
+        "name",
+        "description",
+        "schedule"
+      ]
+    },
+    "Resource": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Resource",
+      "type": "object",
+      "description": "Represents an educational resource.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the resource entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the resource."
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of the resource (e.g., video, document)."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL of the resource.",
+          "format": "uri"
+        },
+        "instrument": {
+          "type": "string",
+          "description": "Instrument associated with the resource (e.g., guitar, piano)."
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "type",
+        "url",
+        "instrument"
+      ]
+    },
+    "Progress": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Progress",
+      "type": "object",
+      "description": "Represents a student's progress in a class.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the progress entity."
+        },
+        "studentId": {
+          "type": "string",
+          "description": "Reference to Student (User). (Relationship: User 1:N Progress)"
+        },
+        "classId": {
+          "type": "string",
+          "description": "Reference to Class. (Relationship: Class 1:N Progress)"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the progress update.",
+          "format": "date-time"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Teacher's notes on the student's progress."
+        }
+      },
+      "required": [
+        "id",
+        "studentId",
+        "classId",
+        "date",
+        "notes"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information.  Used for authentication and role-based access control.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/classes/{classId}",
+        "definition": {
+          "entityName": "Class",
+          "schema": {
+            "$ref": "#/backend/entities/Class"
+          },
+          "description": "Stores class information. Includes denormalized 'teacherId' for authorization independence.",
+          "params": [
+            {
+              "name": "classId",
+              "description": "The unique identifier for the class."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/resources/{resourceId}",
+        "definition": {
+          "entityName": "Resource",
+          "schema": {
+            "$ref": "#/backend/entities/Resource"
+          },
+          "description": "Stores information about educational resources. Accessible to all users.",
+          "params": [
+            {
+              "name": "resourceId",
+              "description": "The unique identifier for the resource."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{studentId}/progress/{progressId}",
+        "definition": {
+          "entityName": "Progress",
+          "schema": {
+            "$ref": "#/backend/entities/Progress"
+          },
+          "description": "Stores student progress information.  Path-based ownership ensures only the student (or authorized teacher/admin) can access.",
+          "params": [
+            {
+              "name": "studentId",
+              "description": "The unique identifier for the student."
+            },
+            {
+              "name": "progressId",
+              "description": "The unique identifier for the progress entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the Aprende Con Ritmo application, focusing on user authentication, role-based access control, class management, resource library, and progress tracking. The design prioritizes security, scalability, and debuggability by adhering to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity.  Authorization Independence is achieved by denormalizing authorization data (e.g., teacherId for Classes) where necessary to avoid `get()` calls in security rules. Structural Segregation is used to ensure that collections have homogeneous security postures. Access Modeling uses path-based ownership and membership maps.  The data structure supports required QAPs (Queries that Perform) through segregation (e.g., separating user data from global resources) and membership models (e.g., using teacherId on Class to allow listing classes taught by a specific teacher)."
+  }
+}
