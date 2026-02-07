@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Keyboard, Mic, BookOpen, Check, Info, Guitar } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, Guitar } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -49,10 +49,30 @@ const ViolinIcon = (props: any) => (
   </svg>
 );
 
+// Icono de Piano personalizado
+const PianoIcon = (props: any) => (
+  <svg
+    {...props}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <path d="M6 5v8" />
+    <path d="M10 5v8" />
+    <path d="M14 5v8" />
+    <path d="M18 5v8" />
+    <path d="M2 13h20" />
+  </svg>
+);
+
 // Configuración visual de instrumentos: Icono, Color de texto y Color de fondo
 const INSTRUMENT_CONFIG: Record<string, { icon: any, color: string, bg: string, border: string }> = {
   'Guitarra': { icon: Guitar, color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
-  'Piano': { icon: Keyboard, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
+  'Piano': { icon: PianoIcon, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
   'Violín': { icon: ViolinIcon, color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
   'Batería': { icon: Drum, color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
   'Canto': { icon: Mic, color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
