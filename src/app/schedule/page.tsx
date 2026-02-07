@@ -264,9 +264,9 @@ export default function SchedulePage() {
 
           <div className="shrink-0 flex items-center gap-2">
             {isTeacherView ? (
-              <div className="flex flex-col items-center gap-2">
-                {isPast ? (
-                  <div className="flex flex-col items-center gap-1">
+              <div className="flex items-center gap-3">
+                {isPast && (
+                  <div className="flex flex-col items-center gap-1.5 border-r border-primary/10 pr-3">
                     <span className={cn("text-[9px] font-black uppercase", isCompleted ? "text-emerald-600" : "text-orange-600")}>
                       {isCompleted ? 'Completado' : 'Pendiente'}
                     </span>
@@ -275,11 +275,16 @@ export default function SchedulePage() {
                       onCheckedChange={() => handleToggleStatus(slot)} 
                     />
                   </div>
-                ) : (
-                  <Button variant="ghost" size="icon" onClick={() => handleCancel(slot.id)} className="text-destructive hover:bg-destructive/10 rounded-full">
-                    <Trash2 className="w-5 h-5" />
-                  </Button>
                 )}
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => handleCancel(slot.id)} 
+                  className="text-destructive hover:bg-destructive/10 rounded-full h-10 w-10 shrink-0"
+                  title="Eliminar reserva"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
               </div>
             ) : isMine ? (
               <>
