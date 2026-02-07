@@ -56,7 +56,7 @@ const getTimePeriod = (timeStr: string) => {
   const hour = parseInt(timeStr.split(':')[0]);
   if (hour >= 6 && hour < 12) {
     return { 
-      label: 'Turno Mañana', 
+      label: 'en la mañana', 
       icon: Sunrise, 
       color: 'text-yellow-600', 
       bg: 'bg-yellow-50', 
@@ -65,7 +65,7 @@ const getTimePeriod = (timeStr: string) => {
   }
   if (hour >= 12 && hour < 19) {
     return { 
-      label: 'Turno Tarde', 
+      label: 'en la tarde', 
       icon: Sun, 
       color: 'text-orange-700', 
       bg: 'bg-orange-100', 
@@ -73,7 +73,7 @@ const getTimePeriod = (timeStr: string) => {
     };
   }
   return { 
-    label: 'Turno Noche', 
+    label: 'en la noche', 
     icon: Moon, 
     color: 'text-indigo-700', 
     bg: 'bg-indigo-100', 
@@ -334,7 +334,7 @@ export default function SchedulePage() {
                 )}
                 <div className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all", 
-                  isCompleted ? "bg-emerald-100 text-emerald-700" : (isPast ? "bg-orange-100 text-orange-700" : "bg-accent/10 text-accent")
+                  isCompleted ? "bg-emerald-100 text-emerald-700" : (isPast ? "bg-orange-100 text-orange-700" : (isPastSlot(slot.time) ? "bg-orange-100 text-orange-700" : "bg-accent/10 text-accent"))
                 )}>
                   {isCompleted ? (
                     <>
@@ -344,7 +344,7 @@ export default function SchedulePage() {
                   ) : (
                     <>
                       <CheckCircle2 className="w-5 h-5" />
-                      {isPast && (
+                      {isPastSlot(slot.time) && (
                         <span className="text-[10px] font-black uppercase tracking-widest">Revisando</span>
                       )}
                     </>
