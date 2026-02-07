@@ -19,7 +19,9 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Check, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen } from 'lucide-react';
+import { useAuth } from '@/lib/auth-store';
+import { useSkillsStore } from '@/lib/skills-store';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Check, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const INSTRUMENT_ICONS: Record<string, any> = {
@@ -33,6 +35,20 @@ const INSTRUMENT_ICONS: Record<string, any> = {
   'Flauta': Music,
 };
 
+// Función auxiliar para calcular duración en horas desde un string "HH:mm - HH:mm"
+const calculateDuration = (timeStr: string): number => {
+  try {
+    const [start, end] = timeStr.split(' - ');
+    const [h1, m1] = start.split(':').map(Number);
+    const [h2, m2] = end.split(':').map(Number);
+    const startMinutes = h1 * 60 + m1;
+    const endMinutes = h2 * 60 + m2;
+    return (endMinutes - startMinutes) / 60;
+  } catch (e) {
+    return 1; // Default a 1 hora si falla el parseo
+  }
+};
+
 export default function TeacherDashboard() {
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -41,6 +57,8 @@ export default function TeacherDashboard() {
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const { toast } = useToast();
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
+  const { allUsers } = useAuth();
+  const { getSkillLevel } = useSkillsStore();
 
   const teacherId = '2'; 
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
@@ -138,6 +156,56 @@ export default function TeacherDashboard() {
     const data = getDayAvailability(teacherId, selectedDate);
     return data.slots.filter(s => s.isBooked);
   }, [selectedDate, getDayAvailability, teacherId, availabilities]);
+
+  // Cálculo dinámico de alumnos rastreados por este profesor
+  const trackedStudents = useMemo(() => {
+    const studentsMap = new Map<string, { 
+      id: string, 
+      name: string, 
+      instrument: string, 
+      sessions: number, 
+      hours: number,
+      progress: number 
+    }>();
+
+    availabilities.forEach(day => {
+      if (day.teacherId === teacherId) {
+        day.slots.forEach(slot => {
+          if (slot.isBooked && (slot.studentId || slot.bookedBy)) {
+            const studentId = slot.studentId || slot.bookedBy!;
+            const existing = studentsMap.get(studentId);
+            const duration = calculateDuration(slot.time);
+            
+            if (existing) {
+              existing.sessions += 1;
+              existing.hours += duration;
+            } else {
+              const studentName = slot.bookedBy || allUsers.find(u => u.id === studentId)?.name || 'Alumno';
+              const instrument = slot.instrument || 'Música';
+              
+              // Calcular progreso promedio basado en habilidades registradas
+              // (Aquí simplificamos usando un par de habilidades clave para el ejemplo)
+              const skills = ['Precisión de Ritmo', 'Técnica', 'Lectura de Notas'];
+              const avgProgress = Math.round(
+                skills.reduce((acc, skill) => acc + getSkillLevel(studentId, instrument, skill, 10), 0) / skills.length
+              );
+
+              studentsMap.set(studentId, {
+                id: studentId,
+                name: studentName,
+                instrument: instrument,
+                sessions: 1,
+                hours: duration,
+                progress: avgProgress
+              });
+            }
+          }
+        });
+      }
+    });
+
+    return Array.from(studentsMap.values());
+  }, [availabilities, teacherId, allUsers, getSkillLevel]);
 
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(selectedDate);
@@ -383,8 +451,8 @@ export default function TeacherDashboard() {
             <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-blue-600">Alumnos</CardTitle>
           </CardHeader>
           <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-            <div className="text-3xl md:text-4xl font-black text-blue-900">24</div>
-            <p className="text-[10px] md:text-xs text-blue-500 font-bold mt-1">+2 este mes</p>
+            <div className="text-3xl md:text-4xl font-black text-blue-900">{trackedStudents.length}</div>
+            <p className="text-[10px] md:text-xs text-blue-500 font-bold mt-1">Activos esta semana</p>
           </CardContent>
         </Card>
         
@@ -409,10 +477,12 @@ export default function TeacherDashboard() {
 
         <Card className="rounded-[2rem] border-none shadow-sm bg-secondary/20">
           <CardHeader className="pb-2 p-4 md:p-6">
-            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-secondary-foreground">Horas</CardTitle>
+            <CardTitle className="text-[10px] md:text-xs font-black uppercase tracking-widest text-secondary-foreground">Horas Totales</CardTitle>
           </CardHeader>
           <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-            <div className="text-3xl md:text-4xl font-black text-secondary-foreground">120</div>
+            <div className="text-3xl md:text-4xl font-black text-secondary-foreground">
+              {Math.round(trackedStudents.reduce((acc, s) => acc + s.hours, 0))}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -420,25 +490,46 @@ export default function TeacherDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
           <CardHeader className="bg-primary/5 p-6 border-b">
-            <CardTitle className="flex items-center gap-2 font-black">
+            <CardTitle className="flex items-center gap-2 font-black text-xl">
               <GraduationCap className="w-6 h-6 text-accent" />
               Seguimiento de Alumnos
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 space-y-8">
-            {[
-              { name: 'Ana García', level: 'Guitarra 2', progress: 85 },
-              { name: 'Liam Smith', level: 'Piano 1', progress: 45 },
-              { name: 'Emma Wilson', level: 'Violín 3', progress: 72 },
-            ].map((student, i) => (
-              <div key={i} className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="font-black text-lg">{student.name}</span>
-                  <span className="text-sm font-black text-muted-foreground">{student.level} • {student.progress}%</span>
+            {trackedStudents.length > 0 ? trackedStudents.map((student) => {
+              const InstrumentIcon = INSTRUMENT_ICONS[student.instrument] || Music;
+              return (
+                <div key={student.id} className="space-y-4 p-4 rounded-[1.5rem] hover:bg-primary/5 transition-all group">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white border-2 border-primary/10 flex items-center justify-center text-accent shadow-sm group-hover:scale-110 transition-transform">
+                        <InstrumentIcon className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-black text-lg text-secondary-foreground">{student.name}</h4>
+                        <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                          <span className="text-accent">{student.instrument}</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1"><CalendarIcon className="w-3 h-3" /> {student.sessions} sesiones</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1"><Timer className="w-3 h-3" /> {student.hours.toFixed(1)} h</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-secondary/30 px-4 py-2 rounded-2xl text-right">
+                      <span className="text-[10px] font-black uppercase text-muted-foreground block">Progreso Técnico</span>
+                      <span className="text-xl font-black text-secondary-foreground">{student.progress}%</span>
+                    </div>
+                  </div>
+                  <Progress value={student.progress} className="h-3 rounded-full bg-primary/10" />
                 </div>
-                <Progress value={student.progress} className="h-3 rounded-full" />
+              );
+            }) : (
+              <div className="py-20 text-center text-muted-foreground italic font-medium">
+                <Music className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                <p>Aún no hay alumnos con clases registradas.</p>
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
 
@@ -452,7 +543,7 @@ export default function TeacherDashboard() {
           <CardContent className="p-0">
             {currentDayBookedSlots.length > 0 ? (
               currentDayBookedSlots.map((cls, i) => {
-                const InstrumentIcon = INSTRUMENT_ICONS[cls.instrument] || Music;
+                const InstrumentIcon = INSTRUMENT_ICONS[cls.instrument || ''] || Music;
                 return (
                   <div key={i} className="flex items-center justify-between p-6 border-b last:border-0 hover:bg-accent/5 transition-colors">
                     <div className="flex items-center gap-4">
@@ -477,7 +568,6 @@ export default function TeacherDashboard() {
                           {cls.type === 'virtual' ? <Video className="w-3 h-3 mr-1 inline" /> : <MapPin className="w-3 h-3 mr-1 inline" />}
                           {cls.type === 'virtual' ? 'Online' : 'Presencial'}
                       </Badge>
-                      <Button size="sm" className="bg-accent text-white rounded-xl font-black px-5">Iniciar</Button>
                     </div>
                   </div>
                 );
