@@ -15,9 +15,9 @@ import { RESOURCES } from '@/lib/resources';
 import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Users, ShieldCheck, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Mock de estudiantes para el personal
+// Mock de estudiantes corregido para coincidir con auth-store.ts
 const MOCK_STUDENTS = [
-  { id: '1', name: 'Ana García', instruments: ['Guitarra', 'Canto'] },
+  { id: '1', name: 'Ana Garcia', instruments: ['Guitarra', 'Canto'] },
   { id: '4', name: 'Liam Smith', instruments: ['Piano', 'Teoría'] },
   { id: '5', name: 'Emma Wilson', instruments: ['Violín'] },
   { id: '6', name: 'Tom Holland', instruments: ['Batería', 'Guitarra'] },
@@ -150,9 +150,10 @@ export default function ProgressPage() {
       });
 
       // 2. Puntos por clases completadas (1 hora = 10 pts)
+      // Cambio Crítico: Ahora buscamos por ID de estudiante
       availabilities.forEach(avail => {
         avail.slots.forEach(slot => {
-          if (slot.isBooked && slot.bookedBy === currentStudent.name && slot.instrument === cat) {
+          if (slot.isBooked && (slot.studentId === currentStudent.id || slot.bookedBy === currentStudent.name) && slot.instrument === cat) {
             if (slot.status === 'completed') {
               points += 10;
               completedHours += 1;

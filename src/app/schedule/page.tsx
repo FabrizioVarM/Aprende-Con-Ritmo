@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -120,7 +121,7 @@ export default function SchedulePage() {
     if (isTeacher) {
       return allDaySlots.filter(s => s.isBooked);
     }
-    return allDaySlots.filter(s => s.isBooked && s.bookedBy === user?.name);
+    return allDaySlots.filter(s => s.isBooked && (s.studentId === user?.id || s.bookedBy === user?.name));
   }, [allDaySlots, user, isTeacher]);
 
   const otherAvailableSlots = useMemo(() => 
@@ -139,7 +140,7 @@ export default function SchedulePage() {
   const handleBook = () => {
     if (!selectedSlotId || !date || !user) return;
     const instrument = user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
-    bookSlot(teacherId, date, selectedSlotId, user.name, instrument);
+    bookSlot(teacherId, date, selectedSlotId, user.name, user.id, instrument);
     toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
     setIsBookingOpen(false);
     setSelectedSlotId(null);
@@ -151,14 +152,14 @@ export default function SchedulePage() {
   };
 
   const handleToggleStatus = (slot: TimeSlot) => {
-    if (!slot.bookedBy || !slot.instrument) return;
+    if (!slot.studentId || !slot.instrument) return;
 
     const newStatus = slot.status === 'completed' ? 'pending' : 'completed';
     setSlotStatus(teacherId, date.toISOString().split('T')[0], slot.id, newStatus);
 
     // Si se marca como completado, sumamos 10 puntos al alumno
     if (newStatus === 'completed') {
-      const student = allUsers.find(u => u.name === slot.bookedBy);
+      const student = allUsers.find(u => u.id === slot.studentId || u.name === slot.bookedBy);
       if (student) {
         const currentLevel = getSkillLevel(student.id, slot.instrument, 'Progreso General', 0);
         updateSkill(student.id, slot.instrument, 'Progreso General', Math.min(100, currentLevel + 10));

@@ -117,7 +117,7 @@ export default function StudentDashboard() {
     const lessons: any[] = [];
     availabilities.forEach(dayAvail => {
       dayAvail.slots.forEach(slot => {
-        if (slot.isBooked && (slot.bookedBy === user.name || slot.bookedBy === user.id)) {
+        if (slot.isBooked && (slot.studentId === user.id || slot.bookedBy === user.name)) {
           const teacher = teachers.find(t => t.id === dayAvail.teacherId);
           const lessonDate = dayAvail.date;
           
@@ -178,7 +178,7 @@ export default function StudentDashboard() {
   const handleBookLesson = () => {
     if (!selectedSlotId || !user || !selectedTeacherId) return;
 
-    bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, selectedInstrument);
+    bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument);
     
     toast({
       title: "¡Reserva Exitosa! 🎸",

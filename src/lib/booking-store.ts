@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -8,6 +9,7 @@ export interface TimeSlot {
   isAvailable: boolean;
   isBooked: boolean;
   bookedBy?: string;
+  studentId?: string; // Añadido para identificación unívoca
   instrument?: string;
   type: 'virtual' | 'presencial';
   status?: 'pending' | 'completed';
@@ -77,7 +79,7 @@ export function useBookingStore() {
     saveToStorage(newAvailabilities);
   }, [availabilities, saveToStorage]);
 
-  const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string, instrument: string) => {
+  const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string) => {
     const dateStr = date.toISOString().split('T')[0];
     const exists = availabilities.some(a => a.teacherId === teacherId && a.date === dateStr);
     
@@ -87,7 +89,7 @@ export function useBookingStore() {
         if (a.teacherId === teacherId && a.date === dateStr) {
           return {
             ...a,
-            slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, isAvailable: false, instrument, status: 'pending' } : s)
+            slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, studentId, isAvailable: false, instrument, status: 'pending' } : s)
           };
         }
         return a;
@@ -104,6 +106,7 @@ export function useBookingStore() {
             isAvailable: false,
             isBooked: id === slotId,
             bookedBy: id === slotId ? studentName : undefined,
+            studentId: id === slotId ? studentId : undefined,
             instrument: id === slotId ? instrument : undefined,
             type: 'presencial',
             status: 'pending'
@@ -124,7 +127,7 @@ export function useBookingStore() {
           ...a,
           slots: a.slots.map(s => 
             s.id === slotId 
-              ? { ...s, isBooked: false, bookedBy: undefined, isAvailable: true, instrument: undefined, status: 'pending' } 
+              ? { ...s, isBooked: false, bookedBy: undefined, studentId: undefined, isAvailable: true, instrument: undefined, status: 'pending' } 
               : s
           )
         };
