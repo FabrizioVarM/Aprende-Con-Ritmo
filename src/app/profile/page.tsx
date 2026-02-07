@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useRef } from 'react';
@@ -227,7 +228,8 @@ export default function ProfilePage() {
 
               <div className="space-y-4">
                 <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <Music className="w-4 h-4 text-accent" /> Mis Instrumentos
+                  <Music className="w-4 h-4 text-accent" /> 
+                  {user.role === 'teacher' ? 'Mis Especialidades (Instrumentos que enseño)' : 'Mis Instrumentos (Lo que aprendo)'}
                 </Label>
                 <div className="flex flex-wrap gap-2">
                   {INSTRUMENTS_LIST.map(inst => {
