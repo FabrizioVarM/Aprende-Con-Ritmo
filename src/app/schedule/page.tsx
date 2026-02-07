@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, User as UserIcon, ShieldCheck } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, User as UserIcon, ShieldCheck, GraduationCap } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -291,62 +291,101 @@ export default function SchedulePage() {
             </div>
             
             <div className="min-w-0 space-y-0.5 sm:space-y-1">
-              <h4 className={cn(
-                "text-base sm:text-lg font-black tracking-tight truncate flex items-center gap-2",
-                (isMine || isStaffView) ? (isCompleted ? "text-emerald-700" : (isPast && isMine ? "text-orange-700" : "text-accent")) : "text-secondary-foreground"
-              )}>
-                {slot.isBooked ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 flex items-center justify-center text-2xl rounded-xl border shadow-sm bg-primary/5">
+              {isAdmin && slot.isBooked ? (
+                <div className="space-y-2">
+                   <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 flex items-center justify-center text-xl rounded-xl border shadow-sm bg-primary/5">
                       {emoji}
                     </div>
-                    <span>Clase de {slot.instrument || 'Música'}</span>
+                    <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Clase de {slot.instrument || 'Música'}</span>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
-                    <div className="flex items-center gap-2 truncate p-1">
-                      {teacherInstrumentsList.map((inst, idx) => {
-                        const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
-                        return (
-                          <TooltipProvider key={idx}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div className="text-2xl hover:scale-125 transition-transform cursor-help">
-                                  {emoji}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
-                                {inst}
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        );
-                      })}
+                  <div className="flex flex-col gap-1">
+                    <div className="text-xl font-black text-accent flex items-center gap-2">
+                      <UserIcon className="w-5 h-5" />
+                      Prof. {slot.teacherName}
+                    </div>
+                    <div className="text-lg font-black text-secondary-foreground flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5" />
+                      Alumno: {slot.bookedBy}
                     </div>
                   </div>
-                )}
-              </h4>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                <span className="flex items-center gap-1 shrink-0 text-secondary-foreground">
-                  <UserIcon className="w-3 h-3 text-accent" /> 
-                  {slot.isBooked ? (isAdmin ? `Prof. ${slot.teacherName} • ${slot.bookedBy}` : (isTeacher ? slot.bookedBy : (teacherProfile?.name || DEFAULT_TEACHER_NAME))) : (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
-                </span>
-                <span className={cn(
-                    "flex items-center gap-1 shrink-0",
-                    slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
-                )}>
-                  {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                  {slot.type === 'virtual' ? 'Online' : 'Presencial'}
-                </span>
-                <span className={cn(
-                  "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
-                  `${period.bg} ${period.border} ${period.color}`
-                )}>
-                  <PeriodIcon className="w-2.5 h-2.5" />
-                  {period.label}
-                </span>
-              </div>
+                  <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
+                    <span className={cn(
+                        "flex items-center gap-1 shrink-0",
+                        slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                    )}>
+                      {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                      {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                    </span>
+                    <span className={cn(
+                      "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
+                      `${period.bg} ${period.border} ${period.color}`
+                    )}>
+                      <period.icon className="w-2.5 h-2.5" />
+                      {period.label}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h4 className={cn(
+                    "text-base sm:text-lg font-black tracking-tight truncate flex items-center gap-2",
+                    (isMine || isStaffView) ? (isCompleted ? "text-emerald-700" : (isPast && isMine ? "text-orange-700" : "text-accent")) : "text-secondary-foreground"
+                  )}>
+                    {slot.isBooked ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 flex items-center justify-center text-2xl rounded-xl border shadow-sm bg-primary/5">
+                          {emoji}
+                        </div>
+                        <span>Clase de {slot.instrument || 'Música'}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
+                        <div className="flex items-center gap-2 truncate p-1">
+                          {teacherInstrumentsList.map((inst, idx) => {
+                            const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
+                            return (
+                              <TooltipProvider key={idx}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="text-2xl hover:scale-125 transition-transform cursor-help">
+                                      {emoji}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
+                                    {inst}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </h4>
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                    <span className="flex items-center gap-1 shrink-0 text-secondary-foreground">
+                      <UserIcon className="w-3 h-3 text-accent" /> 
+                      {slot.isBooked ? (isAdmin ? `Prof. ${slot.teacherName} • ${slot.bookedBy}` : (isTeacher ? slot.bookedBy : (teacherProfile?.name || DEFAULT_TEACHER_NAME))) : (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
+                    </span>
+                    <span className={cn(
+                        "flex items-center gap-1 shrink-0",
+                        slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                    )}>
+                      {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                      {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                    </span>
+                    <span className={cn(
+                      "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
+                      `${period.bg} ${period.border} ${period.color}`
+                    )}>
+                      <period.icon className="w-2.5 h-2.5" />
+                      {period.label}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -534,7 +573,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                   <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>
