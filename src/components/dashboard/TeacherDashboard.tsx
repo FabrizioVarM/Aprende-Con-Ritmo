@@ -407,12 +407,9 @@ export default function TeacherDashboard() {
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Resumen Académico</p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-[8px] font-black uppercase tracking-tighter text-muted-foreground">Recursos</span>
-                    <Badge variant="outline" className="border-accent text-accent rounded-lg px-2 py-0.5 text-[10px] font-black gap-1">
-                      <BookOpen className="w-2.5 h-2.5" />
-                      {student.completedResourcesCount}
-                    </Badge>
+                  <div className="flex items-center gap-2 bg-accent/5 px-3 py-1.5 rounded-xl border border-accent/10">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-accent">Recursos Completados:</span>
+                    <span className="text-xs font-black text-secondary-foreground">{student.completedResourcesCount}</span>
                   </div>
                 </div>
                 
