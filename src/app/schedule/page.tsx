@@ -331,8 +331,18 @@ export default function SchedulePage() {
                     <Trash2 className="w-5 h-5" />
                   </Button>
                 )}
-                <div className={cn("p-2 rounded-full flex items-center", isCompleted ? "bg-emerald-100 text-emerald-600" : "bg-accent/10 text-accent")}>
-                  {isCompleted ? <Check className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+                <div className={cn(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all", 
+                  isCompleted ? "bg-emerald-100 text-emerald-700" : "bg-accent/10 text-accent"
+                )}>
+                  {isCompleted ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Completado</span>
+                    </>
+                  ) : (
+                    <CheckCircle2 className="w-5 h-5" />
+                  )}
                 </div>
               </>
             ) : (
@@ -531,4 +541,3 @@ export default function SchedulePage() {
     </AppLayout>
   );
 }
-
