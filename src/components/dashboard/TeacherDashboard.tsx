@@ -25,6 +25,19 @@ import { useCompletionStore } from '@/lib/completion-store';
 import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const INSTRUMENT_EMOJIS: Record<string, string> = {
+  'Guitarra': '🎸',
+  'Piano': '🎹',
+  'Violín': '🎻',
+  'Batería': '🥁',
+  'Canto': '🎤',
+  'Teoría': '📖',
+  'Teoría Musical': '📖',
+  'Bajo': '🎸',
+  'Flauta': '🪈',
+  'Música': '🎵'
+};
+
 const calculateDuration = (timeStr: string): number => {
   try {
     const [start, end] = timeStr.split(' - ');
@@ -407,19 +420,25 @@ export default function TeacherDashboard() {
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Resumen Académico</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 bg-accent/5 px-3 py-1.5 rounded-xl border border-accent/10">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-accent">Recursos Completados:</span>
-                    <span className="text-xs font-black text-secondary-foreground">{student.completedResourcesCount}</span>
+                  <div className="flex flex-col items-end gap-1">
+                    <div className="flex items-center gap-2 bg-accent/5 px-3 py-1.5 rounded-xl border border-accent/10">
+                      <span className="text-[9px] font-black uppercase tracking-widest text-accent">Recursos Completados:</span>
+                      <span className="text-xs font-black text-secondary-foreground">{student.completedResourcesCount}</span>
+                    </div>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {student.instruments.map(inst => {
                     const hours = student.hoursByInstrument.get(inst) || 0;
+                    const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
                     return (
                       <div key={inst} className="bg-primary/5 rounded-2xl p-2 px-3 flex items-center justify-between border border-primary/5">
-                        <span className="text-xs font-bold text-secondary-foreground">{inst}</span>
-                        <Badge variant="secondary" className="bg-accent text-white rounded-lg px-2 py-0.5 text-[10px] font-black shadow-sm">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-sm">{emoji}</span>
+                          <span className="text-xs font-bold text-secondary-foreground truncate">{inst}</span>
+                        </div>
+                        <Badge variant="secondary" className="bg-accent text-white rounded-lg px-2 py-0.5 text-[10px] font-black shadow-sm shrink-0 ml-1">
                           {hours.toFixed(1)} h
                         </Badge>
                       </div>
