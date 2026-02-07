@@ -95,19 +95,23 @@ export default function ProgressPage() {
   }, [selectedStudentId, isStaff, user, students]);
 
   useEffect(() => {
-    if (currentStudent && currentStudent.instruments?.length > 0) {
-      if (!selectedInstrument || !currentStudent.instruments.includes(selectedInstrument)) {
-        setSelectedInstrument(currentStudent.instruments[0]);
+    if (currentStudent) {
+      if (currentStudent.instruments && currentStudent.instruments.length > 0) {
+        // Si el instrumento seleccionado no está en la lista del alumno y no es Teoría, reseteamos al primero
+        if (!selectedInstrument || (!currentStudent.instruments.includes(selectedInstrument) && selectedInstrument !== 'Teoría')) {
+          setSelectedInstrument(currentStudent.instruments[0]);
+        }
+      } else {
+        // Si no tiene instrumentos elegidos, por defecto mostramos Teoría
+        setSelectedInstrument('Teoría');
       }
-    } else if (currentStudent) {
-      setSelectedInstrument('Default');
     }
   }, [currentStudent, selectedInstrument]);
 
   const instrumentStats = useMemo(() => {
     if (!currentStudent) return {};
     const stats: Record<string, { points: number; completedHours: number; levelName: string; levelNum: number }> = {};
-    const categories = ['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría', 'Default'];
+    const categories = ['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'];
     
     categories.forEach(cat => {
       let points = 0;
@@ -140,7 +144,7 @@ export default function ProgressPage() {
                   let matchesInstrument = normSlotInst === normCat;
                   
                   if (!matchesInstrument && (normSlotInst === 'musica' || normSlotInst === 'música')) {
-                    const primaryInst = currentStudent.instruments?.[0] || 'Default';
+                    const primaryInst = currentStudent.instruments?.[0] || 'Teoría';
                     if (normalizeStr(primaryInst) === normCat) {
                       matchesInstrument = true;
                     }
@@ -180,7 +184,7 @@ export default function ProgressPage() {
 
   const currentSkills = useMemo(() => {
     if (!currentStudent || !selectedInstrument) return [];
-    const configs = DEFAULT_SKILLS_CONFIG[selectedInstrument] || DEFAULT_SKILLS_CONFIG['Default'];
+    const configs = DEFAULT_SKILLS_CONFIG[selectedInstrument] || DEFAULT_SKILLS_CONFIG['Teoría'];
     return configs.map(sc => ({
       ...sc,
       level: getSkillLevel(currentStudent.id, selectedInstrument, sc.name, sc.defaultLevel)
@@ -245,7 +249,6 @@ export default function ProgressPage() {
                       <SelectItem key={inst} value={inst} className="font-bold py-3">{inst}</SelectItem>
                     ))}
                     <SelectItem value="Teoría" className="font-bold py-3">Teoría Musical</SelectItem>
-                    <SelectItem value="Default" className="font-bold py-3 text-muted-foreground">Otros</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
