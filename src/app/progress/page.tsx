@@ -1,19 +1,18 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
+import { useBookingStore } from '@/lib/booking-store';
 import { RESOURCES } from '@/lib/resources';
-import { Star, Award, TrendingUp, Music, CheckCircle2, Trophy, Target } from 'lucide-react';
+import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Definición de las habilidades por defecto para la visualización
+// Definición de las habilidades por defecto
 const DEFAULT_SKILLS: Record<string, { name: string; level: number; color: string }[]> = {
   'Guitarra': [
     { name: 'Precisión de Ritmo', level: 85, color: 'bg-accent' },
@@ -45,6 +44,11 @@ const DEFAULT_SKILLS: Record<string, { name: string; level: number; color: strin
     { name: 'Proyección', level: 60, color: 'bg-orange-500' },
     { name: 'Dicción', level: 85, color: 'bg-green-500' },
   ],
+  'Teoría': [
+    { name: 'Lectura de Pentagrama', level: 55, color: 'bg-accent' },
+    { name: 'Intervalos', level: 40, color: 'bg-blue-500' },
+    { name: 'Armonía Básica', level: 30, color: 'bg-orange-500' },
+  ],
   'Default': [
     { name: 'Teoría Musical', level: 50, color: 'bg-accent' },
     { name: 'Entrenamiento Auditivo', level: 30, color: 'bg-blue-500' },
@@ -58,9 +62,34 @@ const MILESTONES = [
   { title: 'Eficiencia Nivel 2', date: 'Esperado Abr 2024', achieved: false },
 ];
 
+// Helper para nombres de artistas
+const getArtistName = (inst: string) => {
+  switch (inst) {
+    case 'Guitarra': return 'Guitarrista';
+    case 'Piano': return 'Pianista';
+    case 'Violín': return 'Violinista';
+    case 'Batería': return 'Baterista';
+    case 'Canto': return 'Cantante';
+    case 'Teoría': return 'Teórico';
+    default: return 'Músico';
+  }
+};
+
+// Lógica de Niveles
+const getLevelInfo = (inst: string, points: number) => {
+  const artist = getArtistName(inst);
+  if (points >= 9000) return { name: 'Maestro joven', level: 6 };
+  if (points >= 6200) return { name: `Virtuoso con la ${inst}`, level: 5 };
+  if (points >= 4000) return { name: `${artist} Preparado`, level: 4 };
+  if (points >= 2300) return { name: `${artist} en formación`, level: 3 };
+  if (points >= 1000) return { name: `Entusiasta de ${inst}`, level: 2 };
+  return { name: `Aprendiz de ${inst}`, level: 1 };
+};
+
 export default function ProgressPage() {
   const { user } = useAuth();
   const { completions } = useCompletionStore();
+  const { availabilities } = useBookingStore();
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
 
@@ -73,41 +102,62 @@ export default function ProgressPage() {
     }
   }, [user, selectedInstrument]);
 
-  // Lógica Dinámica: Cálculo de puntos y niveles basados en el progreso real (completions)
+  // CÁLCULO DINÁMICO DE PUNTOS
   const instrumentStats = useMemo(() => {
-    const stats: Record<string, { points: number; level: string }> = {};
-    
-    // Inicializar categorías posibles
+    const stats: Record<string, { points: number; levelName: string; levelNum: number }> = {};
     const categories = ['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría', 'Default'];
+    
     categories.forEach(cat => {
-      stats[cat] = { points: 0, level: '' };
-    });
+      let points = 0;
 
-    // Sumar puntos por cada recurso completado (500 pts por examen aprobado)
-    completions.forEach(comp => {
-      if (comp.isCompleted && (user?.role === 'student' ? comp.studentId === user.id : true)) {
-        const resource = RESOURCES.find(r => r.id === comp.resourceId);
-        if (resource) {
-          const cat = resource.category;
-          stats[cat].points += 500;
+      // 1. Puntos por Material Completado (150 pts c/u)
+      completions.forEach(comp => {
+        if (comp.isCompleted && (user?.role === 'student' ? comp.studentId === user.id : true)) {
+          const resource = RESOURCES.find(r => r.id === comp.resourceId);
+          if (resource && resource.category === cat) {
+            points += 150;
+          }
         }
-      }
-    });
+      });
 
-    // Determinar niveles según el rango de puntos
-    Object.keys(stats).forEach(cat => {
-      const p = stats[cat].points;
-      if (p >= 3000) stats[cat].level = `Maestro de ${cat} (Nv. 4)`;
-      else if (p >= 1500) stats[cat].level = `Avanzado de ${cat} (Nv. 3)`;
-      else if (p >= 500) stats[cat].level = `Entusiasta de ${cat} (Nv. 2)`;
-      else stats[cat].level = `Principiante de ${cat} (Nv. 1)`;
+      // 2. Puntos por Horas de Clase (100 pts c/u)
+      availabilities.forEach(avail => {
+        avail.slots.forEach(slot => {
+          if (slot.isBooked && slot.bookedBy === user?.name) {
+            // Nota: Aquí asumimos que teacherId o el slot mismo está vinculado al instrumento. 
+            // Para el prototipo, comparamos el instrumento del docente si estuviera disponible, 
+            // o simplemente sumamos a la categoría si coincide (simulado).
+            // Para ser precisos, sumaremos a la categoría seleccionada si hay match.
+            // En este prototipo, las clases se agrupan en la categoría del instrumento principal del usuario.
+            if (cat === user?.instruments?.[0]) {
+              points += 100;
+            }
+          }
+        });
+      });
+
+      // 3. Puntos por Mejora de Habilidad (10 pts por cada 1%)
+      const skills = DEFAULT_SKILLS[cat] || [];
+      skills.forEach(s => {
+        points += (s.level * 10);
+      });
+
+      const levelInfo = getLevelInfo(cat, points);
+      stats[cat] = { 
+        points, 
+        levelName: levelInfo.name, 
+        levelNum: levelInfo.level 
+      };
     });
 
     return stats;
-  }, [completions, user]);
+  }, [completions, availabilities, user]);
 
   const totalAchievementPoints = useMemo(() => {
-    return Object.values(instrumentStats).reduce((sum, s) => sum + s.points, 0);
+    // Suma de todos los puntos de instrumentos + Hitos (200 pts c/u)
+    const basePoints = Object.values(instrumentStats).reduce((sum, s) => sum + s.points, 0);
+    const milestonePoints = MILESTONES.filter(m => m.achieved).length * 200;
+    return basePoints + milestonePoints;
   }, [instrumentStats]);
 
   const currentData = useMemo(() => {
@@ -134,7 +184,7 @@ export default function ProgressPage() {
           <Card className="rounded-3xl border-none shadow-xl bg-accent text-white px-8 py-4 flex items-center gap-4 hover:scale-105 transition-transform duration-300">
             <Trophy className="w-10 h-10" />
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Puntos de Logro Totales</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80">Puntos de Logro Globales</p>
               <h2 className="text-3xl font-black">{totalAchievementPoints.toLocaleString()} pts</h2>
             </div>
           </Card>
@@ -172,8 +222,8 @@ export default function ProgressPage() {
                   <Target className="w-10 h-10 text-secondary-foreground" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground/60">Nivel Alcanzado</p>
-                  <h4 className="font-black text-2xl text-secondary-foreground mt-1">{currentData.level}</h4>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground/60">Rango Alcanzado</p>
+                  <h4 className="font-black text-2xl text-secondary-foreground mt-1">{currentData.levelName} (Nv. {currentData.levelNum})</h4>
                 </div>
               </Card>
 
