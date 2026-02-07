@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { 
   Sheet, 
@@ -61,7 +61,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <Music className="w-6 h-6" />
         </div>
         <span className="text-xl font-extrabold text-secondary-foreground font-headline tracking-tight">
-          Ritmo
+          Aprende Con Ritmo
         </span>
       </div>
 
@@ -131,7 +131,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="md:hidden flex items-center justify-between p-4 bg-white/80 border-b">
           <div className="flex items-center gap-2">
             <Music className="w-6 h-6 text-accent" />
-            <span className="font-bold">Ritmo</span>
+            <span className="font-bold">Aprende Con Ritmo</span>
           </div>
           <Sheet>
             <SheetTrigger asChild>
