@@ -8,73 +8,47 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/lib/auth-store';
+import { useCompletionStore } from '@/lib/completion-store';
+import { RESOURCES } from '@/lib/resources';
 import { Star, Award, TrendingUp, Music, CheckCircle2, Trophy, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Mock data for different instruments to demonstrate functionality
-const PROGRESS_DATA_BY_INSTRUMENT: Record<string, {
-  skills: { name: string; level: number; color: string }[];
-  level: string;
-  points: number;
-}> = {
-  'Guitarra': {
-    skills: [
-      { name: 'Precisión de Ritmo', level: 85, color: 'bg-accent' },
-      { name: 'Lectura de Notas', level: 60, color: 'bg-blue-500' },
-      { name: 'Dinámicas', level: 45, color: 'bg-orange-500' },
-      { name: 'Técnica', level: 72, color: 'bg-green-500' },
-    ],
-    level: 'Entusiasta de la Guitarra (Nv. 2)',
-    points: 2450
-  },
-  'Piano': {
-    skills: [
-      { name: 'Independencia de manos', level: 40, color: 'bg-accent' },
-      { name: 'Lectura en Clave de Fa', level: 75, color: 'bg-blue-500' },
-      { name: 'Escalas Mayores', level: 90, color: 'bg-orange-500' },
-      { name: 'Uso del Pedal', level: 30, color: 'bg-green-500' },
-    ],
-    level: 'Principiante de Piano (Nv. 1)',
-    points: 1200
-  },
-  'Violín': {
-    skills: [
-      { name: 'Postura del Arco', level: 65, color: 'bg-accent' },
-      { name: 'Intonación', level: 50, color: 'bg-blue-500' },
-      { name: 'Vibrato', level: 20, color: 'bg-orange-500' },
-      { name: 'Lectura Rápida', level: 40, color: 'bg-green-500' },
-    ],
-    level: 'Aprendiz de Violín (Nv. 1)',
-    points: 850
-  },
-  'Batería': {
-    skills: [
-      { name: 'Coordinación', level: 70, color: 'bg-accent' },
-      { name: 'Velocidad', level: 55, color: 'bg-blue-500' },
-      { name: 'Rudimentos', level: 80, color: 'bg-orange-500' },
-      { name: 'Groove', level: 65, color: 'bg-green-500' },
-    ],
-    level: 'Ritmo en Marcha (Nv. 2)',
-    points: 1800
-  },
-  'Canto': {
-    skills: [
-      { name: 'Respiración', level: 90, color: 'bg-accent' },
-      { name: 'Afinación', level: 75, color: 'bg-blue-500' },
-      { name: 'Proyección', level: 60, color: 'bg-orange-500' },
-      { name: 'Dicción', level: 85, color: 'bg-green-500' },
-    ],
-    level: 'Voz en Formación (Nv. 2)',
-    points: 2100
-  },
-  'Default': {
-    skills: [
-      { name: 'Teoría Musical', level: 50, color: 'bg-accent' },
-      { name: 'Entrenamiento Auditivo', level: 30, color: 'bg-blue-500' },
-    ],
-    level: 'Estudiante de Música',
-    points: 500
-  }
+// Definición de las habilidades por defecto para la visualización
+const DEFAULT_SKILLS: Record<string, { name: string; level: number; color: string }[]> = {
+  'Guitarra': [
+    { name: 'Precisión de Ritmo', level: 85, color: 'bg-accent' },
+    { name: 'Lectura de Notas', level: 60, color: 'bg-blue-500' },
+    { name: 'Dinámicas', level: 45, color: 'bg-orange-500' },
+    { name: 'Técnica', level: 72, color: 'bg-green-500' },
+  ],
+  'Piano': [
+    { name: 'Independencia de manos', level: 40, color: 'bg-accent' },
+    { name: 'Lectura en Clave de Fa', level: 75, color: 'bg-blue-500' },
+    { name: 'Escalas Mayores', level: 90, color: 'bg-orange-500' },
+    { name: 'Uso del Pedal', level: 30, color: 'bg-green-500' },
+  ],
+  'Violín': [
+    { name: 'Postura del Arco', level: 65, color: 'bg-accent' },
+    { name: 'Intonación', level: 50, color: 'bg-blue-500' },
+    { name: 'Vibrato', level: 20, color: 'bg-orange-500' },
+    { name: 'Lectura Rápida', level: 40, color: 'bg-green-500' },
+  ],
+  'Batería': [
+    { name: 'Coordinación', level: 70, color: 'bg-accent' },
+    { name: 'Velocidad', level: 55, color: 'bg-blue-500' },
+    { name: 'Rudimentos', level: 80, color: 'bg-orange-500' },
+    { name: 'Groove', level: 65, color: 'bg-green-500' },
+  ],
+  'Canto': [
+    { name: 'Respiración', level: 90, color: 'bg-accent' },
+    { name: 'Afinación', level: 75, color: 'bg-blue-500' },
+    { name: 'Proyección', level: 60, color: 'bg-orange-500' },
+    { name: 'Dicción', level: 85, color: 'bg-green-500' },
+  ],
+  'Default': [
+    { name: 'Teoría Musical', level: 50, color: 'bg-accent' },
+    { name: 'Entrenamiento Auditivo', level: 30, color: 'bg-blue-500' },
+  ]
 };
 
 const MILESTONES = [
@@ -86,9 +60,12 @@ const MILESTONES = [
 
 export default function ProgressPage() {
   const { user } = useAuth();
+  const { completions } = useCompletionStore();
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     if (user && user.instruments && user.instruments.length > 0 && !selectedInstrument) {
       setSelectedInstrument(user.instruments[0]);
     } else if (user && (!user.instruments || user.instruments.length === 0) && !selectedInstrument) {
@@ -96,19 +73,52 @@ export default function ProgressPage() {
     }
   }, [user, selectedInstrument]);
 
-  const currentData = useMemo(() => {
-    return PROGRESS_DATA_BY_INSTRUMENT[selectedInstrument] || PROGRESS_DATA_BY_INSTRUMENT['Default'];
-  }, [selectedInstrument]);
+  // Lógica Dinámica: Cálculo de puntos y niveles basados en el progreso real (completions)
+  const instrumentStats = useMemo(() => {
+    const stats: Record<string, { points: number; level: string }> = {};
+    
+    // Inicializar categorías posibles
+    const categories = ['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría', 'Default'];
+    categories.forEach(cat => {
+      stats[cat] = { points: 0, level: '' };
+    });
 
-  // Cálculo de Puntos de Logro Globales (Suma de todos los instrumentos del usuario)
+    // Sumar puntos por cada recurso completado (500 pts por examen aprobado)
+    completions.forEach(comp => {
+      if (comp.isCompleted && (user?.role === 'student' ? comp.studentId === user.id : true)) {
+        const resource = RESOURCES.find(r => r.id === comp.resourceId);
+        if (resource) {
+          const cat = resource.category;
+          stats[cat].points += 500;
+        }
+      }
+    });
+
+    // Determinar niveles según el rango de puntos
+    Object.keys(stats).forEach(cat => {
+      const p = stats[cat].points;
+      if (p >= 3000) stats[cat].level = `Maestro de ${cat} (Nv. 4)`;
+      else if (p >= 1500) stats[cat].level = `Avanzado de ${cat} (Nv. 3)`;
+      else if (p >= 500) stats[cat].level = `Entusiasta de ${cat} (Nv. 2)`;
+      else stats[cat].level = `Principiante de ${cat} (Nv. 1)`;
+    });
+
+    return stats;
+  }, [completions, user]);
+
   const totalAchievementPoints = useMemo(() => {
-    if (!user?.instruments || user.instruments.length === 0) {
-      return PROGRESS_DATA_BY_INSTRUMENT['Default'].points;
-    }
-    return user.instruments.reduce((sum, inst) => {
-      return sum + (PROGRESS_DATA_BY_INSTRUMENT[inst]?.points || 0);
-    }, 0);
-  }, [user]);
+    return Object.values(instrumentStats).reduce((sum, s) => sum + s.points, 0);
+  }, [instrumentStats]);
+
+  const currentData = useMemo(() => {
+    const stats = instrumentStats[selectedInstrument] || instrumentStats['Default'];
+    return {
+      ...stats,
+      skills: DEFAULT_SKILLS[selectedInstrument] || DEFAULT_SKILLS['Default']
+    };
+  }, [selectedInstrument, instrumentStats]);
+
+  if (!isMounted) return null;
 
   return (
     <AppLayout>
@@ -116,7 +126,7 @@ export default function ProgressPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">
-              {user?.role === 'teacher' ? 'Resumen del Progreso del Estudiante' : 'Mi Viaje de Aprendizaje 🚀'}
+              {user?.role === 'teacher' ? 'Seguimiento del Alumno' : 'Mi Viaje de Aprendizaje 🚀'}
             </h1>
             <p className="text-muted-foreground mt-1 text-lg font-medium">Visualizando tu crecimiento musical y logros.</p>
           </div>
@@ -131,7 +141,6 @@ export default function ProgressPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Columna de Instrumento Seleccionado (8 columnas) */}
           <div className="lg:col-span-8 space-y-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -139,23 +148,22 @@ export default function ProgressPage() {
                 <h2 className="text-2xl font-black text-secondary-foreground">Progreso por Instrumento</h2>
               </div>
               
-              {(user?.instruments && user.instruments.length > 0) && (
-                <div className="w-64">
-                  <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                    <SelectTrigger className="h-12 rounded-2xl border-2 font-black text-secondary-foreground bg-white shadow-sm">
-                      <SelectValue placeholder="Elige un instrumento" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl">
-                      {user.instruments.map(inst => (
-                        <SelectItem key={inst} value={inst} className="font-bold py-3">
-                          {inst}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value="Default" className="font-bold py-3 text-muted-foreground">Teoría / General</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <div className="w-64">
+                <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+                  <SelectTrigger className="h-12 rounded-2xl border-2 font-black text-secondary-foreground bg-white shadow-sm">
+                    <SelectValue placeholder="Elige un instrumento" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl">
+                    {user?.instruments?.map(inst => (
+                      <SelectItem key={inst} value={inst} className="font-bold py-3">
+                        {inst}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="Teoría" className="font-bold py-3">Teoría Musical</SelectItem>
+                    <SelectItem value="Default" className="font-bold py-3 text-muted-foreground">Otros / General</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -174,7 +182,7 @@ export default function ProgressPage() {
                   <Music className="w-10 h-10 text-accent" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument === 'Default' ? 'Música' : selectedInstrument}</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
                   <h4 className="font-black text-3xl text-accent mt-1">{currentData.points.toLocaleString()} pts</h4>
                 </div>
               </Card>
@@ -184,7 +192,7 @@ export default function ProgressPage() {
               <CardHeader className="bg-primary/5 p-8 border-b">
                 <CardTitle className="flex items-center gap-3 font-black text-xl">
                   <TrendingUp className="w-6 h-6 text-accent" />
-                  Habilidades Técnicas: {selectedInstrument === 'Default' ? 'General' : selectedInstrument}
+                  Habilidades Técnicas: {selectedInstrument}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
@@ -201,7 +209,6 @@ export default function ProgressPage() {
             </Card>
           </div>
 
-          {/* Columna Global (Hitos) (4 columnas) */}
           <div className="lg:col-span-4 space-y-8">
             <div className="flex items-center gap-3">
               <div className="w-2 h-8 bg-secondary-foreground rounded-full" />
@@ -245,4 +252,3 @@ export default function ProgressPage() {
     </AppLayout>
   );
 }
-
