@@ -75,6 +75,8 @@ export default function ProgressPage() {
   const [isMounted, setIsMounted] = useState(false);
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
+  
+  // Usar todos los usuarios reales registrados
   const students = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
 
   useEffect(() => {
@@ -98,6 +100,7 @@ export default function ProgressPage() {
   useEffect(() => {
     if (currentStudent) {
       if (currentStudent.instruments && currentStudent.instruments.length > 0) {
+        // Solo permitir instrumentos que el alumno tiene en su perfil o Teoría
         if (!selectedInstrument || (!currentStudent.instruments.includes(selectedInstrument) && selectedInstrument !== 'Teoría Musical')) {
           setSelectedInstrument(currentStudent.instruments[0]);
         }
@@ -110,21 +113,29 @@ export default function ProgressPage() {
   const instrumentStats = useMemo(() => {
     if (!currentStudent) return {};
     const stats: Record<string, { points: number; completedHours: number; levelName: string; levelNum: number }> = {};
-    const categories = ['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría Musical'];
     
-    categories.forEach(cat => {
+    // Lista de instrumentos reales del estudiante
+    const studentInstruments = [...(currentStudent.instruments || []), 'Teoría Musical'];
+    
+    studentInstruments.forEach(cat => {
       let points = 0;
       let completedHours = 0;
 
+      // Puntos por recursos completados
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(currentStudent.id)) {
           const resource = RESOURCES.find(r => r.id === comp.resourceId);
-          if (resource && (normalizeStr(resource.category) === normalizeStr(cat) || (cat === 'Teoría Musical' && normalizeStr(resource.category) === 'teoria'))) {
-            points += 150;
+          if (resource) {
+            const isTarget = normalizeStr(resource.category) === normalizeStr(cat) || 
+                            (cat === 'Teoría Musical' && normalizeStr(resource.category) === 'teoria');
+            if (isTarget) {
+              points += 150;
+            }
           }
         }
       });
 
+      // Puntos por clases asistidas (20 puntos por hora)
       if (Array.isArray(availabilities)) {
         availabilities.forEach(avail => {
           if (avail.slots && Array.isArray(avail.slots)) {
@@ -140,6 +151,7 @@ export default function ProgressPage() {
                   
                   let matchesInstrument = normSlotInst === normCat;
                   
+                  // Si la clase es genérica ("Música"), asignarla al primer instrumento del alumno
                   if (!matchesInstrument && (normSlotInst === 'musica' || normSlotInst === 'música')) {
                     const primaryInst = currentStudent.instruments?.[0] || 'Teoría Musical';
                     if (normalizeStr(primaryInst) === normCat) {
@@ -149,7 +161,7 @@ export default function ProgressPage() {
 
                   if (matchesInstrument) {
                     const duration = calculateDuration(slot.time);
-                    points += Math.round(duration * 10);
+                    points += Math.round(duration * 20); // CAMBIO: 20 puntos por hora
                     completedHours += duration;
                   }
                 }
@@ -159,7 +171,9 @@ export default function ProgressPage() {
         });
       }
 
-      const skillConfigs = DEFAULT_SKILLS_CONFIG[cat === 'Teoría Musical' ? 'Teoría' : cat] || [];
+      // Puntos por evolución técnica (Skills)
+      const instKey = cat === 'Teoría Musical' ? 'Teoría' : cat;
+      const skillConfigs = DEFAULT_SKILLS_CONFIG[instKey] || [];
       skillConfigs.forEach(sc => {
         const level = getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel);
         points += (level * 10);
@@ -268,11 +282,11 @@ export default function ProgressPage() {
                   <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
                   <h4 className="font-black text-2xl text-accent mt-1">{(instrumentStats[selectedInstrument]?.points || 0).toLocaleString()} pts</h4>
                   
-                  <div className="mt-2">
+                  <div className="mt-4">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Info className="w-5 h-5 text-accent/50 cursor-help hover:text-accent transition-colors" />
+                          <Info className="w-7 h-7 text-accent/50 cursor-help hover:text-accent transition-colors" />
                         </TooltipTrigger>
                         <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-white border-2 border-accent/20 shadow-xl">
                           <p className="font-black text-xs text-secondary-foreground mb-2 uppercase tracking-widest">¿Cómo sumas puntos?</p>
@@ -283,7 +297,7 @@ export default function ProgressPage() {
                             </li>
                             <li className="flex items-start gap-2">
                               <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
-                              <span><b>Clases:</b> ~10 pts por cada hora de clase asistida y validada.</span>
+                              <span><b>Clases:</b> +20 pts por cada hora de clase asistida y validada.</span>
                             </li>
                             <li className="flex items-start gap-2">
                               <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
