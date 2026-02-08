@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -8,17 +9,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { Music, Mail, Lock } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const { login } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    login(email);
-    router.push('/dashboard');
+    const success = login(email);
+    
+    if (success) {
+      router.push('/dashboard');
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error de acceso 🚫",
+        description: "Esta cuenta no existe o ha sido eliminada por el administrador. Por favor, regístrate de nuevo para empezar de cero.",
+      });
+    }
   };
 
   return (

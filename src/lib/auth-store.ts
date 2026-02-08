@@ -47,7 +47,7 @@ export function useAuth() {
       localStorage.setItem('ac_all_users', JSON.stringify(INITIAL_MOCK_USERS));
     }
     
-    // Filtro de seguridad para eliminar Flauta si quedó en localStorage
+    // Safety filter
     const filteredAllUsers = currentAllUsers.map(u => ({
       ...u,
       instruments: u.instruments?.filter(inst => inst !== 'Flauta')
@@ -59,11 +59,18 @@ export function useAuth() {
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
-        const upToDateUser = filteredAllUsers.find(u => u.id === parsedUser.id) || parsedUser;
-        if (upToDateUser.instruments) {
-          upToDateUser.instruments = upToDateUser.instruments.filter((i: string) => i !== 'Flauta');
+        const upToDateUser = filteredAllUsers.find(u => u.id === parsedUser.id);
+        
+        if (upToDateUser) {
+          if (upToDateUser.instruments) {
+            upToDateUser.instruments = upToDateUser.instruments.filter((i: string) => i !== 'Flauta');
+          }
+          setUser(upToDateUser);
+        } else {
+          // User was deleted by admin while logged in
+          localStorage.removeItem('ac_user');
+          setUser(null);
         }
-        setUser(upToDateUser);
       } catch (e) {
         console.error("Error parsing current user", e);
       }
@@ -83,11 +90,15 @@ export function useAuth() {
     };
   }, [loadAllUsers]);
 
-  const login = (email: string) => {
-    const foundUser = allUsers.find(u => u.email === email) || allUsers[0];
-    localStorage.setItem('ac_user', JSON.stringify(foundUser));
-    setUser(foundUser);
-    window.dispatchEvent(new CustomEvent('ac_sync_auth'));
+  const login = (email: string): boolean => {
+    const foundUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (foundUser) {
+      localStorage.setItem('ac_user', JSON.stringify(foundUser));
+      setUser(foundUser);
+      window.dispatchEvent(new CustomEvent('ac_sync_auth'));
+      return true;
+    }
+    return false;
   };
 
   const logout = useCallback(() => {
@@ -128,7 +139,6 @@ export function useAuth() {
     localStorage.setItem('ac_all_users', JSON.stringify(updatedAllUsers));
     setAllUsers(updatedAllUsers);
 
-    // If updating current logged in user
     if (user && user.id === userId) {
       const newUser = updatedAllUsers.find(u => u.id === userId)!;
       localStorage.setItem('ac_user', JSON.stringify(newUser));
