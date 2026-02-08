@@ -108,7 +108,7 @@ export default function SchedulePage() {
   const [groupStudents, setGroupStudents] = useState<string[]>([]);
   const [groupTeachers, setGroupTeachers] = useState<string[]>([]);
   const [groupStartTime, setGroupStartTime] = useState("16:00");
-  const [groupInstrument, setGroupInstrument] = useState("Música");
+  const [groupInstrument, setGroupInstrument] = useState("Tormenta de Oro");
   const [groupType, setGroupType] = useState<'virtual' | 'presencial'>('presencial');
 
   const { toast } = useToast();
@@ -369,11 +369,10 @@ export default function SchedulePage() {
                   <div className="flex flex-col gap-1">
                     <div className="text-xl font-black text-accent flex items-center gap-2">
                       <UserIcon className="w-5 h-5" />
-                      Prof. {slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
-                      {slot.teachers && slot.teachers.length > 0 && (
-                        <span className="text-sm text-muted-foreground font-bold">
-                          (Colaboran: {slot.teachers.map((t: any) => t.name).join(', ')})
-                        </span>
+                      {slot.isGroup ? (
+                        <span className="truncate">Profesores: {[slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME), ...(slot.teachers?.map((t: any) => t.name) || [])].join(', ')}</span>
+                      ) : (
+                        <span>Prof. {slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME)}</span>
                       )}
                     </div>
                     <div className="text-lg font-black text-secondary-foreground flex items-center gap-2">
