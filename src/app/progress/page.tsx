@@ -1,7 +1,8 @@
 
 "use client"
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -65,12 +66,14 @@ const getLevelInfo = (inst: string, points: number) => {
   return { name: getBaseName(points, inst), level: levelNum };
 };
 
-export default function ProgressPage() {
+function ProgressContent() {
   const { user, allUsers } = useAuth();
   const { completions } = useCompletionStore();
   const { availabilities } = useBookingStore();
   const { updateSkill, getSkillLevel } = useSkillsStore();
   const { resources } = useResourceStore();
+  const searchParams = useSearchParams();
+  const queryStudentId = searchParams.get('studentId');
   
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
@@ -84,14 +87,16 @@ export default function ProgressPage() {
     setIsMounted(true);
     if (user) {
       if (isStaff) {
-        if (!selectedStudentId && students.length > 0) {
+        if (queryStudentId) {
+          setSelectedStudentId(queryStudentId);
+        } else if (!selectedStudentId && students.length > 0) {
           setSelectedStudentId(students[0].id);
         }
       } else {
         setSelectedStudentId(user.id);
       }
     }
-  }, [user, isStaff, students, selectedStudentId]);
+  }, [user, isStaff, students, selectedStudentId, queryStudentId]);
 
   const currentStudent = useMemo(() => {
     if (isStaff) return students.find(s => s.id === selectedStudentId);
@@ -116,7 +121,6 @@ export default function ProgressPage() {
     
     const studentInstruments = [...(currentStudent.instruments || []), 'Teoría'];
     
-    // De-duplicate instruments list
     const uniqueInstruments = Array.from(new Set(studentInstruments));
 
     uniqueInstruments.forEach(cat => {
@@ -417,5 +421,13 @@ export default function ProgressPage() {
         </div>
       </div>
     </AppLayout>
+  );
+}
+
+export default function ProgressPage() {
+  return (
+    <Suspense fallback={null}>
+      <ProgressContent />
+    </Suspense>
   );
 }

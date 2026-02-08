@@ -2,6 +2,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { 
   Table, 
@@ -50,6 +51,7 @@ const INSTRUMENTS_LIST = [
 export default function UsersPage() {
   const { allUsers, adminUpdateUser, loading, user } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [search, setSearch] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -191,7 +193,12 @@ export default function UsersPage() {
                       <Edit className="w-4 h-4" /> Editar Perfil
                     </DropdownMenuItem>
                     {u.role === 'student' && (
-                      <DropdownMenuItem className="gap-2 rounded-xl font-bold py-2 cursor-pointer"><TrendingUp className="w-4 h-4" /> Ver Progreso</DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="gap-2 rounded-xl font-bold py-2 cursor-pointer"
+                        onClick={() => router.push(`/progress?studentId=${u.id}`)}
+                      >
+                        <TrendingUp className="w-4 h-4" /> Ver Progreso
+                      </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator className="my-1" />
                     <DropdownMenuItem className="gap-2 rounded-xl font-bold py-2 text-destructive focus:text-destructive cursor-pointer"><Trash className="w-4 h-4" /> Eliminar Cuenta</DropdownMenuItem>
