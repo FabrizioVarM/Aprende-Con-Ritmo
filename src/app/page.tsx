@@ -53,8 +53,8 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary via-background to-background relative overflow-hidden">
       
-      {/* Fondo decorativo de notas musicales */}
-      <div className="absolute inset-0 pointer-events-none opacity-20 overflow-hidden">
+      {/* Fondo decorativo de notas musicales - Opacidad aumentada al 30% */}
+      <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
         {notes.map((note) => {
           const Icon = icons[note.iconIndex];
           return (

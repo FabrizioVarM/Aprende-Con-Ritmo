@@ -91,8 +91,9 @@ export default {
         },
         float: {
           '0%, 100%': { transform: 'translateY(0) translateX(0) rotate(0deg)' },
-          '33%': { transform: 'translateY(-25px) translateX(25px) rotate(15deg)' },
-          '66%': { transform: 'translateY(15px) translateX(-20px) rotate(-15deg)' },
+          // Aumento de amplitud en un ~30% (de 25px a 33px y de 15px a 20px)
+          '33%': { transform: 'translateY(-33px) translateX(33px) rotate(20deg)' },
+          '66%': { transform: 'translateY(20px) translateX(-26px) rotate(-20deg)' },
         }
       },
       animation: {
