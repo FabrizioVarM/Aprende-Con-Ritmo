@@ -14,7 +14,11 @@ import {
   Menu,
   User as UserIcon,
   Settings,
-  Check
+  Check,
+  ShoppingBag,
+  Mic2,
+  ClipboardList,
+  Gift
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
 import { useSettingsStore } from '@/lib/settings-store';
@@ -44,6 +48,7 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   roles: UserRole[];
+  disabled?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -51,6 +56,10 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Horario', href: '/schedule', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
   { label: 'Biblioteca', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
   { label: 'Progreso', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher', 'admin'] },
+  { label: 'RitmoMarket', href: '#', icon: ShoppingBag, roles: ['student', 'teacher', 'admin'], disabled: true },
+  { label: 'Producción Musical', href: '#', icon: Mic2, roles: ['student', 'teacher', 'admin'], disabled: true },
+  { label: 'Postulaciones', href: '#', icon: ClipboardList, roles: ['student', 'teacher', 'admin'], disabled: true },
+  { label: 'Recompensas', href: '#', icon: Gift, roles: ['student', 'teacher', 'admin'], disabled: true },
   { label: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
   { label: 'Configuración', href: '/settings', icon: Settings, roles: ['admin'] },
   { label: 'Mi Perfil', href: '/profile', icon: UserIcon, roles: ['student', 'teacher', 'admin'] },
@@ -97,6 +106,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav className="flex-1 space-y-1">
         {filteredNav.map((item) => {
           const isActive = pathname === item.href;
+          
+          if (item.disabled) {
+            return (
+              <div 
+                key={item.label} 
+                className="flex items-center justify-between px-4 py-3 rounded-xl opacity-40 cursor-not-allowed text-muted-foreground group select-none"
+              >
+                <div className="flex items-center gap-3">
+                  <item.icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </div>
+                <span className="text-[7px] font-black uppercase bg-primary/20 px-1.5 py-0.5 rounded-md border border-primary/10">Próximamente</span>
+              </div>
+            );
+          }
+
           return (
             <Link key={item.href} href={item.href}>
               <span className={cn(
