@@ -62,8 +62,8 @@ export default function InstrumentSelectionPage() {
           <h1 className="text-4xl md:text-5xl font-black text-foreground tracking-tight">
             ¡Casi listo, <span className="text-accent">{user.name.split(' ')[0]}</span>! 🎼
           </h1>
-          <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto">
-            Cuéntanos, ¿qué instrumentos te gustaría aprender en Aprende Con Ritmo? Puedes elegir varios.
+          <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
+            Cuéntanos, ¿qué instrumento te gustaría aprender en Aprende Con Ritmo? Si tienes un objetivo más amplio, ¡puedes elegir más de un instrumento!
           </p>
         </div>
 
