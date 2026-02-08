@@ -222,7 +222,7 @@ export default function LibraryPage() {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
             
             return (
-              <Card key={res.id} className="rounded-[2.5rem] border-none shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300">
+              <Card key={res.id} className="rounded-[2.5rem] border-2 border-primary/20 shadow-md group overflow-hidden bg-card hover:shadow-xl hover:border-accent/40 transition-all duration-300">
                 <div className="relative aspect-video overflow-hidden">
                   <Image 
                     src={res.img.imageUrl} 
