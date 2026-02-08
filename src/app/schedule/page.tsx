@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check, MousePointerClick } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -130,7 +130,6 @@ export default function SchedulePage() {
   const studentsList = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
   const otherTeachersList = useMemo(() => allUsers.filter(u => u.role === 'teacher'), [allUsers]);
 
-  // Si es profesor, su teacherId es su propio ID. Si es alumno, usa el profesor seleccionado.
   useEffect(() => {
     if (!loading && user && !selectedTeacherId && teachersList.length > 0) {
       if (isTeacher) {
@@ -179,7 +178,6 @@ export default function SchedulePage() {
       return allDaySlots.filter(s => s.isBooked);
     }
     
-    // Para alumnos, buscamos sus clases en TODOS los registros de disponibilidad de este día
     const studentClasses: any[] = [];
     availabilities.forEach(day => {
       if (day.date === dateStrKey) {
@@ -704,7 +702,6 @@ export default function SchedulePage() {
                     </DialogDescription>
                   </DialogHeader>
                   <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-card max-h-[60vh]">
-                    {/* Selector de Profesor dentro del Diálogo */}
                     <div className="space-y-3 pb-4 border-b border-accent/10">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
                         <UserIcon className="w-3 h-3" /> 1. Elige tu Profesor
@@ -823,32 +820,113 @@ export default function SchedulePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-4 space-y-6">
+            <div className="px-2 space-y-1">
+              <h2 className="text-2xl font-black text-foreground font-headline tracking-tight flex items-center gap-2">
+                <CalendarIcon className="w-6 h-6 text-accent" />
+                Calendario Semanal 🗓️
+              </h2>
+              <p className="text-muted-foreground text-sm font-medium">Gestiona tu agenda paso a paso.</p>
+            </div>
+
             <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
-              <CardHeader className="bg-primary/5 p-6 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-black flex items-center gap-2">
-                  <CalendarIcon className="w-5 h-5 text-accent" />
-                  Semana Actual
-                </CardTitle>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => navigateWeek('prev')} className="h-8 w-8 rounded-full"><ChevronLeft className="w-4 h-4" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => navigateWeek('next')} className="h-8 w-8 rounded-full"><ChevronRight className="w-4 h-4" /></Button>
+              <CardHeader className="bg-primary/5 p-6 border-b space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-accent flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                      Paso 1
+                    </p>
+                    <CardTitle className="text-base font-black text-foreground">Elige la semana</CardTitle>
+                  </div>
+                  <div className="flex items-center bg-card rounded-2xl border-2 border-primary/10 p-1 shadow-sm">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => navigateWeek('prev')} 
+                      className="h-10 w-10 rounded-xl hover:bg-accent/10 text-foreground transition-all"
+                      title="Semana anterior"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </Button>
+                    <div className="h-6 w-px bg-primary/10 mx-1" />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => navigateWeek('next')} 
+                      className="h-10 w-10 rounded-xl hover:bg-accent/10 text-foreground transition-all"
+                      title="Siguiente semana"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </Button>
+                  </div>
                 </div>
+                <p className="text-[10px] text-muted-foreground font-bold italic">Navegación empezando desde la semana actual.</p>
               </CardHeader>
               <CardContent className="p-4">
-                <div className="grid grid-cols-1 gap-2">
-                  {weekDays.map((d, i) => {
-                    const isSelected = d.toDateString() === date.toDateString();
-                    const isToday = d.toDateString() === todayStr;
-                    return (
-                      <button key={i} onClick={() => setDate(d)} className={cn("flex items-center justify-between p-4 rounded-2xl transition-all border-2", isSelected ? "bg-accent border-accent text-white shadow-lg" : "bg-card border-primary/5 hover:border-accent/30", isToday && !isSelected && "border-accent/30")}>
-                        <div className="flex flex-col items-start">
-                          <span className={cn("text-[10px] font-black uppercase tracking-widest opacity-60", isSelected ? "text-white" : "text-muted-foreground")}>{d.toLocaleDateString('es-ES', { weekday: 'long' })}</span>
-                          <span className="text-xl font-black">{d.getDate()}</span>
-                        </div>
-                        {isToday && <Badge className={cn("rounded-full px-3 py-1 text-[9px] font-black", isSelected ? "bg-white text-accent" : "bg-accent text-white")}>HOY</Badge>}
-                      </button>
-                    );
-                  })}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between px-2">
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-accent">Paso 2</p>
+                      <p className="text-sm font-black text-foreground">Elige el día</p>
+                    </div>
+                    <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 bg-primary/5 px-2 py-1 rounded-full border border-primary/10">
+                      <MousePointerClick className="w-3 h-3 text-accent" />
+                      Haz clic en un día
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-2">
+                    {weekDays.map((d, i) => {
+                      const isSelected = d.toDateString() === date.toDateString();
+                      const isToday = d.toDateString() === todayStr;
+                      return (
+                        <button 
+                          key={i} 
+                          onClick={() => setDate(d)} 
+                          className={cn(
+                            "flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border-2 group", 
+                            isSelected 
+                              ? "bg-accent border-accent text-white shadow-lg scale-[1.02]" 
+                              : "bg-card border-primary/5 hover:border-accent/30 hover:bg-accent/5",
+                            isToday && !isSelected && "border-accent/30"
+                          )}
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className={cn(
+                              "w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-colors shadow-inner",
+                              isSelected ? "bg-white/20 text-white" : "bg-primary/5 text-foreground group-hover:bg-accent/10"
+                            )}>
+                              <span className="text-[8px] font-black uppercase mb-0.5">{d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '')}</span>
+                              <span className="text-xl font-black">{d.getDate()}</span>
+                            </div>
+                            <div className="flex flex-col items-start">
+                              <span className={cn("text-sm font-black uppercase tracking-widest leading-none", isSelected ? "text-white" : "text-foreground")}>
+                                {d.toLocaleDateString('es-ES', { weekday: 'long' })}
+                              </span>
+                              <span className={cn("text-[10px] font-bold mt-1", isSelected ? "text-white/60" : "text-muted-foreground/60")}>
+                                {d.toLocaleDateString('es-ES', { month: 'short' })} • {d.getFullYear()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {isToday && (
+                              <Badge className={cn(
+                                "rounded-full px-3 py-1 text-[9px] font-black shadow-sm", 
+                                isSelected ? "bg-white text-accent" : "bg-accent text-white"
+                              )}>
+                                HOY
+                              </Badge>
+                            )}
+                            {isSelected && !isToday && (
+                              <div className="bg-white/20 p-1.5 rounded-full">
+                                <CheckCircle2 className="w-4 h-4 text-white" />
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -949,7 +1027,6 @@ export default function SchedulePage() {
                   </section>
 
                   <section className="space-y-4">
-                    {/* Encabezado de sección con selector de profesor reubicado */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-2">
                         <div className="w-1.5 h-6 bg-primary rounded-full" />
