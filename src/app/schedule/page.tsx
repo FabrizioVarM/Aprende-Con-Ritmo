@@ -559,22 +559,6 @@ export default function SchedulePage() {
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {!isTeacher && !isAdmin && (
-              <Card className="rounded-2xl border-2 border-accent/20 p-1 pl-3 flex items-center gap-3 bg-card shadow-sm h-14">
-                <UserIcon className="w-5 h-5 text-accent shrink-0" />
-                <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
-                  <SelectTrigger className="w-40 sm:w-48 h-full border-none font-black text-foreground focus:ring-0">
-                    <SelectValue placeholder="Profesor" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {teachersList.map(t => (
-                      <SelectItem key={t.id} value={t.id} className="font-bold">{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Card>
-            )}
-
             {(isTeacher || isAdmin) && (
               <Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
                 <DialogTrigger asChild>
@@ -715,11 +699,32 @@ export default function SchedulePage() {
                         {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                       </span>
                       <span className="block text-xs font-bold text-accent italic">
-                        Elija el horario de su profesor, y a continuación elija el instrumento disponible.
+                        Configure su sesión personalizada.
                       </span>
                     </DialogDescription>
                   </DialogHeader>
                   <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-card max-h-[60vh]">
+                    {/* Selector de Profesor dentro del Diálogo */}
+                    <div className="space-y-3 pb-4 border-b border-accent/10">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                        <UserIcon className="w-3 h-3" /> 1. Elige tu Profesor
+                      </Label>
+                      <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                        <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
+                          <SelectValue placeholder="Seleccionar profesor" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-2">
+                          {teachersList.map(t => (
+                            <SelectItem key={t.id} value={t.id} className="font-bold py-3">
+                              {t.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">2. Selecciona un Horario Disponible</Label>
+                    
                     {otherAvailableSlots.length > 0 ? (
                       <div className="grid grid-cols-1 gap-4">
                         {otherAvailableSlots.map((slot) => {
@@ -773,7 +778,7 @@ export default function SchedulePage() {
                               {isSelected && (
                                 <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
                                   <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                                    <Music className="w-3 h-3" /> ¿Qué instrumento tocarás?
+                                    <Music className="w-3 h-3" /> 3. ¿Qué instrumento tocarás?
                                   </Label>
                                   <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
                                     <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">
@@ -800,7 +805,7 @@ export default function SchedulePage() {
                       <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10 space-y-3">
                         <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30" />
                         <div className="space-y-1">
-                          <p className="text-sm font-bold text-muted-foreground">¡Vaya! Todos los cupos están llenos hoy.</p>
+                          <p className="text-sm font-bold text-muted-foreground">¡Vaya! Todos los cupos están llenos hoy con este profesor.</p>
                           <p className="text-[10px] font-bold text-muted-foreground/60 italic">Te sugerimos esperar a que se libere un horario o elegir otro día.</p>
                         </div>
                       </div>
@@ -808,7 +813,7 @@ export default function SchedulePage() {
                   </div>
                   <div className="p-8 bg-muted/30 flex gap-3 border-t shrink-0 mt-auto">
                     <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
-                    <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
+                    <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar Reserva</Button>
                   </div>
                 </DialogContent>
               </Dialog>
@@ -944,17 +949,35 @@ export default function SchedulePage() {
                   </section>
 
                   <section className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-6 bg-primary rounded-full" />
-                      <h2 className="text-xl font-black text-foreground">Horarios Disponibles con {currentTeacherProfile?.name || 'el profesor'} 🎸</h2>
+                    {/* Encabezado de sección con selector de profesor reubicado */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-1.5 h-6 bg-primary rounded-full" />
+                        <h2 className="text-xl font-black text-foreground">Horarios Disponibles 🎸</h2>
+                      </div>
+                      
+                      <Card className="rounded-2xl border-2 border-accent/20 p-1 pl-3 flex items-center gap-3 bg-card shadow-sm h-12 shrink-0">
+                        <UserIcon className="w-4 h-4 text-accent shrink-0" />
+                        <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                          <SelectTrigger className="w-40 h-full border-none font-black text-[10px] uppercase tracking-widest text-foreground focus:ring-0">
+                            <SelectValue placeholder="Elegir Profesor" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {teachersList.map(t => (
+                              <SelectItem key={t.id} value={t.id} className="font-bold text-xs">{t.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </Card>
                     </div>
+
                     <div className="grid grid-cols-1 gap-4">
                       {otherAvailableSlots.length > 0 ? (
                         otherAvailableSlots.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} />)
                       ) : (
                         <div className="py-8 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted space-y-2">
-                          <p className="text-sm font-bold text-muted-foreground">No hay más horarios disponibles hoy.</p>
-                          <p className="text-xs font-bold text-muted-foreground/60 italic">Te sugerimos esperar a que se libere un cupo o elegir otro día.</p>
+                          <p className="text-sm font-bold text-muted-foreground">No hay más horarios disponibles hoy con {currentTeacherProfile?.name || 'el profesor'}.</p>
+                          <p className="text-xs font-bold text-muted-foreground/60 italic">Te sugerimos elegir otro docente o cambiar la fecha.</p>
                         </div>
                       )}
                     </div>
