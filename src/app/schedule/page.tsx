@@ -129,7 +129,7 @@ export default function SchedulePage() {
   const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
 
   const studentsList = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
-  const otherTeachersList = useMemo(() => allUsers.filter(u => u.role === 'teacher' && u.id !== user?.id), [allUsers, user]);
+  const otherTeachersList = useMemo(() => allUsers.filter(u => u.role === 'teacher'), [allUsers]);
 
   const currentTeacherProfile = useMemo(() => {
     return allUsers.find(u => u.id === (isTeacher ? user?.id : DEFAULT_TEACHER_ID));
@@ -222,12 +222,11 @@ export default function SchedulePage() {
   [mySlots, date, currentTime]);
 
   const academicGroupClasses = useMemo(() => {
-    if (!isTeacher) return [];
     const list: any[] = [];
     availabilities.forEach(day => {
       if (day.date === dateStrKey) {
         day.slots.forEach(slot => {
-          if (slot.isBooked && slot.isGroup && day.teacherId !== user?.id) {
+          if (slot.isBooked && slot.isGroup) {
             const teacher = allUsers.find(u => u.id === day.teacherId);
             list.push({
               ...slot,
@@ -240,7 +239,7 @@ export default function SchedulePage() {
       }
     });
     return list;
-  }, [isTeacher, availabilities, dateStrKey, allUsers, user]);
+  }, [availabilities, dateStrKey, allUsers]);
 
   const handleBook = () => {
     if (!selectedSlotId || !date || !user) return;
@@ -270,9 +269,9 @@ export default function SchedulePage() {
     const endM = endMinutes % 60;
     const timeRange = `${groupStartTime} - ${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 
-    // Admin creates it hosted by the first selected teacher if available
+    // Host can be the first teacher or the admin
     const hostId = isTeacher ? user.id : (selectedTeachers.length > 0 ? selectedTeachers[0].id : user.id);
-    const collaborators = isTeacher ? selectedTeachers : (selectedTeachers.length > 0 ? selectedTeachers.slice(1) : []);
+    const collaborators = selectedTeachers.filter(t => t.id !== hostId);
 
     createGroupClass(hostId, date, timeRange, selectedStudents, groupInstrument, groupType, collaborators);
     
@@ -361,14 +360,14 @@ export default function SchedulePage() {
             </div>
             
             <div className="min-w-0 space-y-0.5 sm:space-y-1">
-              {(isAdmin || isTeacher) && slot.isBooked ? (
+              {slot.isBooked ? (
                 <div className="space-y-2">
                    <div className="flex items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center text-xl rounded-xl border shadow-sm bg-primary/5">
                       {slot.isGroup ? '🎓' : emoji}
                     </div>
                     <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                      {slot.isGroup ? `Clase Grupal Especial: ${slot.instrument}` : `Clase de ${slot.instrument || 'Música'}`}
+                      {slot.isGroup ? `${slot.instrument}` : `Clase de ${slot.instrument || 'Música'}`}
                     </span>
                   </div>
                   <div className="flex flex-col gap-1">
@@ -412,42 +411,33 @@ export default function SchedulePage() {
                     "text-base sm:text-lg font-black tracking-tight truncate flex items-center gap-2",
                     (isMine || isStaffView) ? (isCompleted ? "text-emerald-700" : (isPast && isMine ? "text-orange-700" : "text-accent")) : "text-secondary-foreground"
                   )}>
-                    {slot.isBooked ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 flex items-center justify-center text-2xl rounded-xl border shadow-sm bg-primary/5">
-                          {slot.isGroup ? '🎓' : emoji}
-                        </div>
-                        <span>{slot.isGroup ? `Clase Grupal Especial: ${slot.instrument}` : `Clase de ${slot.instrument || 'Música'}`}</span>
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
+                      <div className="flex items-center gap-2 truncate p-1">
+                        {teacherInstrumentsList.map((inst, idx) => {
+                          const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
+                          return (
+                            <TooltipProvider key={idx}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="text-2xl hover:scale-125 transition-transform cursor-help">
+                                    {emoji}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
+                                  {inst}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          );
+                        })}
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
-                        <div className="flex items-center gap-2 truncate p-1">
-                          {teacherInstrumentsList.map((inst, idx) => {
-                            const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
-                            return (
-                              <TooltipProvider key={idx}>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="text-2xl hover:scale-125 transition-transform cursor-help">
-                                      {emoji}
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
-                                    {inst}
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+                    </div>
                   </h4>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                     <span className="flex items-center gap-1 shrink-0 text-secondary-foreground">
                       <UserIcon className="w-3 h-3 text-accent" /> 
-                      {slot.isBooked ? (isAdmin ? `Prof. ${slot.teacherName || (teacherProfile?.name || 'Profesor')} • ${slot.isGroup ? `${slot.students?.length} alumnos` : slot.bookedBy}` : (isTeacher ? (slot.isGroup ? `${slot.students?.length} alumnos` : slot.bookedBy) : (slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME)))) : (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
+                      {teacherProfile?.name || DEFAULT_TEACHER_NAME}
                     </span>
                     <span className={cn(
                         "flex items-center gap-1 shrink-0",
@@ -600,7 +590,7 @@ export default function SchedulePage() {
                         </div>
 
                         <div className="space-y-3">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">2. Profesores Colaboradores</Label>
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">2. Profesores Participantes</Label>
                           <ScrollArea className="h-40 rounded-2xl border-2 p-4">
                             <div className="space-y-3">
                               {otherTeachersList.map(t => (
@@ -661,7 +651,7 @@ export default function SchedulePage() {
                     <Button variant="outline" onClick={() => setIsGroupDialogOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                     <Button 
                       onClick={handleCreateGroupClass} 
-                      disabled={groupStudents.length === 0} 
+                      disabled={groupStudents.length === 0 || groupTeachers.length === 0} 
                       className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20"
                     >
                       Confirmar Clase Grupal
@@ -690,8 +680,13 @@ export default function SchedulePage() {
                 <DialogContent className="rounded-[2.5rem] max-w-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                   <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
                     <DialogTitle className="text-2xl font-black text-secondary-foreground">Agendar Sesión 🎵</DialogTitle>
-                    <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
-                      {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    <DialogDescription className="space-y-1">
+                      <span className="block text-base text-secondary-foreground/70 font-medium">
+                        {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                      </span>
+                      <span className="block text-xs font-bold text-accent italic">
+                        Elija su horario y profesor, y a continuación elija el instrumento disponible.
+                      </span>
                     </DialogDescription>
                   </DialogHeader>
                   <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white max-h-[60vh]">
@@ -869,7 +864,7 @@ export default function SchedulePage() {
                     <section className="space-y-4">
                       <div className="flex items-center gap-2">
                         <Users className="w-6 h-6 text-secondary-foreground" />
-                        <h2 className="text-xl font-black text-secondary-foreground">Otras Clases Grupales de la Academia 🌍</h2>
+                        <h2 className="text-xl font-black text-secondary-foreground">Clases Grupales de la Academia 🌍</h2>
                       </div>
                       <div className="grid grid-cols-1 gap-4">
                         {academicGroupClasses.map((slot) => (
