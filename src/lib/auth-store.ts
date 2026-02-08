@@ -9,7 +9,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from 'firebase/auth';
-import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -54,16 +54,23 @@ export function useAuth() {
       // Si es un usuario nuevo, asegurar que tenga un documento en Firestore
       if (result.user) {
         const userDocRef = doc(db, 'users', result.user.uid);
-        const newUser: User = {
-          id: result.user.uid,
-          name: result.user.displayName || 'Usuario Nuevo',
-          email: result.user.email || '',
-          role: 'student',
-          username: (result.user.email || '').split('@')[0],
-          avatarSeed: result.user.uid,
-          instruments: []
-        };
-        await setDoc(userDocRef, newUser, { merge: true });
+        
+        // CRITICAL FIX: Verificar si el usuario ya existe antes de setear datos
+        // Esto evita que el rol de 'teacher' o 'admin' se revierta a 'student'
+        const userSnap = await getDoc(userDocRef);
+        
+        if (!userSnap.exists()) {
+          const newUser: User = {
+            id: result.user.uid,
+            name: result.user.displayName || 'Usuario Nuevo',
+            email: result.user.email || '',
+            role: 'student', // Solo los nuevos usuarios entran como estudiantes por defecto
+            username: (result.user.email || '').split('@')[0],
+            avatarSeed: result.user.uid,
+            instruments: []
+          };
+          await setDoc(userDocRef, newUser);
+        }
       }
       return !!result.user;
     } catch (e: any) {
