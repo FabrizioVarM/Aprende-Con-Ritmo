@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { 
   Table, 
@@ -24,7 +24,7 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
-import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check } from 'lucide-react';
+import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -51,12 +51,15 @@ export default function UsersPage() {
   const { allUsers, adminUpdateUser } = useAuth();
   const { toast } = useToast();
   const [search, setSearch] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Edit State
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editName, setEditName] = useState('');
   const [editUsername, setEditUsername] = useState('');
   const [editInstruments, setEditInstruments] = useState<string[]>([]);
+  const [editPhotoUrl, setEditPhotoUrl] = useState<string | undefined>(undefined);
+  const [editAvatarSeed, setEditAvatarSeed] = useState('');
 
   const filteredUsers = allUsers.filter(user => 
     user.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -71,6 +74,8 @@ export default function UsersPage() {
     setEditName(u.name);
     setEditUsername(u.username || '');
     setEditInstruments(u.instruments || []);
+    setEditPhotoUrl(u.photoUrl);
+    setEditAvatarSeed(u.avatarSeed || u.id);
   };
 
   const handleSaveEdit = () => {
@@ -78,7 +83,9 @@ export default function UsersPage() {
       adminUpdateUser(editingUser.id, {
         name: editName,
         username: editUsername,
-        instruments: editInstruments
+        instruments: editInstruments,
+        photoUrl: editPhotoUrl,
+        avatarSeed: editAvatarSeed
       });
       setEditingUser(null);
       toast({
@@ -86,6 +93,30 @@ export default function UsersPage() {
         description: `Los cambios para ${editName} se han guardado correctamente.`,
       });
     }
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditPhotoUrl(reader.result as string);
+        toast({ description: "Foto cargada correctamente." });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const generateRandomAvatar = () => {
+    const newSeed = Math.random().toString(36).substring(7);
+    setEditAvatarSeed(newSeed);
+    setEditPhotoUrl(undefined);
+    toast({ description: "Nuevo avatar generado." });
+  };
+
+  const removePhoto = () => {
+    setEditPhotoUrl(undefined);
+    toast({ description: "Se ha vuelto al avatar por defecto." });
   };
 
   const toggleInstrument = (inst: string) => {
@@ -244,24 +275,53 @@ export default function UsersPage() {
       </div>
 
       <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
-        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
           <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
-            <div className="flex items-center gap-4">
-              <Avatar className="w-16 h-16 border-4 border-white shadow-xl">
-                {editingUser?.photoUrl ? (
-                  <AvatarImage src={editingUser.photoUrl} className="object-cover" />
-                ) : (
-                  <AvatarImage src={`https://picsum.photos/seed/${editingUser?.avatarSeed || editingUser?.id}/150`} />
-                )}
-                <AvatarFallback>{editName[0]}</AvatarFallback>
-              </Avatar>
-              <div>
+            <div className="flex items-center gap-6">
+              <div className="relative group">
+                <Avatar className="w-20 h-20 border-4 border-white shadow-xl">
+                  {editPhotoUrl ? (
+                    <AvatarImage src={editPhotoUrl} className="object-cover" />
+                  ) : (
+                    <AvatarImage src={`https://picsum.photos/seed/${editAvatarSeed}/150`} />
+                  )}
+                  <AvatarFallback className="text-2xl font-black">{editName[0]}</AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-2 -right-2 flex flex-col gap-1">
+                  <Button 
+                    size="icon" 
+                    className="w-8 h-8 rounded-full bg-accent text-white shadow-lg"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Subir foto"
+                  >
+                    <Camera className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="flex-1">
                 <DialogTitle className="text-2xl font-black text-secondary-foreground">Editar Perfil</DialogTitle>
                 <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
                   {editingUser?.role === 'teacher' ? 'Perfil del Profesor' : editingUser?.role === 'student' ? 'Perfil del Estudiante' : 'Perfil Administrativo'}
                 </DialogDescription>
+                <div className="flex gap-2 mt-3">
+                  <Button variant="outline" size="sm" className="h-7 rounded-lg text-[10px] font-black uppercase px-2 border-primary/20 bg-white/50" onClick={generateRandomAvatar}>
+                    <RefreshCw className="w-3 h-3 mr-1" /> Aleatorio
+                  </Button>
+                  {editPhotoUrl && (
+                    <Button variant="outline" size="sm" className="h-7 rounded-lg text-[10px] font-black uppercase px-2 border-destructive/20 text-destructive bg-white/50" onClick={removePhoto}>
+                      <X className="w-3 h-3 mr-1" /> Quitar
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              accept="image/*" 
+              onChange={handlePhotoUpload} 
+            />
           </DialogHeader>
 
           <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1">
