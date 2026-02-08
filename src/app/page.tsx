@@ -31,12 +31,13 @@ export default function Home() {
     }
 
     // Generar notas con propiedades aleatorias solo en el cliente
+    // Se ha reducido la duración (de 15-30s a 6-14s) para aumentar la velocidad
     const generatedNotes = Array.from({ length: 18 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 10}s`,
-      duration: `${15 + Math.random() * 15}s`,
+      delay: `${Math.random() * 5}s`,
+      duration: `${6 + Math.random() * 8}s`,
       size: 24 + Math.random() * 40,
       iconIndex: Math.floor(Math.random() * 4)
     }));
