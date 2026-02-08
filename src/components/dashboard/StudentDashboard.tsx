@@ -509,7 +509,7 @@ export default function StudentDashboard() {
                         <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30" />
                         <div className="space-y-2">
                           <p className="font-black text-muted-foreground">¡Vaya! Todos los cupos están llenos para este día.</p>
-                          <p className="text-xs font-bold text-muted-foreground/70 italic">Te sugerimos esperar a que se libere uno o elegir otro día en el calendario arriba.</p>
+                          <p className="text-xs font-bold text-muted-foreground/70 italic">Te sugerimos esperar a que se libere uno o elegir otro día en el calendario.</p>
                         </div>
                       </div>
                     )}
