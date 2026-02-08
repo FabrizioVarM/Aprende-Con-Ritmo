@@ -685,7 +685,7 @@ export default function SchedulePage() {
                         {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                       </span>
                       <span className="block text-xs font-bold text-accent italic">
-                        Elija su horario y profesor, y a continuación elija el instrumento disponible.
+                        elija el horario de su profesor, y a continuación elija el instrumento disponible.
                       </span>
                     </DialogDescription>
                   </DialogHeader>
