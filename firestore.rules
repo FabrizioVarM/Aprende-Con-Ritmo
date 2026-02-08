@@ -11,11 +11,15 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && (getUserData().role == 'admin');
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             (getUserData().role == 'admin');
     }
 
     function isTeacher() {
-      return isSignedIn() && (getUserData().role == 'teacher' || getUserData().role == 'admin');
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             (getUserData().role == 'teacher' || getUserData().role == 'admin');
     }
 
     function isOwner(userId) {
@@ -25,7 +29,7 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn(); 
-      allow update: if isAdmin() || isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
       allow delete: if isAdmin();
     }
     
