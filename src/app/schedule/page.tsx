@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check, MousePointerClick } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, ChevronDown, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check, MousePointerClick } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -37,6 +37,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -100,6 +101,7 @@ export default function SchedulePage() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
+  const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(true);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
@@ -330,6 +332,14 @@ export default function SchedulePage() {
     setDate(newDate);
   };
 
+  const handleGoToToday = () => {
+    const now = new Date();
+    setDate(now);
+    toast({
+      description: "Has vuelto al día de hoy 🗓️",
+    });
+  };
+
   const weekDays = useMemo(() => {
     const startOfWeek = new Date(date);
     const day = startOfWeek.getDay();
@@ -388,7 +398,7 @@ export default function SchedulePage() {
               <span className="text-sm sm:text-base font-black leading-none text-center">{displayTime}</span>
             </div>
             
-            <div className="min-w-0 space-y-0.5 sm:space-y-1">
+            <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
               {slot.isBooked ? (
                 <div className="space-y-2">
                    <div className="flex items-center gap-2">
@@ -883,71 +893,96 @@ export default function SchedulePage() {
                 <p className="text-[10px] text-muted-foreground font-bold italic text-center">Navegación empezando desde la semana actual.</p>
               </CardHeader>
               <CardContent className="p-4">
-                <div className="space-y-3">
+                <Collapsible open={isDaySelectorOpen} onOpenChange={setIsDaySelectorOpen} className="space-y-3">
                   <div className="flex items-center justify-between px-2">
                     <div className="space-y-0.5">
                       <p className="text-[9px] font-black uppercase tracking-widest text-accent">Paso 2</p>
                       <p className="text-sm font-black text-foreground">Elige el día</p>
                     </div>
-                    <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 bg-primary/5 px-2 py-1 rounded-full border border-primary/10">
-                      <MousePointerClick className="w-3 h-3 text-accent" />
-                      Haz clic en un día
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={(e) => { e.stopPropagation(); handleGoToToday(); }}
+                        className="h-7 px-3 rounded-lg text-[9px] font-black uppercase border-accent/20 text-accent hover:bg-accent hover:text-white transition-all shadow-sm"
+                      >
+                        Ir a Hoy
+                      </Button>
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                          <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isDaySelectorOpen ? "rotate-180" : "")} />
+                        </Button>
+                      </CollapsibleTrigger>
+                    </div>
                   </div>
                   
-                  <div className="grid grid-cols-1 gap-2">
-                    {weekDays.map((d, i) => {
-                      const isSelected = d.toDateString() === date.toDateString();
-                      const isToday = d.toDateString() === todayStr;
-                      return (
-                        <button 
-                          key={i} 
-                          onClick={() => setDate(d)} 
-                          className={cn(
-                            "flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border-2 group", 
-                            isSelected 
-                              ? "bg-accent border-accent text-white shadow-lg scale-[1.02]" 
-                              : "bg-card border-primary/5 hover:border-accent/30 hover:bg-accent/5",
-                            isToday && !isSelected && "border-accent/30"
-                          )}
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className={cn(
-                              "w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-colors shadow-inner",
-                              isSelected ? "bg-white/20 text-white" : "bg-primary/5 text-foreground group-hover:bg-accent/10"
-                            )}>
-                              <span className="text-[8px] font-black uppercase mb-0.5">{d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '')}</span>
-                              <span className="text-xl font-black">{d.getDate()}</span>
-                            </div>
-                            <div className="flex flex-col items-start">
-                              <span className={cn("text-sm font-black uppercase tracking-widest leading-none", isSelected ? "text-white" : "text-foreground")}>
-                                {d.toLocaleDateString('es-ES', { weekday: 'long' })}
-                              </span>
-                              <span className={cn("text-[10px] font-bold mt-1", isSelected ? "text-white/60" : "text-muted-foreground/60")}>
-                                {d.toLocaleDateString('es-ES', { month: 'short' })} • {d.getFullYear()}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {isToday && (
-                              <Badge className={cn(
-                                "rounded-full px-3 py-1 text-[9px] font-black shadow-sm", 
-                                isSelected ? "bg-white text-accent" : "bg-accent text-white"
+                  <CollapsibleContent className="space-y-3 animate-in fade-in-0 zoom-in-95 duration-300">
+                    <div className="grid grid-cols-1 gap-2">
+                      {weekDays.map((d, i) => {
+                        const isSelected = d.toDateString() === date.toDateString();
+                        const isToday = d.toDateString() === todayStr;
+                        return (
+                          <button 
+                            key={i} 
+                            onClick={() => setDate(d)} 
+                            className={cn(
+                              "flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border-2 group", 
+                              isSelected 
+                                ? "bg-accent border-accent text-white shadow-lg scale-[1.02]" 
+                                : "bg-card border-primary/5 hover:border-accent/30 hover:bg-accent/5",
+                              isToday && !isSelected && "border-accent/30"
+                            )}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={cn(
+                                "w-12 h-12 rounded-xl flex flex-col items-center justify-center transition-colors shadow-inner",
+                                isSelected ? "bg-white/20 text-white" : "bg-primary/5 text-foreground group-hover:bg-accent/10"
                               )}>
-                                HOY
-                              </Badge>
-                            )}
-                            {isSelected && !isToday && (
-                              <div className="bg-white/20 p-1.5 rounded-full">
-                                <CheckCircle2 className="w-4 h-4 text-white" />
+                                <span className="text-[8px] font-black uppercase mb-0.5">{d.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '')}</span>
+                                <span className="text-xl font-black">{d.getDate()}</span>
                               </div>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                              <div className="flex flex-col items-start">
+                                <span className={cn("text-sm font-black uppercase tracking-widest leading-none", isSelected ? "text-white" : "text-foreground")}>
+                                  {d.toLocaleDateString('es-ES', { weekday: 'long' })}
+                                </span>
+                                <span className={cn("text-[10px] font-bold mt-1", isSelected ? "text-white/60" : "text-muted-foreground/60")}>
+                                  {d.toLocaleDateString('es-ES', { month: 'short' })} • {d.getFullYear()}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {isToday && (
+                                <Badge className={cn(
+                                  "rounded-full px-3 py-1 text-[9px] font-black shadow-sm", 
+                                  isSelected ? "bg-white text-accent" : "bg-accent text-white"
+                                )}>
+                                  HOY
+                                </Badge>
+                              )}
+                              {isSelected && !isToday && (
+                                <div className="bg-white/20 p-1.5 rounded-full">
+                                  <CheckCircle2 className="w-4 h-4 text-white" />
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </CollapsibleContent>
+                  
+                  {!isDaySelectorOpen && (
+                    <div className="px-4 py-3 bg-accent/5 rounded-2xl border-2 border-dashed border-accent/20 flex items-center justify-between group cursor-pointer" onClick={() => setIsDaySelectorOpen(true)}>
+                      <div className="flex items-center gap-3">
+                        <CalendarIcon className="w-4 h-4 text-accent" />
+                        <span className="text-xs font-black text-foreground uppercase tracking-widest">
+                          {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
+                        </span>
+                      </div>
+                      <span className="text-[8px] font-black text-accent uppercase tracking-widest group-hover:underline">Cambiar día</span>
+                    </div>
+                  )}
+                </Collapsible>
               </CardContent>
             </Card>
           </div>
