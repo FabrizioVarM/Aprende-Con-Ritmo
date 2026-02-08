@@ -330,23 +330,23 @@ export default function StudentDashboard() {
           </DialogTrigger>
           <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
             <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
-              <DialogTitle className="text-3xl font-black text-secondary-foreground flex items-center gap-3">
+              <DialogTitle className="text-3xl font-black text-foreground flex items-center gap-3">
                 <Music className="w-8 h-8 text-accent" />
                 Agendar Sesión
               </DialogTitle>
-              <DialogDescription className="text-lg text-secondary-foreground/70 font-medium">
+              <DialogDescription className="text-lg text-muted-foreground font-medium">
                 Elige tu instrumento y profesor para encontrar el horario perfecto.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1 max-h-[60vh]">
+            <div className="p-8 space-y-8 bg-card overflow-y-auto flex-1 max-h-[60vh]">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Instrumento</label>
                       <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-white">
+                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-card text-foreground">
                           <SelectValue placeholder="¿Qué quieres practicar?" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl">
@@ -379,7 +379,7 @@ export default function StudentDashboard() {
                               "h-16 rounded-2xl justify-start px-4 border-2 font-black transition-all",
                               selectedTeacherId === t.id 
                                 ? "bg-accent border-accent text-white shadow-lg" 
-                                : "hover:border-accent/30 hover:bg-accent/5"
+                                : "bg-card text-foreground hover:border-accent/30 hover:bg-accent/5"
                             )}
                             onClick={() => setSelectedTeacherId(t.id)}
                           >
@@ -416,7 +416,7 @@ export default function StudentDashboard() {
                             newDate.setDate(selectedDate.getDate() - 7);
                             setSelectedDate(newDate);
                           }}
-                          className="h-8 w-8 rounded-full hover:bg-accent/10"
+                          className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </Button>
@@ -428,7 +428,7 @@ export default function StudentDashboard() {
                             newDate.setDate(selectedDate.getDate() + 7);
                             setSelectedDate(newDate);
                           }}
-                          className="h-8 w-8 rounded-full hover:bg-accent/10"
+                          className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
                         >
                           <ChevronRightIcon className="w-4 h-4" />
                         </Button>
@@ -452,11 +452,11 @@ export default function StudentDashboard() {
                                 ? "bg-accent border-accent text-white shadow-md" 
                                 : "bg-primary/5 border-transparent hover:border-accent/20",
                               isToday && !isSelected && "border-accent/30",
-                              isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-gray-100 border-gray-200"
+                              isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
                             )}
                           >
-                            <span className="text-[8px] font-black uppercase">{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
-                            <span className="text-lg font-black">{d.getDate()}</span>
+                            <span className={cn("text-[8px] font-black uppercase", isSelected ? "text-white" : "text-muted-foreground")}>{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
+                            <span className={cn("text-lg font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
                             {isToday && (
                               <span className={cn(
                                 "text-[7px] font-black uppercase absolute -bottom-1",
@@ -484,7 +484,7 @@ export default function StudentDashboard() {
                             "justify-between rounded-2xl h-16 border-2 font-black px-6",
                             selectedSlotId === slot.id 
                               ? 'bg-accent text-white border-accent shadow-md' 
-                              : 'border-primary/5 hover:border-accent/30'
+                              : 'bg-card text-foreground border-primary/5 hover:border-accent/30'
                           )}
                           onClick={() => setSelectedSlotId(slot.id)}
                         >
@@ -515,8 +515,8 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            <div className="p-8 bg-gray-50 flex gap-4 border-t shrink-0 mt-auto">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black">
+            <div className="p-8 bg-muted/30 flex gap-4 border-t shrink-0 mt-auto">
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black text-foreground">
                 Cancelar
               </Button>
               <Button 
@@ -547,18 +547,18 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="rounded-[2.5rem] border-none shadow-sm bg-emerald-50 p-6">
+        <Card className="rounded-[2.5rem] border-none shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6">
           <CardHeader className="p-0 pb-4">
-            <CardTitle className="text-sm font-black uppercase tracking-widest text-secondary-foreground flex items-center gap-2">
+            <CardTitle className="text-sm font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
               <CalendarIcon className="w-5 h-5 text-accent" />
               CLASE MÁS PROXIMA
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-3xl font-black text-secondary-foreground leading-tight truncate">
+            <div className="text-3xl font-black text-emerald-900 dark:text-emerald-300 leading-tight truncate">
               {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin fecha'}
             </div>
-            <p className="text-sm text-secondary-foreground/60 font-bold mt-1">
+            <p className="text-sm text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-1">
               {nextLesson 
                 ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con ${nextLesson.teacherName}` 
                 : '¡Agenda una clase!'}
@@ -566,24 +566,24 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] border-none shadow-sm bg-orange-100/50 p-6">
+        <Card className="rounded-[2.5rem] border-none shadow-sm bg-orange-100/50 dark:bg-orange-950/20 p-6">
           <CardHeader className="p-0 pb-4">
-            <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-600 flex items-center gap-2">
+            <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2">
               <Clock className="w-5 h-5 text-accent" />
               TOTAL RESERVAS PENDIENTES
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-5xl font-black text-orange-900">{myUpcomingLessons.length}</div>
-            <p className="text-sm text-orange-600 font-bold mt-1">Clases programadas</p>
+            <div className="text-5xl font-black text-orange-900 dark:text-orange-300">{myUpcomingLessons.length}</div>
+            <p className="text-sm text-orange-600 dark:text-orange-400 font-bold mt-1">Clases programadas</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
+        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
           <CardHeader className="border-b bg-primary/5 p-6">
-            <CardTitle className="text-xl font-black flex items-center gap-2">
+            <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground">
               <CalendarIcon className="w-6 h-6 text-accent" />
               Tus Próximas Clases
             </CardTitle>
@@ -594,13 +594,13 @@ export default function StudentDashboard() {
                 const config = INSTRUMENT_CONFIG[lesson.instrument] || INSTRUMENT_CONFIG['Default'];
                 const emoji = INSTRUMENT_EMOJIS[lesson.instrument] || '🎵';
                 return (
-                  <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
+                  <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0 border-border">
                     <div className="flex gap-3 sm:gap-4 items-center min-w-0">
                       <div className={cn("w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-3xl sm:text-4xl rounded-3xl shadow-md border shrink-0", config.bg, config.border)}>
                         {lesson.isGroup ? '🎓' : emoji}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate flex items-center gap-2">
+                        <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate flex items-center gap-2">
                           <span>{lesson.isGroup ? `Clase Grupal Especial: ${lesson.instrument}` : `Lección de ${lesson.instrument}`}</span>
                         </div>
                         <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
@@ -637,9 +637,9 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
+        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
           <CardHeader className="border-b bg-accent/5 p-6">
-            <CardTitle className="text-xl font-black flex items-center gap-2">
+            <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground">
               <PlayCircle className="w-6 h-6 text-accent" />
               Recursos Recomendados
             </CardTitle>
@@ -647,18 +647,18 @@ export default function StudentDashboard() {
           <CardContent className="p-0">
             {recommendedResources.length > 0 ? (
               recommendedResources.map((resource, i) => (
-                <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0">
+                <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0 border-border">
                   <div className="flex gap-3 sm:gap-4 items-center min-w-0">
-                    <div className="bg-white p-2 sm:p-4 rounded-3xl shadow-md border border-primary/10 shrink-0">
+                    <div className="bg-white dark:bg-slate-800 p-2 sm:p-4 rounded-3xl shadow-md border border-primary/10 shrink-0">
                       <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
                     </div>
                     <div className="min-w-0">
-                      <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate">{resource.title}</div>
+                      <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate">{resource.title}</div>
                       <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length} • {resource.type}</div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0" onClick={() => router.push('/library')}>
-                    <ChevronRight className="w-6 h-6 text-accent" />
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0 text-accent" onClick={() => router.push('/library')}>
+                    <ChevronRight className="w-6 h-6" />
                   </Button>
                 </div>
               ))

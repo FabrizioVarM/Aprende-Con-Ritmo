@@ -189,7 +189,7 @@ export default function LibraryPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input 
               placeholder="Buscar recursos..." 
-              className="pl-11 rounded-2xl h-12 border-primary/20 bg-card focus:border-accent transition-all font-medium"
+              className="pl-11 rounded-2xl h-12 border-primary/20 bg-card focus:border-accent transition-all font-medium text-foreground"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -295,7 +295,7 @@ export default function LibraryPage() {
                 <CardFooter className="flex gap-3 pt-2">
                   <Button 
                     variant="outline" 
-                    className="flex-none rounded-2xl border-2 border-primary/10 h-12 gap-2 font-black px-4 text-xs hover:border-accent hover:bg-accent/5"
+                    className="flex-none rounded-2xl border-2 border-primary/10 h-12 gap-2 font-black px-4 text-xs hover:border-accent hover:bg-accent/5 text-foreground"
                     onClick={() => res.downloadUrl && window.open(res.downloadUrl, '_blank')}
                   >
                     <Download className="w-4 h-4" /> Descargar
@@ -339,7 +339,7 @@ export default function LibraryPage() {
                   <Input 
                     value={editingResource?.title || ''} 
                     onChange={(e) => setEditingResource(prev => prev ? {...prev, title: e.target.value} : null)}
-                    className="h-12 rounded-xl border-2 font-bold"
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card"
                   />
                 </div>
                 <div className="space-y-2">
@@ -348,7 +348,7 @@ export default function LibraryPage() {
                     value={editingResource?.category || ''} 
                     onValueChange={(val) => setEditingResource(prev => prev ? {...prev, category: val} : null)}
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
                       <SelectValue placeholder="Categoría" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -367,7 +367,7 @@ export default function LibraryPage() {
                 <Input 
                   value={editingResource?.img.imageUrl || ''} 
                   onChange={(e) => setEditingResource(prev => prev ? {...prev, img: {...prev.img, imageUrl: e.target.value}} : null)}
-                  className="h-12 rounded-xl border-2 font-bold"
+                  className="h-12 rounded-xl border-2 font-bold text-foreground bg-card"
                   placeholder="https://images.unsplash.com/..."
                 />
               </div>
@@ -380,7 +380,7 @@ export default function LibraryPage() {
                   <Input 
                     value={editingResource?.downloadUrl || ''} 
                     onChange={(e) => setEditingResource(prev => prev ? {...prev, downloadUrl: e.target.value} : null)}
-                    className="h-12 rounded-xl border-2 font-bold"
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card"
                     placeholder="#"
                   />
                 </div>
@@ -391,7 +391,7 @@ export default function LibraryPage() {
                   <Input 
                     value={editingResource?.interactUrl || ''} 
                     onChange={(e) => setEditingResource(prev => prev ? {...prev, interactUrl: e.target.value} : null)}
-                    className="h-12 rounded-xl border-2 font-bold"
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card"
                     placeholder="#"
                   />
                 </div>
@@ -399,7 +399,7 @@ export default function LibraryPage() {
             </div>
           </div>
           <DialogFooter className="p-8 bg-muted/30 flex gap-3 border-t">
-            <Button variant="outline" onClick={() => setEditingResource(null)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
+            <Button variant="outline" onClick={() => setEditingResource(null)} className="rounded-xl flex-1 h-14 font-black text-foreground">Cancelar</Button>
             <Button onClick={handleSaveResourceEdit} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Guardar Cambios</Button>
           </DialogFooter>
         </DialogContent>
@@ -422,13 +422,13 @@ export default function LibraryPage() {
               <Textarea 
                 value={tempDescription}
                 onChange={(e) => setTempDescription(e.target.value)}
-                className="min-h-[200px] rounded-2xl border-2 font-bold p-4 focus:border-accent"
+                className="min-h-[200px] rounded-2xl border-2 font-bold p-4 focus:border-accent text-foreground bg-card"
                 placeholder="Escribe aquí la descripción..."
               />
             </div>
           </div>
           <DialogFooter className="p-8 bg-muted/30 flex gap-3 border-t">
-            <Button variant="outline" onClick={() => setIsEditingDescription(false)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
+            <Button variant="outline" onClick={() => setIsEditingDescription(false)} className="rounded-xl flex-1 h-14 font-black text-foreground">Cancelar</Button>
             <Button onClick={handleSaveDescription} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Guardar Descripción</Button>
           </DialogFooter>
         </DialogContent>

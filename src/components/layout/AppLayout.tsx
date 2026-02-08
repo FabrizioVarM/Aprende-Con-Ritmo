@@ -80,7 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             data-ai-hint="academy logo"
           />
         </div>
-        <span className="text-xl font-extrabold text-secondary-foreground font-headline tracking-tight truncate">
+        <span className="text-xl font-extrabold text-foreground font-headline tracking-tight truncate">
           Aprende Con Ritmo
         </span>
       </div>
@@ -159,7 +159,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 data-ai-hint="academy logo"
               />
             </div>
-            <span className="font-bold dark:text-slate-200">Aprende Con Ritmo</span>
+            <span className="font-bold text-foreground">Aprende Con Ritmo</span>
           </div>
           <Sheet>
             <SheetTrigger asChild>
