@@ -330,7 +330,7 @@ export default function TeacherDashboard() {
                             "flex flex-col items-center py-2 md:py-3 rounded-xl transition-all border-2 relative group",
                             isSelected 
                               ? "bg-accent border-accent text-white shadow-md scale-105" 
-                              : "bg-primary/5 border-primary/10 hover:border-accent/20",
+                              : "bg-muted/30 border-primary/10 hover:border-accent/20",
                             isToday && !isSelected && "border-accent/30",
                             isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
                           )}

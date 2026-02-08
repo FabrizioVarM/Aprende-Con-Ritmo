@@ -386,7 +386,7 @@ export default function SchedulePage() {
         "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden shadow-sm hover:shadow-md",
         isMine || isStaffView
           ? (isCompleted ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50' : (isPast && isMine ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50' : 'bg-accent/5 dark:bg-accent/10 border-accent shadow-lg shadow-accent/10')) 
-          : 'bg-card border-primary/5 hover:border-accent/20'
+          : 'bg-card border-primary/10 hover:border-accent/20'
       )}>
         <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
@@ -858,12 +858,10 @@ export default function SchedulePage() {
               <CardHeader className="bg-primary/5 p-6 border-b space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    
                     <p className="text-[9px] font-black uppercase tracking-widest text-accent flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                       Paso 1
                     </p>
-                    
                     <CardTitle className="text-base font-black text-foreground">Elige la semana</CardTitle>
                   </div>
                   <div className="flex items-center bg-card rounded-2xl border-2 border-primary/10 p-1 shadow-sm">
@@ -897,9 +895,7 @@ export default function SchedulePage() {
                 <Collapsible open={isDaySelectorOpen} onOpenChange={setIsDaySelectorOpen} className="space-y-3">
                   <div className="flex items-center justify-between px-2">
                     <div className="space-y-0.5">
-                      
                       <p className="text-[9px] font-black uppercase tracking-widest text-accent">Paso 2</p>
-                      
                       <p className="text-sm font-black text-foreground">Elige el día</p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -932,7 +928,7 @@ export default function SchedulePage() {
                               "flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border-2 group", 
                               isSelected 
                                 ? "bg-accent border-accent text-white shadow-lg scale-[1.02]" 
-                                : "bg-card border-primary/10 hover:border-accent/30 hover:bg-accent/5",
+                                : "bg-muted/30 border-primary/10 hover:border-accent/20",
                               isToday && !isSelected && "border-accent/30"
                             )}
                           >
