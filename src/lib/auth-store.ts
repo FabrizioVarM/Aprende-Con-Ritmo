@@ -148,6 +148,22 @@ export function useAuth() {
     window.dispatchEvent(new CustomEvent('ac_sync_auth'));
   }, [user, allUsers]);
 
+  const adminAddUser = useCallback((userData: Omit<User, 'id'>) => {
+    const newId = Math.random().toString(36).substring(7);
+    const newUser: User = { 
+      ...userData, 
+      id: newId,
+      avatarSeed: userData.avatarSeed || newId 
+    };
+    
+    const updatedAllUsers = [...allUsers, newUser];
+    localStorage.setItem('ac_all_users', JSON.stringify(updatedAllUsers));
+    setAllUsers(updatedAllUsers);
+    
+    window.dispatchEvent(new CustomEvent('ac_sync_auth'));
+    return newUser;
+  }, [allUsers]);
+
   const adminDeleteUser = useCallback((userId: string) => {
     const updatedAllUsers = allUsers.filter(u => u.id !== userId);
     localStorage.setItem('ac_all_users', JSON.stringify(updatedAllUsers));
@@ -164,5 +180,5 @@ export function useAuth() {
     return allUsers.filter(u => u.role === 'teacher');
   }, [allUsers]);
 
-  return { user, allUsers, loading, login, logout, updateUser, adminUpdateUser, adminDeleteUser, getTeachers };
+  return { user, allUsers, loading, login, logout, updateUser, adminUpdateUser, adminAddUser, adminDeleteUser, getTeachers };
 }

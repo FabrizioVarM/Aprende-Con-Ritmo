@@ -23,7 +23,8 @@ import {
   DialogHeader, 
   DialogTitle, 
   DialogFooter,
-  DialogDescription
+  DialogDescription,
+  DialogTrigger
 } from '@/components/ui/dialog';
 import { 
   AlertDialog,
@@ -35,7 +36,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle } from 'lucide-react';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +59,7 @@ import {
   TabsTrigger 
 } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { useAuth, User } from '@/lib/auth-store';
+import { useAuth, User, UserRole } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
 
 const INSTRUMENTS_LIST = [
@@ -59,7 +67,7 @@ const INSTRUMENTS_LIST = [
 ];
 
 export default function UsersPage() {
-  const { allUsers, adminUpdateUser, adminDeleteUser, loading, user } = useAuth();
+  const { allUsers, adminUpdateUser, adminAddUser, adminDeleteUser, loading, user: currentUser } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
@@ -73,6 +81,14 @@ export default function UsersPage() {
   const [editInstruments, setEditInstruments] = useState<string[]>([]);
   const [editPhotoUrl, setEditPhotoUrl] = useState<string | undefined>(undefined);
   const [editAvatarSeed, setEditAvatarSeed] = useState('');
+
+  // Create State
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [newRole, setNewRole] = useState<UserRole>('student');
+  const [newUsername, setNewUsername] = useState('');
+  const [newInstruments, setNewInstruments] = useState<string[]>([]);
 
   // Delete State
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
@@ -115,6 +131,37 @@ export default function UsersPage() {
     }
   };
 
+  const handleCreateUser = () => {
+    if (!newName || !newEmail) {
+      toast({
+        variant: "destructive",
+        title: "Datos incompletos",
+        description: "Por favor completa el nombre y el correo electrónico.",
+      });
+      return;
+    }
+
+    adminAddUser({
+      name: newName,
+      email: newEmail,
+      role: newRole,
+      username: newUsername,
+      instruments: newInstruments,
+    });
+
+    setIsCreateDialogOpen(false);
+    setNewName('');
+    setNewEmail('');
+    setNewRole('student');
+    setNewUsername('');
+    setNewInstruments([]);
+
+    toast({
+      title: "¡Usuario Creado! 🎊",
+      description: "La cuenta ha sido dada de alta correctamente.",
+    });
+  };
+
   const handleDeleteUser = () => {
     if (deletingUserId) {
       const u = allUsers.find(u => u.id === deletingUserId);
@@ -151,15 +198,19 @@ export default function UsersPage() {
     toast({ description: "Se ha vuelto al avatar por defecto." });
   };
 
-  const toggleInstrument = (inst: string) => {
-    setEditInstruments(prev => 
-      prev.includes(inst) 
-        ? prev.filter(i => i !== inst) 
-        : [...prev, inst]
-    );
+  const toggleInstrument = (inst: string, isCreate: boolean = false) => {
+    if (isCreate) {
+      setNewInstruments(prev => 
+        prev.includes(inst) ? prev.filter(i => i !== inst) : [...prev, inst]
+      );
+    } else {
+      setEditInstruments(prev => 
+        prev.includes(inst) ? prev.filter(i => i !== inst) : [...prev, inst]
+      );
+    }
   };
 
-  if (!isMounted || loading || !user) return null;
+  if (!isMounted || loading || !currentUser) return null;
 
   const UserTable = ({ users }: { users: User[] }) => (
     <div className="overflow-hidden rounded-2xl border border-border">
@@ -256,9 +307,110 @@ export default function UsersPage() {
             <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">Gestión de Usuarios 👥</h1>
             <p className="text-muted-foreground mt-1 text-lg font-medium">Administra las cuentas y permisos de la escuela de música.</p>
           </div>
-          <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
-            <UserPlus className="w-5 h-5" /> Agregar Nuevo Usuario
-          </Button>
+          
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
+                <UserPlus className="w-5 h-5" /> Agregar Nuevo Usuario
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+              <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+                <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+                  <UserPlus className="w-8 h-8 text-accent" />
+                  Crear Nuevo Usuario
+                </DialogTitle>
+                <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+                  Da de alta a un nuevo alumno o profesor en la plataforma.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nombre Completo</Label>
+                    <div className="relative">
+                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input 
+                        value={newName} 
+                        onChange={(e) => setNewName(e.target.value)}
+                        className="h-12 pl-11 rounded-xl border-2 font-bold focus:border-accent"
+                        placeholder="Nombre del usuario"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Correo Electrónico</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input 
+                        value={newEmail} 
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        className="h-12 pl-11 rounded-xl border-2 font-bold focus:border-accent"
+                        placeholder="usuario@ejemplo.com"
+                        type="email"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nombre de Usuario</Label>
+                    <div className="relative">
+                      <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input 
+                        value={newUsername} 
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        className="h-12 pl-11 rounded-xl border-2 font-bold focus:border-accent"
+                        placeholder="username"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Rol en la Academia</Label>
+                    <Select value={newRole} onValueChange={(v) => setNewRole(v as UserRole)}>
+                      <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                        <SelectValue placeholder="Seleccionar Rol" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="student" className="font-bold">Estudiante</SelectItem>
+                        <SelectItem value="teacher" className="font-bold">Profesor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Music className="w-4 h-4 text-accent" /> 
+                    {newRole === 'teacher' ? 'Especialidades (Instrumentos que enseña)' : 'Instrumentos (Lo que aprende)'}
+                  </Label>
+                  <div className="flex flex-wrap gap-2">
+                    {INSTRUMENTS_LIST.map(inst => {
+                      const isSelected = newInstruments.includes(inst);
+                      return (
+                        <button
+                          key={inst}
+                          type="button"
+                          onClick={() => toggleInstrument(inst, true)}
+                          className={cn(
+                            "px-4 py-2 rounded-xl text-sm font-black transition-all border-2",
+                            isSelected 
+                              ? "bg-accent border-accent text-white shadow-md scale-105" 
+                              : "bg-white border-primary/10 text-muted-foreground hover:border-accent/30"
+                          )}
+                        >
+                          {inst}
+                          {isSelected && <Check className="w-3 h-3 ml-2 inline animate-in zoom-in" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              <DialogFooter className="p-8 bg-gray-50 flex gap-3 border-t shrink-0">
+                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
+                <Button onClick={handleCreateUser} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Crear Usuario</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="bg-white rounded-[2.5rem] shadow-md border-none p-8 space-y-8">
@@ -427,19 +579,8 @@ export default function UsersPage() {
           </div>
 
           <DialogFooter className="p-8 bg-gray-50 flex gap-3 border-t shrink-0">
-            <Button 
-              variant="outline" 
-              onClick={() => setEditingUser(null)} 
-              className="rounded-xl flex-1 h-14 font-black"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleSaveEdit} 
-              className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 hover:scale-105 transition-all"
-            >
-              Guardar Cambios
-            </Button>
+            <Button variant="outline" onClick={() => setEditingUser(null)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
+            <Button onClick={handleSaveEdit} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 hover:scale-105 transition-all">Guardar Cambios</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
