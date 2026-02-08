@@ -30,13 +30,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const { login, loginWithGoogle } = useAuth();
+  const { user, login, loginWithGoogle, loading: authLoading } = useAuth();
   const { settings } = useSettingsStore();
   const router = useRouter();
   const { toast } = useToast();
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
 
   useEffect(() => {
+    // Si ya hay un usuario logueado, redirigir al dashboard inmediatamente
+    if (!authLoading && user) {
+      router.push('/dashboard');
+    }
+
     const generatedNotes = Array.from({ length: 15 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -47,7 +52,7 @@ export default function LoginPage() {
       iconIndex: Math.floor(Math.random() * 4)
     }));
     setNotes(generatedNotes);
-  }, []);
+  }, [user, authLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,6 +85,8 @@ export default function LoginPage() {
       setIsGoogleLoading(false);
     }
   };
+
+  if (authLoading || user) return null;
 
   const icons = [Music, Music2, Music3, Music4];
 
@@ -114,7 +121,7 @@ export default function LoginPage() {
               fill 
               className="object-cover"
               data-ai-hint="academy logo"
-              priority // Carga inmediata para evitar parpadeos
+              priority 
             />
           </div>
           <h2 className="text-3xl font-bold font-headline text-foreground">Bienvenido de nuevo</h2>

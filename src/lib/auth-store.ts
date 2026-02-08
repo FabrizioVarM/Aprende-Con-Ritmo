@@ -168,8 +168,8 @@ export function useAuth() {
   }, [allUsers]);
 
   return { 
-    user: profile, // Devolvemos el perfil de Firestore como 'user' para mantener compatibilidad
-    firebaseUser,
+    user: profile, // Perfil de Firestore
+    firebaseUser, // Objeto de Auth puro
     allUsers, 
     loading: isUserLoading, 
     login, 

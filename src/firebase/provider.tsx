@@ -82,8 +82,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   useEffect(() => {
     if (!auth || !firestore) return;
 
-    setUserAuthState(prev => ({ ...prev, isUserLoading: true }));
-
     let unsubscribeProfile: (() => void) | null = null;
     let unsubscribeAllUsers: (() => void) | null = null;
 
@@ -95,12 +93,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         if (unsubscribeAllUsers) unsubscribeAllUsers();
 
         if (firebaseUser) {
+          // Asegurar que el estado de carga esté activo mientras esperamos al perfil
+          setUserAuthState(prev => ({ ...prev, user: firebaseUser, isUserLoading: true }));
+
           // 1. Escucha en TIEMPO REAL del perfil del usuario logueado
           const profileRef = doc(firestore, 'users', firebaseUser.uid);
           unsubscribeProfile = onSnapshot(profileRef, (docSnap) => {
             if (docSnap.exists()) {
               const profileData = docSnap.data() as UserProfile;
-              // Aseguramos que el ID esté presente
               const profileWithId = { ...profileData, id: docSnap.id };
               
               setUserAuthState(prev => ({
@@ -110,6 +110,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 isUserLoading: false
               }));
             } else {
+              // Si el usuario existe en Auth pero no tiene perfil en Firestore todavía
               setUserAuthState(prev => ({
                 ...prev,
                 user: firebaseUser,
@@ -119,15 +120,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             }
           }, (err) => {
             console.error("Error escuchando perfil:", err);
+            setUserAuthState(prev => ({ ...prev, isUserLoading: false, userError: err }));
           });
 
-          // 2. Escucha en TIEMPO REAL de todos los usuarios para directorios y listas
+          // 2. Escucha en TIEMPO REAL de todos los usuarios
           const usersRef = collection(firestore, 'users');
           unsubscribeAllUsers = onSnapshot(usersRef, (snapshot) => {
             const users: UserProfile[] = [];
             snapshot.forEach(d => {
               const data = d.data() as UserProfile;
-              // Crucial: Inyectamos el ID del documento para que la sincronización sea exacta
               users.push({ ...data, id: d.id });
             });
             setUserAuthState(prev => ({ ...prev, allUsers: users }));
@@ -136,6 +137,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           });
 
         } else {
+          // Usuario no autenticado
           setUserAuthState({
             user: null,
             profile: null,
