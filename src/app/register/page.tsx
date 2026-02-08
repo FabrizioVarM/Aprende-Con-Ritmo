@@ -1,17 +1,27 @@
 
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User, Music, Music2, Music3, Music4 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSettingsStore } from '@/lib/settings-store';
 import { useAuth } from '@/lib/auth-store';
+
+interface DecorativeNote {
+  id: number;
+  left: string;
+  top: string;
+  delay: string;
+  duration: string;
+  size: number;
+  iconIndex: number;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,18 +31,57 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [notes, setNotes] = useState<DecorativeNote[]>([]);
+
+  useEffect(() => {
+    // Generar notas con propiedades aleatorias para el fondo
+    const generatedNotes = Array.from({ length: 15 }).map((_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 5}s`,
+      duration: `${6 + Math.random() * 8}s`,
+      size: 24 + Math.random() * 30,
+      iconIndex: Math.floor(Math.random() * 4)
+    }));
+    setNotes(generatedNotes);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Register the user and log them in
+    // Registrar al usuario e iniciar sesión
     register(name, email);
-    // Redirect to instrument selection
+    // Redirigir a la selección de instrumentos
     router.push('/register/instruments');
   };
 
+  const icons = [Music, Music2, Music3, Music4];
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-primary/20 p-6">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-primary/20 p-6 relative overflow-hidden">
+      
+      {/* Fondo decorativo de notas musicales */}
+      <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
+        {notes.map((note) => {
+          const Icon = icons[note.iconIndex];
+          return (
+            <div 
+              key={note.id}
+              className="absolute animate-float"
+              style={{
+                left: note.left,
+                top: note.top,
+                animationDelay: note.delay,
+                animationDuration: note.duration,
+              }}
+            >
+              <Icon size={note.size} className="text-accent" />
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="w-full max-w-md space-y-8 relative z-10">
         <div className="flex flex-col items-center text-center">
           <div className="relative w-16 h-16 bg-white p-1 rounded-2xl shadow-lg mb-4 overflow-hidden border-2 border-accent">
             <Image 
