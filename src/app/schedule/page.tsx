@@ -269,8 +269,11 @@ export default function SchedulePage() {
     const endM = endMinutes % 60;
     const timeRange = `${groupStartTime} - ${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 
-    // Host can be the first teacher or the admin
+    // On group classes, the primary teacher listed is the current user if teacher
+    // or the first selected teacher if admin
     const hostId = isTeacher ? user.id : (selectedTeachers.length > 0 ? selectedTeachers[0].id : user.id);
+    const hostName = isTeacher ? user.name : (selectedTeachers.length > 0 ? selectedTeachers[0].name : user.name);
+    
     const collaborators = selectedTeachers.filter(t => t.id !== hostId);
 
     createGroupClass(hostId, date, timeRange, selectedStudents, groupInstrument, groupType, collaborators);
@@ -651,7 +654,7 @@ export default function SchedulePage() {
                     <Button variant="outline" onClick={() => setIsGroupDialogOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                     <Button 
                       onClick={handleCreateGroupClass} 
-                      disabled={groupStudents.length === 0 || groupTeachers.length === 0} 
+                      disabled={groupStudents.length === 0} 
                       className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20"
                     >
                       Confirmar Clase Grupal
@@ -685,7 +688,7 @@ export default function SchedulePage() {
                         {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                       </span>
                       <span className="block text-xs font-bold text-accent italic">
-                        elija el horario de su profesor, y a continuación elija el instrumento disponible.
+                        Elija el horario de su profesor, y a continuación elija el instrumento disponible.
                       </span>
                     </DialogDescription>
                   </DialogHeader>
