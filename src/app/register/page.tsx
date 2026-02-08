@@ -23,36 +23,36 @@ export default function RegisterPage() {
           <div className="bg-accent p-3 rounded-2xl shadow-lg mb-4">
             <UserPlus className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold font-headline">Únete a Ritmo</h2>
+          <h2 className="text-3xl font-bold font-headline text-foreground">Únete y Aprende Con Ritmo!</h2>
           <p className="text-muted-foreground mt-2">Tu aventura musical comienza aquí</p>
         </div>
 
-        <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm rounded-3xl p-2">
+        <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm rounded-3xl p-2">
           <CardHeader>
-            <CardTitle>Crear Cuenta</CardTitle>
+            <CardTitle className="text-foreground">Crear Cuenta</CardTitle>
             <CardDescription>Únete a nuestra comunidad de músicos</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Nombre Completo</Label>
+                <Label htmlFor="name" className="text-foreground">Nombre Completo</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input id="name" placeholder="Juan Pérez" className="pl-10 rounded-xl" required />
+                  <Input id="name" placeholder="Juan Pérez" className="pl-10 rounded-xl bg-background text-foreground border-border" required />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Correo Electrónico</Label>
+                <Label htmlFor="email" className="text-foreground">Correo Electrónico</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input id="email" type="email" placeholder="nombre@ejemplo.com" className="pl-10 rounded-xl" required />
+                  <Input id="email" type="email" placeholder="nombre@ejemplo.com" className="pl-10 rounded-xl bg-background text-foreground border-border" required />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password" className="text-foreground">Contraseña</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input id="password" type="password" placeholder="••••••••" className="pl-10 rounded-xl" required />
+                  <Input id="password" type="password" placeholder="••••••••" className="pl-10 rounded-xl bg-background text-foreground border-border" required />
                 </div>
               </div>
             </CardContent>
