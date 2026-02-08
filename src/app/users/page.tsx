@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect, Suspense } from 'react';
@@ -42,7 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock } from 'lucide-react';
+import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock, Phone } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -78,6 +79,7 @@ function UsersContent() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editName, setEditName] = useState('');
   const [editUsername, setEditUsername] = useState('');
+  const [editPhone, setEditPhone] = useState('');
   const [editInstruments, setEditInstruments] = useState<string[]>([]);
   const [editPhotoUrl, setEditPhotoUrl] = useState<string | undefined>(undefined);
   const [editAvatarSeed, setEditAvatarSeed] = useState('');
@@ -86,6 +88,7 @@ function UsersContent() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
+  const [newPhone, setNewPhone] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('student');
   const [newUsername, setNewUsername] = useState('');
   const [newInstruments, setNewInstruments] = useState<string[]>([]);
@@ -113,6 +116,7 @@ function UsersContent() {
     setEditingUser(u);
     setEditName(u.name);
     setEditUsername(u.username || '');
+    setEditPhone(u.phone || '');
     setEditInstruments(u.instruments || []);
     setEditPhotoUrl(u.photoUrl);
     setEditAvatarSeed(u.avatarSeed || u.id);
@@ -123,6 +127,7 @@ function UsersContent() {
       adminUpdateUser(editingUser.id, {
         name: editName,
         username: editUsername,
+        phone: editPhone,
         instruments: editInstruments,
         photoUrl: editPhotoUrl,
         avatarSeed: editAvatarSeed
@@ -150,12 +155,14 @@ function UsersContent() {
       email: newEmail,
       role: newRole,
       username: newUsername,
+      phone: newPhone,
       instruments: newInstruments,
     });
 
     setIsCreateDialogOpen(false);
     setNewName('');
     setNewEmail('');
+    setNewPhone('');
     setNewRole('student');
     setNewUsername('');
     setNewInstruments([]);
@@ -379,6 +386,19 @@ function UsersContent() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Número de Contacto</Label>
+                    <div className="relative">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input 
+                        value={newPhone} 
+                        onChange={(e) => setNewPhone(e.target.value)}
+                        className="h-12 pl-11 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
+                        placeholder="Número de contacto"
+                        type="tel"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -548,6 +568,19 @@ function UsersContent() {
                     onChange={(e) => setEditUsername(e.target.value)}
                     className="h-12 pl-11 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
                     placeholder="username"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Número de Contacto</Label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    value={editPhone} 
+                    onChange={(e) => setEditPhone(e.target.value)}
+                    className="h-12 pl-11 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
+                    placeholder="Número de contacto"
+                    type="tel"
                   />
                 </div>
               </div>

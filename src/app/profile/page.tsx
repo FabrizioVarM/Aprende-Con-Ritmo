@@ -11,7 +11,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
-import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X } from 'lucide-react';
+import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const INSTRUMENTS_LIST = [
@@ -26,6 +26,7 @@ export default function ProfilePage() {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
   const [avatarSeed, setAvatarSeed] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
@@ -35,6 +36,7 @@ export default function ProfilePage() {
       setName(user.name || '');
       setUsername(user.username || '');
       setEmail(user.email || '');
+      setPhone(user.phone || '');
       setSelectedInstruments(user.instruments || []);
       setAvatarSeed(user.avatarSeed || user.id);
       setPhotoUrl(user.photoUrl);
@@ -45,6 +47,7 @@ export default function ProfilePage() {
     updateUser({
       name,
       username,
+      phone,
       instruments: selectedInstruments,
       avatarSeed,
       photoUrl
@@ -217,13 +220,28 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Correo Electrónico (No editable)</Label>
-                <Input 
-                  value={email} 
-                  disabled
-                  className="h-12 rounded-xl border-2 bg-muted/30 font-bold opacity-60 text-foreground"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Correo Electrónico (No editable)</Label>
+                  <Input 
+                    value={email} 
+                    disabled
+                    className="h-12 rounded-xl border-2 bg-muted/30 font-bold opacity-60 text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Número de Contacto</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input 
+                      value={phone} 
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="h-12 pl-11 rounded-xl border-2 font-bold text-foreground bg-card"
+                      placeholder="+51 999 999 999"
+                      type="tel"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-4">

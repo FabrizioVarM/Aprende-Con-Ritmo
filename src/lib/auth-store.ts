@@ -14,10 +14,11 @@ export interface User {
   instruments?: string[];
   avatarSeed?: string;
   photoUrl?: string;
+  phone?: string;
 }
 
 const INITIAL_MOCK_USERS: User[] = [
-  { id: '1', name: 'Ana Garcia', email: 'ana@example.com', role: 'student', username: 'anaritmica', instruments: ['Guitarra'], avatarSeed: '1' },
+  { id: '1', name: 'Ana Garcia', email: 'ana@example.com', role: 'student', username: 'anaritmica', instruments: ['Guitarra'], avatarSeed: '1', phone: '+51 987 654 321' },
   { id: '2', name: 'Prof. Carlos', email: 'carlos@example.com', role: 'teacher', username: 'carlos_pro', instruments: ['Guitarra', 'Violín'], avatarSeed: '2' },
   { id: '3', name: 'Admin User', email: 'admin@example.com', role: 'admin', username: 'admin_ritmo', avatarSeed: '3' },
   { id: '4', name: 'Prof. Elena', email: 'elena@example.com', role: 'teacher', username: 'elena_teoria', instruments: ['Teoría', 'Piano'], avatarSeed: '4' },
