@@ -47,13 +47,14 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      // Usar setDoc con merge para mayor robustez en actualizaciones de perfil
       updateUser({
         name,
         username,
         phone,
         instruments: selectedInstruments,
         avatarSeed,
-        photoUrl
+        photoUrl: photoUrl || "" // Si es undefined, lo guardamos como string vacío para asegurar persistencia
       });
       
       toast({
@@ -62,7 +63,7 @@ export default function ProfilePage() {
       });
     } finally {
       // Pequeño retardo para feedback visual
-      setTimeout(() => setIsSaving(false), 500);
+      setTimeout(() => setIsSaving(false), 800);
     }
   };
 
@@ -86,11 +87,21 @@ export default function ProfilePage() {
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validar tamaño aproximado (evitar > 1MB para Firestore)
+      if (file.size > 800000) {
+        toast({
+          variant: "destructive",
+          title: "Imagen muy pesada",
+          description: "Por favor elige una foto de menos de 800KB para asegurar el guardado.",
+        });
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoUrl(reader.result as string);
         toast({
-          description: "Foto cargada correctamente.",
+          description: "Foto cargada. Recuerda pulsar 'Guardar Cambios'.",
         });
       };
       reader.readAsDataURL(file);
@@ -254,7 +265,7 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                   <Music className="w-4 h-4 text-accent" /> 
-                  {user.role === 'teacher' ? 'Mis Especialidades (Instrumentos que enseño)' : 'Mis Instrumentos (Lo que aprendo)'}
+                  {user.role === 'teacher' ? 'Mis Especialidades (Instrumentos que enseña)' : 'Mis Instrumentos (Lo que aprendo)'}
                 </Label>
                 <div className="flex flex-wrap gap-2">
                   {INSTRUMENTS_LIST.map(inst => {

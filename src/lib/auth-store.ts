@@ -171,13 +171,18 @@ export function useAuth() {
   const updateUser = useCallback((updatedData: Partial<User>) => {
     if (!user) return;
     
-    // Limpiar campos undefined para evitar errores en Firestore
+    // Preparar datos para Firestore
+    const dataToSave = { ...updatedData };
+    
+    // Asegurarse de que photoUrl se maneje correctamente si es undefined para borrarlo en BD si fuera necesario, 
+    // pero Firestore prefiere null para borrar valores. Aquí simplemente removemos los undefined.
     const cleanData = Object.fromEntries(
-      Object.entries(updatedData).filter(([_, v]) => v !== undefined)
+      Object.entries(dataToSave).filter(([_, v]) => v !== undefined)
     );
 
     const docRef = doc(db, 'users', user.id);
-    // Usar setDoc con merge para mayor robustez en actualizaciones de perfil
+    
+    // Actualización no bloqueante
     setDoc(docRef, cleanData, { merge: true }).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
