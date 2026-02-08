@@ -113,9 +113,34 @@ export function useAuth() {
     window.dispatchEvent(new CustomEvent('ac_sync_auth'));
   }, [user, allUsers]);
 
+  const adminUpdateUser = useCallback((userId: string, updatedData: Partial<User>) => {
+    const updatedAllUsers = allUsers.map(u => {
+      if (u.id === userId) {
+        const updated = { ...u, ...updatedData };
+        if (updated.instruments) {
+          updated.instruments = updated.instruments.filter(i => i !== 'Flauta');
+        }
+        return updated;
+      }
+      return u;
+    });
+    
+    localStorage.setItem('ac_all_users', JSON.stringify(updatedAllUsers));
+    setAllUsers(updatedAllUsers);
+
+    // If updating current logged in user
+    if (user && user.id === userId) {
+      const newUser = updatedAllUsers.find(u => u.id === userId)!;
+      localStorage.setItem('ac_user', JSON.stringify(newUser));
+      setUser(newUser);
+    }
+    
+    window.dispatchEvent(new CustomEvent('ac_sync_auth'));
+  }, [user, allUsers]);
+
   const getTeachers = useCallback(() => {
     return allUsers.filter(u => u.role === 'teacher');
   }, [allUsers]);
 
-  return { user, allUsers, loading, login, logout, updateUser, getTeachers };
+  return { user, allUsers, loading, login, logout, updateUser, adminUpdateUser, getTeachers };
 }

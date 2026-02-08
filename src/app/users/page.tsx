@@ -15,7 +15,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter,
+  DialogDescription
+} from '@/components/ui/dialog';
+import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -31,11 +40,23 @@ import {
   TabsTrigger 
 } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/lib/auth-store';
+import { useAuth, User } from '@/lib/auth-store';
+import { useToast } from '@/hooks/use-toast';
+
+const INSTRUMENTS_LIST = [
+  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
+];
 
 export default function UsersPage() {
-  const { allUsers } = useAuth();
+  const { allUsers, adminUpdateUser } = useAuth();
+  const { toast } = useToast();
   const [search, setSearch] = useState('');
+  
+  // Edit State
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editInstruments, setEditInstruments] = useState<string[]>([]);
 
   const filteredUsers = allUsers.filter(user => 
     user.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -45,7 +66,37 @@ export default function UsersPage() {
   const students = filteredUsers.filter(u => u.role === 'student');
   const staff = filteredUsers.filter(u => u.role === 'teacher' || u.role === 'admin');
 
-  const UserTable = ({ users }: { users: any[] }) => (
+  const openEditDialog = (u: User) => {
+    setEditingUser(u);
+    setEditName(u.name);
+    setEditUsername(u.username || '');
+    setEditInstruments(u.instruments || []);
+  };
+
+  const handleSaveEdit = () => {
+    if (editingUser) {
+      adminUpdateUser(editingUser.id, {
+        name: editName,
+        username: editUsername,
+        instruments: editInstruments
+      });
+      setEditingUser(null);
+      toast({
+        title: "Usuario Actualizado ✨",
+        description: `Los cambios para ${editName} se han guardado correctamente.`,
+      });
+    }
+  };
+
+  const toggleInstrument = (inst: string) => {
+    setEditInstruments(prev => 
+      prev.includes(inst) 
+        ? prev.filter(i => i !== inst) 
+        : [...prev, inst]
+    );
+  };
+
+  const UserTable = ({ users }: { users: User[] }) => (
     <div className="overflow-hidden rounded-2xl border border-border">
       <Table>
         <TableHeader className="bg-muted/50">
@@ -95,12 +146,17 @@ export default function UsersPage() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="rounded-2xl w-48 border-none shadow-xl p-2">
                     <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-muted-foreground px-2 pb-2">Opciones</DropdownMenuLabel>
-                    <DropdownMenuItem className="gap-2 rounded-xl font-bold py-2"><Edit className="w-4 h-4" /> Editar Perfil</DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="gap-2 rounded-xl font-bold py-2 cursor-pointer"
+                      onClick={() => openEditDialog(u)}
+                    >
+                      <Edit className="w-4 h-4" /> Editar Perfil
+                    </DropdownMenuItem>
                     {u.role === 'student' && (
-                      <DropdownMenuItem className="gap-2 rounded-xl font-bold py-2"><TrendingUp className="w-4 h-4" /> Ver Progreso</DropdownMenuItem>
+                      <DropdownMenuItem className="gap-2 rounded-xl font-bold py-2 cursor-pointer"><TrendingUp className="w-4 h-4" /> Ver Progreso</DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator className="my-1" />
-                    <DropdownMenuItem className="gap-2 rounded-xl font-bold py-2 text-destructive focus:text-destructive"><Trash className="w-4 h-4" /> Eliminar Cuenta</DropdownMenuItem>
+                    <DropdownMenuItem className="gap-2 rounded-xl font-bold py-2 text-destructive focus:text-destructive cursor-pointer"><Trash className="w-4 h-4" /> Eliminar Cuenta</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -186,6 +242,103 @@ export default function UsersPage() {
           </Tabs>
         </div>
       </div>
+
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+          <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+            <div className="flex items-center gap-4">
+              <Avatar className="w-16 h-16 border-4 border-white shadow-xl">
+                {editingUser?.photoUrl ? (
+                  <AvatarImage src={editingUser.photoUrl} className="object-cover" />
+                ) : (
+                  <AvatarImage src={`https://picsum.photos/seed/${editingUser?.avatarSeed || editingUser?.id}/150`} />
+                )}
+                <AvatarFallback>{editName[0]}</AvatarFallback>
+              </Avatar>
+              <div>
+                <DialogTitle className="text-2xl font-black text-secondary-foreground">Editar Perfil</DialogTitle>
+                <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+                  {editingUser?.role === 'teacher' ? 'Perfil del Profesor' : editingUser?.role === 'student' ? 'Perfil del Estudiante' : 'Perfil Administrativo'}
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="p-8 space-y-8 bg-white overflow-y-auto flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nombre Completo</Label>
+                <div className="relative">
+                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    value={editName} 
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="h-12 pl-11 rounded-xl border-2 font-bold focus:border-accent"
+                    placeholder="Nombre"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nombre de Usuario</Label>
+                <div className="relative">
+                  <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    value={editUsername} 
+                    onChange={(e) => setEditUsername(e.target.value)}
+                    className="h-12 pl-11 rounded-xl border-2 font-bold focus:border-accent"
+                    placeholder="username"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <Music className="w-4 h-4 text-accent" /> 
+                {editingUser?.role === 'teacher' ? 'Especialidades (Instrumentos que enseña)' : 'Instrumentos (Lo que aprende)'}
+              </Label>
+              <div className="flex flex-wrap gap-2">
+                {INSTRUMENTS_LIST.map(inst => {
+                  const isSelected = editInstruments.includes(inst);
+                  return (
+                    <button
+                      key={inst}
+                      type="button"
+                      onClick={() => toggleInstrument(inst)}
+                      className={cn(
+                        "px-4 py-2 rounded-xl text-sm font-black transition-all border-2",
+                        isSelected 
+                          ? "bg-accent border-accent text-white shadow-md scale-105" 
+                          : "bg-white border-primary/10 text-muted-foreground hover:border-accent/30"
+                      )}
+                    >
+                      {inst}
+                      {isSelected && <Check className="w-3 h-3 ml-2 inline animate-in zoom-in" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-8 bg-gray-50 flex gap-3 border-t shrink-0">
+            <Button 
+              variant="outline" 
+              onClick={() => setEditingUser(null)} 
+              className="rounded-xl flex-1 h-14 font-black"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleSaveEdit} 
+              className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 hover:scale-105 transition-all"
+            >
+              Guardar Cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
