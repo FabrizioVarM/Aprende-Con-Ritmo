@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, User as UserIcon, ShieldCheck, GraduationCap, Users } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -50,9 +50,8 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Tormenta de Oro': '⚡'
 };
 
-const DEFAULT_TEACHER_ID = '2';
-const DEFAULT_TEACHER_NAME = 'Carlos';
-const DEFAULT_TEACHER_INSTRUMENT = 'Guitarra';
+const DEFAULT_TEACHER_NAME = 'Profesor';
+const DEFAULT_TEACHER_INSTRUMENT = 'Música';
 
 const formatToAmPm = (timeRange: string) => {
   const startPart = timeRange.split(' - ')[0];
@@ -103,6 +102,7 @@ export default function SchedulePage() {
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   
   // Group class state
   const [groupStudents, setGroupStudents] = useState<string[]>([]);
@@ -126,14 +126,24 @@ export default function SchedulePage() {
 
   const isTeacher = user?.role === 'teacher';
   const isAdmin = user?.role === 'admin';
-  const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
-
+  const teachersList = useMemo(() => allUsers.filter(u => u.role === 'teacher'), [allUsers]);
   const studentsList = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
   const otherTeachersList = useMemo(() => allUsers.filter(u => u.role === 'teacher'), [allUsers]);
 
+  // Si es profesor, su teacherId es su propio ID. Si es alumno, usa el profesor seleccionado.
+  useEffect(() => {
+    if (!loading && user && !selectedTeacherId && teachersList.length > 0) {
+      if (isTeacher) {
+        setSelectedTeacherId(user.id);
+      } else {
+        setSelectedTeacherId(teachersList[0].id);
+      }
+    }
+  }, [loading, user, isTeacher, teachersList, selectedTeacherId]);
+
   const currentTeacherProfile = useMemo(() => {
-    return allUsers.find(u => u.id === (isTeacher ? user?.id : DEFAULT_TEACHER_ID));
-  }, [allUsers, isTeacher, user]);
+    return allUsers.find(u => u.id === selectedTeacherId);
+  }, [allUsers, selectedTeacherId]);
 
   const teacherInstruments = useMemo(() => {
     return currentTeacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT];
@@ -150,8 +160,8 @@ export default function SchedulePage() {
   }, [date]);
 
   const availability = useMemo(() => {
-    return getDayAvailability(teacherId!, date);
-  }, [teacherId, date, getDayAvailability, availabilities]);
+    return getDayAvailability(selectedTeacherId, date);
+  }, [selectedTeacherId, date, getDayAvailability, availabilities]);
   
   const allDaySlots = availability.slots;
 
@@ -168,8 +178,31 @@ export default function SchedulePage() {
     if (isTeacher) {
       return allDaySlots.filter(s => s.isBooked);
     }
-    return allDaySlots.filter(s => s.isBooked && (s.studentId === user?.id || s.bookedBy === user?.name || s.students?.some(st => st.id === user?.id)));
-  }, [allDaySlots, user, isTeacher]);
+    
+    // Para alumnos, buscamos sus clases en TODOS los registros de disponibilidad de este día
+    const studentClasses: any[] = [];
+    availabilities.forEach(day => {
+      if (day.date === dateStrKey) {
+        day.slots.forEach(slot => {
+          const isParticipant = slot.isBooked && (
+            slot.studentId === user?.id || 
+            slot.bookedBy === user?.name || 
+            slot.students?.some(st => st.id === user?.id)
+          );
+          
+          if (isParticipant) {
+            const teacher = allUsers.find(u => u.id === day.teacherId);
+            studentClasses.push({
+              ...slot,
+              teacherId: day.teacherId,
+              teacherName: slot.teacherName || teacher?.name || 'Profesor'
+            });
+          }
+        });
+      }
+    });
+    return studentClasses.sort((a, b) => a.time.localeCompare(b.time));
+  }, [availabilities, dateStrKey, user, isTeacher, allDaySlots, allUsers]);
 
   const otherAvailableSlots = useMemo(() => {
     if (!currentTime) return [];
@@ -221,31 +254,11 @@ export default function SchedulePage() {
     mySlots.filter(s => isPastSlot(s.time)),
   [mySlots, date, currentTime]);
 
-  const academicGroupClasses = useMemo(() => {
-    const list: any[] = [];
-    availabilities.forEach(day => {
-      if (day.date === dateStrKey) {
-        day.slots.forEach(slot => {
-          if (slot.isBooked && slot.isGroup) {
-            const teacher = allUsers.find(u => u.id === day.teacherId);
-            list.push({
-              ...slot,
-              teacherId: day.teacherId,
-              teacherName: slot.teacherName || teacher?.name || 'Profesor',
-              date: day.date
-            });
-          }
-        });
-      }
-    });
-    return list;
-  }, [availabilities, dateStrKey, allUsers]);
-
   const handleBook = () => {
-    if (!selectedSlotId || !date || !user) return;
+    if (!selectedSlotId || !date || !user || !selectedTeacherId) return;
     const instrument = bookingInstrument || user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
     const teacherName = currentTeacherProfile?.name || DEFAULT_TEACHER_NAME;
-    bookSlot(teacherId!, date, selectedSlotId, user.name, user.id, instrument, teacherName);
+    bookSlot(selectedTeacherId, date, selectedSlotId, user.name, user.id, instrument, teacherName);
     toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
     setIsBookingOpen(false);
     setSelectedSlotId(null);
@@ -287,14 +300,14 @@ export default function SchedulePage() {
   };
 
   const handleCancel = (slotId: string, customTeacherId?: string) => {
-    const tId = customTeacherId || teacherId;
+    const tId = customTeacherId || selectedTeacherId;
     if (!tId) return;
     cancelBooking(tId, date, slotId);
     toast({ title: "Clase Cancelada 🗑️", description: "La reserva ha sido eliminada." });
   };
 
   const handleToggleStatus = (slot: any, customTeacherId?: string) => {
-    const tId = customTeacherId || teacherId;
+    const tId = customTeacherId || selectedTeacherId;
     if (!tId) return;
 
     const newStatus = slot.status === 'completed' ? 'pending' : 'completed';
@@ -340,8 +353,8 @@ export default function SchedulePage() {
     const isPast = isPastSlot(slot.time);
     const emoji = INSTRUMENT_EMOJIS[slot.instrument || 'Música'] || '🎵';
 
-    const currentTeacherId = customTeacherId || (isStaffView || isTeacher ? teacherId : DEFAULT_TEACHER_ID);
-    const teacherProfile = allUsers.find(u => u.id === currentTeacherId);
+    const currentId = customTeacherId || (isStaffView || isTeacher ? selectedTeacherId : (slot.teacherId || selectedTeacherId));
+    const teacherProfile = allUsers.find(u => u.id === currentId);
     const teacherInstrumentsList = (teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT]);
 
     return (
@@ -487,7 +500,7 @@ export default function SchedulePage() {
             ) : isMine ? (
               <>
                 {!isPast && (
-                  <Button variant="ghost" size="icon" onClick={() => handleCancel(slot.id)} className="text-destructive hover:bg-destructive/10 rounded-full h-9 w-9 sm:h-10 sm:w-10">
+                  <Button variant="ghost" size="icon" onClick={() => handleCancel(slot.id, customTeacherId)} className="text-destructive hover:bg-destructive/10 rounded-full h-9 w-9 sm:h-10 sm:w-10">
                     <Trash2 className="w-5 h-5" />
                   </Button>
                 )}
@@ -545,7 +558,23 @@ export default function SchedulePage() {
             </p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {!isTeacher && !isAdmin && (
+              <Card className="rounded-2xl border-2 border-accent/20 p-1 pl-3 flex items-center gap-3 bg-card shadow-sm h-14">
+                <UserIcon className="w-5 h-5 text-accent shrink-0" />
+                <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                  <SelectTrigger className="w-40 sm:w-48 h-full border-none font-black text-foreground focus:ring-0">
+                    <SelectValue placeholder="Profesor" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {teachersList.map(t => (
+                      <SelectItem key={t.id} value={t.id} className="font-bold">{t.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Card>
+            )}
+
             {(isTeacher || isAdmin) && (
               <Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
                 <DialogTrigger asChild>
@@ -778,7 +807,7 @@ export default function SchedulePage() {
                     )}
                   </div>
                   <div className="p-8 bg-muted/30 flex gap-3 border-t shrink-0 mt-auto">
-                    <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                    <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                     <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                   </div>
                 </DialogContent>
@@ -873,26 +902,6 @@ export default function SchedulePage() {
                     </div>
                   </section>
 
-                  {academicGroupClasses.length > 0 && (
-                    <section className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-6 h-6 text-accent" />
-                        <h2 className="text-xl font-black text-foreground">Clases Grupales de la Academia 🌍</h2>
-                      </div>
-                      <div className="grid grid-cols-1 gap-4">
-                        {academicGroupClasses.map((slot) => (
-                          <SlotCard 
-                            key={`${slot.teacherId}-${slot.id}`} 
-                            slot={slot} 
-                            isMine={false} 
-                            isStaffView={true} 
-                            customTeacherId={slot.teacherId} 
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  )}
-
                   <section className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
@@ -918,7 +927,14 @@ export default function SchedulePage() {
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {mySlots.length > 0 ? (
-                        mySlots.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={true} />)
+                        mySlots.map((slot) => (
+                          <SlotCard 
+                            key={`${slot.teacherId}-${slot.id}`} 
+                            slot={slot} 
+                            isMine={true} 
+                            customTeacherId={slot.teacherId} 
+                          />
+                        ))
                       ) : (
                         <div className="py-8 text-center bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/10">
                           <p className="text-sm font-bold text-muted-foreground">No tienes clases reservadas para este día.</p>
@@ -930,7 +946,7 @@ export default function SchedulePage() {
                   <section className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-6 bg-primary rounded-full" />
-                      <h2 className="text-xl font-black text-foreground">Horarios Disponibles para una Reserva Rápida 🎸</h2>
+                      <h2 className="text-xl font-black text-foreground">Horarios Disponibles con {currentTeacherProfile?.name || 'el profesor'} 🎸</h2>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {otherAvailableSlots.length > 0 ? (
