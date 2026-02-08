@@ -12,7 +12,11 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && getUserData().role == 'admin';
+      return isSignedIn() && (
+        getUserData().role == 'admin' || 
+        // Fallback para el primer usuario si aún no tiene perfil pero es el creador
+        (!exists(/databases/$(database)/documents/users/$(request.auth.uid)) && request.auth.token.email == "tu-email-de-admin@ejemplo.com")
+      );
     }
 
     function isTeacher() {
@@ -31,7 +35,7 @@ service cloud.firestore {
     
     match /availabilities/{availId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn();
+      allow write: if isSignedIn(); // Permitir que alumnos reserven slots
     }
     
     match /completions/{compId} {

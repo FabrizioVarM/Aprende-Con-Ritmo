@@ -133,10 +133,10 @@
         }
       },
       {
-        "path": "/settings/global",
+        "path": "/settings/{docId}",
         "definition": {
           "entityName": "AppSetting",
-          "description": "Configuración global del sistema (logo, whatsapp, tema)."
+          "description": "Configuración global del sistema (logo, whatsapp, tema, biblioteca)."
         }
       }
     ]
