@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
@@ -8,14 +9,6 @@ export const metadata: Metadata = {
   description: 'Plataforma de Gestión para Educación Musical',
   manifest: '/manifest.json',
   themeColor: '#FF8B7A',
-  icons: {
-    icon: [
-      { url: '/icon.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
-    ],
-    shortcut: '/favicon.ico',
-    apple: '/icon.png',
-  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
