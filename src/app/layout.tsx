@@ -8,7 +8,10 @@ export const metadata: Metadata = {
   description: 'Plataforma de Gestión para Educación Musical',
   manifest: '/manifest.json',
   icons: {
-    icon: '/icon.png',
+    icon: [
+      { url: '/icon.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+    ],
     shortcut: '/favicon.ico',
     apple: '/icon.png',
   },
@@ -26,6 +29,8 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
         <meta name="theme-color" content="#FF8B7A" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className="font-body antialiased bg-background">
         <FirebaseClientProvider>
