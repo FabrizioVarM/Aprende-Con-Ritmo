@@ -17,15 +17,15 @@ export interface TimeSlot {
   time: string;
   isAvailable: boolean;
   isBooked: boolean;
-  bookedBy?: string;
-  studentId?: string;
-  teacherName?: string;
-  instrument?: string;
+  bookedBy?: string | null;
+  studentId?: string | null;
+  teacherName?: string | null;
+  instrument?: string | null;
   type: 'virtual' | 'presencial';
   status?: 'pending' | 'completed';
   isGroup?: boolean;
-  students?: { id: string, name: string }[];
-  teachers?: { id: string, name: string }[];
+  students?: { id: string, name: string }[] | null;
+  teachers?: { id: string, name: string }[] | null;
 }
 
 export interface DayAvailability {
@@ -46,6 +46,22 @@ const toLocalDateString = (date: Date) => {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
+
+/**
+ * Limpia un objeto de valores undefined antes de enviarlo a Firestore
+ */
+function cleanData(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(v => cleanData(v));
+  } else if (obj !== null && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([_, v]) => v !== undefined)
+        .map(([k, v]) => [k, cleanData(v)])
+    );
+  }
+  return obj;
+}
 
 export function useBookingStore() {
   const [availabilities, setAvailabilities] = useState<DayAvailability[]>([]);
@@ -89,7 +105,7 @@ export function useBookingStore() {
     const dateStr = toLocalDateString(date);
     const id = `${teacherId}_${dateStr}`;
     const docRef = doc(db, 'availabilities', id);
-    const data = { teacherId, date: dateStr, slots };
+    const data = cleanData({ teacherId, date: dateStr, slots });
     setDoc(docRef, data, { merge: true })
       .catch(async () => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -108,24 +124,35 @@ export function useBookingStore() {
     let updatedSlots: TimeSlot[] = [];
     if (existing) {
       updatedSlots = existing.slots.map(s => s.id === slotId ? { 
-        ...s, isBooked: true, bookedBy: studentName, studentId, isAvailable: false, instrument, status: 'pending', teacherName 
+        ...s, 
+        isBooked: true, 
+        bookedBy: studentName, 
+        studentId, 
+        isAvailable: false, 
+        instrument, 
+        status: 'pending', 
+        teacherName: teacherName || null 
       } : s);
     } else {
       updatedSlots = INITIAL_SLOTS.map(s => {
         const sid = Math.random().toString(36).substring(2, 9);
+        const isTarget = sid === slotId;
         return {
-          id: sid, time: s, isAvailable: false,
-          isBooked: sid === slotId,
-          bookedBy: sid === slotId ? studentName : undefined,
-          studentId: sid === slotId ? studentId : undefined,
-          instrument: sid === slotId ? instrument : undefined,
-          teacherName: sid === slotId ? teacherName : undefined,
-          type: 'presencial', status: 'pending'
+          id: sid, 
+          time: s, 
+          isAvailable: false,
+          isBooked: isTarget,
+          bookedBy: isTarget ? studentName : null,
+          studentId: isTarget ? studentId : null,
+          instrument: isTarget ? instrument : null,
+          teacherName: isTarget ? (teacherName || null) : null,
+          type: 'presencial', 
+          status: 'pending'
         };
       });
     }
     const docRef = doc(db, 'availabilities', id);
-    const data = { teacherId, date: dateStr, slots: updatedSlots };
+    const data = cleanData({ teacherId, date: dateStr, slots: updatedSlots });
     setDoc(docRef, data, { merge: true })
       .catch(async () => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -149,7 +176,7 @@ export function useBookingStore() {
 
     const slots = existing ? [...existing.slots, newSlot] : [newSlot];
     const docRef = doc(db, 'availabilities', id);
-    const data = { teacherId, date: dateStr, slots };
+    const data = cleanData({ teacherId, date: dateStr, slots });
     setDoc(docRef, data, { merge: true })
       .catch(async () => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -167,11 +194,22 @@ export function useBookingStore() {
     if (!existing) return;
 
     const updatedSlots = existing.slots.map(s => 
-      s.id === slotId ? { ...s, isBooked: false, bookedBy: undefined, studentId: undefined, isAvailable: true, instrument: undefined, status: 'pending', students: undefined, isGroup: false, teachers: undefined } : s
+      s.id === slotId ? { 
+        ...s, 
+        isBooked: false, 
+        bookedBy: null, 
+        studentId: null, 
+        isAvailable: true, 
+        instrument: null, 
+        status: 'pending', 
+        students: null, 
+        isGroup: false, 
+        teachers: null 
+      } : s
     ).filter(s => !s.id.startsWith('group-') || s.isBooked);
 
     const docRef = doc(db, 'availabilities', id);
-    const data = { slots: updatedSlots };
+    const data = cleanData({ slots: updatedSlots });
     setDoc(docRef, data, { merge: true })
       .catch(async () => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -189,7 +227,7 @@ export function useBookingStore() {
 
     const updatedSlots = existing.slots.map(s => s.id === slotId ? { ...s, status } : s);
     const docRef = doc(db, 'availabilities', id);
-    const data = { slots: updatedSlots };
+    const data = cleanData({ slots: updatedSlots });
     setDoc(docRef, data, { merge: true })
       .catch(async () => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
