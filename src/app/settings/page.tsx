@@ -85,7 +85,7 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 gap-8">
           <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
-              <CardTitle className="text-2xl font-black flex items-center gap-3">
+              <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
                 <ImageIcon className="w-8 h-8 text-accent" />
                 Identidad Visual
               </CardTitle>
@@ -127,7 +127,7 @@ export default function SettingsPage() {
                     <Input 
                       value={logoUrl} 
                       onChange={(e) => setLogoUrl(e.target.value)}
-                      className="h-14 rounded-2xl border-2 font-bold px-6 focus:border-accent"
+                      className="h-14 rounded-2xl border-2 font-bold px-6 focus:border-accent text-foreground bg-card"
                       placeholder="https://..."
                     />
                     <p className="text-xs text-muted-foreground font-medium">Puedes pegar una URL directa o subir un archivo local.</p>
@@ -136,7 +136,7 @@ export default function SettingsPage() {
                   <div className="flex flex-wrap gap-3">
                     <Button 
                       variant="outline" 
-                      className="rounded-2xl h-12 gap-2 border-2 font-black px-6 hover:bg-accent/5"
+                      className="rounded-2xl h-12 gap-2 border-2 font-black px-6 hover:bg-accent/5 text-foreground"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <Upload className="w-4 h-4" /> Subir Imagen
@@ -164,7 +164,7 @@ export default function SettingsPage() {
 
           <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
-              <CardTitle className="text-2xl font-black flex items-center gap-3">
+              <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
                 <Moon className="w-8 h-8 text-accent" />
                 Preferencia de Apariencia
               </CardTitle>
@@ -176,7 +176,7 @@ export default function SettingsPage() {
                     {darkMode ? <Moon className="w-6 h-6 text-accent" /> : <Sun className="w-6 h-6 text-orange-500" />}
                   </div>
                   <div className="space-y-1">
-                    <h4 className="font-black text-lg text-secondary-foreground">Modo Oscuro</h4>
+                    <h4 className="font-black text-lg text-foreground">Modo Oscuro</h4>
                     <p className="text-sm text-muted-foreground font-medium">Activa una interfaz visual optimizada para ambientes con poca luz.</p>
                   </div>
                 </div>
