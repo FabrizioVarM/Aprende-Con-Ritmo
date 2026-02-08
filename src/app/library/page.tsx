@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -29,15 +29,8 @@ import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 
-const MOCK_STUDENTS = [
-  { id: '1', name: 'Ana García', instruments: ['Guitarra', 'Canto'] },
-  { id: '4', name: 'Liam Smith', instruments: ['Piano', 'Teoría'] },
-  { id: '5', name: 'Emma Wilson', instruments: ['Violín'] },
-  { id: '6', name: 'Tom Holland', instruments: ['Batería', 'Guitarra'] },
-];
-
 export default function LibraryPage() {
-  const { user, loading } = useAuth();
+  const { user, allUsers, loading } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
   const { resources, libraryDescription, updateResource, updateLibraryDescription } = useResourceStore();
   const { toast } = useToast();
@@ -46,10 +39,12 @@ export default function LibraryPage() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [isInitialFilterSet, setIsInitialFilterSet] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState('1'); 
+  const [selectedStudentId, setSelectedStudentId] = useState(''); 
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tempDescription, setTempDescription] = useState(libraryDescription);
+
+  const studentsList = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -68,13 +63,19 @@ export default function LibraryPage() {
   }, [user, isInitialFilterSet]);
 
   useEffect(() => {
-    if (isStaff) {
-      const student = MOCK_STUDENTS.find(s => s.id === selectedStudentId);
+    if (isStaff && studentsList.length > 0 && !selectedStudentId) {
+      setSelectedStudentId(studentsList[0].id);
+    }
+  }, [isStaff, studentsList, selectedStudentId]);
+
+  useEffect(() => {
+    if (isStaff && selectedStudentId) {
+      const student = studentsList.find(s => s.id === selectedStudentId);
       if (student && student.instruments) {
         setSelectedFilters([...student.instruments]);
       }
     }
-  }, [selectedStudentId, isStaff]);
+  }, [selectedStudentId, isStaff, studentsList]);
 
   const toggleFilter = (cat: string) => {
     if (cat === 'Todos') {
@@ -171,7 +172,7 @@ export default function LibraryPage() {
                     <SelectValue placeholder="Seleccionar Alumno" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
-                    {MOCK_STUDENTS.map(student => (
+                    {studentsList.map(student => (
                       <SelectItem key={student.id} value={student.id} className="font-bold py-3">
                         {student.name}
                       </SelectItem>
@@ -404,7 +405,7 @@ export default function LibraryPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isEditingDescription} onOpenChange={setIsEditingDescription}>
+      <Dialog open={isEditingDescription} onOpenChange={isEditingDescription => setIsEditingDescription(isEditingDescription)}>
         <DialogContent className="rounded-[2.5rem] max-w-xl border-none shadow-2xl p-0 overflow-hidden">
           <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
             <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
