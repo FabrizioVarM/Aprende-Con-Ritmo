@@ -159,7 +159,7 @@ export default function LibraryPage() {
             </div>
           </div>
           {isStaff && (
-            <div className="bg-card border-2 border-accent/20 p-2 pl-4 rounded-[2rem] flex flex-col sm:flex-row items-center gap-4 shadow-sm shrink-0">
+            <div className="bg-card border-2 border-accent/40 p-2 pl-4 rounded-[2rem] flex flex-col sm:flex-row items-center gap-4 shadow-sm shrink-0">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-6 h-6 text-accent" />
                 <div className="hidden sm:block">
@@ -186,7 +186,7 @@ export default function LibraryPage() {
           )}
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-primary/5 p-4 rounded-3xl border border-primary/10">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-primary/5 p-4 rounded-3xl border border-primary/20">
           <div className="relative w-full md:max-w-md">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input 
@@ -224,7 +224,7 @@ export default function LibraryPage() {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
             
             return (
-              <Card key={res.id} className="rounded-[2.5rem] border-2 border-primary/20 shadow-md group overflow-hidden bg-card hover:shadow-xl hover:border-accent/40 transition-all duration-300">
+              <Card key={res.id} className="rounded-[2.5rem] border-2 border-primary/40 shadow-md group overflow-hidden bg-card hover:shadow-xl hover:border-accent/40 transition-all duration-300">
                 <div className="relative aspect-video overflow-hidden">
                   <Image 
                     src={res.img.imageUrl} 
