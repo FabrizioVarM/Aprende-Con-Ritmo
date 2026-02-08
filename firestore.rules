@@ -37,7 +37,7 @@ service cloud.firestore {
       allow write: if isSignedIn(); // Los alumnos escriben al reservar, los profes al gestionar
     }
     
-    // Seguimiento académico: Admin y Profes editan, Alumnos solo leen lo suyo
+    // Seguimiento académico: Admin y Profes editan, Alumnos leen lo suyo
     match /completions/{compId} {
       allow read: if isSignedIn();
       allow write: if isTeacher();
