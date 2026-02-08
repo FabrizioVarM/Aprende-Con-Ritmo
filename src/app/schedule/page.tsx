@@ -704,7 +704,7 @@ export default function SchedulePage() {
                   <section className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-6 bg-primary rounded-full" />
-                      <h2 className="text-xl font-black text-secondary-foreground">Horarios Disponibles para Reservar 🎸</h2>
+                      <h2 className="text-xl font-black text-secondary-foreground">Horarios Disponibles para una Reserva Rápida 🎸</h2>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {otherAvailableSlots.length > 0 ? (
