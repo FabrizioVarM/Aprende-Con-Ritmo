@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { 
   Table, 
@@ -48,8 +48,9 @@ const INSTRUMENTS_LIST = [
 ];
 
 export default function UsersPage() {
-  const { allUsers, adminUpdateUser } = useAuth();
+  const { allUsers, adminUpdateUser, loading, user } = useAuth();
   const { toast } = useToast();
+  const [isMounted, setIsMounted] = useState(false);
   const [search, setSearch] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -60,6 +61,10 @@ export default function UsersPage() {
   const [editInstruments, setEditInstruments] = useState<string[]>([]);
   const [editPhotoUrl, setEditPhotoUrl] = useState<string | undefined>(undefined);
   const [editAvatarSeed, setEditAvatarSeed] = useState('');
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const filteredUsers = allUsers.filter(user => 
     user.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -126,6 +131,8 @@ export default function UsersPage() {
         : [...prev, inst]
     );
   };
+
+  if (!isMounted || loading || !user) return null;
 
   const UserTable = ({ users }: { users: User[] }) => (
     <div className="overflow-hidden rounded-2xl border border-border">

@@ -37,11 +37,12 @@ const MOCK_STUDENTS = [
 ];
 
 export default function LibraryPage() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
   const { resources, libraryDescription, updateResource, updateLibraryDescription } = useResourceStore();
   const { toast } = useToast();
   
+  const [isMounted, setIsMounted] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [isInitialFilterSet, setIsInitialFilterSet] = useState(false);
@@ -49,6 +50,10 @@ export default function LibraryPage() {
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tempDescription, setTempDescription] = useState(libraryDescription);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
@@ -121,6 +126,8 @@ export default function LibraryPage() {
     });
     setIsEditingDescription(false);
   };
+
+  if (!isMounted || loading || !user) return null;
 
   return (
     <AppLayout>

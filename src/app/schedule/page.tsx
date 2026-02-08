@@ -89,7 +89,7 @@ const getTimePeriod = (timeStr: string) => {
 };
 
 export default function SchedulePage() {
-  const { user, allUsers } = useAuth();
+  const { user, allUsers, loading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   const [date, setDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
@@ -140,13 +140,13 @@ export default function SchedulePage() {
   
   const allDaySlots = availability.slots;
 
-  const now = new Date();
   const isPastSlot = (slotTime: string) => {
     const slotEndTimeStr = slotTime.split(' - ')[1];
     const [h, m] = slotEndTimeStr.split(':');
     const slotEndDate = new Date(date);
     slotEndDate.setHours(parseInt(h), parseInt(m), 0, 0);
-    return (currentTime || now) > slotEndDate;
+    const comparisonTime = currentTime || new Date();
+    return comparisonTime > slotEndDate;
   };
 
   const mySlots = useMemo(() => {
@@ -177,7 +177,6 @@ export default function SchedulePage() {
     });
   }, [allDaySlots, date, currentTime, todayTimestamp]);
 
-  // All bookings for admin view
   const allBookings = useMemo(() => {
     if (!isAdmin) return [];
     const list: any[] = [];
@@ -201,11 +200,11 @@ export default function SchedulePage() {
 
   const teacherPendingClasses = useMemo(() => 
     mySlots.filter(s => !isPastSlot(s.time)),
-  [mySlots]);
+  [mySlots, date, currentTime]);
 
   const teacherPastClasses = useMemo(() => 
     mySlots.filter(s => isPastSlot(s.time)),
-  [mySlots]);
+  [mySlots, date, currentTime]);
 
   const handleBook = () => {
     if (!selectedSlotId || !date || !user) return;
@@ -262,9 +261,10 @@ export default function SchedulePage() {
     });
   }, [date]);
 
+  if (!isMounted || loading || !user) return null;
+
   const SlotCard = ({ slot, isMine, isStaffView, customTeacherId }: { slot: any, isMine: boolean, isStaffView?: boolean, customTeacherId?: string }) => {
     const period = getTimePeriod(slot.time);
-    const PeriodIcon = period.icon;
     const displayTime = formatToAmPm(slot.time);
     const isCompleted = slot.status === 'completed';
     const isPast = isPastSlot(slot.time);
@@ -422,7 +422,7 @@ export default function SchedulePage() {
                 )}
                 <div className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all", 
-                  isCompleted ? "bg-emerald-100 text-emerald-700" : (isPast ? "bg-orange-100 text-orange-700" : (isPastSlot(slot.time) ? "bg-orange-100 text-orange-700" : "bg-accent/10 text-accent"))
+                  isCompleted ? "bg-emerald-100 text-emerald-700" : (isPast ? "bg-orange-100 text-orange-700" : "bg-accent/10 text-accent")
                 )}>
                   {isCompleted ? (
                     <>
@@ -432,7 +432,7 @@ export default function SchedulePage() {
                   ) : (
                     <>
                       <CheckCircle2 className="w-5 h-5" />
-                      {isPastSlot(slot.time) && (
+                      {isPast && (
                         <span className="text-[10px] font-black uppercase tracking-widest">Revisando</span>
                       )}
                     </>
@@ -573,7 +573,7 @@ export default function SchedulePage() {
                   )}
                 </div>
                 <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                   <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>
