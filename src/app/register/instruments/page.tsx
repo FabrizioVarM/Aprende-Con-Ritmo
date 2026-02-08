@@ -4,8 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Check, Music, Guitar, Mic, Drum, Keyboard, Info } from 'lucide-react';
+import { Check, Info } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -41,8 +40,10 @@ export default function InstrumentSelectionPage() {
 
   const handleFinish = () => {
     if (selected.length === 0) return;
+    // Guardamos los instrumentos en el perfil
     updateUser({ instruments: selected });
-    router.push('/dashboard');
+    // Redirigimos al apartado de teléfono (paso opcional)
+    router.push('/register/phone');
   };
 
   if (loading || !user) return null;
@@ -87,7 +88,9 @@ export default function InstrumentSelectionPage() {
                 )}>
                   {inst.icon}
                 </div>
-                <span className="font-black text-sm uppercase tracking-widest text-foreground group-data-[state=selected]:text-white">{inst.name}</span>
+                <span className="font-black text-sm uppercase tracking-widest group-data-[state=selected]:text-white">
+                  {inst.name}
+                </span>
                 
                 {isSelected && (
                   <div className="absolute -top-2 -right-2 bg-white text-accent p-1.5 rounded-full shadow-lg border-2 border-accent animate-in zoom-in">
