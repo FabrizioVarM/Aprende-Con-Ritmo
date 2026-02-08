@@ -49,7 +49,6 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Batería': '🥁',
   'Canto': '🎤',
   'Teoría': '📖',
-  'Teoría Musical': '📖',
   'Bajo': '🎸',
   'Música': '🎵'
 };
@@ -61,7 +60,6 @@ const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: str
   'Batería': { color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
   'Canto': { color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
   'Teoría': { color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
-  'Teoría Musical': { color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
   'Bajo': { color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
   'Default': { color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
 };
@@ -215,7 +213,7 @@ export default function StudentDashboard() {
   const topInstrument = useMemo(() => {
     if (!user) return 'Música';
     
-    const studentInstruments = [...(user.instruments || []), 'Teoría Musical'];
+    const studentInstruments = [...(user.instruments || []), 'Teoría'];
     const stats: Record<string, number> = {};
 
     studentInstruments.forEach(cat => {
@@ -225,8 +223,7 @@ export default function StudentDashboard() {
         if (comp.isCompleted && String(comp.studentId) === String(user.id)) {
           const resource = resources.find(r => r.id === comp.resourceId);
           if (resource) {
-            const isTarget = normalizeStr(resource.category) === normalizeStr(cat) || 
-                            (cat === 'Teoría Musical' && normalizeStr(resource.category) === 'teoria');
+            const isTarget = normalizeStr(resource.category) === normalizeStr(cat);
             if (isTarget) points += 150;
           }
         }

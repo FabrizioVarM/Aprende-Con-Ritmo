@@ -42,7 +42,7 @@ const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u03
 
 const getLevelInfo = (inst: string, points: number) => {
   const getBaseName = (p: number, i: string) => {
-    if (i === 'Teoría' || i === 'Teoría Musical') {
+    if (i === 'Teoría') {
       if (p >= 9000) return 'Sabio de la Composición';
       if (p >= 6200) return 'Virtuoso de la Estructura';
       if (p >= 4000) return 'Maestro del Solfeo';
@@ -101,11 +101,11 @@ export default function ProgressPage() {
   useEffect(() => {
     if (currentStudent) {
       if (currentStudent.instruments && currentStudent.instruments.length > 0) {
-        if (!selectedInstrument || (!currentStudent.instruments.includes(selectedInstrument) && selectedInstrument !== 'Teoría Musical')) {
+        if (!selectedInstrument || !currentStudent.instruments.includes(selectedInstrument)) {
           setSelectedInstrument(currentStudent.instruments[0]);
         }
       } else {
-        setSelectedInstrument('Teoría Musical');
+        setSelectedInstrument('Teoría');
       }
     }
   }, [currentStudent, selectedInstrument]);
@@ -114,9 +114,12 @@ export default function ProgressPage() {
     if (!currentStudent) return {};
     const stats: Record<string, { points: number; completedHours: number; levelName: string; levelNum: number }> = {};
     
-    const studentInstruments = [...(currentStudent.instruments || []), 'Teoría Musical'];
+    const studentInstruments = [...(currentStudent.instruments || []), 'Teoría'];
     
-    studentInstruments.forEach(cat => {
+    // De-duplicate instruments list
+    const uniqueInstruments = Array.from(new Set(studentInstruments));
+
+    uniqueInstruments.forEach(cat => {
       let points = 0;
       let completedHours = 0;
 
@@ -124,8 +127,7 @@ export default function ProgressPage() {
         if (comp.isCompleted && String(comp.studentId) === String(currentStudent.id)) {
           const resource = resources.find(r => r.id === comp.resourceId);
           if (resource) {
-            const isTarget = normalizeStr(resource.category) === normalizeStr(cat) || 
-                            (cat === 'Teoría Musical' && normalizeStr(resource.category) === 'teoria');
+            const isTarget = normalizeStr(resource.category) === normalizeStr(cat);
             if (isTarget) {
               points += 150;
             }
@@ -149,7 +151,7 @@ export default function ProgressPage() {
                   let matchesInstrument = normSlotInst === normCat;
                   
                   if (!matchesInstrument && (normSlotInst === 'musica' || normSlotInst === 'música')) {
-                    const primaryInst = currentStudent.instruments?.[0] || 'Teoría Musical';
+                    const primaryInst = currentStudent.instruments?.[0] || 'Teoría';
                     if (normalizeStr(primaryInst) === normCat) {
                       matchesInstrument = true;
                     }
@@ -167,8 +169,7 @@ export default function ProgressPage() {
         });
       }
 
-      const instKey = cat === 'Teoría Musical' ? 'Teoría' : cat;
-      const skillConfigs = DEFAULT_SKILLS_CONFIG[instKey] || [];
+      const skillConfigs = DEFAULT_SKILLS_CONFIG[cat] || [];
       skillConfigs.forEach(sc => {
         const level = getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel);
         points += (level * 10);
@@ -189,8 +190,7 @@ export default function ProgressPage() {
 
   const currentSkills = useMemo(() => {
     if (!currentStudent || !selectedInstrument) return [];
-    const instKey = selectedInstrument === 'Teoría Musical' ? 'Teoría' : selectedInstrument;
-    const configs = DEFAULT_SKILLS_CONFIG[instKey] || DEFAULT_SKILLS_CONFIG['Teoría'];
+    const configs = DEFAULT_SKILLS_CONFIG[selectedInstrument] || DEFAULT_SKILLS_CONFIG['Teoría'];
     return configs.map(sc => ({
       ...sc,
       level: getSkillLevel(currentStudent.id, selectedInstrument, sc.name, sc.defaultLevel)
@@ -275,10 +275,9 @@ export default function ProgressPage() {
                     <SelectValue placeholder="Instrumento" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
-                    {currentStudent?.instruments?.map(inst => (
+                    {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => (
                       <SelectItem key={inst} value={inst} className="font-bold py-3">{inst}</SelectItem>
                     ))}
-                    <SelectItem value="Teoría Musical" className="font-bold py-3">Teoría Musical</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
