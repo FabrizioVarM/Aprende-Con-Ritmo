@@ -1,3 +1,4 @@
+
 "use client"
 
 import React from 'react';
@@ -10,7 +11,6 @@ import {
   TrendingUp, 
   Users, 
   LogOut,
-  Music,
   Menu,
   User as UserIcon
 } from 'lucide-react';
@@ -26,6 +26,8 @@ import {
   SheetTitle,
   SheetDescription
 } from '@/components/ui/sheet';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface NavItem {
   label: string;
@@ -48,6 +50,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  const appLogo = PlaceHolderImages.find(img => img.id === 'app-logo');
+
   if (!user) {
     return <>{children}</>;
   }
@@ -57,8 +61,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white/50 backdrop-blur-sm border-r border-border p-6">
       <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="bg-accent p-2 rounded-xl text-white">
-          <Music className="w-6 h-6" />
+        <div className="relative w-10 h-10 overflow-hidden rounded-xl shadow-md border-2 border-accent">
+          {appLogo && (
+            <Image 
+              src={appLogo.imageUrl} 
+              alt="Logo" 
+              fill 
+              className="object-cover"
+              data-ai-hint={appLogo.imageHint}
+            />
+          )}
         </div>
         <span className="text-xl font-extrabold text-secondary-foreground font-headline tracking-tight">
           Aprende Con Ritmo
@@ -130,7 +142,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="flex-1 min-w-0">
         <header className="md:hidden flex items-center justify-between p-4 bg-white/80 border-b">
           <div className="flex items-center gap-2">
-            <Music className="w-6 h-6 text-accent" />
+            <div className="relative w-8 h-8 overflow-hidden rounded-lg border-2 border-accent">
+              {appLogo && (
+                <Image 
+                  src={appLogo.imageUrl} 
+                  alt="Logo" 
+                  fill 
+                  className="object-cover"
+                  data-ai-hint={appLogo.imageHint}
+                />
+              )}
+            </div>
             <span className="font-bold">Aprende Con Ritmo</span>
           </div>
           <Sheet>

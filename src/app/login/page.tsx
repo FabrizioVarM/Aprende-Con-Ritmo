@@ -8,15 +8,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
-import { Music, Mail, Lock } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const { login } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const appLogo = PlaceHolderImages.find(img => img.id === 'app-logo');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +40,16 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-primary/20 p-6">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
-          <div className="bg-accent p-3 rounded-2xl shadow-lg mb-4">
-            <Music className="w-8 h-8 text-white" />
+          <div className="relative w-16 h-16 bg-accent p-1 rounded-2xl shadow-lg mb-4 overflow-hidden border-2 border-white">
+            {appLogo && (
+              <Image 
+                src={appLogo.imageUrl} 
+                alt="Logo" 
+                fill 
+                className="object-cover"
+                data-ai-hint={appLogo.imageHint}
+              />
+            )}
           </div>
           <h2 className="text-3xl font-bold font-headline">Bienvenido de nuevo</h2>
           <p className="text-muted-foreground mt-2">Inicia sesión para continuar tu viaje musical</p>

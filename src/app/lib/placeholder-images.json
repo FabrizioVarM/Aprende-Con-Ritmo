@@ -2,6 +2,12 @@
 {
   "placeholderImages": [
     {
+      "id": "app-logo",
+      "description": "Logotipo oficial de Aprende Con Ritmo",
+      "imageUrl": "https://picsum.photos/seed/ritmologo/200/200",
+      "imageHint": "music logo"
+    },
+    {
       "id": "guitar-lesson",
       "description": "Partitura de guitarra y púa",
       "imageUrl": "https://picsum.photos/seed/guitar1/600/400",
