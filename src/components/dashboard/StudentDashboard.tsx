@@ -584,7 +584,7 @@ export default function StudentDashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className={cn("rounded-[2.5rem] border-none shadow-sm p-6", topInstConfig.bg.replace('/10', '/30'))}>
+        <Card className={cn("rounded-[2.5rem] border-2 shadow-sm p-6", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
           <CardHeader className="p-0 pb-4">
             <CardTitle className={cn("text-sm font-black uppercase tracking-widest flex items-center gap-2", topInstConfig.color)}>
               <Star className="w-5 h-5 fill-current" />
@@ -599,7 +599,7 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
         
-        <Card className="rounded-[2.5rem] border-none shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6">
+        <Card className="rounded-[2.5rem] border-2 border-emerald-200 dark:border-emerald-900/50 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6">
           <CardHeader className="p-0 pb-4">
             <CardTitle className={cn("text-sm font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2")}>
               <CalendarIcon className="w-5 h-5 text-accent" />
@@ -618,7 +618,7 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] border-none shadow-sm bg-orange-100/50 dark:bg-orange-950/20 p-6">
+        <Card className="rounded-[2.5rem] border-2 border-orange-200 dark:border-orange-900/50 shadow-sm bg-orange-100/50 dark:bg-orange-950/20 p-6">
           <CardHeader className="p-0 pb-4">
             <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2">
               <Clock className="w-5 h-5 text-accent" />
@@ -633,7 +633,7 @@ export default function StudentDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
+        <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
           <CardHeader className="border-b bg-primary/5 p-6">
             <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground">
               <CalendarIcon className="w-6 h-6 text-accent" />
@@ -689,7 +689,7 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
+        <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
           <CardHeader className="border-b bg-accent/5 p-6">
             <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground">
               <PlayCircle className="w-6 h-6 text-accent" />
