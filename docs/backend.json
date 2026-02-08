@@ -1,63 +1,66 @@
+
 {
   "entities": {
     "UserProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "UserProfile",
       "type": "object",
-      "description": "Represents a user profile in the system.",
+      "description": "Perfil de usuario en el sistema.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the UserProfile entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "Full name of the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "Email address of the user.",
-          "format": "email"
-        },
-        "role": {
-          "type": "string",
-          "description": "Role of the user (student, teacher, admin).",
-          "enum": ["student", "teacher", "admin"]
-        },
-        "username": {
-          "type": "string"
-        },
-        "phone": {
-          "type": "string"
-        },
-        "instruments": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "avatarSeed": {
-          "type": "string"
-        },
-        "photoUrl": {
-          "type": "string"
-        }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["student", "teacher", "admin"] },
+        "username": { "type": "string" },
+        "phone": { "type": "string" },
+        "instruments": { "type": "array", "items": { "type": "string" } },
+        "avatarSeed": { "type": "string" },
+        "photoUrl": { "type": "string" }
       },
       "required": ["id", "name", "email", "role"]
     },
-    "ClassSchedule": {
-      "title": "ClassSchedule",
+    "DayAvailability": {
+      "title": "DayAvailability",
       "type": "object",
+      "description": "Disponibilidad y reservas de un profesor por día.",
+      "properties": {
+        "teacherId": { "type": "string" },
+        "date": { "type": "string" },
+        "slots": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "ResourceCompletion": {
+      "title": "ResourceCompletion",
+      "type": "object",
+      "description": "Registro de materiales completados por alumnos.",
+      "properties": {
+        "resourceId": { "type": "number" },
+        "studentId": { "type": "string" },
+        "isCompleted": { "type": "boolean" },
+        "validatedBy": { "type": "string" },
+        "date": { "type": "string" }
+      }
+    },
+    "UserMilestone": {
+      "title": "UserMilestone",
+      "type": "object",
+      "description": "Hitos de carrera asignados a alumnos.",
       "properties": {
         "id": { "type": "string" },
-        "teacherId": { "type": "string" },
         "studentId": { "type": "string" },
-        "bookedBy": { "type": "string" },
-        "time": { "type": "string" },
+        "milestoneTitle": { "type": "string" },
+        "achieved": { "type": "boolean" },
+        "date": { "type": "string" }
+      }
+    },
+    "StudentSkill": {
+      "title": "StudentSkill",
+      "type": "object",
+      "description": "Nivel de habilidad técnica de un alumno.",
+      "properties": {
+        "studentId": { "type": "string" },
         "instrument": { "type": "string" },
-        "type": { "type": "string", "enum": ["virtual", "presencial"] },
-        "status": { "type": "string", "enum": ["pending", "completed"] },
-        "isGroup": { "type": "boolean" },
-        "students": { "type": "array", "items": { "type": "object" } },
-        "teachers": { "type": "array", "items": { "type": "object" } }
+        "skillName": { "type": "string" },
+        "level": { "type": "number" }
       }
     },
     "AppSetting": {
@@ -80,15 +83,39 @@
         "definition": {
           "entityName": "UserProfile",
           "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "User profiles and academic data."
+          "description": "Perfiles de alumnos, profesores y admins."
         }
       },
       {
-        "path": "/users/{teacherId}/schedules/{scheduleId}",
+        "path": "/availabilities/{availId}",
         "definition": {
-          "entityName": "ClassSchedule",
-          "schema": { "$ref": "#/backend/entities/ClassSchedule" },
-          "description": "Schedules for teachers."
+          "entityName": "DayAvailability",
+          "schema": { "$ref": "#/backend/entities/DayAvailability" },
+          "description": "Agenda de clases y disponibilidad docente."
+        }
+      },
+      {
+        "path": "/completions/{compId}",
+        "definition": {
+          "entityName": "ResourceCompletion",
+          "schema": { "$ref": "#/backend/entities/ResourceCompletion" },
+          "description": "Validación de materiales estudiados."
+        }
+      },
+      {
+        "path": "/milestones/{mileId}",
+        "definition": {
+          "entityName": "UserMilestone",
+          "schema": { "$ref": "#/backend/entities/UserMilestone" },
+          "description": "Logros históricos de los alumnos."
+        }
+      },
+      {
+        "path": "/skills/{skillId}",
+        "definition": {
+          "entityName": "StudentSkill",
+          "schema": { "$ref": "#/backend/entities/StudentSkill" },
+          "description": "Progreso técnico detallado por instrumento."
         }
       },
       {
@@ -96,7 +123,7 @@
         "definition": {
           "entityName": "AppSetting",
           "schema": { "$ref": "#/backend/entities/AppSetting" },
-          "description": "Global application settings."
+          "description": "Configuración global del sistema."
         }
       }
     ]

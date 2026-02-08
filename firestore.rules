@@ -2,60 +2,61 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Funciones de ayuda
     function isSignedIn() {
       return request.auth != null;
     }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getUserData().role == 'admin';
+    }
+
+    function isTeacher() {
+      return isSignedIn() && getUserData().role == 'teacher';
+    }
+
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    function isAdmin() {
-      return isSignedIn() && (
-        exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
-      );
-    }
-    function isTeacher() {
-      return isSignedIn() && (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher');
-    }
 
+    // Reglas por Colección
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow write: if isOwner(userId) || isAdmin();
+      allow write: if isAdmin() || isOwner(userId);
     }
     
-    match /resources/{id} {
+    match /availabilities/{availId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); // Permitir reservar a alumnos y gestionar a profesores
+    }
+    
+    match /completions/{compId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isTeacher(); // Solo staff valida materiales
+    }
+
+    match /milestones/{mileId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isTeacher(); // Solo staff asigna hitos
+    }
+
+    match /skills/{skillId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isTeacher(); // Solo staff evalúa habilidades
+    }
+    
+    match /resources/{resId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
     
-    match /settings/{id} {
+    match /settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();
-    }
-    
-    match /availabilities/{id} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
-    }
-
-    match /completions/{id} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn();
-    }
-
-    match /milestones/{id} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin() || isTeacher();
-    }
-
-    match /skills/{id} {
-      allow read: if isSignedIn();
-      allow write: if isAdmin() || isTeacher();
-    }
-    
-    match /roles_admin/{userId} {
-      allow read: if isSignedIn();
-      allow write: if false;
     }
   }
 }
