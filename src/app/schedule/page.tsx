@@ -6,7 +6,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, User as UserIcon, ShieldCheck, GraduationCap } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, Sunrise, Sun, Moon, Drum, Mic, BookOpen, Check, Info, User as UserIcon, ShieldCheck, GraduationCap, Users } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -34,6 +34,9 @@ import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -96,11 +99,18 @@ export default function SchedulePage() {
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
   
+  // Group class state
+  const [groupStudents, setGroupStudents] = useState<string[]>([]);
+  const [groupStartTime, setGroupStartTime] = useState("16:00");
+  const [groupInstrument, setGroupInstrument] = useState("Música");
+  const [groupType, setGroupType] = useState<'virtual' | 'presencial'>('presencial');
+
   const { toast } = useToast();
-  const { getDayAvailability, bookSlot, cancelBooking, availabilities, setSlotStatus } = useBookingStore();
+  const { getDayAvailability, bookSlot, cancelBooking, availabilities, setSlotStatus, createGroupClass } = useBookingStore();
 
   useEffect(() => {
     setIsMounted(true);
@@ -115,6 +125,8 @@ export default function SchedulePage() {
   const isTeacher = user?.role === 'teacher';
   const isAdmin = user?.role === 'admin';
   const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
+
+  const studentsList = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
 
   const currentTeacherProfile = useMemo(() => {
     return allUsers.find(u => u.id === (isTeacher ? user?.id : DEFAULT_TEACHER_ID));
@@ -153,7 +165,7 @@ export default function SchedulePage() {
     if (isTeacher) {
       return allDaySlots.filter(s => s.isBooked);
     }
-    return allDaySlots.filter(s => s.isBooked && (s.studentId === user?.id || s.bookedBy === user?.name));
+    return allDaySlots.filter(s => s.isBooked && (s.studentId === user?.id || s.bookedBy === user?.name || s.students?.some(st => st.id === user?.id)));
   }, [allDaySlots, user, isTeacher]);
 
   const otherAvailableSlots = useMemo(() => {
@@ -206,6 +218,28 @@ export default function SchedulePage() {
     mySlots.filter(s => isPastSlot(s.time)),
   [mySlots, date, currentTime]);
 
+  // Global view for other teachers
+  const academicGroupClasses = useMemo(() => {
+    if (!isTeacher) return [];
+    const list: any[] = [];
+    availabilities.forEach(day => {
+      if (day.date === dateStrKey) {
+        day.slots.forEach(slot => {
+          if (slot.isBooked && slot.isGroup && day.teacherId !== user?.id) {
+            const teacher = allUsers.find(u => u.id === day.teacherId);
+            list.push({
+              ...slot,
+              teacherId: day.teacherId,
+              teacherName: teacher?.name || 'Profesor',
+              date: day.date
+            });
+          }
+        });
+      }
+    });
+    return list;
+  }, [isTeacher, availabilities, dateStrKey, allUsers, user]);
+
   const handleBook = () => {
     if (!selectedSlotId || !date || !user) return;
     const instrument = bookingInstrument || user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
@@ -214,6 +248,31 @@ export default function SchedulePage() {
     setIsBookingOpen(false);
     setSelectedSlotId(null);
     setBookingInstrument('');
+  };
+
+  const handleCreateGroupClass = () => {
+    if (groupStudents.length === 0 || !user) return;
+    
+    const selectedStudents = studentsList
+      .filter(s => groupStudents.includes(s.id))
+      .map(s => ({ id: s.id, name: s.name }));
+
+    // Calculate end time (+90 mins)
+    const [h, m] = groupStartTime.split(':').map(Number);
+    const endMinutes = h * 60 + m + 90;
+    const endH = Math.floor(endMinutes / 60);
+    const endM = endMinutes % 60;
+    const timeRange = `${groupStartTime} - ${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
+
+    createGroupClass(user.id, date, timeRange, selectedStudents, groupInstrument, groupType);
+    
+    toast({ 
+      title: "Clase Grupal Agendada 🎓", 
+      description: `Se ha creado una sesión especial para ${selectedStudents.length} alumnos.` 
+    });
+    
+    setIsGroupDialogOpen(false);
+    setGroupStudents([]);
   };
 
   const handleCancel = (slotId: string, customTeacherId?: string) => {
@@ -291,22 +350,28 @@ export default function SchedulePage() {
             </div>
             
             <div className="min-w-0 space-y-0.5 sm:space-y-1">
-              {isAdmin && slot.isBooked ? (
+              {(isAdmin || isTeacher) && slot.isBooked ? (
                 <div className="space-y-2">
                    <div className="flex items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center text-xl rounded-xl border shadow-sm bg-primary/5">
-                      {emoji}
+                      {slot.isGroup ? '🎓' : emoji}
                     </div>
-                    <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Clase de {slot.instrument || 'Música'}</span>
+                    <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                      {slot.isGroup ? 'Clase Grupal Especial' : `Clase de ${slot.instrument || 'Música'}`}
+                    </span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="text-xl font-black text-accent flex items-center gap-2">
                       <UserIcon className="w-5 h-5" />
-                      Prof. {slot.teacherName}
+                      Prof. {slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
                     </div>
                     <div className="text-lg font-black text-secondary-foreground flex items-center gap-2">
                       <GraduationCap className="w-5 h-5" />
-                      Alumno: {slot.bookedBy}
+                      {slot.isGroup ? (
+                        <span className="truncate">Participantes: {slot.students?.map((s: any) => s.name).join(', ')}</span>
+                      ) : (
+                        <span>Alumno: {slot.bookedBy}</span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
@@ -335,9 +400,9 @@ export default function SchedulePage() {
                     {slot.isBooked ? (
                       <div className="flex items-center gap-2">
                         <div className="w-10 h-10 flex items-center justify-center text-2xl rounded-xl border shadow-sm bg-primary/5">
-                          {emoji}
+                          {slot.isGroup ? '🎓' : emoji}
                         </div>
-                        <span>Clase de {slot.instrument || 'Música'}</span>
+                        <span>{slot.isGroup ? 'Clase Grupal Especial' : `Clase de ${slot.instrument || 'Música'}`}</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-3 overflow-hidden">
@@ -367,7 +432,7 @@ export default function SchedulePage() {
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                     <span className="flex items-center gap-1 shrink-0 text-secondary-foreground">
                       <UserIcon className="w-3 h-3 text-accent" /> 
-                      {slot.isBooked ? (isAdmin ? `Prof. ${slot.teacherName} • ${slot.bookedBy}` : (isTeacher ? slot.bookedBy : (teacherProfile?.name || DEFAULT_TEACHER_NAME))) : (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
+                      {slot.isBooked ? (isAdmin ? `Prof. ${slot.teacherName} • ${slot.isGroup ? `${slot.students?.length} alumnos` : slot.bookedBy}` : (isTeacher ? (slot.isGroup ? `${slot.students?.length} alumnos` : slot.bookedBy) : (teacherProfile?.name || DEFAULT_TEACHER_NAME))) : (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
                     </span>
                     <span className={cn(
                         "flex items-center gap-1 shrink-0",
@@ -474,111 +539,203 @@ export default function SchedulePage() {
             </p>
           </div>
           
-          {!isTeacher && !isAdmin && (
-            <Dialog 
-              open={isBookingOpen} 
-              onOpenChange={(open) => {
-                setIsBookingOpen(open);
-                if (!open) {
-                  setSelectedSlotId(null);
-                  setBookingInstrument('');
-                }
-              }}
-            >
-              <DialogTrigger asChild>
-                <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
-                  <Plus className="w-5 h-5" /> Nueva Reserva Rápida
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="rounded-[2.5rem] max-w-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
-                  <DialogTitle className="text-2xl font-black text-secondary-foreground">Agendar Sesión 🎵</DialogTitle>
-                  <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
-                    {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white max-h-[60vh]">
-                  {otherAvailableSlots.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-4">
-                      {otherAvailableSlots.map((slot) => {
-                        const isSelected = selectedSlotId === slot.id;
-                        const period = getTimePeriod(slot.time);
-                        return (
-                          <div 
-                            key={slot.id} 
-                            className={cn(
-                              "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
-                              isSelected 
-                                ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
-                                : "bg-white border-primary/10 hover:border-accent/30"
-                            )}
-                            onClick={() => {
-                              setSelectedSlotId(slot.id);
-                              if (!bookingInstrument && teacherInstruments.length > 0) {
-                                setBookingInstrument(teacherInstruments[0]);
-                              }
-                            }}
-                          >
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-4">
-                                <div className={cn(
-                                  "p-2.5 rounded-2xl border shadow-inner",
-                                  isSelected ? "bg-accent text-white border-accent" : `${period.bg} ${period.border} ${period.color}`
-                                )}>
-                                  <period.icon className="w-5 h-5 shrink-0" />
-                                </div>
-                                <div className="flex flex-col items-start min-w-0">
-                                  <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-secondary-foreground")}>
-                                    {formatToAmPm(slot.time)}
-                                  </span>
-                                  <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
-                                    {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME} • {isSelected ? 'Configurando...' : 'Disponible'}
-                                  </span>
-                                </div>
+          <div className="flex gap-2">
+            {isTeacher && (
+              <Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-secondary text-secondary-foreground border-2 border-secondary-foreground/10 rounded-2xl gap-2 h-14 px-8 shadow-xl hover:scale-105 transition-all font-black">
+                    <Users className="w-5 h-5" /> Nueva Clase Grupal
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="rounded-[2.5rem] max-w-2xl border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                  <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+                    <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+                      <GraduationCap className="w-8 h-8 text-accent" />
+                      Clase Grupal Especial 🎓
+                    </DialogTitle>
+                    <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+                      Programar sesión de 90 minutos para múltiples alumnos.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">1. Alumnos Participantes</Label>
+                        <ScrollArea className="h-48 rounded-2xl border-2 p-4">
+                          <div className="space-y-3">
+                            {studentsList.map(student => (
+                              <div key={student.id} className="flex items-center space-x-3">
+                                <Checkbox 
+                                  id={`student-${student.id}`} 
+                                  checked={groupStudents.includes(student.id)}
+                                  onCheckedChange={(checked) => {
+                                    setGroupStudents(prev => 
+                                      checked ? [...prev, student.id] : prev.filter(id => id !== student.id)
+                                    )
+                                  }}
+                                />
+                                <label htmlFor={`student-${student.id}`} className="text-sm font-bold leading-none cursor-pointer">
+                                  {student.name}
+                                </label>
                               </div>
-                              {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
-                            </div>
-
-                            {isSelected && (
-                              <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                                  <Music className="w-3 h-3" /> ¿Qué instrumento tocarás?
-                                </Label>
-                                <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
-                                  <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-white font-black text-secondary-foreground focus:ring-accent">
-                                    <SelectValue placeholder="Seleccionar instrumento" />
-                                  </SelectTrigger>
-                                  <SelectContent className="rounded-2xl border-2">
-                                    {teacherInstruments.map(inst => (
-                                      <SelectItem key={inst} value={inst} className="font-bold py-3">
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
-                                          <span>{inst}</span>
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
+                            ))}
                           </div>
-                        );
-                      })}
+                        </ScrollArea>
+                      </div>
+                      
+                      <div className="space-y-6">
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">2. Configuración</Label>
+                          <div className="space-y-4">
+                            <div className="flex flex-col gap-1.5">
+                              <span className="text-xs font-bold">Hora de Inicio</span>
+                              <Input 
+                                type="time" 
+                                value={groupStartTime}
+                                onChange={(e) => setGroupStartTime(e.target.value)}
+                                className="h-12 rounded-xl border-2 font-black"
+                              />
+                              <span className="text-[9px] text-accent font-black uppercase">Duración: 90 minutos</span>
+                            </div>
+                            
+                            <div className="flex flex-col gap-1.5">
+                              <span className="text-xs font-bold">Categoría</span>
+                              <Select value={groupInstrument} onValueChange={setGroupInstrument}>
+                                <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                  {['Música', 'Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'].map(cat => (
+                                    <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10">
-                      <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
-                      <p className="text-sm font-bold text-muted-foreground">¡se llenaron todos los cupos!</p>
-                    </div>
-                  )}
-                </div>
-                <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
-                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
-                  <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+                  </div>
+                  <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
+                    <Button variant="outline" onClick={() => setIsGroupDialogOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                    <Button 
+                      onClick={handleCreateGroupClass} 
+                      disabled={groupStudents.length === 0} 
+                      className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20"
+                    >
+                      Confirmar Clase Grupal
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {!isTeacher && !isAdmin && (
+              <Dialog 
+                open={isBookingOpen} 
+                onOpenChange={(open) => {
+                  setIsBookingOpen(open);
+                  if (!open) {
+                    setSelectedSlotId(null);
+                    setBookingInstrument('');
+                  }
+                }}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
+                    <Plus className="w-5 h-5" /> Nueva Reserva Rápida
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="rounded-[2.5rem] max-w-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                  <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+                    <DialogTitle className="text-2xl font-black text-secondary-foreground">Agendar Sesión 🎵</DialogTitle>
+                    <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+                      {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white max-h-[60vh]">
+                    {otherAvailableSlots.length > 0 ? (
+                      <div className="grid grid-cols-1 gap-4">
+                        {otherAvailableSlots.map((slot) => {
+                          const isSelected = selectedSlotId === slot.id;
+                          const period = getTimePeriod(slot.time);
+                          return (
+                            <div 
+                              key={slot.id} 
+                              className={cn(
+                                "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
+                                isSelected 
+                                  ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
+                                  : "bg-white border-primary/10 hover:border-accent/30"
+                              )}
+                              onClick={() => {
+                                setSelectedSlotId(slot.id);
+                                if (!bookingInstrument && teacherInstruments.length > 0) {
+                                  setBookingInstrument(teacherInstruments[0]);
+                                }
+                              }}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-4">
+                                  <div className={cn(
+                                    "p-2.5 rounded-2xl border shadow-inner",
+                                    isSelected ? "bg-accent text-white border-accent" : `${period.bg} ${period.border} ${period.color}`
+                                  )}>
+                                    <period.icon className="w-5 h-5 shrink-0" />
+                                  </div>
+                                  <div className="flex flex-col items-start min-w-0">
+                                    <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-secondary-foreground")}>
+                                      {formatToAmPm(slot.time)}
+                                    </span>
+                                    <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
+                                      {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME} • {isSelected ? 'Configurando...' : 'Disponible'}
+                                    </span>
+                                  </div>
+                                </div>
+                                {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
+                              </div>
+
+                              {isSelected && (
+                                <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                                    <Music className="w-3 h-3" /> ¿Qué instrumento tocarás?
+                                  </Label>
+                                  <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
+                                    <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-white font-black text-secondary-foreground focus:ring-accent">
+                                      <SelectValue placeholder="Seleccionar instrumento" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-2xl border-2">
+                                      {teacherInstruments.map(inst => (
+                                        <SelectItem key={inst} value={inst} className="font-bold py-3">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
+                                            <span>{inst}</span>
+                                          </div>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10">
+                        <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
+                        <p className="text-sm font-bold text-muted-foreground">¡se llenaron todos los cupos!</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
+                    <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                    <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -666,6 +823,26 @@ export default function SchedulePage() {
                       )}
                     </div>
                   </section>
+
+                  {academicGroupClasses.length > 0 && (
+                    <section className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Users className="w-6 h-6 text-secondary-foreground" />
+                        <h2 className="text-xl font-black text-secondary-foreground">Otras Clases Grupales de la Academia 🌍</h2>
+                      </div>
+                      <div className="grid grid-cols-1 gap-4">
+                        {academicGroupClasses.map((slot) => (
+                          <SlotCard 
+                            key={`${slot.teacherId}-${slot.id}`} 
+                            slot={slot} 
+                            isMine={false} 
+                            isStaffView={true} 
+                            customTeacherId={slot.teacherId} 
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  )}
 
                   <section className="space-y-4">
                     <div className="flex items-center gap-2">

@@ -23,7 +23,8 @@ import {
   Guitar,
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
-  Check
+  Check,
+  Users
 } from 'lucide-react';
 import {
   Dialog,
@@ -167,7 +168,13 @@ export default function StudentDashboard() {
     const lessons: any[] = [];
     availabilities.forEach(dayAvail => {
       dayAvail.slots.forEach(slot => {
-        if (slot.isBooked && (slot.studentId === user.id || slot.bookedBy === user.name)) {
+        const isParticipant = slot.isBooked && (
+          slot.studentId === user.id || 
+          slot.bookedBy === user.name || 
+          slot.students?.some(st => st.id === user.id)
+        );
+
+        if (isParticipant) {
           const teacher = teachers.find(t => t.id === dayAvail.teacherId);
           const lessonDate = dayAvail.date;
           
@@ -196,6 +203,7 @@ export default function StudentDashboard() {
               teacherName: teacher?.name || 'Profesor',
               instrument: slot.instrument || (teacher?.instruments?.includes(selectedInstrument) ? selectedInstrument : (teacher?.instruments?.[0] || 'Música')),
               type: slot.type,
+              isGroup: slot.isGroup,
               sortDate: new Date(`${lessonDate}T${startTime}:00`)
             });
           }
@@ -231,7 +239,11 @@ export default function StudentDashboard() {
 
       availabilities.forEach(day => {
         day.slots.forEach(slot => {
-          if (slot.isBooked && slot.status === 'completed' && String(slot.studentId) === String(user.id)) {
+          const isMyCompletedSlot = slot.isBooked && 
+            slot.status === 'completed' && 
+            (String(slot.studentId) === String(user.id) || slot.students?.some(st => String(st.id) === String(user.id)));
+
+          if (isMyCompletedSlot) {
             const slotInst = slot.instrument || 'Música';
             if (normalizeStr(slotInst) === normalizeStr(cat)) {
               points += Math.round(calculateDuration(slot.time) * 20);
@@ -582,11 +594,11 @@ export default function StudentDashboard() {
                   <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0">
                     <div className="flex gap-3 sm:gap-4 items-center min-w-0">
                       <div className={cn("w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-3xl sm:text-4xl rounded-3xl shadow-md border shrink-0", config.bg, config.border)}>
-                        {emoji}
+                        {lesson.isGroup ? '🎓' : emoji}
                       </div>
                       <div className="min-w-0">
                         <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate flex items-center gap-2">
-                          <span>Lección de {lesson.instrument}</span>
+                          <span>{lesson.isGroup ? 'Clase Grupal Especial' : `Lección de ${lesson.instrument}`}</span>
                         </div>
                         <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
                           {new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}

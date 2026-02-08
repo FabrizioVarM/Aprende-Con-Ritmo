@@ -13,6 +13,8 @@ export interface TimeSlot {
   instrument?: string;
   type: 'virtual' | 'presencial';
   status?: 'pending' | 'completed';
+  isGroup?: boolean;
+  students?: { id: string, name: string }[];
 }
 
 export interface DayAvailability {
@@ -141,6 +143,36 @@ export function useBookingStore() {
     saveToStorage(updated);
   }, [availabilities, saveToStorage]);
 
+  const createGroupClass = useCallback((teacherId: string, date: Date, time: string, studentList: {id: string, name: string}[], instrument: string, type: 'virtual' | 'presencial') => {
+    const dateStr = toLocalDateString(date);
+    const existing = availabilities.find(a => a.teacherId === teacherId && a.date === dateStr);
+    
+    const newSlot: TimeSlot = {
+      id: 'group-' + Math.random().toString(36).substring(2, 9),
+      time,
+      isAvailable: false,
+      isBooked: true,
+      isGroup: true,
+      students: studentList,
+      instrument,
+      type,
+      status: 'pending'
+    };
+
+    let updated: DayAvailability[];
+    if (existing) {
+      updated = availabilities.map(a => {
+        if (a.teacherId === teacherId && a.date === dateStr) {
+          return { ...a, slots: [...a.slots, newSlot] };
+        }
+        return a;
+      });
+    } else {
+      updated = [...availabilities, { teacherId, date: dateStr, slots: [newSlot] }];
+    }
+    saveToStorage(updated);
+  }, [availabilities, saveToStorage]);
+
   const cancelBooking = useCallback((teacherId: string, date: Date, slotId: string) => {
     const dateStr = toLocalDateString(date);
     const updated = availabilities.map(a => {
@@ -149,9 +181,9 @@ export function useBookingStore() {
           ...a,
           slots: a.slots.map(s => 
             s.id === slotId 
-              ? { ...s, isBooked: false, bookedBy: undefined, studentId: undefined, isAvailable: true, instrument: undefined, status: 'pending' } 
+              ? { ...s, isBooked: false, bookedBy: undefined, studentId: undefined, isAvailable: true, instrument: undefined, status: 'pending', students: undefined, isGroup: false } 
               : s
-          )
+          ).filter(s => !s.id.startsWith('group-') || (s.isBooked)) // Eliminar slots de grupo si se cancelan (opcional)
         };
       }
       return a;
@@ -172,5 +204,5 @@ export function useBookingStore() {
     saveToStorage(updated);
   }, [availabilities, saveToStorage]);
 
-  return { availabilities, getDayAvailability, updateAvailability, bookSlot, cancelBooking, setSlotStatus };
+  return { availabilities, getDayAvailability, updateAvailability, bookSlot, createGroupClass, cancelBooking, setSlotStatus };
 }
