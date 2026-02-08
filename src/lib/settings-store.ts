@@ -6,11 +6,13 @@ import { useState, useEffect, useCallback } from 'react';
 export interface AppSettings {
   appLogoUrl: string;
   darkMode: boolean;
+  whatsappNumber: string;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   appLogoUrl: 'https://picsum.photos/seed/ritmologo/200/200',
-  darkMode: false
+  darkMode: false,
+  whatsappNumber: '51999999999'
 };
 
 export function useSettingsStore() {

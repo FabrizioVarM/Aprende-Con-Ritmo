@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { useSettingsStore } from '@/lib/settings-store';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
-import { Image as ImageIcon, Upload, RefreshCw, Save, ShieldCheck, Moon, Sun } from 'lucide-react';
+import { Image as ImageIcon, Upload, RefreshCw, Save, ShieldCheck, Moon, Sun, MessageCircle, Phone } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -24,6 +24,7 @@ export default function SettingsPage() {
   
   const [logoUrl, setLogoUrl] = useState(settings.appLogoUrl);
   const [darkMode, setDarkMode] = useState(settings.darkMode);
+  const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -39,12 +40,14 @@ export default function SettingsPage() {
   useEffect(() => {
     setLogoUrl(settings.appLogoUrl);
     setDarkMode(settings.darkMode);
+    setWhatsappNumber(settings.whatsappNumber);
   }, [settings]);
 
   const handleSave = () => {
     updateSettings({ 
       appLogoUrl: logoUrl,
-      darkMode: darkMode
+      darkMode: darkMode,
+      whatsappNumber: whatsappNumber
     });
     toast({
       title: "Configuración Guardada ✨",
@@ -165,6 +168,30 @@ export default function SettingsPage() {
           <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
+                <MessageCircle className="w-8 h-8 text-accent" />
+                Canales de Comunicación
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <div className="space-y-3">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Número de WhatsApp Institucional</Label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-accent" />
+                  <Input 
+                    value={whatsappNumber} 
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                    className="h-14 pl-12 rounded-2xl border-2 font-bold focus:border-accent text-foreground bg-card"
+                    placeholder="Ej: 51999999999"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground font-medium italic">Incluya el código de país sin el signo "+". Este número se usará para el botón de ayuda en todo el sistema.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-card overflow-hidden">
+            <CardHeader className="bg-primary/5 p-8 border-b">
+              <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
                 <Moon className="w-8 h-8 text-accent" />
                 Preferencia de Apariencia
               </CardTitle>
@@ -206,7 +233,7 @@ export default function SettingsPage() {
           <div>
             <h4 className="font-black text-orange-900 dark:text-orange-400">Nota Institucional</h4>
             <p className="text-sm text-orange-800 dark:text-orange-300/80 font-medium mt-1">
-              Los cambios en el logotipo y el modo de apariencia se aplicarán inmediatamente para todos los usuarios que naveguen en esta instancia de la plataforma.
+              Los cambios en el logotipo, número de WhatsApp y el modo de apariencia se aplicarán inmediatamente para todos los usuarios que naveguen en esta instancia de la plataforma.
             </p>
           </div>
         </div>
