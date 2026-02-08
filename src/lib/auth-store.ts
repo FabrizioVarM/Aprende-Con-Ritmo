@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -15,6 +16,7 @@ import { doc, getDoc, setDoc, updateDoc, collection, getDocs, deleteDoc } from '
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { toast } from '@/hooks/use-toast';
 
 export type UserRole = 'student' | 'teacher' | 'admin';
 
@@ -45,7 +47,7 @@ export function useAuth() {
         return docSnap.data() as User;
       }
     } catch (e) {
-      // Silently fail or handle permission error via emitter if necessary
+      // Manejado por el listener global si es error de permisos
     }
     return null;
   }, [db]);
@@ -82,12 +84,28 @@ export function useAuth() {
     return () => unsubscribe();
   }, [auth, fetchProfile, fetchAllUsers]);
 
+  const handleAuthError = (e: any) => {
+    if (e.code === 'auth/operation-not-allowed') {
+      toast({
+        variant: "destructive",
+        title: "Configuración requerida ⚙️",
+        description: "El método de inicio de sesión no está habilitado en la consola de Firebase.",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error de autenticación",
+        description: e.message || "No se pudo completar la operación.",
+      });
+    }
+  };
+
   const login = async (email: string, password?: string): Promise<boolean> => {
     try {
       await signInWithEmailAndPassword(auth, email, password || 'password123');
       return true;
-    } catch (e) {
-      console.error("Login error", e);
+    } catch (e: any) {
+      handleAuthError(e);
       return false;
     }
   };
@@ -125,8 +143,8 @@ export function useAuth() {
       }
       
       return true;
-    } catch (e) {
-      console.error("Google login error", e);
+    } catch (e: any) {
+      handleAuthError(e);
       return false;
     }
   };
@@ -157,8 +175,8 @@ export function useAuth() {
       
       setUser(newUser);
       return newUser;
-    } catch (e) {
-      console.error("Register error", e);
+    } catch (e: any) {
+      handleAuthError(e);
       return null;
     }
   };

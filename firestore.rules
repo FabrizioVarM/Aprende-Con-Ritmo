@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -20,19 +21,6 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn();
       allow write: if isOwner(userId) || isAdmin();
-      
-      match /schedules/{id} {
-        allow read, write: if isSignedIn();
-      }
-      match /completions/{id} {
-        allow read, write: if isSignedIn();
-      }
-      match /milestones/{id} {
-        allow read, write: if isSignedIn();
-      }
-      match /skills/{id} {
-        allow read, write: if isSignedIn();
-      }
     }
     
     match /resources/{id} {
@@ -45,11 +33,6 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    match /roles_admin/{userId} {
-      allow read: if isSignedIn();
-      allow write: if false;
-    }
-
     match /availabilities/{id} {
       allow read: if isSignedIn();
       allow write: if isSignedIn();
@@ -57,7 +40,7 @@ service cloud.firestore {
 
     match /completions/{id} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isTeacher();
+      allow write: if isSignedIn();
     }
 
     match /milestones/{id} {
@@ -68,6 +51,11 @@ service cloud.firestore {
     match /skills/{id} {
       allow read: if isSignedIn();
       allow write: if isAdmin() || isTeacher();
+    }
+    
+    match /roles_admin/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false;
     }
   }
 }
