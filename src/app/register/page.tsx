@@ -5,11 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
-import { Mail, Lock, User, UserPlus } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { useSettingsStore } from '@/lib/settings-store';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { settings } = useSettingsStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,8 +23,14 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-primary/20 p-6">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
-          <div className="bg-accent p-3 rounded-2xl shadow-lg mb-4">
-            <UserPlus className="w-8 h-8 text-white" />
+          <div className="relative w-16 h-16 bg-white p-1 rounded-2xl shadow-lg mb-4 overflow-hidden border-2 border-accent">
+            <Image 
+              src={settings.appLogoUrl} 
+              alt="Logo" 
+              fill 
+              className="object-cover"
+              data-ai-hint="academy logo"
+            />
           </div>
           <h2 className="text-3xl font-bold font-headline text-foreground">Únete y Aprende Con Ritmo!</h2>
           <p className="text-muted-foreground mt-2">Tu aventura musical comienza aquí</p>
