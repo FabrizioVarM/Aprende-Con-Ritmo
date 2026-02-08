@@ -155,6 +155,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <Check className="w-4 h-4" />
                   </div>
                   <div>
+                    <h4 className="font-black text-foreground leading-tight">Consultas sobre Profesores</h4>
+                    <p className="text-xs text-muted-foreground font-bold italic">Preguntas sobre perfiles docentes, especialidades o asignaciones.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0 text-emerald-600">
+                    <Check className="w-4 h-4" />
+                  </div>
+                  <div>
                     <h4 className="font-black text-foreground leading-tight">Contenido y Materiales</h4>
                     <p className="text-xs text-muted-foreground font-bold italic">Ayuda con el acceso a la biblioteca o partituras.</p>
                   </div>
