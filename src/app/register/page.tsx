@@ -34,12 +34,12 @@ export default function RegisterPage() {
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
 
   useEffect(() => {
-    // Generar notas con propiedades aleatorias para el fondo
+    // Generar notas con delay negativo para inicio inmediato
     const generatedNotes = Array.from({ length: 15 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 5}s`,
+      delay: `-${Math.random() * 10}s`,
       duration: `${6 + Math.random() * 8}s`,
       size: 24 + Math.random() * 30,
       iconIndex: Math.floor(Math.random() * 4)
