@@ -30,8 +30,6 @@ export default function Home() {
       router.push('/dashboard');
     }
 
-    // Generar notas con propiedades aleatorias solo en el cliente
-    // Se usa un delay negativo para que la animación empiece "ya iniciada"
     const generatedNotes = Array.from({ length: 18 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -53,7 +51,6 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary via-background to-background relative overflow-hidden">
       
-      {/* Fondo decorativo de notas musicales - Opacidad 30% */}
       <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
         {notes.map((note) => {
           const Icon = icons[note.iconIndex];
@@ -83,6 +80,7 @@ export default function Home() {
               fill 
               className="object-cover"
               data-ai-hint="academy logo"
+              priority // Carga prioritaria para que el cambio sea instantáneo
             />
           </div>
         </div>

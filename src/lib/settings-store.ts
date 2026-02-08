@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -18,20 +19,48 @@ const DEFAULT_SETTINGS: AppSettings = {
   whatsappNumber: '51999999999'
 };
 
+/**
+ * useSettingsStore gestiona la configuración global con persistencia local
+ * para asegurar que el logo y preferencias carguen de forma instantánea.
+ */
 export function useSettingsStore() {
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  // Inicialización síncrona con caché local para evitar parpadeos (flicker)
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('ritmo_app_settings_v1');
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {
+          return DEFAULT_SETTINGS;
+        }
+      }
+    }
+    return DEFAULT_SETTINGS;
+  });
+  
   const [loading, setLoading] = useState(true);
   const db = useFirestore();
 
   useEffect(() => {
     const docRef = doc(db, 'settings', 'global');
+    
+    // Escucha en tiempo real de la configuración global
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        setSettings({ ...DEFAULT_SETTINGS, ...docSnap.data() });
+        const data = docSnap.data() as AppSettings;
+        const updatedSettings = { ...DEFAULT_SETTINGS, ...data };
+        
+        setSettings(updatedSettings);
+        
+        // Actualizar caché para la próxima visita
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('ritmo_app_settings_v1', JSON.stringify(updatedSettings));
+        }
       }
       setLoading(false);
     }, (error) => {
-      // Error handling intentionally silent for global settings reading
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -39,6 +68,14 @@ export function useSettingsStore() {
 
   const updateSettings = useCallback((newSettings: Partial<AppSettings>) => {
     const docRef = doc(db, 'settings', 'global');
+    
+    // Actualización optimista del estado local y caché
+    const nextSettings = { ...settings, ...newSettings };
+    setSettings(nextSettings);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ritmo_app_settings_v1', JSON.stringify(nextSettings));
+    }
+
     setDoc(docRef, newSettings, { merge: true }).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
@@ -46,7 +83,7 @@ export function useSettingsStore() {
         requestResourceData: newSettings
       }));
     });
-  }, [db]);
+  }, [db, settings]);
 
   return { settings, updateSettings, loading };
 }
