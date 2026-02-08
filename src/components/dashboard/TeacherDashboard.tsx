@@ -426,7 +426,7 @@ export default function TeacherDashboard() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="rounded-2xl border-2 border-blue-200 dark:border-blue-900/50 shadow-sm bg-blue-50/50 dark:bg-blue-950/20 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">Alumnos Activos</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">Mis Alumnos Activos</p>
           <div className="text-3xl font-black text-blue-900 dark:text-blue-100 mt-1">{trackedStudents.length}</div>
         </Card>
         <Card className="rounded-2xl border-2 border-green-200 dark:border-green-900/50 shadow-sm bg-green-50/50 dark:bg-green-950/20 p-4">
