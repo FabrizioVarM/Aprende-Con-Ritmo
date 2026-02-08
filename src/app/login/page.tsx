@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-store';
+import { useSettingsStore } from '@/lib/settings-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,14 +13,13 @@ import { Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const { login } = useAuth();
+  const { settings } = useSettingsStore();
   const router = useRouter();
   const { toast } = useToast();
-  const appLogo = PlaceHolderImages.find(img => img.id === 'app-logo');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,16 +40,14 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-primary/20 p-6">
       <div className="w-full max-w-md space-y-8">
         <div className="flex flex-col items-center text-center">
-          <div className="relative w-16 h-16 bg-accent p-1 rounded-2xl shadow-lg mb-4 overflow-hidden border-2 border-white">
-            {appLogo && (
-              <Image 
-                src={appLogo.imageUrl} 
-                alt="Logo" 
-                fill 
-                className="object-cover"
-                data-ai-hint={appLogo.imageHint}
-              />
-            )}
+          <div className="relative w-16 h-16 bg-white p-1 rounded-2xl shadow-lg mb-4 overflow-hidden border-2 border-accent">
+            <Image 
+              src={settings.appLogoUrl} 
+              alt="Logo" 
+              fill 
+              className="object-cover"
+              data-ai-hint="academy logo"
+            />
           </div>
           <h2 className="text-3xl font-bold font-headline">Bienvenido de nuevo</h2>
           <p className="text-muted-foreground mt-2">Inicia sesión para continuar tu viaje musical</p>

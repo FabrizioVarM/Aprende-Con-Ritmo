@@ -12,9 +12,11 @@ import {
   Users, 
   LogOut,
   Menu,
-  User as UserIcon
+  User as UserIcon,
+  Settings
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
+import { useSettingsStore } from '@/lib/settings-store';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -27,7 +29,6 @@ import {
   SheetDescription
 } from '@/components/ui/sheet';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface NavItem {
   label: string;
@@ -40,17 +41,17 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'teacher', 'admin'] },
   { label: 'Horario', href: '/schedule', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
   { label: 'Biblioteca', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
-  { label: 'Progreso', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher'] },
+  { label: 'Progreso', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher', 'admin'] },
   { label: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
+  { label: 'Configuración', href: '/settings', icon: Settings, roles: ['admin'] },
   { label: 'Mi Perfil', href: '/profile', icon: UserIcon, roles: ['student', 'teacher', 'admin'] },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const { settings } = useSettingsStore();
   const pathname = usePathname();
   const router = useRouter();
-
-  const appLogo = PlaceHolderImages.find(img => img.id === 'app-logo');
 
   if (!user) {
     return <>{children}</>;
@@ -61,18 +62,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white/50 backdrop-blur-sm border-r border-border p-6">
       <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="relative w-10 h-10 overflow-hidden rounded-xl shadow-md border-2 border-accent">
-          {appLogo && (
-            <Image 
-              src={appLogo.imageUrl} 
-              alt="Logo" 
-              fill 
-              className="object-cover"
-              data-ai-hint={appLogo.imageHint}
-            />
-          )}
+        <div className="relative w-10 h-10 overflow-hidden rounded-xl shadow-md border-2 border-accent shrink-0">
+          <Image 
+            src={settings.appLogoUrl} 
+            alt="Logo" 
+            fill 
+            className="object-cover"
+            data-ai-hint="academy logo"
+          />
         </div>
-        <span className="text-xl font-extrabold text-secondary-foreground font-headline tracking-tight">
+        <span className="text-xl font-extrabold text-secondary-foreground font-headline tracking-tight truncate">
           Aprende Con Ritmo
         </span>
       </div>
@@ -101,7 +100,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       <div className="mt-auto pt-6 border-t border-border">
         <Link href="/profile" className="flex items-center gap-3 px-4 py-4 mb-4 hover:bg-primary/10 rounded-2xl transition-all">
-          <Avatar className="w-10 h-10 border-2 border-primary">
+          <Avatar className="w-10 h-10 border-2 border-primary shrink-0">
             {user.photoUrl ? (
               <AvatarImage src={user.photoUrl} className="object-cover" />
             ) : (
@@ -109,9 +108,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
             <AvatarFallback className="bg-primary">{user.name[0]}</AvatarFallback>
           </Avatar>
-          <div className="flex flex-col overflow-hidden">
+          <div className="flex flex-col overflow-hidden min-w-0">
             <span className="text-sm font-bold truncate">{user.name}</span>
-            <span className="text-xs text-muted-foreground capitalize">
+            <span className="text-xs text-muted-foreground capitalize truncate">
               {user.role === 'student' ? 'Estudiante' : user.role === 'teacher' ? 'Profesor' : 'Administrador'}
             </span>
           </div>
@@ -143,15 +142,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <header className="md:hidden flex items-center justify-between p-4 bg-white/80 border-b">
           <div className="flex items-center gap-2">
             <div className="relative w-8 h-8 overflow-hidden rounded-lg border-2 border-accent">
-              {appLogo && (
-                <Image 
-                  src={appLogo.imageUrl} 
-                  alt="Logo" 
-                  fill 
-                  className="object-cover"
-                  data-ai-hint={appLogo.imageHint}
-                />
-              )}
+              <Image 
+                src={settings.appLogoUrl} 
+                alt="Logo" 
+                fill 
+                className="object-cover"
+                data-ai-hint="academy logo"
+              />
             </div>
             <span className="font-bold">Aprende Con Ritmo</span>
           </div>

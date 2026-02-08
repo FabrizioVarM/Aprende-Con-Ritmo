@@ -3,16 +3,16 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-store';
+import { useSettingsStore } from '@/lib/settings-store';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
   const { user } = useAuth();
+  const { settings } = useSettingsStore();
   const router = useRouter();
-  const appLogo = PlaceHolderImages.find(img => img.id === 'app-logo');
 
   useEffect(() => {
     if (user) {
@@ -28,16 +28,14 @@ export default function Home() {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary via-background to-background">
       <div className="max-w-3xl text-center space-y-8">
         <div className="flex justify-center">
-          <div className="relative w-24 h-24 p-1 bg-accent rounded-[2rem] shadow-2xl shadow-accent/20 animate-bounce overflow-hidden border-4 border-white">
-            {appLogo && (
-              <Image 
-                src={appLogo.imageUrl} 
-                alt="Logo" 
-                fill 
-                className="object-cover"
-                data-ai-hint={appLogo.imageHint}
-              />
-            )}
+          <div className="relative w-24 h-24 p-1 bg-white rounded-[2rem] shadow-2xl shadow-accent/20 animate-bounce overflow-hidden border-4 border-accent">
+            <Image 
+              src={settings.appLogoUrl} 
+              alt="Logo" 
+              fill 
+              className="object-cover"
+              data-ai-hint="academy logo"
+            />
           </div>
         </div>
         
