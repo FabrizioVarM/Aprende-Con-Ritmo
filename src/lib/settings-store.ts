@@ -20,32 +20,31 @@ const DEFAULT_SETTINGS: AppSettings = {
 };
 
 /**
- * useSettingsStore gestiona la configuración global con persistencia local
- * para asegurar que el logo y preferencias carguen de forma instantánea.
+ * useSettingsStore gestiona la configuración global con persistencia local.
+ * Se ha corregido para evitar errores de hidratación en Next.js.
  */
 export function useSettingsStore() {
-  // Inicialización síncrona con caché local para evitar parpadeos (flicker)
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem('ritmo_app_settings_v1');
-      if (cached) {
-        try {
-          return JSON.parse(cached);
-        } catch (e) {
-          return DEFAULT_SETTINGS;
-        }
-      }
-    }
-    return DEFAULT_SETTINGS;
-  });
-  
+  // Inicializamos siempre con los valores por defecto para que coincida el renderizado
+  // del servidor con el primer renderizado del cliente, evitando el error de hidratación.
+  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const db = useFirestore();
 
   useEffect(() => {
+    // Una vez montado el componente en el cliente (hydration completa), cargamos la caché local
+    const cached = localStorage.getItem('ritmo_app_settings_v1');
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        setSettings(prev => ({ ...prev, ...parsed }));
+      } catch (e) {
+        console.error("Error cargando ajustes cacheados:", e);
+      }
+    }
+
     const docRef = doc(db, 'settings', 'global');
     
-    // Escucha en tiempo real de la configuración global
+    // Escucha en tiempo real de la configuración global desde Firestore
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as AppSettings;
@@ -54,9 +53,7 @@ export function useSettingsStore() {
         setSettings(updatedSettings);
         
         // Actualizar caché para la próxima visita
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('ritmo_app_settings_v1', JSON.stringify(updatedSettings));
-        }
+        localStorage.setItem('ritmo_app_settings_v1', JSON.stringify(updatedSettings));
       }
       setLoading(false);
     }, (error) => {
@@ -70,11 +67,11 @@ export function useSettingsStore() {
     const docRef = doc(db, 'settings', 'global');
     
     // Actualización optimista del estado local y caché
-    const nextSettings = { ...settings, ...newSettings };
-    setSettings(nextSettings);
-    if (typeof window !== 'undefined') {
+    setSettings(prev => {
+      const nextSettings = { ...prev, ...newSettings };
       localStorage.setItem('ritmo_app_settings_v1', JSON.stringify(nextSettings));
-    }
+      return nextSettings;
+    });
 
     setDoc(docRef, newSettings, { merge: true }).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -83,7 +80,7 @@ export function useSettingsStore() {
         requestResourceData: newSettings
       }));
     });
-  }, [db, settings]);
+  }, [db]);
 
   return { settings, updateSettings, loading };
 }
