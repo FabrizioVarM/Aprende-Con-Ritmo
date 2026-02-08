@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -859,10 +858,12 @@ export default function SchedulePage() {
               <CardHeader className="bg-primary/5 p-6 border-b space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
+                    
                     <p className="text-[9px] font-black uppercase tracking-widest text-accent flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                       Paso 1
                     </p>
+                    
                     <CardTitle className="text-base font-black text-foreground">Elige la semana</CardTitle>
                   </div>
                   <div className="flex items-center bg-card rounded-2xl border-2 border-primary/10 p-1 shadow-sm">
@@ -896,7 +897,9 @@ export default function SchedulePage() {
                 <Collapsible open={isDaySelectorOpen} onOpenChange={setIsDaySelectorOpen} className="space-y-3">
                   <div className="flex items-center justify-between px-2">
                     <div className="space-y-0.5">
+                      
                       <p className="text-[9px] font-black uppercase tracking-widest text-accent">Paso 2</p>
+                      
                       <p className="text-sm font-black text-foreground">Elige el día</p>
                     </div>
                     <div className="flex items-center gap-2">
