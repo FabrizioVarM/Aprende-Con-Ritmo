@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Plataforma de Gestión para Educación Musical',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#FF8B7A',
+    background_color: '#ffffff', // Fondo de la pantalla de carga (Splash Screen)
+    theme_color: '#FF8B7A',      // Color de la barra superior del móvil
     icons: [
       {
         src: '/icon.png',
