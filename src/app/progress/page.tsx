@@ -218,10 +218,10 @@ function ProgressContent() {
 
           <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
             {isStaff && (
-              <Card className="rounded-[2rem] border-2 border-accent/20 p-2 pl-4 flex items-center gap-4 bg-white shadow-sm">
+              <Card className="rounded-[2rem] border-2 border-accent/20 p-2 pl-4 flex items-center gap-4 bg-card shadow-sm">
                 <ShieldCheck className="w-8 h-8 text-accent shrink-0" />
                 <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                  <SelectTrigger className="w-64 h-12 rounded-xl border-none font-black text-xl text-secondary-foreground focus:ring-0">
+                  <SelectTrigger className="w-64 h-12 rounded-xl border-none font-black text-xl text-foreground focus:ring-0">
                     <SelectValue placeholder="Seleccionar Alumno" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -243,7 +243,7 @@ function ProgressContent() {
                       <TooltipTrigger asChild>
                         <Info className="w-3 h-3 text-white/70 cursor-help hover:text-white transition-colors" />
                       </TooltipTrigger>
-                      <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-white text-secondary-foreground border-2 border-accent/20 shadow-xl">
+                      <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-card text-foreground border-2 border-accent/20 shadow-xl">
                         <p className="font-black text-xs mb-2 uppercase tracking-widest text-accent">Tu Puntuación Total</p>
                         <ul className="text-[11px] font-bold space-y-2 text-muted-foreground">
                           <li className="flex items-start gap-2">
@@ -270,12 +270,12 @@ function ProgressContent() {
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-8 bg-accent rounded-full" />
-                <h2 className="text-2xl font-black text-secondary-foreground">Habilidades y Nivel</h2>
+                <h2 className="text-2xl font-black text-foreground">Habilidades y Nivel</h2>
               </div>
               
               <div className="w-full md:w-64">
                 <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                  <SelectTrigger className="h-12 rounded-2xl border-2 font-black text-secondary-foreground bg-white shadow-sm">
+                  <SelectTrigger className="h-12 rounded-2xl border-2 font-black text-foreground bg-card shadow-sm">
                     <SelectValue placeholder="Instrumento" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl">
@@ -288,17 +288,17 @@ function ProgressContent() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="rounded-[2.5rem] border-none shadow-sm bg-secondary/20 p-8 flex flex-col items-center text-center space-y-4">
-                <Target className="w-10 h-10 text-secondary-foreground" />
+              <Card className="rounded-[2.5rem] border-none shadow-sm bg-secondary/20 dark:bg-secondary/10 p-8 flex flex-col items-center text-center space-y-4">
+                <Target className="w-10 h-10 text-foreground" />
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground/60">Rango en {selectedInstrument}</p>
-                  <h4 className="font-black text-xl text-secondary-foreground mt-1">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rango en {selectedInstrument}</p>
+                  <h4 className="font-black text-xl text-foreground mt-1">
                     {instrumentStats[selectedInstrument]?.levelName || 'Aprendiz'} (Nv. {instrumentStats[selectedInstrument]?.levelNum || 1})
                   </h4>
                 </div>
               </Card>
 
-              <Card className="rounded-[2.5rem] border-none shadow-sm bg-accent/5 p-8 flex flex-col items-center text-center space-y-4">
+              <Card className="rounded-[2.5rem] border-none shadow-sm bg-accent/5 dark:bg-accent/10 p-8 flex flex-col items-center text-center space-y-4">
                 <div className="flex flex-col items-center w-full">
                   <Music className="w-10 h-10 text-accent mb-2" />
                   <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
@@ -310,8 +310,8 @@ function ProgressContent() {
                         <TooltipTrigger asChild>
                           <Info className="w-7 h-7 text-accent/50 cursor-help hover:text-accent transition-colors" />
                         </TooltipTrigger>
-                        <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-white border-2 border-accent/20 shadow-xl">
-                          <p className="font-black text-xs text-secondary-foreground mb-2 uppercase tracking-widest">¿Cómo sumas puntos?</p>
+                        <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-card border-2 border-accent/20 shadow-xl">
+                          <p className="font-black text-xs text-foreground mb-2 uppercase tracking-widest">¿Cómo sumas puntos?</p>
                           <ul className="text-[11px] font-bold space-y-2 text-muted-foreground text-left">
                             <li className="flex items-start gap-2">
                               <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
@@ -333,18 +333,18 @@ function ProgressContent() {
                 </div>
               </Card>
 
-              <Card className="rounded-[2.5rem] border-none shadow-sm bg-blue-50 p-8 flex flex-col items-center text-center space-y-4">
-                <Clock className="w-10 h-10 text-blue-600" />
+              <Card className="rounded-[2.5rem] border-none shadow-sm bg-blue-50 dark:bg-blue-950/20 p-8 flex flex-col items-center text-center space-y-4">
+                <Clock className="w-10 h-10 text-blue-600 dark:text-blue-400" />
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-700/70">Horas de Clase con {selectedInstrument}</p>
-                  <h4 className="font-black text-2xl text-blue-800 mt-1">{(instrumentStats[selectedInstrument]?.completedHours || 0).toFixed(1)} h</h4>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-700/70 dark:text-blue-400/70">Horas de Clase con {selectedInstrument}</p>
+                  <h4 className="font-black text-2xl text-blue-800 dark:text-blue-300 mt-1">{(instrumentStats[selectedInstrument]?.completedHours || 0).toFixed(1)} h</h4>
                 </div>
               </Card>
             </div>
 
-            <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
+            <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
               <CardHeader className="bg-primary/5 p-8 border-b">
-                <CardTitle className="flex items-center gap-3 font-black text-xl">
+                <CardTitle className="flex items-center gap-3 font-black text-xl text-foreground">
                   <TrendingUp className="w-6 h-6 text-accent" />
                   Evolución Técnica: {selectedInstrument}
                 </CardTitle>
@@ -353,7 +353,7 @@ function ProgressContent() {
                 {currentSkills.map((skill, i) => (
                   <div key={i} className="space-y-4">
                     <div className="flex justify-between items-center font-black">
-                      <span className="text-lg text-secondary-foreground">{skill.name}</span>
+                      <span className="text-lg text-foreground">{skill.name}</span>
                       <span className="text-accent bg-accent/10 px-4 py-1 rounded-full text-sm font-black">{skill.level}%</span>
                     </div>
                     
@@ -379,13 +379,13 @@ function ProgressContent() {
 
           <div className="lg:col-span-4 space-y-8">
             <div className="flex items-center gap-3">
-              <div className="w-2 h-8 bg-secondary-foreground rounded-full" />
-              <h2 className="text-2xl font-black text-secondary-foreground">Trayectoria</h2>
+              <div className="w-2 h-8 bg-accent rounded-full" />
+              <h2 className="text-2xl font-black text-foreground">Trayectoria</h2>
             </div>
 
-            <Card className="rounded-[2.5rem] border-none shadow-md bg-white">
-              <CardHeader className="p-8 border-b bg-gray-50/50 flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-3 font-black text-xl">
+            <Card className="rounded-[2.5rem] border-none shadow-md bg-card">
+              <CardHeader className="p-8 border-b bg-muted/30 flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-3 font-black text-xl text-foreground">
                   <StarIcon className="w-8 h-8 text-accent fill-accent" />
                   Hitos de Carrera
                 </CardTitle>
@@ -399,7 +399,7 @@ function ProgressContent() {
                     <div className={cn(
                       "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2",
                       m.achieved 
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-600 shadow-sm" 
+                        ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm" 
                         : "bg-muted/30 border-dashed border-muted-foreground/20 text-muted-foreground/40"
                     )}>
                       {m.achieved ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
@@ -407,7 +407,7 @@ function ProgressContent() {
                     <div className="space-y-1">
                       <div className={cn(
                         "font-black text-lg leading-tight",
-                        m.achieved ? "text-secondary-foreground" : "text-muted-foreground/60"
+                        m.achieved ? "text-foreground" : "text-muted-foreground/60"
                       )}>
                         {m.title}
                       </div>
