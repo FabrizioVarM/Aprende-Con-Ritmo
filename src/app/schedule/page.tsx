@@ -269,7 +269,11 @@ export default function SchedulePage() {
     const endM = endMinutes % 60;
     const timeRange = `${groupStartTime} - ${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 
-    createGroupClass(user.id, date, timeRange, selectedStudents, groupInstrument, groupType, selectedTeachers);
+    // Admin creates it hosted by the first selected teacher if available
+    const hostId = isTeacher ? user.id : (selectedTeachers.length > 0 ? selectedTeachers[0].id : user.id);
+    const collaborators = isTeacher ? selectedTeachers : (selectedTeachers.length > 0 ? selectedTeachers.slice(1) : []);
+
+    createGroupClass(hostId, date, timeRange, selectedStudents, groupInstrument, groupType, collaborators);
     
     toast({ 
       title: "Clase Grupal Agendada 🎓", 
@@ -550,7 +554,7 @@ export default function SchedulePage() {
           </div>
           
           <div className="flex gap-2">
-            {isTeacher && (
+            {(isTeacher || isAdmin) && (
               <Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-secondary text-secondary-foreground border-2 border-secondary-foreground/10 rounded-2xl gap-2 h-14 px-8 shadow-xl hover:scale-105 transition-all font-black">
