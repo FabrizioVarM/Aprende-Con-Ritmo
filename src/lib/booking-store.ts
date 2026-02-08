@@ -15,6 +15,7 @@ export interface TimeSlot {
   status?: 'pending' | 'completed';
   isGroup?: boolean;
   students?: { id: string, name: string }[];
+  teachers?: { id: string, name: string }[];
 }
 
 export interface DayAvailability {
@@ -143,7 +144,7 @@ export function useBookingStore() {
     saveToStorage(updated);
   }, [availabilities, saveToStorage]);
 
-  const createGroupClass = useCallback((teacherId: string, date: Date, time: string, studentList: {id: string, name: string}[], instrument: string, type: 'virtual' | 'presencial') => {
+  const createGroupClass = useCallback((teacherId: string, date: Date, time: string, studentList: {id: string, name: string}[], instrument: string, type: 'virtual' | 'presencial', teacherList: {id: string, name: string}[]) => {
     const dateStr = toLocalDateString(date);
     const existing = availabilities.find(a => a.teacherId === teacherId && a.date === dateStr);
     
@@ -154,6 +155,7 @@ export function useBookingStore() {
       isBooked: true,
       isGroup: true,
       students: studentList,
+      teachers: teacherList,
       instrument,
       type,
       status: 'pending'
@@ -181,7 +183,7 @@ export function useBookingStore() {
           ...a,
           slots: a.slots.map(s => 
             s.id === slotId 
-              ? { ...s, isBooked: false, bookedBy: undefined, studentId: undefined, isAvailable: true, instrument: undefined, status: 'pending', students: undefined, isGroup: false } 
+              ? { ...s, isBooked: false, bookedBy: undefined, studentId: undefined, isAvailable: true, instrument: undefined, status: 'pending', students: undefined, isGroup: false, teachers: undefined } 
               : s
           ).filter(s => !s.id.startsWith('group-') || (s.isBooked)) // Eliminar slots de grupo si se cancelan (opcional)
         };

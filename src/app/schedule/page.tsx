@@ -106,6 +106,7 @@ export default function SchedulePage() {
   
   // Group class state
   const [groupStudents, setGroupStudents] = useState<string[]>([]);
+  const [groupTeachers, setGroupTeachers] = useState<string[]>([]);
   const [groupStartTime, setGroupStartTime] = useState("16:00");
   const [groupInstrument, setGroupInstrument] = useState("Música");
   const [groupType, setGroupType] = useState<'virtual' | 'presencial'>('presencial');
@@ -128,6 +129,7 @@ export default function SchedulePage() {
   const teacherId = isTeacher ? user?.id : DEFAULT_TEACHER_ID;
 
   const studentsList = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
+  const otherTeachersList = useMemo(() => allUsers.filter(u => u.role === 'teacher' && u.id !== user?.id), [allUsers, user]);
 
   const currentTeacherProfile = useMemo(() => {
     return allUsers.find(u => u.id === (isTeacher ? user?.id : DEFAULT_TEACHER_ID));
@@ -257,13 +259,17 @@ export default function SchedulePage() {
       .filter(s => groupStudents.includes(s.id))
       .map(s => ({ id: s.id, name: s.name }));
 
+    const selectedTeachers = otherTeachersList
+      .filter(t => groupTeachers.includes(t.id))
+      .map(t => ({ id: t.id, name: t.name }));
+
     const [h, m] = groupStartTime.split(':').map(Number);
     const endMinutes = h * 60 + m + 90;
     const endH = Math.floor(endMinutes / 60);
     const endM = endMinutes % 60;
     const timeRange = `${groupStartTime} - ${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 
-    createGroupClass(user.id, date, timeRange, selectedStudents, groupInstrument, groupType);
+    createGroupClass(user.id, date, timeRange, selectedStudents, groupInstrument, groupType, selectedTeachers);
     
     toast({ 
       title: "Clase Grupal Agendada 🎓", 
@@ -272,6 +278,7 @@ export default function SchedulePage() {
     
     setIsGroupDialogOpen(false);
     setGroupStudents([]);
+    setGroupTeachers([]);
   };
 
   const handleCancel = (slotId: string, customTeacherId?: string) => {
@@ -363,6 +370,11 @@ export default function SchedulePage() {
                     <div className="text-xl font-black text-accent flex items-center gap-2">
                       <UserIcon className="w-5 h-5" />
                       Prof. {slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
+                      {slot.teachers && slot.teachers.length > 0 && (
+                        <span className="text-sm text-muted-foreground font-bold">
+                          (Colaboran: {slot.teachers.map((t: any) => t.name).join(', ')})
+                        </span>
+                      )}
                     </div>
                     <div className="text-lg font-black text-secondary-foreground flex items-center gap-2">
                       <GraduationCap className="w-5 h-5" />
@@ -553,38 +565,64 @@ export default function SchedulePage() {
                       Clase Grupal Especial 🎓
                     </DialogTitle>
                     <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
-                      Programar sesión de 90 minutos para múltiples alumnos.
+                      Programar sesión de 90 minutos para múltiples alumnos y profesores.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">1. Alumnos Participantes</Label>
-                        <ScrollArea className="h-48 rounded-2xl border-2 p-4">
-                          <div className="space-y-3">
-                            {studentsList.map(student => (
-                              <div key={student.id} className="flex items-center space-x-3">
-                                <Checkbox 
-                                  id={`student-${student.id}`} 
-                                  checked={groupStudents.includes(student.id)}
-                                  onCheckedChange={(checked) => {
-                                    setGroupStudents(prev => 
-                                      checked ? [...prev, student.id] : prev.filter(id => id !== student.id)
-                                    )
-                                  }}
-                                />
-                                <label htmlFor={`student-${student.id}`} className="text-sm font-bold leading-none cursor-pointer">
-                                  {student.name}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        </ScrollArea>
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">1. Alumnos Participantes</Label>
+                          <ScrollArea className="h-40 rounded-2xl border-2 p-4">
+                            <div className="space-y-3">
+                              {studentsList.map(student => (
+                                <div key={student.id} className="flex items-center space-x-3">
+                                  <Checkbox 
+                                    id={`student-${student.id}`} 
+                                    checked={groupStudents.includes(student.id)}
+                                    onCheckedChange={(checked) => {
+                                      setGroupStudents(prev => 
+                                        checked ? [...prev, student.id] : prev.filter(id => id !== student.id)
+                                      )
+                                    }}
+                                  />
+                                  <label htmlFor={`student-${student.id}`} className="text-sm font-bold leading-none cursor-pointer">
+                                    {student.name}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
+
+                        <div className="space-y-3">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">2. Profesores Colaboradores</Label>
+                          <ScrollArea className="h-40 rounded-2xl border-2 p-4">
+                            <div className="space-y-3">
+                              {otherTeachersList.map(t => (
+                                <div key={t.id} className="flex items-center space-x-3">
+                                  <Checkbox 
+                                    id={`teacher-invite-${t.id}`} 
+                                    checked={groupTeachers.includes(t.id)}
+                                    onCheckedChange={(checked) => {
+                                      setGroupTeachers(prev => 
+                                        checked ? [...prev, t.id] : prev.filter(id => id !== t.id)
+                                      )
+                                    }}
+                                  />
+                                  <label htmlFor={`teacher-invite-${t.id}`} className="text-sm font-bold leading-none cursor-pointer">
+                                    {t.name}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </ScrollArea>
+                        </div>
                       </div>
                       
                       <div className="space-y-6">
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">2. Configuración</Label>
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">3. Configuración</Label>
                           <div className="space-y-4">
                             <div className="flex flex-col gap-1.5">
                               <span className="text-xs font-bold">Hora de Inicio</span>
