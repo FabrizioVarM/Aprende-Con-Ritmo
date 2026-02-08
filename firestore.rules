@@ -2,7 +2,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Funciones de utilidad fundamentales
     function isSignedIn() {
       return request.auth != null;
     }
@@ -23,7 +22,6 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Perfiles: Lectura permitida para todos los registrados, escritura solo dueño o admin
     match /users/{userId} {
       allow read: if isSignedIn();
       allow create: if isSignedIn(); 
@@ -31,13 +29,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
     
-    // Disponibilidad: Lectura pública para alumnos, escritura solo admin/profe
     match /availabilities/{availId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn(); // Los alumnos escriben al reservar, los profes al gestionar
+      allow write: if isSignedIn();
     }
     
-    // Seguimiento académico: Admin y Profes editan, Alumnos leen lo suyo
     match /completions/{compId} {
       allow read: if isSignedIn();
       allow write: if isTeacher();
@@ -53,13 +49,11 @@ service cloud.firestore {
       allow write: if isTeacher();
     }
     
-    // Catálogo: Todos leen, solo admin gestiona materiales
     match /resources/{resId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
     
-    // Ajustes del Sistema: Lectura pública, solo admin edita
     match /settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();
