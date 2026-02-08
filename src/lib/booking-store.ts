@@ -10,6 +10,7 @@ export interface TimeSlot {
   isBooked: boolean;
   bookedBy?: string;
   studentId?: string;
+  teacherName?: string;
   instrument?: string;
   type: 'virtual' | 'presencial';
   status?: 'pending' | 'completed';
@@ -104,7 +105,7 @@ export function useBookingStore() {
     saveToStorage(newAvailabilities);
   }, [availabilities, saveToStorage]);
 
-  const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string) => {
+  const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string, teacherName?: string) => {
     const dateStr = toLocalDateString(date);
     const exists = availabilities.some(a => a.teacherId === teacherId && a.date === dateStr);
     
@@ -114,7 +115,7 @@ export function useBookingStore() {
         if (a.teacherId === teacherId && a.date === dateStr) {
           return {
             ...a,
-            slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, studentId, isAvailable: false, instrument, status: 'pending' } : s)
+            slots: a.slots.map(s => s.id === slotId ? { ...s, isBooked: true, bookedBy: studentName, studentId, isAvailable: false, instrument, status: 'pending', teacherName } : s)
           };
         }
         return a;
@@ -133,6 +134,7 @@ export function useBookingStore() {
             bookedBy: id === slotId ? studentName : undefined,
             studentId: id === slotId ? studentId : undefined,
             instrument: id === slotId ? instrument : undefined,
+            teacherName: id === slotId ? teacherName : undefined,
             type: 'presencial',
             status: 'pending'
           };

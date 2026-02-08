@@ -90,11 +90,11 @@ export function useAuth() {
     window.dispatchEvent(new CustomEvent('ac_sync_auth'));
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('ac_user');
     setUser(null);
     window.dispatchEvent(new CustomEvent('ac_sync_auth'));
-  };
+  }, []);
 
   const updateUser = useCallback((updatedData: Partial<User>) => {
     if (!user) return;
@@ -138,9 +138,21 @@ export function useAuth() {
     window.dispatchEvent(new CustomEvent('ac_sync_auth'));
   }, [user, allUsers]);
 
+  const adminDeleteUser = useCallback((userId: string) => {
+    const updatedAllUsers = allUsers.filter(u => u.id !== userId);
+    localStorage.setItem('ac_all_users', JSON.stringify(updatedAllUsers));
+    setAllUsers(updatedAllUsers);
+    
+    if (user && user.id === userId) {
+      logout();
+    }
+    
+    window.dispatchEvent(new CustomEvent('ac_sync_auth'));
+  }, [user, allUsers, logout]);
+
   const getTeachers = useCallback(() => {
     return allUsers.filter(u => u.role === 'teacher');
   }, [allUsers]);
 
-  return { user, allUsers, loading, login, logout, updateUser, adminUpdateUser, getTeachers };
+  return { user, allUsers, loading, login, logout, updateUser, adminUpdateUser, adminDeleteUser, getTeachers };
 }

@@ -202,7 +202,7 @@ export default function StudentDashboard() {
               id: slot.id,
               date: lessonDate,
               time: slot.time,
-              teacherName: teacher?.name || 'Profesor',
+              teacherName: slot.teacherName || teacher?.name || 'Profesor',
               instrument: slot.instrument || (teacher?.instruments?.includes(selectedInstrument) ? selectedInstrument : (teacher?.instruments?.[0] || 'Música')),
               type: slot.type,
               isGroup: slot.isGroup,
@@ -285,7 +285,8 @@ export default function StudentDashboard() {
   const handleBookLesson = () => {
     if (!selectedSlotId || !user || !selectedTeacherId) return;
 
-    bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument);
+    const teacher = teachers.find(t => t.id === selectedTeacherId);
+    bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name);
     
     toast({
       title: "¡Reserva Exitosa! 🎸",
@@ -449,7 +450,7 @@ export default function StudentDashboard() {
                               "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
                               isSelected 
                                 ? "bg-accent border-accent text-white shadow-md" 
-                                : "bg-primary/5 border-transparent hover:border-accent/30",
+                                : "bg-primary/5 border-transparent hover:border-accent/20",
                               isToday && !isSelected && "border-accent/30",
                               isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-gray-100 border-gray-200"
                             )}

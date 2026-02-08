@@ -25,7 +25,17 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
-import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +59,7 @@ const INSTRUMENTS_LIST = [
 ];
 
 export default function UsersPage() {
-  const { allUsers, adminUpdateUser, loading, user } = useAuth();
+  const { allUsers, adminUpdateUser, adminDeleteUser, loading, user } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
@@ -63,6 +73,9 @@ export default function UsersPage() {
   const [editInstruments, setEditInstruments] = useState<string[]>([]);
   const [editPhotoUrl, setEditPhotoUrl] = useState<string | undefined>(undefined);
   const [editAvatarSeed, setEditAvatarSeed] = useState('');
+
+  // Delete State
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -98,6 +111,18 @@ export default function UsersPage() {
       toast({
         title: "Usuario Actualizado ✨",
         description: `Los cambios para ${editName} se han guardado correctamente.`,
+      });
+    }
+  };
+
+  const handleDeleteUser = () => {
+    if (deletingUserId) {
+      const u = allUsers.find(u => u.id === deletingUserId);
+      adminDeleteUser(deletingUserId);
+      setDeletingUserId(null);
+      toast({
+        title: "Cuenta Eliminada 🗑️",
+        description: `El usuario ${u?.name} ha sido borrado del sistema.`,
       });
     }
   };
@@ -201,7 +226,12 @@ export default function UsersPage() {
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator className="my-1" />
-                    <DropdownMenuItem className="gap-2 rounded-xl font-bold py-2 text-destructive focus:text-destructive cursor-pointer"><Trash className="w-4 h-4" /> Eliminar Cuenta</DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="gap-2 rounded-xl font-bold py-2 text-destructive focus:text-destructive cursor-pointer"
+                      onClick={() => setDeletingUserId(u.id)}
+                    >
+                      <Trash className="w-4 h-4" /> Eliminar Cuenta
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -413,6 +443,38 @@ export default function UsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deletingUserId} onOpenChange={(open) => !open && setDeletingUserId(null)}>
+        <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+          <AlertDialogHeader className="space-y-4">
+            <div className="w-16 h-16 bg-destructive/10 rounded-2xl flex items-center justify-center text-destructive mx-auto">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <div className="text-center space-y-2">
+              <AlertDialogTitle className="text-2xl font-black text-secondary-foreground">¿Confirmar eliminación?</AlertDialogTitle>
+              <AlertDialogDescription className="text-base font-medium">
+                Esta acción eliminará al usuario de los directorios y no se podrán reservar nuevas clases con él. 
+                <br /><br />
+                <span className="font-black text-destructive uppercase text-xs tracking-widest">Aviso Académico:</span>
+                <ul className="text-left text-sm mt-3 space-y-2 list-disc pl-5 font-bold text-muted-foreground">
+                  <li>Las clases ya completadas se mantendrán en el historial.</li>
+                  <li>Las clases reservadas seguirán activas para el administrador.</li>
+                  <li>El usuario ya no tendrá acceso a la plataforma.</li>
+                </ul>
+              </AlertDialogDescription>
+            </div>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-8 gap-3 sm:space-x-0">
+            <AlertDialogCancel className="rounded-xl flex-1 h-12 font-black border-2">Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteUser}
+              className="rounded-xl flex-1 h-12 font-black bg-destructive hover:bg-destructive/90 text-white shadow-lg shadow-destructive/20"
+            >
+              Confirmar Eliminación
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

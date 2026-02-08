@@ -203,7 +203,7 @@ export default function SchedulePage() {
             list.push({
               ...slot,
               teacherId: day.teacherId,
-              teacherName: teacher?.name || 'Profesor',
+              teacherName: slot.teacherName || teacher?.name || 'Profesor',
               date: day.date
             });
           }
@@ -232,7 +232,7 @@ export default function SchedulePage() {
             list.push({
               ...slot,
               teacherId: day.teacherId,
-              teacherName: teacher?.name || 'Profesor',
+              teacherName: slot.teacherName || teacher?.name || 'Profesor',
               date: day.date
             });
           }
@@ -245,7 +245,8 @@ export default function SchedulePage() {
   const handleBook = () => {
     if (!selectedSlotId || !date || !user) return;
     const instrument = bookingInstrument || user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
-    bookSlot(teacherId!, date, selectedSlotId, user.name, user.id, instrument);
+    const teacherName = currentTeacherProfile?.name || DEFAULT_TEACHER_NAME;
+    bookSlot(teacherId!, date, selectedSlotId, user.name, user.id, instrument, teacherName);
     toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
     setIsBookingOpen(false);
     setSelectedSlotId(null);
@@ -446,7 +447,7 @@ export default function SchedulePage() {
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
                     <span className="flex items-center gap-1 shrink-0 text-secondary-foreground">
                       <UserIcon className="w-3 h-3 text-accent" /> 
-                      {slot.isBooked ? (isAdmin ? `Prof. ${slot.teacherName} • ${slot.isGroup ? `${slot.students?.length} alumnos` : slot.bookedBy}` : (isTeacher ? (slot.isGroup ? `${slot.students?.length} alumnos` : slot.bookedBy) : (teacherProfile?.name || DEFAULT_TEACHER_NAME))) : (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
+                      {slot.isBooked ? (isAdmin ? `Prof. ${slot.teacherName || (teacherProfile?.name || 'Profesor')} • ${slot.isGroup ? `${slot.students?.length} alumnos` : slot.bookedBy}` : (isTeacher ? (slot.isGroup ? `${slot.students?.length} alumnos` : slot.bookedBy) : (slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME)))) : (teacherProfile?.name || DEFAULT_TEACHER_NAME)}
                     </span>
                     <span className={cn(
                         "flex items-center gap-1 shrink-0",
