@@ -11,22 +11,29 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useBookingStore } from '@/lib/booking-store';
 import { useSkillsStore } from '@/lib/skills-store';
 import { useResourceStore } from '@/lib/resource-store';
-import { useMilestonesStore } from '@/lib/milestones-store';
+import { useMilestonesStore, UserMilestone } from '@/lib/milestones-store';
 import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
-import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Clock, ShieldCheck, Star as StarIcon, Info } from 'lucide-react';
+import { 
+  Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Clock, 
+  ShieldCheck, Star as StarIcon, Info, Plus, Edit2, Trash2 
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const MILESTONES_LIST = [
-  { title: 'Nivel 1 Completado', defaultDate: 'En espera' },
-  { title: 'Primera Presentación', defaultDate: 'En espera' },
-  { title: 'Maestro de Escalas Mayores', defaultDate: 'En espera' },
-  { title: 'Eficiencia Nivel 2', defaultDate: 'En espera' },
-];
 
 const calculateDuration = (timeStr: string): number => {
   try {
@@ -74,7 +81,14 @@ function ProgressContent() {
   const { availabilities } = useBookingStore();
   const { updateSkill, getSkillLevel } = useSkillsStore();
   const { resources } = useResourceStore();
-  const { toggleMilestone, isMilestoneAchieved, getMilestoneDate, getAchievedCount } = useMilestonesStore();
+  const { 
+    addMilestone, 
+    updateMilestone, 
+    deleteMilestone, 
+    toggleMilestoneAchieved, 
+    getStudentMilestones, 
+    getAchievedCount 
+  } = useMilestonesStore();
   
   const searchParams = useSearchParams();
   const queryStudentId = searchParams.get('studentId');
@@ -83,7 +97,15 @@ function ProgressContent() {
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
 
+  // Milestone Dialog State
+  const [isMDialogOpen, setIsMDialogOpen] = useState(false);
+  const [editingM, setEditingM] = useState<UserMilestone | null>(null);
+  const [mTitle, setMTitle] = useState('');
+  const [mDate, setMDate] = useState('');
+  const [mAchieved, setMAchieved] = useState(false);
+
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   
   const students = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
 
@@ -124,7 +146,6 @@ function ProgressContent() {
     const stats: Record<string, { points: number; completedHours: number; levelName: string; levelNum: number }> = {};
     
     const studentInstruments = [...(currentStudent.instruments || []), 'Teoría'];
-    
     const uniqueInstruments = Array.from(new Set(studentInstruments));
 
     uniqueInstruments.forEach(cat => {
@@ -205,9 +226,39 @@ function ProgressContent() {
     }));
   }, [currentStudent, selectedInstrument, getSkillLevel]);
 
+  const studentMilestones = useMemo(() => {
+    return currentStudent ? getStudentMilestones(currentStudent.id) : [];
+  }, [currentStudent, getStudentMilestones]);
+
   const achievedMilestonesCount = useMemo(() => {
     return currentStudent ? getAchievedCount(currentStudent.id) : 0;
   }, [currentStudent, getAchievedCount]);
+
+  const openAddM = () => {
+    setEditingM(null);
+    setMTitle('');
+    setMDate('');
+    setMAchieved(false);
+    setIsMDialogOpen(true);
+  };
+
+  const openEditM = (m: UserMilestone) => {
+    setEditingM(m);
+    setMTitle(m.milestoneTitle);
+    setMDate(m.date || '');
+    setMAchieved(m.achieved);
+    setIsMDialogOpen(true);
+  };
+
+  const handleSaveM = () => {
+    if (!currentStudent) return;
+    if (editingM) {
+      updateMilestone(editingM.id, { milestoneTitle: mTitle, date: mDate, achieved: mAchieved });
+    } else {
+      addMilestone(currentStudent.id, mTitle, mDate, mAchieved);
+    }
+    setIsMDialogOpen(false);
+  };
 
   if (!isMounted || !user) return null;
 
@@ -395,51 +446,126 @@ function ProgressContent() {
                   <StarIcon className="w-8 h-8 text-accent fill-accent" />
                   Hitos de Carrera
                 </CardTitle>
-                <Badge className="bg-accent text-white rounded-full font-black px-6 py-3 text-xl shadow-lg shadow-accent/20">
-                  {achievedMilestonesCount}
-                </Badge>
+                <div className="flex items-center gap-3">
+                  {isAdmin && (
+                    <Button 
+                      size="icon" 
+                      className="rounded-full bg-accent text-white h-10 w-10 shadow-md hover:scale-110 transition-transform"
+                      onClick={openAddM}
+                    >
+                      <Plus className="w-5 h-5" />
+                    </Button>
+                  )}
+                  <Badge className="bg-accent text-white rounded-full font-black px-6 py-3 text-xl shadow-lg shadow-accent/20">
+                    {achievedMilestonesCount}
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
-                {MILESTONES_LIST.map((m, i) => {
-                  const isAchieved = currentStudent ? isMilestoneAchieved(currentStudent.id, m.title) : false;
-                  const date = currentStudent ? getMilestoneDate(currentStudent.id, m.title) : m.defaultDate;
-                  
-                  return (
-                    <div key={i} className="flex gap-5 items-start group">
-                      <div className={cn(
-                        "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 transition-all",
-                        isAchieved 
-                          ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm" 
-                          : "bg-muted/30 border-dashed border-muted-foreground/20 text-muted-foreground/40"
-                      )}>
-                        {isAchieved ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <div className={cn(
-                            "font-black text-lg leading-tight",
-                            isAchieved ? "text-foreground" : "text-muted-foreground/60"
-                          )}>
-                            {m.title}
-                          </div>
+                {studentMilestones.length > 0 ? studentMilestones.map((m, i) => (
+                  <div key={m.id} className="flex gap-5 items-start group">
+                    <div className={cn(
+                      "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 transition-all",
+                      m.achieved 
+                        ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm" 
+                        : "bg-muted/30 border-dashed border-muted-foreground/20 text-muted-foreground/40"
+                    )}>
+                      {m.achieved ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <div className={cn(
+                          "font-black text-lg leading-tight",
+                          m.achieved ? "text-foreground" : "text-muted-foreground/60"
+                        )}>
+                          {m.milestoneTitle}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isAdmin && (
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-accent" onClick={() => openEditM(m)}>
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive" onClick={() => deleteMilestone(m.id)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
                           {isStaff && currentStudent && (
                             <Switch 
-                              checked={isAchieved}
-                              onCheckedChange={() => toggleMilestone(currentStudent.id, m.title)}
+                              checked={m.achieved}
+                              onCheckedChange={() => toggleMilestoneAchieved(m.id)}
                               className="scale-75 data-[state=checked]:bg-emerald-500"
                             />
                           )}
                         </div>
-                        <div className="text-sm font-bold text-muted-foreground">{isAchieved ? date : 'Pendiente de asignación'}</div>
                       </div>
+                      <div className="text-sm font-bold text-muted-foreground">{m.achieved ? (m.date || 'Sin fecha') : 'Pendiente de asignación'}</div>
                     </div>
-                  );
-                })}
+                  </div>
+                )) : (
+                  <div className="text-center py-10">
+                    <StarIcon className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
+                    <p className="text-muted-foreground font-bold italic">No hay hitos asignados todavía.</p>
+                    {isAdmin && (
+                      <Button variant="link" className="text-accent font-black mt-2 underline" onClick={openAddM}>
+                        Asignar primer hito
+                      </Button>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
       </div>
+
+      <Dialog open={isMDialogOpen} onOpenChange={setIsMDialogOpen}>
+        <DialogContent className="rounded-[2rem] max-w-md border-none shadow-2xl p-0 overflow-hidden">
+          <DialogHeader className="bg-primary/10 p-8 border-b">
+            <DialogTitle className="text-2xl font-black flex items-center gap-3">
+              <Trophy className="w-6 h-6 text-accent" />
+              {editingM ? 'Editar Hito' : 'Nuevo Hito'}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground font-medium">Define un logro para la carrera musical del alumno.</DialogDescription>
+          </DialogHeader>
+          <div className="p-8 space-y-6 bg-card">
+            <div className="space-y-2">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Hito</Label>
+              <Input 
+                value={mTitle} 
+                onChange={(e) => setMTitle(e.target.value)}
+                placeholder="Ej: Nivel 1 Completado"
+                className="h-12 rounded-xl border-2 font-bold focus:border-accent text-foreground bg-card"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Fecha (opcional)</Label>
+              <Input 
+                value={mDate} 
+                onChange={(e) => setMDate(e.target.value)}
+                placeholder="Ej: Oct 2023"
+                className="h-12 rounded-xl border-2 font-bold focus:border-accent text-foreground bg-card"
+              />
+            </div>
+            <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border-2 border-primary/10">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-black text-foreground">Estado del Hito</Label>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase">¿Ya ha sido alcanzado?</p>
+              </div>
+              <Switch 
+                checked={mAchieved} 
+                onCheckedChange={setMAchieved}
+                className="data-[state=checked]:bg-emerald-500"
+              />
+            </div>
+          </div>
+          <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3">
+            <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground" onClick={() => setIsMDialogOpen(false)}>Cancelar</Button>
+            <Button className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20" onClick={handleSaveM}>Guardar Hito</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
