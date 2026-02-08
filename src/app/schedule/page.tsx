@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -867,7 +866,7 @@ export default function SchedulePage() {
                   {academicGroupClasses.length > 0 && (
                     <section className="space-y-4">
                       <div className="flex items-center gap-2">
-                        Users className="w-6 h-6 text-accent" />
+                        <Users className="w-6 h-6 text-accent" />
                         <h2 className="text-xl font-black text-foreground">Clases Grupales de la Academia 🌍</h2>
                       </div>
                       <div className="grid grid-cols-1 gap-4">
