@@ -13,6 +13,9 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
       );
     }
+    function isTeacher() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+    }
 
     match /users/{userId} {
       allow read: if isSignedIn();
@@ -37,7 +40,7 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    match /settings/global {
+    match /settings/{id} {
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -45,6 +48,27 @@ service cloud.firestore {
     match /roles_admin/{userId} {
       allow read: if isSignedIn();
       allow write: if false;
+    }
+
+    // Nuevas colecciones raíz usadas en los stores
+    match /availabilities/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); // Permitir reservas de alumnos y gestión de profes
+    }
+
+    match /completions/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isTeacher();
+    }
+
+    match /milestones/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isTeacher();
+    }
+
+    match /skills/{id} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || isTeacher();
     }
   }
 }

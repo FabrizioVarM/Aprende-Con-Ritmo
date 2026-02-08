@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export interface UserMilestone {
   id: string;
@@ -21,6 +23,11 @@ export function useMilestonesStore() {
       const list: UserMilestone[] = [];
       snapshot.forEach(doc => list.push({ ...doc.data(), id: doc.id } as UserMilestone));
       setMilestones(list);
+    }, async (error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'milestones',
+        operation: 'list'
+      }));
     });
     return () => unsubscribe();
   }, [db]);
@@ -31,15 +38,38 @@ export function useMilestonesStore() {
       id, studentId, milestoneTitle: title, achieved,
       date: date || (achieved ? new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }) : undefined)
     };
-    setDoc(doc(db, 'milestones', id), data);
+    const docRef = doc(db, 'milestones', id);
+    setDoc(docRef, data)
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'create',
+          requestResourceData: data
+        }));
+      });
   }, [db]);
 
   const updateMilestone = useCallback((id: string, updates: Partial<Omit<UserMilestone, 'id' | 'studentId'>>) => {
-    updateDoc(doc(db, 'milestones', id), updates);
+    const docRef = doc(db, 'milestones', id);
+    updateDoc(docRef, updates)
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        }));
+      });
   }, [db]);
 
   const deleteMilestone = useCallback((id: string) => {
-    deleteDoc(doc(db, 'milestones', id));
+    const docRef = doc(db, 'milestones', id);
+    deleteDoc(docRef)
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'delete'
+        }));
+      });
   }, [db]);
 
   const toggleMilestoneAchieved = useCallback((id: string) => {
@@ -50,7 +80,15 @@ export function useMilestonesStore() {
     if (newAchieved && !m.date) {
       updates.date = new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
     }
-    updateDoc(doc(db, 'milestones', id), updates);
+    const docRef = doc(db, 'milestones', id);
+    updateDoc(docRef, updates)
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: updates
+        }));
+      });
   }, [db, milestones]);
 
   const getStudentMilestones = useCallback((studentId: string) => {

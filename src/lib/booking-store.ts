@@ -4,17 +4,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   collection, 
   doc, 
-  getDocs, 
   setDoc, 
-  query, 
-  where, 
   onSnapshot,
-  updateDoc,
-  deleteDoc,
-  CollectionReference,
-  DocumentReference
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export interface TimeSlot {
   id: string;
@@ -56,12 +51,16 @@ export function useBookingStore() {
   const db = useFirestore();
 
   useEffect(() => {
-    // Escuchar todas las disponibilidades en tiempo real (limitado para prototipo)
     const q = collection(db, 'availabilities');
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: DayAvailability[] = [];
       snapshot.forEach(doc => list.push({ ...doc.data(), id: doc.id } as DayAvailability));
       setAvailabilities(list);
+    }, async (error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'availabilities',
+        operation: 'list'
+      }));
     });
     return () => unsubscribe();
   }, [db]);
@@ -88,7 +87,16 @@ export function useBookingStore() {
   const updateAvailability = useCallback((teacherId: string, date: Date, slots: TimeSlot[]) => {
     const dateStr = toLocalDateString(date);
     const id = `${teacherId}_${dateStr}`;
-    setDoc(doc(db, 'availabilities', id), { teacherId, date: dateStr, slots }, { merge: true });
+    const docRef = doc(db, 'availabilities', id);
+    const data = { teacherId, date: dateStr, slots };
+    setDoc(docRef, data, { merge: true })
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'write',
+          requestResourceData: data
+        }));
+      });
   }, [db]);
 
   const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string, teacherName?: string) => {
@@ -104,7 +112,6 @@ export function useBookingStore() {
     } else {
       updatedSlots = INITIAL_SLOTS.map(s => {
         const sid = Math.random().toString(36).substring(2, 9);
-        const match = sid === slotId || s.startsWith(slotId); // Fallback logic
         return {
           id: sid, time: s, isAvailable: false,
           isBooked: sid === slotId,
@@ -116,7 +123,16 @@ export function useBookingStore() {
         };
       });
     }
-    setDoc(doc(db, 'availabilities', id), { teacherId, date: dateStr, slots: updatedSlots }, { merge: true });
+    const docRef = doc(db, 'availabilities', id);
+    const data = { teacherId, date: dateStr, slots: updatedSlots };
+    setDoc(docRef, data, { merge: true })
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'write',
+          requestResourceData: data
+        }));
+      });
   }, [db, availabilities]);
 
   const createGroupClass = useCallback((teacherId: string, date: Date, time: string, studentList: {id: string, name: string}[], instrument: string, type: 'virtual' | 'presencial', teacherList: {id: string, name: string}[]) => {
@@ -131,7 +147,16 @@ export function useBookingStore() {
     };
 
     const slots = existing ? [...existing.slots, newSlot] : [newSlot];
-    setDoc(doc(db, 'availabilities', id), { teacherId, date: dateStr, slots }, { merge: true });
+    const docRef = doc(db, 'availabilities', id);
+    const data = { teacherId, date: dateStr, slots };
+    setDoc(docRef, data, { merge: true })
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'write',
+          requestResourceData: data
+        }));
+      });
   }, [db, availabilities]);
 
   const cancelBooking = useCallback((teacherId: string, date: Date, slotId: string) => {
@@ -144,7 +169,16 @@ export function useBookingStore() {
       s.id === slotId ? { ...s, isBooked: false, bookedBy: undefined, studentId: undefined, isAvailable: true, instrument: undefined, status: 'pending', students: undefined, isGroup: false, teachers: undefined } : s
     ).filter(s => !s.id.startsWith('group-') || s.isBooked);
 
-    setDoc(doc(db, 'availabilities', id), { slots: updatedSlots }, { merge: true });
+    const docRef = doc(db, 'availabilities', id);
+    const data = { slots: updatedSlots };
+    setDoc(docRef, data, { merge: true })
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'write',
+          requestResourceData: data
+        }));
+      });
   }, [db, availabilities]);
 
   const setSlotStatus = useCallback((teacherId: string, dateStr: string, slotId: string, status: 'pending' | 'completed') => {
@@ -153,7 +187,16 @@ export function useBookingStore() {
     if (!existing) return;
 
     const updatedSlots = existing.slots.map(s => s.id === slotId ? { ...s, status } : s);
-    setDoc(doc(db, 'availabilities', id), { slots: updatedSlots }, { merge: true });
+    const docRef = doc(db, 'availabilities', id);
+    const data = { slots: updatedSlots };
+    setDoc(docRef, data, { merge: true })
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'write',
+          requestResourceData: data
+        }));
+      });
   }, [db, availabilities]);
 
   return { availabilities, getDayAvailability, updateAvailability, bookSlot, createGroupClass, cancelBooking, setSlotStatus };

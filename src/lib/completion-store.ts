@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export interface ResourceCompletion {
   resourceId: number;
@@ -17,11 +19,15 @@ export function useCompletionStore() {
   const db = useFirestore();
 
   useEffect(() => {
-    // Escuchar todas las validaciones (podría filtrarse por alumno en producción)
     const unsubscribe = onSnapshot(collection(db, 'completions'), (snapshot) => {
       const list: ResourceCompletion[] = [];
       snapshot.forEach(doc => list.push(doc.data() as ResourceCompletion));
       setCompletions(list);
+    }, async (error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'completions',
+        operation: 'list'
+      }));
     });
     return () => unsubscribe();
   }, [db]);
@@ -38,7 +44,15 @@ export function useCompletionStore() {
       date: new Date().toISOString()
     };
 
-    setDoc(doc(db, 'completions', id), data);
+    const docRef = doc(db, 'completions', id);
+    setDoc(docRef, data)
+      .catch(async () => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'write',
+          requestResourceData: data
+        }));
+      });
   }, [db, completions]);
 
   const getCompletionStatus = useCallback((resourceId: number, studentId: string) => {
