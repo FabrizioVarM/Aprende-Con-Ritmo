@@ -24,8 +24,8 @@ import {
   Sheet, 
   SheetContent, 
   SheetTrigger,
-  SheetHeader,
-  SheetTitle,
+  SheetHeader, 
+  SheetTitle, 
   SheetDescription
 } from '@/components/ui/sheet';
 import Image from 'next/image';
@@ -80,7 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             data-ai-hint="academy logo"
           />
         </div>
-        <span className="text-xl font-extrabold text-foreground font-headline tracking-tight truncate">
+        <span className="text-xl font-extrabold text-foreground font-headline tracking-tight leading-tight">
           Aprende Con Ritmo
         </span>
       </div>
@@ -159,7 +159,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 data-ai-hint="academy logo"
               />
             </div>
-            <span className="font-bold text-foreground">Aprende Con Ritmo</span>
+            <span className="font-bold text-foreground leading-tight">Aprende Con Ritmo</span>
           </div>
           <Sheet>
             <SheetTrigger asChild>
