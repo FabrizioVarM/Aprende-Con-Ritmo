@@ -110,13 +110,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             return (
               <div 
                 key={item.label} 
-                className="flex items-center justify-between px-4 py-3 rounded-xl opacity-40 cursor-not-allowed text-muted-foreground group select-none"
+                className="flex items-center justify-between px-4 py-3 rounded-xl opacity-50 cursor-not-allowed text-muted-foreground group select-none"
               >
                 <div className="flex items-center gap-3">
                   <item.icon className="w-5 h-5" />
                   <span className="text-sm font-medium">{item.label}</span>
                 </div>
-                <span className="text-[7px] font-black uppercase bg-primary/20 px-1.5 py-0.5 rounded-md border border-primary/10">Próximamente</span>
+                <span className="text-[7px] font-black uppercase bg-orange-600 text-white px-2 py-0.5 rounded-md shadow-[0_0_8px_rgba(234,88,12,0.4)] animate-pulse border-none">
+                  Próximamente
+                </span>
               </div>
             );
           }
