@@ -1,5 +1,7 @@
+
 "use client"
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,14 +11,23 @@ import { Mail, Lock, User } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSettingsStore } from '@/lib/settings-store';
+import { useAuth } from '@/lib/auth-store';
 
 export default function RegisterPage() {
   const router = useRouter();
   const { settings } = useSettingsStore();
+  const { register } = useAuth();
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push('/login');
+    // Register the user and log them in
+    register(name, email);
+    // Redirect to instrument selection
+    router.push('/register/instruments');
   };
 
   return (
@@ -47,21 +58,44 @@ export default function RegisterPage() {
                 <Label htmlFor="name" className="text-foreground">Nombre Completo</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input id="name" placeholder="Juan Pérez" className="pl-10 rounded-xl bg-background text-foreground border-border" required />
+                  <Input 
+                    id="name" 
+                    placeholder="Juan Pérez" 
+                    className="pl-10 rounded-xl bg-background text-foreground border-border" 
+                    required 
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-foreground">Correo Electrónico</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input id="email" type="email" placeholder="nombre@ejemplo.com" className="pl-10 rounded-xl bg-background text-foreground border-border" required />
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="nombre@ejemplo.com" 
+                    className="pl-10 rounded-xl bg-background text-foreground border-border" 
+                    required 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-foreground">Contraseña</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input id="password" type="password" placeholder="••••••••" className="pl-10 rounded-xl bg-background text-foreground border-border" required />
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    placeholder="••••••••" 
+                    className="pl-10 rounded-xl bg-background text-foreground border-border" 
+                    required 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
                 </div>
               </div>
             </CardContent>

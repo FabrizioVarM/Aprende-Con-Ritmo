@@ -48,27 +48,17 @@ export function useAuth() {
       localStorage.setItem('ac_all_users', JSON.stringify(INITIAL_MOCK_USERS));
     }
     
-    // Safety filter
-    const filteredAllUsers = currentAllUsers.map(u => ({
-      ...u,
-      instruments: u.instruments?.filter(inst => inst !== 'Flauta')
-    }));
-    
-    setAllUsers(filteredAllUsers);
+    setAllUsers(currentAllUsers);
 
     const savedUser = localStorage.getItem('ac_user');
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
-        const upToDateUser = filteredAllUsers.find(u => u.id === parsedUser.id);
+        const upToDateUser = currentAllUsers.find(u => u.id === parsedUser.id);
         
         if (upToDateUser) {
-          if (upToDateUser.instruments) {
-            upToDateUser.instruments = upToDateUser.instruments.filter((i: string) => i !== 'Flauta');
-          }
           setUser(upToDateUser);
         } else {
-          // User was deleted by admin while logged in
           localStorage.removeItem('ac_user');
           setUser(null);
         }
@@ -102,6 +92,27 @@ export function useAuth() {
     return false;
   };
 
+  const register = (name: string, email: string): User => {
+    const newId = Math.random().toString(36).substring(7);
+    const newUser: User = {
+      id: newId,
+      name,
+      email,
+      role: 'student',
+      username: email.split('@')[0],
+      avatarSeed: newId,
+      instruments: []
+    };
+
+    const updatedAllUsers = [...allUsers, newUser];
+    localStorage.setItem('ac_all_users', JSON.stringify(updatedAllUsers));
+    localStorage.setItem('ac_user', JSON.stringify(newUser));
+    setAllUsers(updatedAllUsers);
+    setUser(newUser);
+    window.dispatchEvent(new CustomEvent('ac_sync_auth'));
+    return newUser;
+  };
+
   const logout = useCallback(() => {
     localStorage.removeItem('ac_user');
     setUser(null);
@@ -112,9 +123,6 @@ export function useAuth() {
     if (!user) return;
     
     const newUser = { ...user, ...updatedData };
-    if (newUser.instruments) {
-      newUser.instruments = newUser.instruments.filter(i => i !== 'Flauta');
-    }
     localStorage.setItem('ac_user', JSON.stringify(newUser));
     setUser(newUser);
 
@@ -126,17 +134,7 @@ export function useAuth() {
   }, [user, allUsers]);
 
   const adminUpdateUser = useCallback((userId: string, updatedData: Partial<User>) => {
-    const updatedAllUsers = allUsers.map(u => {
-      if (u.id === userId) {
-        const updated = { ...u, ...updatedData };
-        if (updated.instruments) {
-          updated.instruments = updated.instruments.filter(i => i !== 'Flauta');
-        }
-        return updated;
-      }
-      return u;
-    });
-    
+    const updatedAllUsers = allUsers.map(u => u.id === userId ? { ...u, ...updatedData } : u);
     localStorage.setItem('ac_all_users', JSON.stringify(updatedAllUsers));
     setAllUsers(updatedAllUsers);
 
@@ -181,5 +179,5 @@ export function useAuth() {
     return allUsers.filter(u => u.role === 'teacher');
   }, [allUsers]);
 
-  return { user, allUsers, loading, login, logout, updateUser, adminUpdateUser, adminAddUser, adminDeleteUser, getTeachers };
+  return { user, allUsers, loading, login, logout, register, updateUser, adminUpdateUser, adminAddUser, adminDeleteUser, getTeachers };
 }
