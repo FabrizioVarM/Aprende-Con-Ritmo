@@ -290,12 +290,15 @@ export default function AdminDashboard() {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            className="rounded-2xl gap-2 h-12 border-2 font-black"
+            className="rounded-2xl gap-2 h-12 border-2 font-black text-foreground"
             onClick={() => router.push('/settings')}
           >
             <Settings className="w-4 h-4" /> Ajustes
           </Button>
-          <Button className="bg-accent text-white rounded-2xl gap-2 h-12 shadow-lg shadow-accent/20 font-black px-6">
+          <Button 
+            className="bg-accent text-white rounded-2xl gap-2 h-12 shadow-lg shadow-accent/20 font-black px-6 hover:scale-105 transition-all"
+            onClick={() => router.push('/users?add=true')}
+          >
             <UserPlus className="w-4 h-4" /> Agregar Usuario
           </Button>
         </div>
@@ -363,7 +366,7 @@ export default function AdminDashboard() {
         <Card className="lg:col-span-2 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
           <CardHeader className="bg-primary/5 p-8 border-b flex flex-row items-center justify-between">
             <div className="space-y-1">
-              <CardTitle className="text-xl font-black flex items-center gap-3">
+              <CardTitle className="text-xl font-black flex items-center gap-3 text-foreground">
                 <CalendarDays className="w-6 h-6 text-accent" />
                 Desempeño Docente
               </CardTitle>
@@ -453,7 +456,7 @@ export default function AdminDashboard() {
 
         <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
           <CardHeader className="border-b bg-muted/50 p-6">
-            <CardTitle className="text-lg font-black flex items-center gap-2">
+            <CardTitle className="text-lg font-black flex items-center gap-2 text-foreground">
               <TrendingUp className="w-5 h-5 text-accent" />
               Actividad Reciente
             </CardTitle>
@@ -502,14 +505,14 @@ export default function AdminDashboard() {
                       const prev = new Date(selectedDate);
                       prev.setDate(prev.getDate() - 7);
                       setSelectedDate(prev);
-                    }} className="rounded-full h-8 w-8">
+                    }} className="rounded-full h-8 w-8 text-foreground">
                       <ChevronLeft className="w-4 h-4" />
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => {
                       const next = new Date(selectedDate);
                       next.setDate(next.getDate() + 7);
                       setSelectedDate(next);
-                    }} className="rounded-full h-8 w-8">
+                    }} className="rounded-full h-8 w-8 text-foreground">
                       <ChevronRight className="w-4 h-4" />
                     </Button>
                   </div>
@@ -534,10 +537,10 @@ export default function AdminDashboard() {
                           isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
                         )}
                       >
-                        <span className="text-[8px] font-black uppercase tracking-wider">
+                        <span className={cn("text-[8px] font-black uppercase tracking-wider", isSelected ? "text-white" : "text-muted-foreground")}>
                           {d.toLocaleDateString('es-ES', { weekday: 'short' })}
                         </span>
-                        <span className="text-base font-black">{d.getDate()}</span>
+                        <span className={cn("text-base font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
                       </button>
                     );
                   })}
@@ -573,7 +576,7 @@ export default function AdminDashboard() {
                           value={slot.time}
                           onChange={(e) => updateSlotTime(i, e.target.value)}
                           disabled={slot.isBooked || isSelectedDatePast}
-                          className="h-9 pl-3 text-xs rounded-lg font-bold bg-card border-2"
+                          className="h-9 pl-3 text-xs rounded-lg font-bold bg-card border-2 text-foreground"
                         />
                         {slot.isBooked && (
                           <div className="flex items-center gap-1 mt-0.5 ml-1">
@@ -587,7 +590,7 @@ export default function AdminDashboard() {
                         disabled={slot.isBooked || isSelectedDatePast}
                         onCheckedChange={() => toggleSlotAvailability(i)}
                       />
-                      <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="h-7 w-7">
+                      <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="h-7 w-7 text-foreground">
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
@@ -598,7 +601,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="p-6 bg-muted/30 border-t flex gap-3">
-            <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)} className="rounded-xl flex-1 h-12 font-black">Cancelar</Button>
+            <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)} className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
             <Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-12 font-black gap-2">Guardar Cambios</Button>
           </div>
         </DialogContent>

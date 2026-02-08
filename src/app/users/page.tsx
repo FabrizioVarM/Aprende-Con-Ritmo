@@ -1,8 +1,7 @@
-
 "use client"
 
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { 
   Table, 
@@ -66,10 +65,11 @@ const INSTRUMENTS_LIST = [
   'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
 ];
 
-export default function UsersPage() {
+function UsersContent() {
   const { allUsers, adminUpdateUser, adminAddUser, adminDeleteUser, loading, user: currentUser } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isMounted, setIsMounted] = useState(false);
   const [search, setSearch] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -95,7 +95,11 @@ export default function UsersPage() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    // Check for "add=true" parameter to open the create dialog automatically
+    if (searchParams.get('add') === 'true') {
+      setIsCreateDialogOpen(true);
+    }
+  }, [searchParams]);
 
   const filteredUsers = allUsers.filter(user => 
     user.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -217,10 +221,10 @@ export default function UsersPage() {
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead className="w-[300px] font-black uppercase text-[10px] tracking-widest">Usuario</TableHead>
-            <TableHead className="font-black uppercase text-[10px] tracking-widest">Rol</TableHead>
-            <TableHead className="font-black uppercase text-[10px] tracking-widest">Estado</TableHead>
-            <TableHead className="text-right font-black uppercase text-[10px] tracking-widest">Acciones</TableHead>
+            <TableHead className="w-[300px] font-black uppercase text-[10px] tracking-widest text-muted-foreground">Usuario</TableHead>
+            <TableHead className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Rol</TableHead>
+            <TableHead className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Estado</TableHead>
+            <TableHead className="text-right font-black uppercase text-[10px] tracking-widest text-muted-foreground">Acciones</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -315,7 +319,7 @@ export default function UsersPage() {
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
-              <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+              <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
                 <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
                   <UserPlus className="w-8 h-8 text-accent" />
                   Crear Nuevo Usuario
@@ -617,5 +621,13 @@ export default function UsersPage() {
         </AlertDialogContent>
       </AlertDialog>
     </AppLayout>
+  );
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense fallback={null}>
+      <UsersContent />
+    </Suspense>
   );
 }
