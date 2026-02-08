@@ -646,7 +646,7 @@ export default function SchedulePage() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
-                                  {['Música', 'Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría', 'Tormenta de Oro'].map(cat => (
+                                  {['Música', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría', 'Tormenta de Oro'].map(cat => (
                                     <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
                                   ))}
                                 </SelectContent>

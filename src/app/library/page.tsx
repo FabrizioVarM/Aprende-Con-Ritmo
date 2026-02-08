@@ -195,7 +195,7 @@ export default function LibraryPage() {
             />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto scrollbar-hide">
-            {['Todos', 'Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'].map((cat) => {
+            {['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'].map((cat) => {
               const isActive = cat === 'Todos' ? selectedFilters.length === 0 : selectedFilters.includes(cat);
               return (
                 <Button
@@ -352,7 +352,7 @@ export default function LibraryPage() {
                       <SelectValue placeholder="Categoría" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {['Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'].map(cat => (
+                      {['Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'].map(cat => (
                         <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
                       ))}
                     </SelectContent>

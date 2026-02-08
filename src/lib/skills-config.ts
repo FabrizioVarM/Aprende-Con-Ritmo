@@ -14,6 +14,12 @@ export const DEFAULT_SKILLS_CONFIG: Record<string, { name: string; color: string
     { name: 'Escalas Mayores', color: 'bg-orange-500', defaultLevel: 30 },
     { name: 'Uso del Pedal', color: 'bg-green-500', defaultLevel: 10 },
   ],
+  'Bajo': [
+    { name: 'Groove y Timing', color: 'bg-accent', defaultLevel: 25 },
+    { name: 'Técnica de Dedos/Púa', color: 'bg-blue-500', defaultLevel: 15 },
+    { name: 'Escalas Pentatónicas', color: 'bg-orange-500', defaultLevel: 10 },
+    { name: 'Técnica de Slap', color: 'bg-green-500', defaultLevel: 5 },
+  ],
   'Violín': [
     { name: 'Postura del Arco', color: 'bg-accent', defaultLevel: 30 },
     { name: 'Intonación', color: 'bg-blue-500', defaultLevel: 15 },
