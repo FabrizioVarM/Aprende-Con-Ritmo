@@ -1,8 +1,10 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export interface AppSettings {
   appLogoUrl: string;
@@ -26,11 +28,10 @@ export function useSettingsStore() {
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         setSettings({ ...DEFAULT_SETTINGS, ...docSnap.data() });
-      } else {
-        // Inicializar si no existe
-        setDoc(docRef, DEFAULT_SETTINGS);
       }
       setLoading(false);
+    }, (error) => {
+      // Error handling intentionally silent for global settings reading
     });
 
     return () => unsubscribe();
@@ -38,7 +39,13 @@ export function useSettingsStore() {
 
   const updateSettings = useCallback((newSettings: Partial<AppSettings>) => {
     const docRef = doc(db, 'settings', 'global');
-    setDoc(docRef, newSettings, { merge: true });
+    setDoc(docRef, newSettings, { merge: true }).catch((err) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'update',
+        requestResourceData: newSettings
+      }));
+    });
   }, [db]);
 
   return { settings, updateSettings, loading };

@@ -10,11 +10,11 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && (
         exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid)) ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
       );
     }
     function isTeacher() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher';
+      return isSignedIn() && (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'teacher');
     }
 
     match /users/{userId} {
@@ -50,10 +50,9 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Nuevas colecciones raíz usadas en los stores
     match /availabilities/{id} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn(); // Permitir reservas de alumnos y gestión de profes
+      allow write: if isSignedIn();
     }
 
     match /completions/{id} {
