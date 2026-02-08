@@ -90,23 +90,26 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     const unsubscribeAuth = onAuthStateChanged(
       auth,
       (firebaseUser) => {
+        // Limpiar escuchas anteriores si existen
         if (unsubscribeProfile) unsubscribeProfile();
         if (unsubscribeAllUsers) unsubscribeAllUsers();
 
         if (firebaseUser) {
-          // Escucha el perfil del usuario actual
+          // 1. Escucha en TIEMPO REAL del perfil del usuario logueado
           const profileRef = doc(firestore, 'users', firebaseUser.uid);
           unsubscribeProfile = onSnapshot(profileRef, (docSnap) => {
             if (docSnap.exists()) {
               const profileData = docSnap.data() as UserProfile;
+              // Aseguramos que el ID esté presente
+              const profileWithId = { ...profileData, id: docSnap.id };
+              
               setUserAuthState(prev => ({
                 ...prev,
                 user: firebaseUser,
-                profile: profileData,
+                profile: profileWithId,
                 isUserLoading: false
               }));
             } else {
-              // Si no existe, se cargará el estado base y el registro se encargará
               setUserAuthState(prev => ({
                 ...prev,
                 user: firebaseUser,
@@ -114,14 +117,22 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 isUserLoading: false
               }));
             }
+          }, (err) => {
+            console.error("Error escuchando perfil:", err);
           });
 
-          // Escucha todos los usuarios (para directorios)
+          // 2. Escucha en TIEMPO REAL de todos los usuarios para directorios y listas
           const usersRef = collection(firestore, 'users');
           unsubscribeAllUsers = onSnapshot(usersRef, (snapshot) => {
             const users: UserProfile[] = [];
-            snapshot.forEach(d => users.push(d.data() as UserProfile));
+            snapshot.forEach(d => {
+              const data = d.data() as UserProfile;
+              // Crucial: Inyectamos el ID del documento para que la sincronización sea exacta
+              users.push({ ...data, id: d.id });
+            });
             setUserAuthState(prev => ({ ...prev, allUsers: users }));
+          }, (err) => {
+            console.error("Error escuchando lista global:", err);
           });
 
         } else {
