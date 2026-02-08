@@ -26,15 +26,15 @@ service cloud.firestore {
     // Perfiles: Lectura permitida para todos los registrados (para ver profes), escritura solo dueño o admin
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn(); // Permitir crear perfil inicial tras login
+      allow create: if isSignedIn(); 
       allow update: if isAdmin() || isOwner(userId);
       allow delete: if isAdmin();
     }
     
-    // Disponibilidad: Lectura pública, reserva permitida para registrados, gestión solo admin/profe
+    // Disponibilidad: Lectura pública para alumnos, escritura solo admin/profe
     match /availabilities/{availId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn(); // Reservar requiere escribir en el documento del día
+      allow write: if isSignedIn(); // Los alumnos escriben al reservar, los profes al gestionar
     }
     
     // Seguimiento académico: Admin y Profes editan, Alumnos solo leen lo suyo
