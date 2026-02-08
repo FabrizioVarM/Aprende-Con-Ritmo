@@ -43,7 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock, Phone } from 'lucide-react';
+import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock, Phone, ShieldCheck } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -80,6 +80,7 @@ function UsersContent() {
   const [editName, setEditName] = useState('');
   const [editUsername, setEditUsername] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editRole, setEditRole] = useState<UserRole>('student');
   const [editInstruments, setEditInstruments] = useState<string[]>([]);
   const [editPhotoUrl, setEditPhotoUrl] = useState<string | undefined>(undefined);
   const [editAvatarSeed, setEditAvatarSeed] = useState('');
@@ -116,6 +117,7 @@ function UsersContent() {
     setEditName(u.name);
     setEditUsername(u.username || '');
     setEditPhone(u.phone || '');
+    setEditRole(u.role);
     setEditInstruments(u.instruments || []);
     setEditPhotoUrl(u.photoUrl);
     setEditAvatarSeed(u.avatarSeed || u.id);
@@ -127,6 +129,7 @@ function UsersContent() {
         name: editName,
         username: editUsername,
         phone: editPhone,
+        role: editRole,
         instruments: editInstruments,
         photoUrl: editPhotoUrl,
         avatarSeed: editAvatarSeed
@@ -583,12 +586,27 @@ function UsersContent() {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <ShieldCheck className="w-3 h-3 text-accent" /> Rol en la Academia
+                </Label>
+                <Select value={editRole} onValueChange={(v) => setEditRole(v as UserRole)}>
+                  <SelectTrigger className="h-12 rounded-xl border-2 font-bold bg-card text-foreground">
+                    <SelectValue placeholder="Seleccionar Rol" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="student" className="font-bold">Estudiante</SelectItem>
+                    <SelectItem value="teacher" className="font-bold">Profesor</SelectItem>
+                    <SelectItem value="admin" className="font-bold">Administrador</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-4">
               <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                 <Music className="w-4 h-4 text-accent" /> 
-                {editingUser?.role === 'teacher' ? 'Especialidades (Instrumentos que enseña)' : 'Instrumentos (Lo que aprende)'}
+                {editRole === 'teacher' ? 'Especialidades (Instrumentos que enseña)' : 'Instrumentos (Lo que aprende)'}
               </Label>
               <div className="flex flex-wrap gap-2">
                 {INSTRUMENTS_LIST.map(inst => {
