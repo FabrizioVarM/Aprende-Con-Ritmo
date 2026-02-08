@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { useSettingsStore } from '@/lib/settings-store';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
-import { Image as ImageIcon, Upload, RefreshCw, Save, ShieldCheck, Moon, Sun, MessageCircle, Phone } from 'lucide-react';
+import { Image as ImageIcon, Upload, RefreshCw, Save, ShieldCheck, Moon, Sun, MessageCircle, Phone, LayoutGrid, Mic2, Gift, ShoppingBag, ClipboardList } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -25,6 +25,13 @@ export default function SettingsPage() {
   const [logoUrl, setLogoUrl] = useState(settings.appLogoUrl);
   const [darkMode, setDarkMode] = useState(settings.darkMode);
   const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
+  
+  // Local states for feature toggles
+  const [enableProduction, setEnableProduction] = useState(settings.enableProduction);
+  const [enableRewards, setEnableRewards] = useState(settings.enableRewards);
+  const [enableMarket, setEnableMarket] = useState(settings.enableMarket);
+  const [enablePostulations, setEnablePostulations] = useState(settings.enablePostulations);
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -41,13 +48,21 @@ export default function SettingsPage() {
     setLogoUrl(settings.appLogoUrl);
     setDarkMode(settings.darkMode);
     setWhatsappNumber(settings.whatsappNumber);
+    setEnableProduction(settings.enableProduction);
+    setEnableRewards(settings.enableRewards);
+    setEnableMarket(settings.enableMarket);
+    setEnablePostulations(settings.enablePostulations);
   }, [settings]);
 
   const handleSave = () => {
     updateSettings({ 
       appLogoUrl: logoUrl,
       darkMode: darkMode,
-      whatsappNumber: whatsappNumber
+      whatsappNumber: whatsappNumber,
+      enableProduction,
+      enableRewards,
+      enableMarket,
+      enablePostulations
     });
     toast({
       title: "Configuración Guardada ✨",
@@ -86,7 +101,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-8">
-          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-xl bg-white dark:bg-card overflow-hidden">
+          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
                 <ImageIcon className="w-8 h-8 text-accent" />
@@ -165,7 +180,44 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-xl bg-white dark:bg-card overflow-hidden">
+          <Card className="rounded-[2.5rem] border-2 border-accent/20 shadow-md bg-white dark:bg-card overflow-hidden">
+            <CardHeader className="bg-accent/5 p-8 border-b">
+              <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
+                <LayoutGrid className="w-8 h-8 text-accent" />
+                Gestión de Módulos Académicos
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <p className="text-sm text-muted-foreground font-medium mb-4">
+                Activa o desactiva las funciones de la academia para alumnos y profesores. Como administrador, tú siempre podrás acceder a ellas para realizar pruebas.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { id: 'production', label: 'Producción Musical', icon: Mic2, state: enableProduction, setter: setEnableProduction },
+                  { id: 'rewards', label: 'Recompensas', icon: Gift, state: enableRewards, setter: setEnableRewards },
+                  { id: 'market', label: 'RitmoMarket', icon: ShoppingBag, state: enableMarket, setter: setEnableMarket },
+                  { id: 'postulations', label: 'Postulaciones', icon: ClipboardList, state: enablePostulations, setter: setEnablePostulations },
+                ].map((mod) => (
+                  <div key={mod.id} className="flex items-center justify-between p-5 bg-primary/5 rounded-2xl border-2 border-primary/10">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+                        <mod.icon className="w-5 h-5 text-accent" />
+                      </div>
+                      <span className="font-black text-foreground">{mod.label}</span>
+                    </div>
+                    <Switch 
+                      checked={mod.state}
+                      onCheckedChange={mod.setter}
+                      className="data-[state=checked]:bg-accent"
+                    />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
                 <MessageCircle className="w-8 h-8 text-accent" />
@@ -189,7 +241,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-xl bg-white dark:bg-card overflow-hidden">
+          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
                 <Moon className="w-8 h-8 text-accent" />
@@ -233,7 +285,7 @@ export default function SettingsPage() {
           <div>
             <h4 className="font-black text-orange-900 dark:text-orange-400">Nota Institucional</h4>
             <p className="text-sm text-orange-800 dark:text-orange-300/80 font-medium mt-1">
-              Los cambios en el logotipo, número de WhatsApp y el modo de apariencia se aplicarán inmediatamente para todos los usuarios que naveguen en esta instancia de la plataforma.
+              Los cambios en los módulos, logotipo y el modo de apariencia se aplicarán inmediatamente para todos los usuarios que naveguen en la plataforma.
             </p>
           </div>
         </div>

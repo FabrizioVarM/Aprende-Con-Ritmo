@@ -21,7 +21,7 @@ import {
   Gift
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
-import { useSettingsStore } from '@/lib/settings-store';
+import { useSettingsStore, AppSettings } from '@/lib/settings-store';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -48,7 +48,7 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   roles: UserRole[];
-  disabled?: boolean;
+  settingKey?: keyof AppSettings;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -56,10 +56,10 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Horario', href: '/schedule', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
   { label: 'Biblioteca', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
   { label: 'Progreso', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher', 'admin'] },
-  { label: 'Producción Musical', href: '#', icon: Mic2, roles: ['student', 'teacher', 'admin'], disabled: true },
-  { label: 'Recompensas', href: '#', icon: Gift, roles: ['student', 'teacher', 'admin'], disabled: true },
-  { label: 'RitmoMarket', href: '#', icon: ShoppingBag, roles: ['student', 'teacher', 'admin'], disabled: true },
-  { label: 'Postulaciones', href: '#', icon: ClipboardList, roles: ['student', 'teacher', 'admin'], disabled: true },
+  { label: 'Producción Musical', href: '/production', icon: Mic2, roles: ['student', 'teacher', 'admin'], settingKey: 'enableProduction' },
+  { label: 'Recompensas', href: '/rewards', icon: Gift, roles: ['student', 'teacher', 'admin'], settingKey: 'enableRewards' },
+  { label: 'RitmoMarket', href: '/market', icon: ShoppingBag, roles: ['student', 'teacher', 'admin'], settingKey: 'enableMarket' },
+  { label: 'Postulaciones', href: '/postulations', icon: ClipboardList, roles: ['student', 'teacher', 'admin'], settingKey: 'enablePostulations' },
   { label: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
   { label: 'Configuración', href: '/settings', icon: Settings, roles: ['admin'] },
 ];
@@ -83,6 +83,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
+  const isTabDisabled = (item: NavItem) => {
+    // Si el usuario es admin, NUNCA está deshabilitado para él
+    if (user.role === 'admin') return false;
+    
+    // Si tiene una llave de configuración, verificar si el admin habilitó el módulo
+    if (item.settingKey) {
+      return !settings[item.settingKey];
+    }
+    
+    return false;
+  };
+
   const filteredNav = NAV_ITEMS.filter(item => item.roles.includes(user.role));
 
   const SidebarContent = () => (
@@ -105,8 +117,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <nav className="flex-1 space-y-1">
         {filteredNav.map((item) => {
           const isActive = pathname === item.href;
+          const isDisabled = isTabDisabled(item);
           
-          if (item.disabled) {
+          if (isDisabled) {
             return (
               <div 
                 key={item.label} 
@@ -224,7 +237,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* User Profile Block */}
         <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3 px-4 py-4 bg-primary/5 rounded-2xl border border-primary/10">
+          <div className="flex items-center gap-3 px-4 py-4 bg-primary/5 rounded-2xl border-2 border-primary/10">
             <Avatar className="w-10 h-10 border-2 border-primary shrink-0">
               {user.photoUrl ? (
                 <AvatarImage src={user.photoUrl} className="object-cover" />

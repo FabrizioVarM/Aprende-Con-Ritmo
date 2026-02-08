@@ -11,12 +11,21 @@ export interface AppSettings {
   appLogoUrl: string;
   darkMode: boolean;
   whatsappNumber: string;
+  // Estados de los módulos
+  enableProduction: boolean;
+  enableRewards: boolean;
+  enableMarket: boolean;
+  enablePostulations: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
   appLogoUrl: 'https://picsum.photos/seed/ritmologo/200/200',
   darkMode: false,
-  whatsappNumber: '51999999999'
+  whatsappNumber: '51999999999',
+  enableProduction: false,
+  enableRewards: false,
+  enableMarket: false,
+  enablePostulations: false
 };
 
 /**
