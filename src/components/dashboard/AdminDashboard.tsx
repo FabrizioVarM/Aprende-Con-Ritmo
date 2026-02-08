@@ -40,7 +40,9 @@ import {
   Eraser,
   Plus,
   User as UserIcon,
-  Database
+  Database,
+  Video,
+  MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -229,6 +231,14 @@ export default function AdminDashboard() {
     const newSlots = [...localSlots];
     if (!newSlots[index].isBooked) {
       newSlots[index].isAvailable = !newSlots[index].isAvailable;
+      setLocalSlots(newSlots);
+    }
+  };
+
+  const toggleSlotType = (index: number) => {
+    const newSlots = [...localSlots];
+    if (!newSlots[index].isBooked) {
+      newSlots[index].type = newSlots[index].type === 'virtual' ? 'presencial' : 'virtual';
       setLocalSlots(newSlots);
     }
   };
@@ -613,6 +623,23 @@ export default function AdminDashboard() {
                           </div>
                         )}
                       </div>
+                      
+                      <div className="flex flex-col gap-1 shrink-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={slot.isBooked || isSelectedDatePast}
+                          onClick={() => toggleSlotType(i)}
+                          className={cn(
+                            "h-7 px-2 text-[8px] font-black uppercase rounded-md border",
+                            slot.type === 'virtual' ? "text-blue-600 border-blue-200 bg-blue-50" : "text-red-600 border-red-200 bg-red-50"
+                          )}
+                        >
+                          {slot.type === 'virtual' ? <Video className="w-3 h-3 mr-1" /> : <MapPin className="w-3 h-3 mr-1" />}
+                          {slot.type}
+                        </Button>
+                      </div>
+
                       <Switch 
                         checked={slot.isAvailable || slot.isBooked} 
                         disabled={slot.isBooked || isSelectedDatePast}
