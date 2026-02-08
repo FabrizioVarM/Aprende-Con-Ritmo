@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Funciones de ayuda
+    // Funciones de utilidad
     function isSignedIn() {
       return request.auth != null;
     }
@@ -12,11 +12,7 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && (
-        getUserData().role == 'admin' || 
-        // Fallback para el primer usuario si aún no tiene perfil pero es el creador
-        (!exists(/databases/$(database)/documents/users/$(request.auth.uid)) && request.auth.token.email == "tu-email-de-admin@ejemplo.com")
-      );
+      return isSignedIn() && getUserData().role == 'admin';
     }
 
     function isTeacher() {
@@ -27,17 +23,19 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Reglas por Colección
+    // Perfiles: Todos los autenticados leen, solo admin o el dueño escribe
     match /users/{userId} {
       allow read: if isSignedIn();
       allow write: if isAdmin() || isOwner(userId);
     }
     
+    // Disponibilidad: Lectura pública (para ver horarios), escritura si eres admin, profe o el alumno que reserva
     match /availabilities/{availId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn(); // Permitir que alumnos reserven slots
+      allow write: if isSignedIn(); 
     }
     
+    // Completados, Hitos y Habilidades: Admin y Profes editan, Alumnos solo leen
     match /completions/{compId} {
       allow read: if isSignedIn();
       allow write: if isAdmin() || isTeacher();
@@ -53,11 +51,13 @@ service cloud.firestore {
       allow write: if isAdmin() || isTeacher();
     }
     
+    // Catálogo: Todos leen, solo admin edita
     match /resources/{resId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
     
+    // Ajustes: Lectura pública, solo admin edita
     match /settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();

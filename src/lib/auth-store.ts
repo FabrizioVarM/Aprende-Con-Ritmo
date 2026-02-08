@@ -9,8 +9,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
-  signInWithPopup,
-  User as FirebaseUser
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
@@ -47,7 +46,7 @@ export function useAuth() {
         return docSnap.data() as User;
       }
     } catch (e) {
-      // Manejado por el listener global si es error de permisos
+      // Errores de lectura manejados silenciosamente durante el login
     }
     return null;
   }, [db]);
@@ -72,8 +71,22 @@ export function useAuth() {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const profile = await fetchProfile(firebaseUser.uid);
-        setUser(profile);
-        fetchAllUsers();
+        if (profile) {
+          setUser(profile);
+          fetchAllUsers();
+        } else {
+          // Si el perfil no existe (ej. error en creación previa), lo creamos mínimamente
+          const newUser: User = {
+            id: firebaseUser.uid,
+            name: firebaseUser.displayName || 'Usuario Nuevo',
+            email: firebaseUser.email || '',
+            role: 'student',
+            username: (firebaseUser.email || '').split('@')[0],
+            avatarSeed: firebaseUser.uid
+          };
+          await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+          setUser(newUser);
+        }
       } else {
         setUser(null);
         setAllUsers([]);
@@ -82,30 +95,18 @@ export function useAuth() {
     });
 
     return () => unsubscribe();
-  }, [auth, fetchProfile, fetchAllUsers]);
-
-  const handleAuthError = (e: any) => {
-    if (e.code === 'auth/operation-not-allowed') {
-      toast({
-        variant: "destructive",
-        title: "Configuración requerida ⚙️",
-        description: "El método de inicio de sesión no está habilitado en la consola de Firebase.",
-      });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error de autenticación",
-        description: e.message || "No se pudo completar la operación.",
-      });
-    }
-  };
+  }, [auth, fetchProfile, fetchAllUsers, db]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
     try {
       await signInWithEmailAndPassword(auth, email, password || 'password123');
       return true;
     } catch (e: any) {
-      handleAuthError(e);
+      toast({
+        variant: "destructive",
+        title: "Error de acceso 🚫",
+        description: "Verifica tus credenciales o el método de acceso.",
+      });
       return false;
     }
   };
@@ -114,37 +115,13 @@ export function useAuth() {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      const firebaseUser = result.user;
-      
-      const profile = await fetchProfile(firebaseUser.uid);
-      
-      if (!profile) {
-        const newUser: User = {
-          id: firebaseUser.uid,
-          name: firebaseUser.displayName || 'Usuario Google',
-          email: firebaseUser.email || '',
-          role: 'student',
-          username: (firebaseUser.email || '').split('@')[0],
-          avatarSeed: firebaseUser.uid,
-          photoUrl: firebaseUser.photoURL || undefined,
-          instruments: []
-        };
-        const docRef = doc(db, 'users', firebaseUser.uid);
-        setDoc(docRef, newUser).catch((err) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'create',
-            requestResourceData: newUser
-          }));
-        });
-        setUser(newUser);
-      } else {
-        setUser(profile);
-      }
-      
-      return true;
+      return !!result.user;
     } catch (e: any) {
-      handleAuthError(e);
+      toast({
+        variant: "destructive",
+        title: "Error con Google 🚫",
+        description: "No se pudo completar el inicio de sesión.",
+      });
       return false;
     }
   };
@@ -164,19 +141,15 @@ export function useAuth() {
         instruments: []
       };
 
-      const docRef = doc(db, 'users', firebaseUser.uid);
-      setDoc(docRef, newUser).catch((err) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: docRef.path,
-          operation: 'create',
-          requestResourceData: newUser
-        }));
-      });
-      
+      await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
       setUser(newUser);
       return newUser;
     } catch (e: any) {
-      handleAuthError(e);
+      toast({
+        variant: "destructive",
+        title: "Error en el registro 🚫",
+        description: e.message || "No se pudo crear la cuenta.",
+      });
       return null;
     }
   };
@@ -185,10 +158,10 @@ export function useAuth() {
     await signOut(auth);
   }, [auth]);
 
-  const updateUser = useCallback((updatedData: Partial<User>) => {
+  const updateUser = useCallback(async (updatedData: Partial<User>) => {
     if (!user) return;
     const docRef = doc(db, 'users', user.id);
-    updateDoc(docRef, updatedData).catch((err) => {
+    await updateDoc(docRef, updatedData).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
         operation: 'update',
@@ -198,9 +171,9 @@ export function useAuth() {
     setUser(prev => prev ? { ...prev, ...updatedData } : null);
   }, [db, user]);
 
-  const adminUpdateUser = useCallback((userId: string, updatedData: Partial<User>) => {
+  const adminUpdateUser = useCallback(async (userId: string, updatedData: Partial<User>) => {
     const docRef = doc(db, 'users', userId);
-    updateDoc(docRef, updatedData).catch((err) => {
+    await updateDoc(docRef, updatedData).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
         operation: 'update',

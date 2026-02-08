@@ -4,7 +4,7 @@
     "UserProfile": {
       "title": "UserProfile",
       "type": "object",
-      "description": "Perfil de usuario en el sistema.",
+      "description": "Perfil detallado de usuario (alumno, profesor o admin).",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
@@ -21,7 +21,7 @@
     "DayAvailability": {
       "title": "DayAvailability",
       "type": "object",
-      "description": "Disponibilidad y reservas de un profesor por día.",
+      "description": "Horarios y reservas por profesor y fecha.",
       "properties": {
         "teacherId": { "type": "string" },
         "date": { "type": "string" },
@@ -31,7 +31,7 @@
     "ResourceCompletion": {
       "title": "ResourceCompletion",
       "type": "object",
-      "description": "Registro de materiales completados por alumnos.",
+      "description": "Registro de materiales validados como completados.",
       "properties": {
         "resourceId": { "type": "number" },
         "studentId": { "type": "string" },
@@ -43,7 +43,7 @@
     "UserMilestone": {
       "title": "UserMilestone",
       "type": "object",
-      "description": "Hitos de carrera asignados a alumnos.",
+      "description": "Logros históricos asignados a los alumnos.",
       "properties": {
         "id": { "type": "string" },
         "studentId": { "type": "string" },
@@ -55,7 +55,7 @@
     "StudentSkill": {
       "title": "StudentSkill",
       "type": "object",
-      "description": "Nivel de habilidad técnica de un alumno.",
+      "description": "Nivel técnico porcentual del alumno.",
       "properties": {
         "studentId": { "type": "string" },
         "instrument": { "type": "string" },
@@ -66,7 +66,7 @@
     "MusicResource": {
       "title": "MusicResource",
       "type": "object",
-      "description": "Material educativo de la biblioteca.",
+      "description": "Material didáctico de la biblioteca.",
       "properties": {
         "id": { "type": "number" },
         "title": { "type": "string" },
@@ -81,7 +81,7 @@
     "AppSetting": {
       "title": "AppSetting",
       "type": "object",
-      "description": "Configuración global del sistema.",
+      "description": "Configuración global de identidad y canales.",
       "properties": {
         "appLogoUrl": { "type": "string" },
         "darkMode": { "type": "boolean" },
@@ -96,31 +96,31 @@
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/backend/entities/UserProfile" },
-      "description": "Perfiles de alumnos, profesores y admins."
+      "description": "Almacén de perfiles de usuario."
     },
     "/availabilities/{availId}": {
       "schema": { "$ref": "#/backend/entities/DayAvailability" },
-      "description": "Agenda de clases y disponibilidad docente."
+      "description": "Gestión de agenda y reservas de clases."
     },
     "/completions/{compId}": {
       "schema": { "$ref": "#/backend/entities/ResourceCompletion" },
-      "description": "Validación de materiales estudiados por el alumno."
+      "description": "Seguimiento de materiales completados."
     },
     "/milestones/{mileId}": {
       "schema": { "$ref": "#/backend/entities/UserMilestone" },
-      "description": "Logros históricos y medallas de carrera."
+      "description": "Registro de hitos y medallas."
     },
     "/skills/{skillId}": {
       "schema": { "$ref": "#/backend/entities/StudentSkill" },
-      "description": "Niveles de técnica detallados."
+      "description": "Niveles de habilidad por instrumento."
     },
     "/resources/{resId}": {
       "schema": { "$ref": "#/backend/entities/MusicResource" },
-      "description": "Catálogo de la biblioteca musical."
+      "description": "Catálogo de contenidos de la academia."
     },
     "/settings/{docId}": {
       "schema": { "$ref": "#/backend/entities/AppSetting" },
-      "description": "Ajustes globales como logo y contacto."
+      "description": "Ajustes de sistema y biblioteca."
     }
   }
 }
