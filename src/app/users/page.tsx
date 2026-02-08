@@ -63,7 +63,8 @@ import { useAuth, User, UserRole } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
 
 const INSTRUMENTS_LIST = [
-  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
+  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría',
+  'Ukelele', 'Saxofón', 'Flauta', 'Producción Musical', 'Coro', 'Violonchelo', 'Trompeta'
 ];
 
 function UsersContent() {
@@ -98,7 +99,6 @@ function UsersContent() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Check for "add=true" parameter to open the create dialog automatically
     if (searchParams.get('add') === 'true') {
       setIsCreateDialogOpen(true);
     }
@@ -615,10 +615,10 @@ function UsersContent() {
             </div>
           </div>
 
-          <DialogFooter className="p-8 bg-muted/30 flex gap-3 border-t shrink-0">
+          <div className="p-8 bg-muted/30 border-t flex gap-3 shrink-0">
             <Button variant="outline" onClick={() => setEditingUser(null)} className="rounded-xl flex-1 h-14 font-black text-foreground">Cancelar</Button>
             <Button onClick={handleSaveEdit} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 hover:scale-105 transition-all">Guardar Cambios</Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 

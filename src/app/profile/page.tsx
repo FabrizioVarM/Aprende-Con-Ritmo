@@ -15,7 +15,8 @@ import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X, Phone } from 
 import { cn } from '@/lib/utils';
 
 const INSTRUMENTS_LIST = [
-  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
+  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría',
+  'Ukelele', 'Saxofón', 'Flauta', 'Producción Musical', 'Coro', 'Violonchelo', 'Trompeta'
 ];
 
 export default function ProfilePage() {
@@ -70,7 +71,7 @@ export default function ProfilePage() {
   const generateRandomAvatar = () => {
     const newSeed = Math.random().toString(36).substring(7);
     setAvatarSeed(newSeed);
-    setPhotoUrl(undefined); // Al generar aleatorio, priorizamos el avatar por semilla
+    setPhotoUrl(undefined); 
     toast({
       description: "Se ha generado un nuevo avatar aleatorio.",
     });

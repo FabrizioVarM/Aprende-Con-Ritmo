@@ -29,6 +29,8 @@ import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 
+const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría', 'Ukelele', 'Saxofón', 'Flauta', 'Producción Musical', 'Coro', 'Violonchelo', 'Trompeta'];
+
 export default function LibraryPage() {
   const { user, allUsers, loading } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
@@ -195,7 +197,7 @@ export default function LibraryPage() {
             />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto scrollbar-hide">
-            {['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'].map((cat) => {
+            {ALL_CATEGORIES.map((cat) => {
               const isActive = cat === 'Todos' ? selectedFilters.length === 0 : selectedFilters.includes(cat);
               return (
                 <Button
@@ -352,7 +354,7 @@ export default function LibraryPage() {
                       <SelectValue placeholder="Categoría" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {['Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'].map(cat => (
+                      {ALL_CATEGORIES.filter(c => c !== 'Todos').map(cat => (
                         <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
                       ))}
                     </SelectContent>
@@ -398,7 +400,7 @@ export default function LibraryPage() {
               </div>
             </div>
           </div>
-          <DialogFooter className="p-8 bg-muted/30 flex gap-3 border-t">
+          <DialogFooter className="p-8 bg-muted/30 flex gap-3 border-t shrink-0">
             <Button variant="outline" onClick={() => setEditingResource(null)} className="rounded-xl flex-1 h-14 font-black text-foreground">Cancelar</Button>
             <Button onClick={handleSaveResourceEdit} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Guardar Cambios</Button>
           </DialogFooter>

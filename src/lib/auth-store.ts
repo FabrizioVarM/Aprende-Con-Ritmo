@@ -85,7 +85,13 @@ export function useAuth() {
             avatarSeed: firebaseUser.uid,
             instruments: []
           };
-          await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+          setDoc(doc(db, 'users', firebaseUser.uid), newUser).catch((err) => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: `users/${firebaseUser.uid}`,
+              operation: 'create',
+              requestResourceData: newUser
+            }));
+          });
           setUser(newUser);
           fetchAllUsers();
         }
@@ -111,7 +117,6 @@ export function useAuth() {
   const loginWithGoogle = async (): Promise<boolean> => {
     try {
       const provider = new GoogleAuthProvider();
-      // Forzamos la selección de cuenta para evitar bucles de errores
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
       return !!result.user;
@@ -145,7 +150,13 @@ export function useAuth() {
         instruments: []
       };
 
-      await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+      setDoc(doc(db, 'users', firebaseUser.uid), newUser).catch((err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `users/${firebaseUser.uid}`,
+          operation: 'create',
+          requestResourceData: newUser
+        }));
+      });
       setUser(newUser);
       return newUser;
     } catch (e: any) {
@@ -157,31 +168,54 @@ export function useAuth() {
     await signOut(auth);
   }, [auth]);
 
-  const updateUser = useCallback(async (updatedData: Partial<User>) => {
+  const updateUser = useCallback((updatedData: Partial<User>) => {
     if (!user) return;
     const docRef = doc(db, 'users', user.id);
-    await updateDoc(docRef, updatedData);
+    updateDoc(docRef, updatedData).catch((err) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'update',
+        requestResourceData: updatedData
+      }));
+    });
     setUser(prev => prev ? { ...prev, ...updatedData } : null);
   }, [db, user]);
 
-  const adminUpdateUser = useCallback(async (userId: string, updatedData: Partial<User>) => {
+  const adminUpdateUser = useCallback((userId: string, updatedData: Partial<User>) => {
     const docRef = doc(db, 'users', userId);
-    await updateDoc(docRef, updatedData);
+    updateDoc(docRef, updatedData).catch((err) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'update',
+        requestResourceData: updatedData
+      }));
+    });
     fetchAllUsers();
   }, [db, fetchAllUsers]);
 
-  const adminAddUser = useCallback(async (userData: Omit<User, 'id'>) => {
+  const adminAddUser = useCallback((userData: Omit<User, 'id'>) => {
     const newId = Math.random().toString(36).substring(7);
     const newUser = { ...userData, id: newId };
     const docRef = doc(db, 'users', newId);
-    await setDoc(docRef, newUser);
+    setDoc(docRef, newUser).catch((err) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'create',
+        requestResourceData: newUser
+      }));
+    });
     fetchAllUsers();
     return newUser;
   }, [db, fetchAllUsers]);
 
-  const adminDeleteUser = useCallback(async (userId: string) => {
+  const adminDeleteUser = useCallback((userId: string) => {
     const docRef = doc(db, 'users', userId);
-    await deleteDoc(docRef);
+    deleteDoc(docRef).catch((err) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'delete'
+      }));
+    });
     fetchAllUsers();
   }, [db, fetchAllUsers]);
 

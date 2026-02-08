@@ -11,13 +11,20 @@ import Image from 'next/image';
 import { useSettingsStore } from '@/lib/settings-store';
 
 const INSTRUMENTS = [
-  { id: 'Guitarra', name: 'Guitarra', icon: '🎸', hint: 'guitar' },
-  { id: 'Piano', name: 'Piano', icon: '🎹', hint: 'piano' },
-  { id: 'Violín', name: 'Violín', icon: '🎻', hint: 'violin' },
-  { id: 'Canto', name: 'Canto', icon: '🎤', hint: 'singing' },
-  { id: 'Batería', name: 'Batería', icon: '🥁', hint: 'drums' },
-  { id: 'Bajo', name: 'Bajo', icon: '🎸', hint: 'bass guitar' },
-  { id: 'Teoría', name: 'Teoría Musical', icon: '📖', hint: 'music theory' },
+  { id: 'Guitarra', name: 'Guitarra', icon: '🎸' },
+  { id: 'Piano', name: 'Piano', icon: '🎹' },
+  { id: 'Violín', name: 'Violín', icon: '🎻' },
+  { id: 'Canto', name: 'Canto', icon: '🎤' },
+  { id: 'Batería', name: 'Batería', icon: '🥁' },
+  { id: 'Bajo', name: 'Bajo', icon: '🎸' },
+  { id: 'Teoría', name: 'Teoría Musical', icon: '📖' },
+  { id: 'Ukelele', name: 'Ukelele', icon: '🪕' },
+  { id: 'Saxofón', name: 'Saxofón', icon: '🎷' },
+  { id: 'Flauta', name: 'Flauta', icon: '🎶' },
+  { id: 'Producción Musical', name: 'Producción', icon: '💻' },
+  { id: 'Coro', name: 'Coro', icon: '👥' },
+  { id: 'Violonchelo', name: 'Violonchelo', icon: '🎻' },
+  { id: 'Trompeta', name: 'Trompeta', icon: '🎺' },
 ];
 
 export default function InstrumentSelectionPage() {
@@ -40,9 +47,7 @@ export default function InstrumentSelectionPage() {
 
   const handleFinish = () => {
     if (selected.length === 0) return;
-    // Guardamos los instrumentos en el perfil
     updateUser({ instruments: selected });
-    // Redirigimos al apartado de teléfono (paso opcional)
     router.push('/register/phone');
   };
 
@@ -50,7 +55,7 @@ export default function InstrumentSelectionPage() {
 
   return (
     <div className="min-h-screen bg-primary/10 flex flex-col items-center justify-center p-6">
-      <div className="max-w-4xl w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="max-w-5xl w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="text-center space-y-4">
           <div className="relative w-20 h-20 bg-white rounded-3xl shadow-xl mx-auto mb-6 border-4 border-accent overflow-hidden">
             <Image 
@@ -64,11 +69,11 @@ export default function InstrumentSelectionPage() {
             ¡Casi listo, <span className="text-accent">{user.name.split(' ')[0]}</span>! 🎼
           </h1>
           <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
-            Cuéntanos, ¿qué instrumento te gustaría aprender en Aprende Con Ritmo? Si tienes un objetivo más grande, puedes elegir más de un instrumento!
+            Cuéntanos, ¿qué instrumento te gustaría aprender en Aprende Con Ritmo? ¡Puedes elegir más de uno!
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {INSTRUMENTS.map((inst) => {
             const isSelected = selected.includes(inst.id);
             return (
@@ -88,7 +93,7 @@ export default function InstrumentSelectionPage() {
                 )}>
                   {inst.icon}
                 </div>
-                <span className="font-black text-sm uppercase tracking-widest group-data-[state=selected]:text-white">
+                <span className="font-black text-xs uppercase tracking-widest text-center">
                   {inst.name}
                 </span>
                 
