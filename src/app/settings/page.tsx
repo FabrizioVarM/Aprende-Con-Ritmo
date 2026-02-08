@@ -11,7 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import { useSettingsStore } from '@/lib/settings-store';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
-import { Image as ImageIcon, Upload, RefreshCw, Save, ShieldCheck, Moon, Sun, MessageCircle, Phone, LayoutGrid, Mic2, Gift, ShoppingBag, ClipboardList } from 'lucide-react';
+import { Image as ImageIcon, Upload, RefreshCw, Save, ShieldCheck, Moon, Sun, MessageCircle, Phone, LayoutGrid, Mic2, Gift, ShoppingBag, ClipboardList, Eye, Power } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -26,11 +26,15 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(settings.darkMode);
   const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
   
-  // Local states for feature toggles
-  const [enableProduction, setEnableProduction] = useState(settings.enableProduction);
-  const [enableRewards, setEnableRewards] = useState(settings.enableRewards);
-  const [enableMarket, setEnableMarket] = useState(settings.enableMarket);
-  const [enablePostulations, setEnablePostulations] = useState(settings.enablePostulations);
+  // Local states for feature visibility and usage
+  const [showProd, setShowProd] = useState(settings.showProduction);
+  const [enableProd, setEnableProd] = useState(settings.enableProduction);
+  const [showRew, setShowRew] = useState(settings.showRewards);
+  const [enableRew, setEnableRew] = useState(settings.enableRewards);
+  const [showMark, setShowMark] = useState(settings.showMarket);
+  const [enableMark, setEnableMarket] = useState(settings.enableMarket);
+  const [showPost, setShowPost] = useState(settings.showPostulations);
+  const [enablePost, setEnablePost] = useState(settings.enablePostulations);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -48,10 +52,14 @@ export default function SettingsPage() {
     setLogoUrl(settings.appLogoUrl);
     setDarkMode(settings.darkMode);
     setWhatsappNumber(settings.whatsappNumber);
-    setEnableProduction(settings.enableProduction);
-    setEnableRewards(settings.enableRewards);
+    setShowProd(settings.showProduction);
+    setEnableProd(settings.enableProduction);
+    setShowRew(settings.showRewards);
+    setEnableRew(settings.enableRewards);
+    setShowMark(settings.showMarket);
     setEnableMarket(settings.enableMarket);
-    setEnablePostulations(settings.enablePostulations);
+    setShowPost(settings.showPostulations);
+    setEnablePost(settings.enablePostulations);
   }, [settings]);
 
   const handleSave = () => {
@@ -59,10 +67,14 @@ export default function SettingsPage() {
       appLogoUrl: logoUrl,
       darkMode: darkMode,
       whatsappNumber: whatsappNumber,
-      enableProduction,
-      enableRewards,
-      enableMarket,
-      enablePostulations
+      showProduction: showProd,
+      enableProduction: enableProd,
+      showRewards: showRew,
+      enableRewards: enableRew,
+      showMarket: showMark,
+      enableMarket: enableMark,
+      showPostulations: showPost,
+      enablePostulations: enablePost
     });
     toast({
       title: "Configuración Guardada ✨",
@@ -136,7 +148,6 @@ export default function SettingsPage() {
                       </button>
                     </div>
                   </div>
-                  <p className="text-[10px] font-bold text-muted-foreground italic">Resolución recomendada: 200x200px</p>
                 </div>
 
                 <div className="flex-1 space-y-6 w-full">
@@ -148,7 +159,6 @@ export default function SettingsPage() {
                       className="h-14 rounded-2xl border-2 font-bold px-6 focus:border-accent text-foreground bg-card"
                       placeholder="https://..."
                     />
-                    <p className="text-xs text-muted-foreground font-medium">Puedes pegar una URL directa o subir un archivo local.</p>
                   </div>
 
                   <div className="flex flex-wrap gap-3">
@@ -159,22 +169,14 @@ export default function SettingsPage() {
                     >
                       <Upload className="w-4 h-4" /> Subir Imagen
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="rounded-2xl h-12 gap-2 font-black text-muted-foreground"
-                      onClick={generateRandomLogo}
-                    >
-                      <RefreshCw className="w-4 h-4" /> Imagen Aleatoria
-                    </Button>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleFileUpload} 
+                    />
                   </div>
-                  
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/*" 
-                    onChange={handleFileUpload} 
-                  />
                 </div>
               </div>
             </CardContent>
@@ -187,30 +189,49 @@ export default function SettingsPage() {
                 Gestión de Módulos Académicos
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-8 space-y-6">
-              <p className="text-sm text-muted-foreground font-medium mb-4">
-                Activa o desactiva las funciones de la academia para alumnos y profesores. Como administrador, tú siempre podrás acceder a ellas para realizar pruebas.
-              </p>
+            <CardContent className="p-8 space-y-8">
+              <div className="bg-accent/5 p-4 rounded-2xl border border-accent/10 mb-6">
+                <p className="text-sm text-muted-foreground font-medium">
+                  Configura la visibilidad y el acceso para alumnos y profesores. 
+                  <span className="font-black text-accent"> Tú como administrador siempre tendrás acceso total para pruebas.</span>
+                </p>
+              </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-6">
                 {[
-                  { id: 'production', label: 'Producción Musical', icon: Mic2, state: enableProduction, setter: setEnableProduction },
-                  { id: 'rewards', label: 'Recompensas', icon: Gift, state: enableRewards, setter: setEnableRewards },
-                  { id: 'market', label: 'RitmoMarket', icon: ShoppingBag, state: enableMarket, setter: setEnableMarket },
-                  { id: 'postulations', label: 'Postulaciones', icon: ClipboardList, state: enablePostulations, setter: setEnablePostulations },
+                  { id: 'prod', label: 'Producción Musical', icon: Mic2, show: showProd, setShow: setShowProd, enable: enableProd, setEnable: setEnableProd },
+                  { id: 'rew', label: 'Recompensas', icon: Gift, show: showRew, setShow: setShowRew, enable: enableRew, setEnable: setEnableRew },
+                  { id: 'mark', label: 'RitmoMarket', icon: ShoppingBag, show: showMark, setShow: setShowMark, enable: enableMark, setEnable: setEnableMarket },
+                  { id: 'post', label: 'Postulaciones', icon: ClipboardList, show: showPost, setShow: setShowPost, enable: enablePost, setEnable: setEnablePost },
                 ].map((mod) => (
-                  <div key={mod.id} className="flex items-center justify-between p-5 bg-primary/5 rounded-2xl border-2 border-primary/10">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
-                        <mod.icon className="w-5 h-5 text-accent" />
+                  <div key={mod.id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10 gap-6">
+                    <div className="flex items-center gap-4 min-w-0 flex-1">
+                      <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm shrink-0">
+                        <mod.icon className="w-6 h-6 text-accent" />
                       </div>
-                      <span className="font-black text-foreground">{mod.label}</span>
+                      <div>
+                        <h4 className="font-black text-lg text-foreground">{mod.label}</h4>
+                        <p className="text-xs text-muted-foreground font-medium">Gestionar presencia en el menú y operatividad.</p>
+                      </div>
                     </div>
-                    <Switch 
-                      checked={mod.state}
-                      onCheckedChange={mod.setter}
-                      className="data-[state=checked]:bg-accent"
-                    />
+                    
+                    <div className="flex gap-8 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0 border-primary/10">
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Visibilidad</p>
+                          <p className="text-[9px] font-bold text-accent italic">{mod.show ? 'Visible en menú' : 'Oculto para todos'}</p>
+                        </div>
+                        <Switch checked={mod.show} onCheckedChange={mod.setShow} className="data-[state=checked]:bg-blue-500" />
+                      </div>
+                      
+                      <div className="flex items-center gap-3 border-l border-primary/10 pl-8">
+                        <div className="text-right">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Uso / Acceso</p>
+                          <p className="text-[9px] font-bold text-emerald-600 italic">{mod.enable ? 'Operativo' : 'Próximamente'}</p>
+                        </div>
+                        <Switch checked={mod.enable} onCheckedChange={mod.setEnable} className="data-[state=checked]:bg-emerald-500" />
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -236,34 +257,6 @@ export default function SettingsPage() {
                     placeholder="Ej: 51999999999"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground font-medium italic">Incluya el código de país sin el signo "+". Este número se usará para el botón de ayuda en todo el sistema.</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
-            <CardHeader className="bg-primary/5 p-8 border-b">
-              <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
-                <Moon className="w-8 h-8 text-accent" />
-                Preferencia de Apariencia
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="flex items-center justify-between p-6 bg-primary/5 rounded-3xl border-2 border-primary/10">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm">
-                    {darkMode ? <Moon className="w-6 h-6 text-accent" /> : <Sun className="w-6 h-6 text-orange-500" />}
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="font-black text-lg text-foreground">Modo Oscuro</h4>
-                    <p className="text-sm text-muted-foreground font-medium">Activa una interfaz visual optimizada para ambientes con poca luz.</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={darkMode}
-                  onCheckedChange={setDarkMode}
-                  className="scale-125 data-[state=checked]:bg-accent"
-                />
               </div>
             </CardContent>
           </Card>
@@ -276,18 +269,6 @@ export default function SettingsPage() {
           >
             <Save className="w-6 h-6" /> Guardar Todos los Cambios
           </Button>
-        </div>
-
-        <div className="bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-200 dark:border-orange-900/30 rounded-[2rem] p-6 flex gap-4 items-start">
-          <div className="p-2 bg-orange-100 dark:bg-orange-900/40 rounded-xl">
-            <ImageIcon className="w-6 h-6 text-orange-600" />
-          </div>
-          <div>
-            <h4 className="font-black text-orange-900 dark:text-orange-400">Nota Institucional</h4>
-            <p className="text-sm text-orange-800 dark:text-orange-300/80 font-medium mt-1">
-              Los cambios en los módulos, logotipo y el modo de apariencia se aplicarán inmediatamente para todos los usuarios que naveguen en la plataforma.
-            </p>
-          </div>
         </div>
       </div>
     </AppLayout>

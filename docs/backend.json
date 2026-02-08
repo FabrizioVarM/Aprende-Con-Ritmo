@@ -86,7 +86,15 @@
         "appLogoUrl": { "type": "string" },
         "darkMode": { "type": "boolean" },
         "whatsappNumber": { "type": "string" },
-        "description": { "type": "string" }
+        "description": { "type": "string" },
+        "showProduction": { "type": "boolean" },
+        "enableProduction": { "type": "boolean" },
+        "showRewards": { "type": "boolean" },
+        "enableRewards": { "type": "boolean" },
+        "showMarket": { "type": "boolean" },
+        "enableMarket": { "type": "boolean" },
+        "showPostulations": { "type": "boolean" },
+        "enablePostulations": { "type": "boolean" }
       }
     }
   },

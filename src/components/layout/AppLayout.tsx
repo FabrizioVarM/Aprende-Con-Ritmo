@@ -48,7 +48,8 @@ interface NavItem {
   href: string;
   icon: React.ElementType;
   roles: UserRole[];
-  settingKey?: keyof AppSettings;
+  showKey?: keyof AppSettings;
+  enableKey?: keyof AppSettings;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -56,10 +57,38 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Horario', href: '/schedule', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
   { label: 'Biblioteca', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
   { label: 'Progreso', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher', 'admin'] },
-  { label: 'Producción Musical', href: '/production', icon: Mic2, roles: ['student', 'teacher', 'admin'], settingKey: 'enableProduction' },
-  { label: 'Recompensas', href: '/rewards', icon: Gift, roles: ['student', 'teacher', 'admin'], settingKey: 'enableRewards' },
-  { label: 'RitmoMarket', href: '/market', icon: ShoppingBag, roles: ['student', 'teacher', 'admin'], settingKey: 'enableMarket' },
-  { label: 'Postulaciones', href: '/postulations', icon: ClipboardList, roles: ['student', 'teacher', 'admin'], settingKey: 'enablePostulations' },
+  { 
+    label: 'Producción Musical', 
+    href: '/production', 
+    icon: Mic2, 
+    roles: ['student', 'teacher', 'admin'], 
+    showKey: 'showProduction',
+    enableKey: 'enableProduction'
+  },
+  { 
+    label: 'Recompensas', 
+    href: '/rewards', 
+    icon: Gift, 
+    roles: ['student', 'teacher', 'admin'],
+    showKey: 'showRewards',
+    enableKey: 'enableRewards'
+  },
+  { 
+    label: 'RitmoMarket', 
+    href: '/market', 
+    icon: ShoppingBag, 
+    roles: ['student', 'teacher', 'admin'],
+    showKey: 'showMarket',
+    enableKey: 'enableMarket'
+  },
+  { 
+    label: 'Postulaciones', 
+    href: '/postulations', 
+    icon: ClipboardList, 
+    roles: ['student', 'teacher', 'admin'],
+    showKey: 'showPostulations',
+    enableKey: 'enablePostulations'
+  },
   { label: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
   { label: 'Configuración', href: '/settings', icon: Settings, roles: ['admin'] },
 ];
@@ -70,7 +99,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Apply dark mode theme class to document root
   useEffect(() => {
     if (settings.darkMode) {
       document.documentElement.classList.add('dark');
@@ -82,20 +110,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!user) {
     return <>{children}</>;
   }
-
-  const isTabDisabled = (item: NavItem) => {
-    // Si el usuario es admin, NUNCA está deshabilitado para él
-    if (user.role === 'admin') return false;
-    
-    // Si tiene una llave de configuración, verificar si el admin habilitó el módulo
-    if (item.settingKey) {
-      return !settings[item.settingKey];
-    }
-    
-    return false;
-  };
-
-  const filteredNav = NAV_ITEMS.filter(item => item.roles.includes(user.role));
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-r border-border p-6">
@@ -115,11 +129,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
 
       <nav className="flex-1 space-y-1">
-        {filteredNav.map((item) => {
+        {NAV_ITEMS.filter(item => item.roles.includes(user.role)).map((item) => {
           const isActive = pathname === item.href;
-          const isDisabled = isTabDisabled(item);
+          const isAdmin = user.role === 'admin';
           
-          if (isDisabled) {
+          // Lógica de visibilidad
+          if (!isAdmin && item.showKey && !settings[item.showKey]) {
+            return null;
+          }
+
+          // Lógica de habilitación (si es visible pero desabilitado -> Próximamente)
+          const isEnabled = isAdmin || !item.enableKey || settings[item.enableKey];
+
+          if (!isEnabled) {
             return (
               <div 
                 key={item.label} 
@@ -148,7 +170,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   "w-5 h-5",
                   isActive ? "text-accent" : "text-muted-foreground"
                 )} />
-                {item.label}
+                <span className="text-sm font-medium flex-1">{item.label}</span>
+                {/* Indicador visual para el admin si el módulo está deshabilitado para otros */}
+                {isAdmin && item.enableKey && !settings[item.enableKey] && (
+                  <span className="text-[6px] font-black uppercase bg-muted text-muted-foreground px-1 py-0.5 rounded-sm">OFF</span>
+                )}
               </span>
             </Link>
           );
@@ -156,7 +182,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
 
       <div className="mt-auto pt-6 border-t border-border">
-        {/* WhatsApp Support Dialog */}
         <Dialog>
           <DialogTrigger asChild>
             <div className="flex items-center gap-3 px-4 py-3 mb-6 rounded-xl transition-all duration-200 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-500/20 group cursor-pointer">
@@ -235,7 +260,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </DialogContent>
         </Dialog>
 
-        {/* User Profile Block */}
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 px-4 py-4 bg-primary/5 rounded-2xl border-2 border-primary/10">
             <Avatar className="w-10 h-10 border-2 border-primary shrink-0">
@@ -287,12 +311,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Sidebar de Escritorio */}
       <aside className="hidden md:block w-72 h-screen sticky top-0">
         <SidebarContent />
       </aside>
 
-      {/* Contenido Principal */}
       <main className="flex-1 min-w-0">
         <header className="md:hidden flex items-center justify-between p-4 bg-white/80 dark:bg-slate-900/80 border-b">
           <div className="flex items-center gap-2">
