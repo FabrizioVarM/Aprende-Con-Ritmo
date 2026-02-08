@@ -15,8 +15,7 @@ import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X, Phone } from 
 import { cn } from '@/lib/utils';
 
 const INSTRUMENTS_LIST = [
-  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría',
-  'Ukelele', 'Saxofón', 'Flauta', 'Producción Musical', 'Coro', 'Violonchelo', 'Trompeta'
+  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
 ];
 
 export default function ProfilePage() {

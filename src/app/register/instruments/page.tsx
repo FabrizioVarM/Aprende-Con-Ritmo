@@ -18,13 +18,6 @@ const INSTRUMENTS = [
   { id: 'Batería', name: 'Batería', icon: '🥁' },
   { id: 'Bajo', name: 'Bajo', icon: '🎸' },
   { id: 'Teoría', name: 'Teoría Musical', icon: '📖' },
-  { id: 'Ukelele', name: 'Ukelele', icon: '🪕' },
-  { id: 'Saxofón', name: 'Saxofón', icon: '🎷' },
-  { id: 'Flauta', name: 'Flauta', icon: '🎶' },
-  { id: 'Producción Musical', name: 'Producción', icon: '💻' },
-  { id: 'Coro', name: 'Coro', icon: '👥' },
-  { id: 'Violonchelo', name: 'Violonchelo', icon: '🎻' },
-  { id: 'Trompeta', name: 'Trompeta', icon: '🎺' },
 ];
 
 export default function InstrumentSelectionPage() {
@@ -73,7 +66,7 @@ export default function InstrumentSelectionPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
           {INSTRUMENTS.map((inst) => {
             const isSelected = selected.includes(inst.id);
             return (

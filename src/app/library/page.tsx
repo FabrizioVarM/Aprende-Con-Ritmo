@@ -29,7 +29,7 @@ import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 
-const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría', 'Ukelele', 'Saxofón', 'Flauta', 'Producción Musical', 'Coro', 'Violonchelo', 'Trompeta'];
+const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'];
 
 export default function LibraryPage() {
   const { user, allUsers, loading } = useAuth();

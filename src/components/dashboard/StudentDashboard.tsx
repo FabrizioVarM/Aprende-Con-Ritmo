@@ -601,7 +601,7 @@ export default function StudentDashboard() {
         
         <Card className="rounded-[2.5rem] border-none shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6">
           <CardHeader className="p-0 pb-4">
-            <CardTitle className="text-sm font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+            <CardTitle className={cn("text-sm font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2")}>
               <CalendarIcon className="w-5 h-5 text-accent" />
               CLASE MÁS PROXIMA
             </CardTitle>

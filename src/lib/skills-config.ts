@@ -38,41 +38,6 @@ export const DEFAULT_SKILLS_CONFIG: Record<string, { name: string; color: string
     { name: 'Proyección', color: 'bg-orange-500', defaultLevel: 0 },
     { name: 'Dicción', color: 'bg-green-500', defaultLevel: 0 },
   ],
-  'Ukelele': [
-    { name: 'Rasgueo', color: 'bg-accent', defaultLevel: 0 },
-    { name: 'Acordes Abiertos', color: 'bg-blue-500', defaultLevel: 0 },
-    { name: 'Ritmo', color: 'bg-orange-500', defaultLevel: 0 },
-  ],
-  'Saxofón': [
-    { name: 'Embocadura', color: 'bg-accent', defaultLevel: 0 },
-    { name: 'Digitación', color: 'bg-blue-500', defaultLevel: 0 },
-    { name: 'Control de Aire', color: 'bg-orange-500', defaultLevel: 0 },
-  ],
-  'Flauta': [
-    { name: 'Postura', color: 'bg-accent', defaultLevel: 0 },
-    { name: 'Emisión de Sonido', color: 'bg-blue-500', defaultLevel: 0 },
-    { name: 'Articulación', color: 'bg-orange-500', defaultLevel: 0 },
-  ],
-  'Producción Musical': [
-    { name: 'Mezcla', color: 'bg-accent', defaultLevel: 0 },
-    { name: 'Manejo de DAW', color: 'bg-blue-500', defaultLevel: 0 },
-    { name: 'Diseño Sonoro', color: 'bg-orange-500', defaultLevel: 0 },
-  ],
-  'Coro': [
-    { name: 'Empaste Vocal', color: 'bg-accent', defaultLevel: 0 },
-    { name: 'Polifonía', color: 'bg-blue-500', defaultLevel: 0 },
-    { name: 'Escucha Grupal', color: 'bg-orange-500', defaultLevel: 0 },
-  ],
-  'Violonchelo': [
-    { name: 'Postura', color: 'bg-accent', defaultLevel: 0 },
-    { name: 'Arco', color: 'bg-blue-500', defaultLevel: 0 },
-    { name: 'Intonación', color: 'bg-orange-500', defaultLevel: 0 },
-  ],
-  'Trompeta': [
-    { name: 'Resistencia', color: 'bg-accent', defaultLevel: 0 },
-    { name: 'Flexibilidad', color: 'bg-blue-500', defaultLevel: 0 },
-    { name: 'Ataque', color: 'bg-orange-500', defaultLevel: 0 },
-  ],
   'Teoría': [
     { name: 'Lectura de Pentagrama', color: 'bg-accent', defaultLevel: 0 },
     { name: 'Intervalos', color: 'bg-blue-500', defaultLevel: 0 },
