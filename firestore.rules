@@ -1,123 +1,118 @@
 rules_version = '2';
-
-/**
- * Aprende Con Ritmo - Firestore Security Rules
- *
- * CORE PHILOSOPHY:
- * This ruleset implements a robust, owner-centric security model designed for an educational 
- * platform. It prioritizes "Authorization Independence" by ensuring that all data required 
- * for an access decision (like a teacher's ID on a class) is available directly on the 
- * document being accessed. This eliminates expensive recursive lookups and ensures 
- * high performance as the application scales.
- *
- * DATA STRUCTURE:
- * - /users/{userId}: Private user profiles, only accessible by the account owner.
- * - /classes/{classId}: Global class catalog. Managed by teachers (identified via 'teacherId').
- * - /resources/{resourceId}: Public educational resource library.
- * - /users/{studentId}/progress/{progressId}: Private student progress logs nested under the student's user path.
- *
- * KEY SECURITY DECISIONS:
- * 1. Path-Based Ownership: User profiles and progress logs are secured based on the userId 
- *    in the document path, ensuring strict data isolation.
- * 2. Denormalized Authorization: The 'Class' entity contains a 'teacherId' field, allowing 
- *    the rules to verify teacher permissions without fetching a separate User document.
- * 3. Public Read Access: Classes and Resources are publicly listable and readable to 
- *    facilitate discovery and learning, while write access is strictly controlled.
- * 4. Relational Integrity: On creation and update, rules verify that internal fields 
- *    (like 'studentId' or 'teacherId') match the authenticated user and remain immutable.
- */
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- GLOBAL HELPER FUNCTIONS ---
+    /**
+     * CORE SECURITY PHILOSOPHY:
+     * 1. Path-Based Ownership: Data is primarily organized under /users/{userId}. Access is strictly 
+     *    granted to the owner of that path or designated collaborators.
+     * 2. Identity as Truth: All authorization decisions rely on Firebase Authentication (request.auth). 
+     *    This addresses the user's concern regarding password security; while Firebase Auth handles 
+     *    the login, these rules ensure that an authenticated user can ONLY access data they own.
+     * 3. Denormalization for Performance: Authorization-critical IDs (like teacherId and studentId) 
+     *    are stored within documents to allow for fast, single-document lookups without cross-collection gets.
+     * 4. Admin Override: A dedicated /roles_admin collection identifies super-users who can bypass 
+     *    standard ownership restrictions for support and management.
+     * 5. Prototyping Flexibility: Rules enforce WHO can access data and relational integrity, 
+     *    but do not restrict the specific data types or fields (schema) to allow for rapid iteration.
+     */
 
-    /** 
-     * @description Simple check if the user is authenticated. 
+    // --- Helper Functions ---
+
+    /**
+     * @description Checks if the request is from a signed-in user.
      */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /** 
+    /**
      * @description Checks if the authenticated user's UID matches the provided userId.
-     * @param userId The UID to check against.
      */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    /** 
-     * @description Verifies ownership of an existing document before modification.
-     * @param userId The UID to check against.
+    /**
+     * @description Checks if the authenticated user has an entry in the roles_admin collection.
+     */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    /**
+     * @description Combines ownership check with existence check for updates and deletes.
      */
     function isExistingOwner(userId) {
       return resource != null && isOwner(userId);
     }
 
-    // --- COLLECTION RULES ---
+    // --- Collection Rules ---
 
     /**
-     * @description Controls access to individual user profile documents.
+     * @description Rules for the UserProfile entity. Users can manage their own profiles.
      * @path /users/{userId}
-     * @allow (create) if auth.uid matches userId.
-     * @deny (get) if auth.uid does not match userId.
-     * @principle Implements Ownership and Self-Creation patterns for profile management.
+     * @allow (get) If the user is the owner or an admin.
+     * @deny (write) If the userId in the path does not match the authenticated user's UID.
+     * @principle Enforces path-based ownership and relational integrity for user profiles.
      */
     match /users/{userId} {
-      allow get, list: if isOwner(userId);
+      allow get, list: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isAdmin();
 
       /**
-       * @description Controls access to student-specific progress entries.
-       * @path /users/{studentId}/progress/{progressId}
-       * @allow (list) if studentId matches auth.uid.
-       * @deny (update) if studentId in data is changed to another user.
-       * @principle Uses path-based authorization to secure private subcollections.
+       * @description Rules for ClassSchedules within a user's context (Teacher or Student).
+       * @path /users/{anyUser}/schedules/{scheduleId}
+       * @allow (create) If the teacherId in data matches the auth UID, allowing teachers to populate student schedules.
+       * @deny (read) If the auth UID does not match the parent userId in the path.
+       * @principle Supports duplicated schedules for optimized listing while maintaining ownership.
        */
-      match /progress/{progressId} {
-        allow get, list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.studentId == userId;
-        allow update: if isOwner(userId) && request.resource.data.studentId == resource.data.studentId;
-        allow delete: if isExistingOwner(userId);
+      match /schedules/{scheduleId} {
+        allow get, list: if isOwner(userId) || isAdmin();
+        allow create: if (isOwner(userId) || isOwner(request.resource.data.teacherId)) || isAdmin();
+        allow update: if (isExistingOwner(userId) || isOwner(resource.data.teacherId)) || isAdmin();
+        allow delete: if (isExistingOwner(userId) || isOwner(resource.data.teacherId)) || isAdmin();
+      }
+
+      /**
+       * @description Rules for ProgressUpdates. Managed primarily by teachers for their students.
+       * @path /users/{studentId}/progressUpdates/{updateId}
+       * @allow (list) If the student is the path owner.
+       * @deny (create) If the sender is not the teacher identified in the document payload.
+       * @principle Validates relational integrity by ensuring the teacher writing the update is who they claim to be.
+       */
+      match /progressUpdates/{updateId} {
+        allow get, list: if isOwner(userId) || isAdmin() || (resource != null && isOwner(resource.data.teacherId));
+        allow create: if (isOwner(request.resource.data.teacherId) || isAdmin());
+        allow update: if (isOwner(resource.data.teacherId) || isAdmin()) && request.resource.data.teacherId == resource.data.teacherId;
+        allow delete: if (isOwner(resource.data.teacherId) || isAdmin());
       }
     }
 
     /**
-     * @description Manages the class catalog. Teachers own their classes via 'teacherId'.
-     * @path /classes/{classId}
-     * @allow (get) for all users to view class details.
-     * @deny (update) if the authenticated user is not the teacherId stored in the document.
-     * @principle Public read with owner-only writes using denormalized relational fields.
+     * @description Educational resources accessible to all students but only editable by admins.
+     * @path /resources/{resourceId}
+     * @allow (list) Any authenticated user.
+     * @deny (write) Any non-admin user.
+     * @principle Public consumption with administrative control.
      */
-    match /classes/{classId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.teacherId == request.auth.uid;
-      allow update: if resource != null && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == resource.data.teacherId;
-      allow delete: if resource != null && resource.data.teacherId == request.auth.uid;
+    match /resources/{resourceId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     /**
-     * @description Global educational resource library.
-     * @path /resources/{resourceId}
-     * @allow (get) for all users.
-     * @deny (create) CRITICAL: No ownership field ('authorId') exists in the Resource schema.
-     * @principle Provides public visibility while locking down modifications due to missing schema metadata.
+     * @description System-level collection to define admin users.
+     * @path /roles_admin/{userId}
+     * @allow (get) Any authenticated user (to check status).
+     * @deny (write) All users via API; managed via Admin SDK/Console.
+     * @principle Protects the integrity of the authorization hierarchy.
      */
-    match /resources/{resourceId} {
-      allow get, list: if true;
-      // CRITICAL: Cannot implement owner-only writes. The 'Resource' entity is missing an 'ownerId' or 'authorId' field.
-      allow create, update, delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    match /roles_admin/{userId} {
+      allow get, list: if isSignedIn();
+      allow create, update, delete: if false; 
     }
-
   }
 }
-
-/** 
- * PROTOTYPING NOTE: 
- * These rules enforce strict authorization logic while remaining flexible on data types 
- * and specific object shapes to allow for rapid development. Only relational fields 
- * required for security (IDs, owner references) are strictly validated.
- */
