@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo, useState, useEffect } from 'react';
@@ -18,6 +19,7 @@ import { useAuth } from '@/lib/auth-store';
 import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useResourceStore } from '@/lib/resource-store';
+import { INITIAL_RESOURCES } from '@/lib/resources';
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from 'next/navigation';
 import { 
@@ -37,7 +39,8 @@ import {
   Trash2,
   Eraser,
   Plus,
-  User as UserIcon
+  User as UserIcon,
+  Database
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -45,7 +48,7 @@ export default function AdminDashboard() {
   const { allUsers, getTeachers } = useAuth();
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
   const { completions } = useCompletionStore();
-  const { resources } = useResourceStore();
+  const { resources, addResource } = useResourceStore();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -70,6 +73,22 @@ export default function AdminDashboard() {
 
   const teachers = useMemo(() => getTeachers(), [getTeachers]);
   const studentsCount = useMemo(() => allUsers.filter(u => u.role === 'student').length, [allUsers]);
+
+  const handleSeedResources = () => {
+    if (resources.length > 0) {
+      toast({
+        title: "Aviso",
+        description: "La biblioteca ya contiene materiales.",
+      });
+      return;
+    }
+    
+    INITIAL_RESOURCES.forEach(res => addResource(res));
+    toast({
+      title: "Biblioteca Inicializada 📚",
+      description: "Se han cargado los materiales básicos en la nube.",
+    });
+  };
 
   const calculateTeacherStats = (teacherId: string) => {
     const now = new Date();
@@ -288,6 +307,15 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground mt-1 text-lg font-medium">Resumen de las operaciones y crecimiento de la escuela.</p>
         </div>
         <div className="flex gap-2">
+          {resources.length === 0 && (
+            <Button 
+              variant="outline" 
+              className="rounded-2xl gap-2 h-12 border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 font-black"
+              onClick={handleSeedResources}
+            >
+              <Database className="w-4 h-4" /> Inicializar Biblioteca
+            </Button>
+          )}
           <Button 
             variant="outline" 
             className="rounded-2xl gap-2 h-12 border-2 font-black text-foreground"

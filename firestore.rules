@@ -31,22 +31,22 @@ service cloud.firestore {
     
     match /availabilities/{availId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn(); // Permitir reservar a alumnos y gestionar a profesores
+      allow write: if isSignedIn();
     }
     
     match /completions/{compId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isTeacher(); // Solo staff valida materiales
+      allow write: if isAdmin() || isTeacher();
     }
 
     match /milestones/{mileId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isTeacher(); // Solo staff asigna hitos
+      allow write: if isAdmin() || isTeacher();
     }
 
     match /skills/{skillId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isTeacher(); // Solo staff evalúa habilidades
+      allow write: if isAdmin() || isTeacher();
     }
     
     match /resources/{resId} {

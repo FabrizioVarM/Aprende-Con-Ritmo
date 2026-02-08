@@ -63,13 +63,19 @@
         "level": { "type": "number" }
       }
     },
-    "AppSetting": {
-      "title": "AppSetting",
+    "MusicResource": {
+      "title": "MusicResource",
       "type": "object",
+      "description": "Material educativo de la biblioteca.",
       "properties": {
-        "appLogoUrl": { "type": "string" },
-        "darkMode": { "type": "boolean" },
-        "whatsappNumber": { "type": "string" }
+        "id": { "type": "number" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "type": { "type": "string" },
+        "length": { "type": "string" },
+        "downloadUrl": { "type": "string" },
+        "interactUrl": { "type": "string" },
+        "img": { "type": "object" }
       }
     }
   },
@@ -119,10 +125,17 @@
         }
       },
       {
+        "path": "/resources/{resId}",
+        "definition": {
+          "entityName": "MusicResource",
+          "schema": { "$ref": "#/backend/entities/MusicResource" },
+          "description": "Catálogo de la biblioteca musical."
+        }
+      },
+      {
         "path": "/settings/global",
         "definition": {
           "entityName": "AppSetting",
-          "schema": { "$ref": "#/backend/entities/AppSetting" },
           "description": "Configuración global del sistema."
         }
       }
