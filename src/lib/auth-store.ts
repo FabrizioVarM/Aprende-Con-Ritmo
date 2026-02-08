@@ -11,7 +11,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -38,72 +38,74 @@ export function useAuth() {
   const db = useFirestore();
   const auth = getAuth();
 
-  const fetchProfile = useCallback(async (uid: string) => {
-    try {
-      const docRef = doc(db, 'users', uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        return docSnap.data() as User;
-      }
-    } catch (e) {
-      // Errores de lectura manejados silenciosamente
-    }
-    return null;
-  }, [db]);
-
-  const fetchAllUsers = useCallback(async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'users'));
-      const users: User[] = [];
-      querySnapshot.forEach((doc) => {
-        users.push(doc.data() as User);
-      });
-      setAllUsers(users);
-    } catch (e) {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: 'users',
-        operation: 'list'
-      }));
-    }
-  }, [db]);
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubscribeUser: (() => void) | null = null;
+    let unsubscribeAllUsers: (() => void) | null = null;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
+      // Limpiar escuchas anteriores si existen
+      if (unsubscribeUser) unsubscribeUser();
+      if (unsubscribeAllUsers) unsubscribeAllUsers();
+
       if (firebaseUser) {
-        const profile = await fetchProfile(firebaseUser.uid);
-        if (profile) {
-          setUser(profile);
-          fetchAllUsers();
-        } else {
-          // Creación de perfil para usuarios de Google o registros nuevos
-          const newUser: User = {
-            id: firebaseUser.uid,
-            name: firebaseUser.displayName || 'Usuario Nuevo',
-            email: firebaseUser.email || '',
-            role: 'student',
-            username: (firebaseUser.email || '').split('@')[0],
-            avatarSeed: firebaseUser.uid,
-            instruments: []
-          };
-          setDoc(doc(db, 'users', firebaseUser.uid), newUser).catch((err) => {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-              path: `users/${firebaseUser.uid}`,
-              operation: 'create',
-              requestResourceData: newUser
-            }));
+        // 1. Escucha en tiempo real para el perfil del usuario autenticado
+        const userDocRef = doc(db, 'users', firebaseUser.uid);
+        unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setUser(docSnap.data() as User);
+            setLoading(false);
+          } else {
+            // Creación inicial si el documento no existe (ej. primer login con Google)
+            const newUser: User = {
+              id: firebaseUser.uid,
+              name: firebaseUser.displayName || 'Usuario Nuevo',
+              email: firebaseUser.email || '',
+              role: 'student',
+              username: (firebaseUser.email || '').split('@')[0],
+              avatarSeed: firebaseUser.uid,
+              instruments: []
+            };
+            setDoc(userDocRef, newUser).catch((err) => {
+              errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: `users/${firebaseUser.uid}`,
+                operation: 'create',
+                requestResourceData: newUser
+              }));
+            });
+          }
+        }, (error) => {
+          console.error("Error al escuchar perfil de usuario:", error);
+          setLoading(false);
+        });
+
+        // 2. Escucha en tiempo real para TODOS los usuarios (para directorios y administración)
+        const usersColRef = collection(db, 'users');
+        unsubscribeAllUsers = onSnapshot(usersColRef, (snapshot) => {
+          const users: User[] = [];
+          snapshot.forEach((doc) => {
+            users.push(doc.data() as User);
           });
-          setUser(newUser);
-          fetchAllUsers();
-        }
+          setAllUsers(users);
+        }, (error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: 'users',
+            operation: 'list'
+          }));
+        });
+
       } else {
         setUser(null);
         setAllUsers([]);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
-  }, [auth, fetchProfile, fetchAllUsers, db]);
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeUser) unsubscribeUser();
+      if (unsubscribeAllUsers) unsubscribeAllUsers();
+    };
+  }, [auth, db]);
 
   const login = async (email: string, password?: string): Promise<boolean> => {
     try {
@@ -121,7 +123,7 @@ export function useAuth() {
       const result = await signInWithPopup(auth, provider);
       return !!result.user;
     } catch (e: any) {
-      console.error("Google Auth Error:", e);
+      console.error("Error Auth Google:", e);
       let message = "No se pudo completar el inicio de sesión.";
       if (e.code === 'auth/popup-closed-by-user') message = "Cerraste la ventana de Google antes de terminar.";
       if (e.code === 'auth/operation-not-allowed') message = "Debes habilitar Google en la consola de Firebase.";
@@ -150,14 +152,7 @@ export function useAuth() {
         instruments: []
       };
 
-      setDoc(doc(db, 'users', firebaseUser.uid), newUser).catch((err) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: `users/${firebaseUser.uid}`,
-          operation: 'create',
-          requestResourceData: newUser
-        }));
-      });
-      setUser(newUser);
+      await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
       return newUser;
     } catch (e: any) {
       return null;
@@ -171,18 +166,13 @@ export function useAuth() {
   const updateUser = useCallback((updatedData: Partial<User>) => {
     if (!user) return;
     
-    // Preparar datos para Firestore
-    const dataToSave = { ...updatedData };
-    
-    // Asegurarse de que photoUrl se maneje correctamente si es undefined para borrarlo en BD si fuera necesario, 
-    // pero Firestore prefiere null para borrar valores. Aquí simplemente removemos los undefined.
     const cleanData = Object.fromEntries(
-      Object.entries(dataToSave).filter(([_, v]) => v !== undefined)
+      Object.entries(updatedData).filter(([_, v]) => v !== undefined)
     );
 
     const docRef = doc(db, 'users', user.id);
     
-    // Actualización no bloqueante
+    // setDoc con merge es más robusto para actualizaciones de perfil
     setDoc(docRef, cleanData, { merge: true }).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
@@ -190,13 +180,6 @@ export function useAuth() {
         requestResourceData: cleanData
       }));
     });
-
-    // Actualizar estado local inmediatamente para feedback instantáneo
-    const updatedUser = { ...user, ...cleanData };
-    setUser(updatedUser);
-    
-    // Actualizar también la lista global para evitar inconsistencias en otras vistas
-    setAllUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
   }, [db, user]);
 
   const adminUpdateUser = useCallback((userId: string, updatedData: Partial<User>) => {
@@ -212,9 +195,6 @@ export function useAuth() {
         requestResourceData: cleanData
       }));
     });
-
-    // Sincronizar lista global localmente
-    setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, ...cleanData } : u));
   }, [db]);
 
   const adminAddUser = useCallback((userData: Omit<User, 'id'>) => {
@@ -228,8 +208,6 @@ export function useAuth() {
         requestResourceData: newUser
       }));
     });
-    
-    setAllUsers(prev => [...prev, newUser]);
     return newUser;
   }, [db]);
 
@@ -241,8 +219,6 @@ export function useAuth() {
         operation: 'delete'
       }));
     });
-    
-    setAllUsers(prev => prev.filter(u => u.id !== userId));
   }, [db]);
 
   const getTeachers = useCallback(() => {
