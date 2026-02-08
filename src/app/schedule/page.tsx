@@ -342,6 +342,23 @@ export default function SchedulePage() {
     });
   }, [date]);
 
+  const weekRangeStr = useMemo(() => {
+    if (weekDays.length < 7) return '';
+    const start = weekDays[0];
+    const end = weekDays[6];
+    
+    const startDay = start.getDate();
+    const startMonth = start.toLocaleDateString('es-ES', { month: 'long' });
+    const endDay = end.getDate();
+    const endMonth = end.toLocaleDateString('es-ES', { month: 'long' });
+
+    if (start.getMonth() === end.getMonth()) {
+      return `Del ${startDay} al ${endDay} de ${startMonth}`;
+    } else {
+      return `Del ${startDay} de ${start.toLocaleDateString('es-ES', { month: 'short' })} al ${endDay} de ${end.toLocaleDateString('es-ES', { month: 'short' })}`;
+    }
+  }, [weekDays]);
+
   if (!isMounted || loading || !user) return null;
 
   const SlotCard = ({ slot, isMine, isStaffView, customTeacherId }: { slot: any, isMine: boolean, isStaffView?: boolean, customTeacherId?: string }) => {
@@ -504,7 +521,7 @@ export default function SchedulePage() {
                 )}
                 <div className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all", 
-                  isCompleted ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : (isPast ? "bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400" : "bg-accent/10 text-accent")
+                  isCompleted ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : (isPast ? "bg-orange-100 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400" : "bg-accent/10 text-accent")
                 )}>
                   {isCompleted ? (
                     <>
@@ -860,7 +877,10 @@ export default function SchedulePage() {
                     </Button>
                   </div>
                 </div>
-                <p className="text-[10px] text-muted-foreground font-bold italic">Navegación empezando desde la semana actual.</p>
+                <div className="bg-accent/10 border-2 border-accent/20 rounded-2xl p-3 text-center">
+                  <p className="text-sm font-black text-accent">{weekRangeStr}</p>
+                </div>
+                <p className="text-[10px] text-muted-foreground font-bold italic text-center">Navegación empezando desde la semana actual.</p>
               </CardHeader>
               <CardContent className="p-4">
                 <div className="space-y-3">
