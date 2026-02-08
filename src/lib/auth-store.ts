@@ -46,7 +46,7 @@ export function useAuth() {
         return docSnap.data() as User;
       }
     } catch (e) {
-      // Errores de lectura manejados silenciosamente durante el login
+      // Errores de lectura manejados silenciosamente
     }
     return null;
   }, [db]);
@@ -75,17 +75,19 @@ export function useAuth() {
           setUser(profile);
           fetchAllUsers();
         } else {
-          // Si el perfil no existe (ej. error en creación previa), lo creamos mínimamente
+          // Creación de perfil para usuarios de Google o registros nuevos
           const newUser: User = {
             id: firebaseUser.uid,
             name: firebaseUser.displayName || 'Usuario Nuevo',
             email: firebaseUser.email || '',
             role: 'student',
             username: (firebaseUser.email || '').split('@')[0],
-            avatarSeed: firebaseUser.uid
+            avatarSeed: firebaseUser.uid,
+            instruments: []
           };
           await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
           setUser(newUser);
+          fetchAllUsers();
         }
       } else {
         setUser(null);
@@ -102,11 +104,6 @@ export function useAuth() {
       await signInWithEmailAndPassword(auth, email, password || 'password123');
       return true;
     } catch (e: any) {
-      toast({
-        variant: "destructive",
-        title: "Error de acceso 🚫",
-        description: "Verifica tus credenciales o el método de acceso.",
-      });
       return false;
     }
   };
@@ -114,13 +111,20 @@ export function useAuth() {
   const loginWithGoogle = async (): Promise<boolean> => {
     try {
       const provider = new GoogleAuthProvider();
+      // Forzamos la selección de cuenta para evitar bucles de errores
+      provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
       return !!result.user;
     } catch (e: any) {
+      console.error("Google Auth Error:", e);
+      let message = "No se pudo completar el inicio de sesión.";
+      if (e.code === 'auth/popup-closed-by-user') message = "Cerraste la ventana de Google antes de terminar.";
+      if (e.code === 'auth/operation-not-allowed') message = "Debes habilitar Google en la consola de Firebase.";
+      
       toast({
         variant: "destructive",
         title: "Error con Google 🚫",
-        description: "No se pudo completar el inicio de sesión.",
+        description: message,
       });
       return false;
     }
@@ -145,11 +149,6 @@ export function useAuth() {
       setUser(newUser);
       return newUser;
     } catch (e: any) {
-      toast({
-        variant: "destructive",
-        title: "Error en el registro 🚫",
-        description: e.message || "No se pudo crear la cuenta.",
-      });
       return null;
     }
   };
@@ -161,25 +160,13 @@ export function useAuth() {
   const updateUser = useCallback(async (updatedData: Partial<User>) => {
     if (!user) return;
     const docRef = doc(db, 'users', user.id);
-    await updateDoc(docRef, updatedData).catch((err) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'update',
-        requestResourceData: updatedData
-      }));
-    });
+    await updateDoc(docRef, updatedData);
     setUser(prev => prev ? { ...prev, ...updatedData } : null);
   }, [db, user]);
 
   const adminUpdateUser = useCallback(async (userId: string, updatedData: Partial<User>) => {
     const docRef = doc(db, 'users', userId);
-    await updateDoc(docRef, updatedData).catch((err) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'update',
-        requestResourceData: updatedData
-      }));
-    });
+    await updateDoc(docRef, updatedData);
     fetchAllUsers();
   }, [db, fetchAllUsers]);
 
@@ -187,25 +174,14 @@ export function useAuth() {
     const newId = Math.random().toString(36).substring(7);
     const newUser = { ...userData, id: newId };
     const docRef = doc(db, 'users', newId);
-    await setDoc(docRef, newUser).catch((err) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'create',
-        requestResourceData: newUser
-      }));
-    });
+    await setDoc(docRef, newUser);
     fetchAllUsers();
     return newUser;
   }, [db, fetchAllUsers]);
 
   const adminDeleteUser = useCallback(async (userId: string) => {
     const docRef = doc(db, 'users', userId);
-    await deleteDoc(docRef).catch((err) => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: docRef.path,
-        operation: 'delete'
-      }));
-    });
+    await deleteDoc(docRef);
     fetchAllUsers();
   }, [db, fetchAllUsers]);
 
