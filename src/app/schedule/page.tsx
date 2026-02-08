@@ -860,7 +860,7 @@ export default function SchedulePage() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <p className="text-[9px] font-black uppercase tracking-widest text-accent flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
                       Paso 1
                     </p>
                     <CardTitle className="text-base font-black text-foreground">Elige la semana</CardTitle>
