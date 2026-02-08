@@ -24,7 +24,10 @@ import {
   ChevronLeft,
   ChevronRight as ChevronRightIcon,
   Check,
-  Users
+  Users,
+  Sunrise,
+  Sun,
+  Moon
 } from 'lucide-react';
 import {
   Dialog,
@@ -80,6 +83,35 @@ const calculateDuration = (timeStr: string): number => {
   } catch (e) {
     return 1;
   }
+};
+
+const getTimePeriod = (timeStr: string) => {
+  const hour = parseInt(timeStr.split(':')[0]);
+  if (hour >= 6 && hour < 12) {
+    return { 
+      label: 'en la mañana', 
+      icon: Sunrise, 
+      color: 'text-yellow-600 dark:text-yellow-400', 
+      bg: 'bg-yellow-50 dark:bg-yellow-950/30', 
+      border: 'border-yellow-200 dark:border-yellow-900/50' 
+    };
+  }
+  if (hour >= 12 && hour < 19) {
+    return { 
+      label: 'en la tarde', 
+      icon: Sun, 
+      color: 'text-orange-700 dark:text-orange-400', 
+      bg: 'bg-orange-100 dark:bg-orange-950/30', 
+      border: 'border-orange-200 dark:border-orange-900/50' 
+    };
+  }
+  return { 
+    label: 'en la noche', 
+    icon: Moon, 
+    color: 'text-indigo-700 dark:text-indigo-400', 
+    bg: 'bg-indigo-100 dark:bg-indigo-950/30', 
+    border: 'border-indigo-200 dark:border-indigo-900/50' 
+  };
 };
 
 export default function StudentDashboard() {
@@ -476,40 +508,57 @@ export default function StudentDashboard() {
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">HORARIOS LIBRES RESTANTES</label>
                   <div className="grid grid-cols-1 gap-2">
                     {freeSlots.length > 0 ? (
-                      freeSlots.map((slot) => (
-                        <Button
-                          key={slot.id}
-                          variant={selectedSlotId === slot.id ? "default" : "outline"}
-                          className={cn(
-                            "justify-between rounded-2xl h-16 border-2 font-black px-6",
-                            selectedSlotId === slot.id 
-                              ? 'bg-accent text-white border-accent shadow-md' 
-                              : 'bg-card text-foreground border-primary/5 hover:border-accent/30'
-                          )}
-                          onClick={() => setSelectedSlotId(slot.id)}
-                        >
-                          <div className="flex items-center gap-4">
-                            <Clock className="w-5 h-5" />
-                            <div className="flex flex-col items-start">
-                                <span className="text-lg">{slot.time}</span>
-                                <span className={cn(
-                                    "text-xs font-black uppercase flex items-center gap-1",
-                                    slot.type === 'virtual' ? (selectedSlotId === slot.id ? "text-white/80" : "text-blue-400") : (selectedSlotId === slot.id ? "text-white/80" : "text-red-400")
-                                )}>
-                                    {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                                    {slot.type === 'virtual' ? 'Online' : 'Presencial'}
-                                </span>
+                      freeSlots.map((slot) => {
+                        const isSelected = selectedSlotId === slot.id;
+                        const period = getTimePeriod(slot.time);
+                        return (
+                          <Button
+                            key={slot.id}
+                            variant={isSelected ? "default" : "outline"}
+                            className={cn(
+                              "justify-between rounded-2xl h-20 border-2 font-black px-6",
+                              isSelected 
+                                ? 'bg-accent text-white border-accent shadow-md' 
+                                : 'bg-card text-foreground border-primary/5 hover:border-accent/30'
+                            )}
+                            onClick={() => setSelectedSlotId(slot.id)}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={cn(
+                                "p-2.5 rounded-xl border shadow-inner",
+                                isSelected ? "bg-white/20 border-white/30" : `${period.bg} ${period.border} ${period.color}`
+                              )}>
+                                <period.icon className="w-5 h-5" />
+                              </div>
+                              <div className="flex flex-col items-start">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg leading-none">{slot.time}</span>
+                                    <span className={cn(
+                                      "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border",
+                                      isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
+                                    )}>
+                                      {period.label}
+                                    </span>
+                                  </div>
+                                  <span className={cn(
+                                      "text-[9px] font-black uppercase flex items-center gap-1 mt-1",
+                                      slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500")
+                                  )}>
+                                      {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                      {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                                  </span>
+                              </div>
                             </div>
-                          </div>
-                          {selectedSlotId === slot.id && <CheckCircle2 className="w-5 h-5 animate-in zoom-in" />}
-                        </Button>
-                      ))
+                            {isSelected && <CheckCircle2 className="w-5 h-5 animate-in zoom-in" />}
+                          </Button>
+                        );
+                      })
                     ) : (
                       <div className="bg-muted/10 p-8 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5 space-y-4">
                         <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30" />
                         <div className="space-y-2">
                           <p className="font-black text-muted-foreground">¡Vaya! Todos los cupos están llenos para este día.</p>
-                          <p className="text-xs font-bold text-muted-foreground/70 italic">Te sugerimos esperar a que se libere uno o elegir otro día en el calendario.</p>
+                          <p className="text-xs font-bold text-muted-foreground/70 italic">Te sugerimos esperar a que se libere un cupo o elegir otro día en el calendario.</p>
                         </div>
                       </div>
                     )}

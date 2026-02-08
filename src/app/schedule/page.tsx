@@ -724,9 +724,18 @@ export default function SchedulePage() {
                                     <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground")}>
                                       {formatToAmPm(slot.time)}
                                     </span>
-                                    <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
-                                      {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME} • {isSelected ? 'Configurando...' : 'Disponible'}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className={cn(
+                                        "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-1",
+                                        isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
+                                      )}>
+                                        <period.icon className="w-2.5 h-2.5" />
+                                        {period.label}
+                                      </span>
+                                      <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
+                                        {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
                                 {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
@@ -763,13 +772,13 @@ export default function SchedulePage() {
                         <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30" />
                         <div className="space-y-1">
                           <p className="text-sm font-bold text-muted-foreground">¡Vaya! Todos los cupos están llenos hoy.</p>
-                          <p className="text-[10px] font-bold text-muted-foreground/60 italic">Te sugerimos elegir otro día o esperar a que se libere un horario.</p>
+                          <p className="text-[10px] font-bold text-muted-foreground/60 italic">Te sugerimos esperar a que se libere un horario o elegir otro día.</p>
                         </div>
                       </div>
                     )}
                   </div>
                   <div className="p-8 bg-muted/30 flex gap-3 border-t shrink-0 mt-auto">
-                    <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                    <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                     <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                   </div>
                 </DialogContent>
@@ -929,7 +938,7 @@ export default function SchedulePage() {
                       ) : (
                         <div className="py-8 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted space-y-2">
                           <p className="text-sm font-bold text-muted-foreground">No hay más horarios disponibles hoy.</p>
-                          <p className="text-xs font-bold text-muted-foreground/60 italic">Te sugerimos esperar a que se libere un cupo o elegir otro día en el calendario.</p>
+                          <p className="text-xs font-bold text-muted-foreground/60 italic">Te sugerimos esperar a que se libere un cupo o elegir otro día.</p>
                         </div>
                       )}
                     </div>
