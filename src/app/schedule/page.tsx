@@ -465,9 +465,9 @@ export default function SchedulePage() {
                       <period.icon className="w-2.5 h-2.5" />
                       {period.label}
                     </span>
-                  </>
-                )}
-              </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
