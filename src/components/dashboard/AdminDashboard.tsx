@@ -175,8 +175,8 @@ export default function AdminDashboard() {
             timestamp,
             timeLabel: new Date(timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
             icon: CheckCircle2,
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50'
+            color: 'text-emerald-600 dark:text-emerald-400',
+            bg: 'bg-emerald-50 dark:bg-emerald-950/30'
           });
         }
       });
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
         timeLabel: new Date(timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
         icon: BookOpen,
         color: 'text-accent',
-        bg: 'bg-accent/5'
+        bg: 'bg-accent/5 dark:bg-accent/10'
       });
     });
     return list.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
@@ -271,8 +271,8 @@ export default function AdminDashboard() {
   }, [selectedDate]);
 
   const isSelectedDatePast = useMemo(() => {
-    const dateCopy = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
-    return dateCopy.getTime() < todayTimestamp;
+    const dateAtStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    return todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
   }, [selectedDate, todayTimestamp]);
 
   const editingTeacherName = useMemo(() => {
@@ -297,49 +297,49 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="rounded-[2rem] border-none shadow-sm bg-white">
+        <Card className="rounded-[2rem] border-none shadow-sm bg-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-blue-100 rounded-2xl">
-                <Users className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-blue-100 dark:bg-blue-950/30 rounded-2xl">
+                <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Alumnos Totales</p>
-                <h3 className="text-2xl font-black text-secondary-foreground">{studentsCount.toLocaleString()}</h3>
+                <h3 className="text-2xl font-black text-foreground">{studentsCount.toLocaleString()}</h3>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-none shadow-sm bg-white">
+        <Card className="rounded-[2rem] border-none shadow-sm bg-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-orange-100 rounded-2xl">
-                <Music className="w-6 h-6 text-orange-600" />
+              <div className="p-3 bg-orange-100 dark:bg-orange-950/30 rounded-2xl">
+                <Music className="w-6 h-6 text-orange-600 dark:text-orange-400" />
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profesores Activos</p>
-                <h3 className="text-2xl font-black text-secondary-foreground">{teachers.length}</h3>
+                <h3 className="text-2xl font-black text-foreground">{teachers.length}</h3>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-none shadow-sm bg-white">
+        <Card className="rounded-[2rem] border-none shadow-sm bg-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 rounded-2xl">
-                <CheckCircle2 className="w-6 h-6 text-green-600" />
+              <div className="p-3 bg-green-100 dark:bg-green-950/30 rounded-2xl">
+                <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Clases Completadas</p>
-                <h3 className="text-2xl font-black text-secondary-foreground">{globalStats.totalCount.toLocaleString()}</h3>
+                <h3 className="text-2xl font-black text-foreground">{globalStats.totalCount.toLocaleString()}</h3>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-none shadow-sm bg-white">
+        <Card className="rounded-[2rem] border-none shadow-sm bg-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-accent/20 rounded-2xl">
@@ -347,7 +347,7 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Horas Ejercidas (Tot)</p>
-                <h3 className="text-2xl font-black text-secondary-foreground">{globalStats.totalHours.toFixed(1)} h</h3>
+                <h3 className="text-2xl font-black text-foreground">{globalStats.totalHours.toFixed(1)} h</h3>
               </div>
             </div>
           </CardContent>
@@ -355,7 +355,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
+        <Card className="lg:col-span-2 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
           <CardHeader className="bg-primary/5 p-8 border-b flex flex-row items-center justify-between">
             <div className="space-y-1">
               <CardTitle className="text-xl font-black flex items-center gap-3">
@@ -367,7 +367,7 @@ export default function AdminDashboard() {
             <Badge className="bg-accent text-white rounded-full px-4 py-1.5 font-black text-[10px] uppercase tracking-widest">Semana Actual & Histórico</Badge>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y">
+            <div className="divide-y dark:divide-white/5">
               {teachersWithStats.length > 0 ? teachersWithStats.map((t) => (
                 <div key={t.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 hover:bg-muted/30 transition-colors group gap-6">
                   <div className="flex items-center gap-4">
@@ -380,10 +380,10 @@ export default function AdminDashboard() {
                       <AvatarFallback className="bg-primary text-secondary-foreground font-black">{t.name[0]}</AvatarFallback>
                     </Avatar>
                     <div className="space-y-1">
-                      <div className="font-black text-lg text-secondary-foreground">{t.name}</div>
+                      <div className="font-black text-lg text-foreground">{t.name}</div>
                       <div className="flex flex-wrap gap-2">
                         {t.instruments?.map(inst => (
-                          <span key={inst} className="text-[9px] font-black uppercase tracking-widest bg-secondary/30 text-secondary-foreground px-2 py-0.5 rounded-full border border-secondary/10">
+                          <span key={inst} className="text-[9px] font-black uppercase tracking-widest bg-secondary/30 dark:bg-secondary/10 text-secondary-foreground dark:text-secondary px-2 py-0.5 rounded-full border border-secondary/10">
                             {inst}
                           </span>
                         ))}
@@ -403,11 +403,11 @@ export default function AdminDashboard() {
                       </p>
                     </div>
 
-                    <div className="text-right border-l border-primary/10 pl-6 sm:pl-10">
+                    <div className="text-right border-l border-primary/10 dark:border-white/5 pl-6 sm:pl-10">
                       <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Completado (Sem)</p>
                       <div className="flex items-center justify-end gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <span className="text-xl font-black text-emerald-600">{t.stats.completedHours.toFixed(1)}h</span>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">{t.stats.completedHours.toFixed(1)}h</span>
                       </div>
                       <p className="text-[8px] font-bold text-muted-foreground">
                         {t.stats.hours > 0 
@@ -416,11 +416,11 @@ export default function AdminDashboard() {
                       </p>
                     </div>
 
-                    <div className="text-right border-l border-primary/10 pl-6 sm:pl-10 bg-accent/5 p-2 rounded-2xl">
+                    <div className="text-right border-l border-primary/10 dark:border-white/5 pl-6 sm:pl-10 bg-accent/5 dark:bg-accent/10 p-2 rounded-2xl">
                       <p className="text-[9px] font-black uppercase tracking-widest text-accent mb-1">Histórico Global</p>
                       <div className="flex items-center justify-end gap-2">
                         <Trophy className="w-4 h-4 text-accent" />
-                        <span className="text-xl font-black text-secondary-foreground">{t.stats.globalCompletedHours.toFixed(1)}h</span>
+                        <span className="text-xl font-black text-foreground">{t.stats.globalCompletedHours.toFixed(1)}h</span>
                       </div>
                       <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-tighter">Horas Ejercidas</p>
                     </div>
@@ -446,8 +446,8 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
-          <CardHeader className="border-b bg-white/50 p-6">
+        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
+          <CardHeader className="border-b bg-muted/50 p-6">
             <CardTitle className="text-lg font-black flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-accent" />
               Actividad Reciente
@@ -457,12 +457,12 @@ export default function AdminDashboard() {
             {recentActivity.length > 0 ? recentActivity.map((act) => {
               const Icon = act.icon;
               return (
-                <div key={act.id} className="flex items-center gap-4 p-5 border-b last:border-0 hover:bg-muted/50 transition-colors">
+                <div key={act.id} className="flex items-center gap-4 p-5 border-b dark:border-white/5 last:border-0 hover:bg-muted/50 transition-colors">
                   <div className={cn("p-2 rounded-xl shrink-0", act.bg)}>
                     <Icon className={cn("w-4 h-4", act.color)} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-black text-secondary-foreground truncate">{act.action}</div>
+                    <div className="text-sm font-black text-foreground truncate">{act.action}</div>
                     <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest truncate">{act.user}</div>
                   </div>
                   <div className="text-[10px] text-muted-foreground italic font-medium shrink-0">{act.timeLabel}</div>
@@ -480,14 +480,14 @@ export default function AdminDashboard() {
 
       <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
         <DialogContent className="rounded-[2rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
-          <DialogHeader className="bg-primary/10 p-6 border-b space-y-2 shrink-0">
-            <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+          <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-6 border-b space-y-2 shrink-0">
+            <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
               <CalendarDays className="w-6 h-6 text-accent" />
               Gestionar Agenda: {editingTeacherName}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="p-6 space-y-6 bg-white overflow-y-auto flex-1 max-h-[60vh]">
+          <div className="p-6 space-y-6 bg-card overflow-y-auto flex-1 max-h-[60vh]">
             <div className="flex flex-col gap-6">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -525,8 +525,8 @@ export default function AdminDashboard() {
                           "flex flex-col items-center py-2 md:py-3 rounded-xl transition-all border-2 relative group",
                           isSelected 
                             ? "bg-accent border-accent text-white shadow-md scale-105" 
-                            : "bg-primary/5 border-transparent hover:border-accent/20",
-                          isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-gray-100 border-gray-200"
+                            : "bg-muted/30 border-transparent hover:border-accent/20",
+                          isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
                         )}
                       >
                         <span className="text-[8px] font-black uppercase tracking-wider">
@@ -541,7 +541,7 @@ export default function AdminDashboard() {
               
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <p className="text-base font-black text-secondary-foreground capitalize">
+                  <p className="text-base font-black text-foreground capitalize">
                     {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
                   </p>
                   {!isSelectedDatePast && (
@@ -560,7 +560,7 @@ export default function AdminDashboard() {
                   {localSlots.map((slot, i) => (
                     <div key={slot.id} className={cn(
                       "flex items-center gap-3 p-3 rounded-xl border-2 transition-all",
-                      slot.isBooked ? "bg-orange-50 border-orange-200" : slot.isAvailable ? "bg-emerald-50 border-emerald-200" : "bg-gray-50 border-gray-100 opacity-60",
+                      slot.isBooked ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50" : slot.isAvailable ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50" : "bg-muted/20 border-border opacity-60",
                       isSelectedDatePast && "opacity-50 grayscale pointer-events-none"
                     )}>
                       <div className="flex-1 relative">
@@ -568,12 +568,12 @@ export default function AdminDashboard() {
                           value={slot.time}
                           onChange={(e) => updateSlotTime(i, e.target.value)}
                           disabled={slot.isBooked || isSelectedDatePast}
-                          className="h-9 pl-3 text-xs rounded-lg font-bold bg-white border-2"
+                          className="h-9 pl-3 text-xs rounded-lg font-bold bg-card border-2"
                         />
                         {slot.isBooked && (
                           <div className="flex items-center gap-1 mt-0.5 ml-1">
-                            <UserIcon className="w-2 h-2 text-orange-600" />
-                            <span className="text-[8px] font-black text-orange-600 uppercase">{slot.bookedBy}</span>
+                            <UserIcon className="w-2 h-2 text-orange-600 dark:text-orange-400" />
+                            <span className="text-[8px] font-black text-orange-600 dark:text-orange-400 uppercase">{slot.bookedBy}</span>
                           </div>
                         )}
                       </div>
@@ -592,7 +592,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="p-6 bg-gray-50 border-t flex gap-3">
+          <div className="p-6 bg-muted/30 border-t flex gap-3">
             <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)} className="rounded-xl flex-1 h-12 font-black">Cancelar</Button>
             <Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-12 font-black gap-2">Guardar Cambios</Button>
           </div>

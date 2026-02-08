@@ -69,26 +69,26 @@ const getTimePeriod = (timeStr: string) => {
     return { 
       label: 'en la mañana', 
       icon: Sunrise, 
-      color: 'text-yellow-600', 
-      bg: 'bg-yellow-50', 
-      border: 'border-yellow-200' 
+      color: 'text-yellow-600 dark:text-yellow-400', 
+      bg: 'bg-yellow-50 dark:bg-yellow-950/30', 
+      border: 'border-yellow-200 dark:border-yellow-900/50' 
     };
   }
   if (hour >= 12 && hour < 19) {
     return { 
       label: 'en la tarde', 
       icon: Sun, 
-      color: 'text-orange-700', 
-      bg: 'bg-orange-100', 
-      border: 'border-orange-200' 
+      color: 'text-orange-700 dark:text-orange-400', 
+      bg: 'bg-orange-100 dark:bg-orange-950/30', 
+      border: 'border-orange-200 dark:border-orange-900/50' 
     };
   }
   return { 
     label: 'en la noche', 
     icon: Moon, 
-    color: 'text-indigo-700', 
-    bg: 'bg-indigo-100', 
-    border: 'border-indigo-200' 
+    color: 'text-indigo-700 dark:text-indigo-400', 
+    bg: 'bg-indigo-100 dark:bg-indigo-950/30', 
+    border: 'border-indigo-200 dark:border-indigo-900/50' 
   };
 };
 
@@ -269,8 +269,6 @@ export default function SchedulePage() {
     const endM = endMinutes % 60;
     const timeRange = `${groupStartTime} - ${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
 
-    // On group classes, the primary teacher listed is the current user if teacher
-    // or the first selected teacher if admin
     const hostId = isTeacher ? user.id : (selectedTeachers.length > 0 ? selectedTeachers[0].id : user.id);
     const hostName = isTeacher ? user.name : (selectedTeachers.length > 0 ? selectedTeachers[0].name : user.name);
     
@@ -350,14 +348,14 @@ export default function SchedulePage() {
       <Card className={cn(
         "rounded-[2rem] border-2 transition-all duration-300 group overflow-hidden shadow-sm hover:shadow-md",
         isMine || isStaffView
-          ? (isCompleted ? 'bg-emerald-50 border-emerald-200' : (isPast && isMine ? 'bg-orange-50 border-orange-200' : 'bg-accent/5 border-accent shadow-lg shadow-accent/10')) 
-          : 'bg-white border-primary/5 hover:border-accent/20'
+          ? (isCompleted ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50' : (isPast && isMine ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50' : 'bg-accent/5 dark:bg-accent/10 border-accent shadow-lg shadow-accent/10')) 
+          : 'bg-card border-primary/5 hover:border-accent/20'
       )}>
         <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <div className={cn(
               "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[95px] h-16 sm:h-20 rounded-2xl shrink-0 shadow-inner",
-              isMine || isStaffView ? (isCompleted ? "bg-emerald-500 text-white" : (isPast && isMine ? "bg-orange-500 text-white" : "bg-accent text-white")) : "bg-primary/10 text-secondary-foreground"
+              isMine || isStaffView ? (isCompleted ? "bg-emerald-500 text-white" : (isPast && isMine ? "bg-orange-500 text-white" : "bg-accent text-white")) : "bg-primary/10 text-foreground"
             )}>
               <span className="text-sm sm:text-base font-black leading-none text-center">{displayTime}</span>
             </div>
@@ -366,7 +364,7 @@ export default function SchedulePage() {
               {slot.isBooked ? (
                 <div className="space-y-2">
                    <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 flex items-center justify-center text-xl rounded-xl border shadow-sm bg-primary/5">
+                    <div className="w-8 h-8 flex items-center justify-center text-xl rounded-xl border shadow-sm bg-primary/5 dark:bg-white/5">
                       {slot.isGroup ? '🎓' : emoji}
                     </div>
                     <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">
@@ -382,7 +380,7 @@ export default function SchedulePage() {
                         <span>Prof. {slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME)}</span>
                       )}
                     </div>
-                    <div className="text-lg font-black text-secondary-foreground flex items-center gap-2">
+                    <div className="text-lg font-black text-foreground flex items-center gap-2">
                       <GraduationCap className="w-5 h-5" />
                       {slot.isGroup ? (
                         <span className="truncate">Participantes: {slot.students?.map((s: any) => s.name).join(', ')}</span>
@@ -394,7 +392,7 @@ export default function SchedulePage() {
                   <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
                     <span className={cn(
                         "flex items-center gap-1 shrink-0",
-                        slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                        slot.type === 'virtual' ? "text-blue-500 dark:text-blue-400" : "text-red-500 dark:text-red-400"
                     )}>
                       {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
                       {slot.type === 'virtual' ? 'Online' : 'Presencial'}
@@ -412,7 +410,7 @@ export default function SchedulePage() {
                 <>
                   <h4 className={cn(
                     "text-base sm:text-lg font-black tracking-tight truncate flex items-center gap-2",
-                    (isMine || isStaffView) ? (isCompleted ? "text-emerald-700" : (isPast && isMine ? "text-orange-700" : "text-accent")) : "text-secondary-foreground"
+                    (isMine || isStaffView) ? (isCompleted ? "text-emerald-700 dark:text-emerald-400" : (isPast && isMine ? "text-orange-700 dark:text-orange-400" : "text-accent")) : "text-foreground"
                   )}>
                     <div className="flex items-center gap-3 overflow-hidden">
                       <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
@@ -438,13 +436,13 @@ export default function SchedulePage() {
                     </div>
                   </h4>
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                    <span className="flex items-center gap-1 shrink-0 text-secondary-foreground">
+                    <span className="flex items-center gap-1 shrink-0 text-foreground">
                       <UserIcon className="w-3 h-3 text-accent" /> 
                       {teacherProfile?.name || DEFAULT_TEACHER_NAME}
                     </span>
                     <span className={cn(
                         "flex items-center gap-1 shrink-0",
-                        slot.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                        slot.type === 'virtual' ? "text-blue-500 dark:text-blue-400" : "text-red-500 dark:text-red-400"
                     )}>
                       {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
                       {slot.type === 'virtual' ? 'Online' : 'Presencial'}
@@ -467,7 +465,7 @@ export default function SchedulePage() {
               <div className="flex items-center gap-3">
                 {isPast && (
                   <div className="flex flex-col items-center gap-1.5 border-r border-primary/10 pr-3">
-                    <span className={cn("text-[9px] font-black uppercase", isCompleted ? "text-emerald-600" : "text-orange-600")}>
+                    <span className={cn("text-[9px] font-black uppercase", isCompleted ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400")}>
                       {isCompleted ? 'Completado' : 'Pendiente'}
                     </span>
                     <Switch 
@@ -495,7 +493,7 @@ export default function SchedulePage() {
                 )}
                 <div className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all", 
-                  isCompleted ? "bg-emerald-100 text-emerald-700" : (isPast ? "bg-orange-100 text-orange-700" : "bg-accent/10 text-accent")
+                  isCompleted ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : (isPast ? "bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400" : "bg-accent/10 text-accent")
                 )}>
                   {isCompleted ? (
                     <>
@@ -556,16 +554,16 @@ export default function SchedulePage() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="rounded-[2.5rem] max-w-2xl border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                  <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
-                    <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+                  <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
+                    <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
                       <GraduationCap className="w-8 h-8 text-accent" />
                       Clase Grupal Especial 🎓
                     </DialogTitle>
-                    <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+                    <DialogDescription className="text-base text-muted-foreground font-medium">
                       Programar sesión de 90 minutos para múltiples alumnos y profesores.
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white">
+                  <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-card">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-6">
                         <div className="space-y-3">
@@ -650,7 +648,7 @@ export default function SchedulePage() {
                       </div>
                     </div>
                   </div>
-                  <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
+                  <div className="p-8 bg-muted/30 flex gap-3 border-t shrink-0 mt-auto">
                     <Button variant="outline" onClick={() => setIsGroupDialogOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                     <Button 
                       onClick={handleCreateGroupClass} 
@@ -681,10 +679,10 @@ export default function SchedulePage() {
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="rounded-[2.5rem] max-w-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                  <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
-                    <DialogTitle className="text-2xl font-black text-secondary-foreground">Agendar Sesión 🎵</DialogTitle>
+                  <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
+                    <DialogTitle className="text-2xl font-black text-foreground">Agendar Sesión 🎵</DialogTitle>
                     <DialogDescription className="space-y-1">
-                      <span className="block text-base text-secondary-foreground/70 font-medium">
+                      <span className="block text-base text-foreground/70 font-medium">
                         {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                       </span>
                       <span className="block text-xs font-bold text-accent italic">
@@ -692,7 +690,7 @@ export default function SchedulePage() {
                       </span>
                     </DialogDescription>
                   </DialogHeader>
-                  <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-white max-h-[60vh]">
+                  <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-card max-h-[60vh]">
                     {otherAvailableSlots.length > 0 ? (
                       <div className="grid grid-cols-1 gap-4">
                         {otherAvailableSlots.map((slot) => {
@@ -705,7 +703,7 @@ export default function SchedulePage() {
                                 "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
                                 isSelected 
                                   ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
-                                  : "bg-white border-primary/10 hover:border-accent/30"
+                                  : "bg-card border-primary/10 hover:border-accent/30"
                               )}
                               onClick={() => {
                                 setSelectedSlotId(slot.id);
@@ -723,7 +721,7 @@ export default function SchedulePage() {
                                     <period.icon className="w-5 h-5 shrink-0" />
                                   </div>
                                   <div className="flex flex-col items-start min-w-0">
-                                    <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-secondary-foreground")}>
+                                    <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground")}>
                                       {formatToAmPm(slot.time)}
                                     </span>
                                     <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
@@ -740,7 +738,7 @@ export default function SchedulePage() {
                                     <Music className="w-3 h-3" /> ¿Qué instrumento tocarás?
                                   </Label>
                                   <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
-                                    <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-white font-black text-secondary-foreground focus:ring-accent">
+                                    <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">
                                       <SelectValue placeholder="Seleccionar instrumento" />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-2xl border-2">
@@ -767,7 +765,7 @@ export default function SchedulePage() {
                       </div>
                     )}
                   </div>
-                  <div className="p-8 bg-gray-50 flex gap-3 border-t shrink-0 mt-auto">
+                  <div className="p-8 bg-muted/30 flex gap-3 border-t shrink-0 mt-auto">
                     <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
                     <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                   </div>
@@ -779,7 +777,7 @@ export default function SchedulePage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-4 space-y-6">
-            <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
+            <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
               <CardHeader className="bg-primary/5 p-6 flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-black flex items-center gap-2">
                   <CalendarIcon className="w-5 h-5 text-accent" />
@@ -796,9 +794,9 @@ export default function SchedulePage() {
                     const isSelected = d.toDateString() === date.toDateString();
                     const isToday = d.toDateString() === todayStr;
                     return (
-                      <button key={i} onClick={() => setDate(d)} className={cn("flex items-center justify-between p-4 rounded-2xl transition-all border-2", isSelected ? "bg-accent border-accent text-white shadow-lg" : "bg-white border-primary/5 hover:border-accent/30", isToday && !isSelected && "border-accent/30")}>
+                      <button key={i} onClick={() => setDate(d)} className={cn("flex items-center justify-between p-4 rounded-2xl transition-all border-2", isSelected ? "bg-accent border-accent text-white shadow-lg" : "bg-card border-primary/5 hover:border-accent/30", isToday && !isSelected && "border-accent/30")}>
                         <div className="flex flex-col items-start">
-                          <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{d.toLocaleDateString('es-ES', { weekday: 'long' })}</span>
+                          <span className={cn("text-[10px] font-black uppercase tracking-widest opacity-60", isSelected ? "text-white" : "text-muted-foreground")}>{d.toLocaleDateString('es-ES', { weekday: 'long' })}</span>
                           <span className="text-xl font-black">{d.getDate()}</span>
                         </div>
                         {isToday && <Badge className={cn("rounded-full px-3 py-1 text-[9px] font-black", isSelected ? "bg-white text-accent" : "bg-accent text-white")}>HOY</Badge>}
@@ -814,7 +812,7 @@ export default function SchedulePage() {
             <div className="flex items-center gap-4 bg-primary/5 p-4 rounded-3xl border border-primary/10">
               <div className="bg-accent/10 p-3 rounded-2xl shadow-sm"><Clock className="w-6 h-6 text-accent" /></div>
               <div>
-                <h3 className="text-4xl font-black text-secondary-foreground capitalize leading-tight">{date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
+                <h3 className="text-4xl font-black text-foreground capitalize leading-tight">{date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
                 <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Resumen del día</p>
               </div>
             </div>
@@ -824,7 +822,7 @@ export default function SchedulePage() {
                 <section className="space-y-4">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-6 h-6 text-accent" />
-                    <h2 className="text-xl font-black text-secondary-foreground">Todas las Reservas de la Academia 🌟</h2>
+                    <h2 className="text-xl font-black text-foreground">Todas las Reservas de la Academia 🌟</h2>
                   </div>
                   <div className="grid grid-cols-1 gap-4">
                     {allBookings.length > 0 ? (
@@ -850,7 +848,7 @@ export default function SchedulePage() {
                   <section className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-6 bg-accent rounded-full" />
-                      <h2 className="text-xl font-black text-secondary-foreground">Próximas Clases Pendientes ⏳</h2>
+                      <h2 className="text-xl font-black text-foreground">Próximas Clases Pendientes ⏳</h2>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {teacherPendingClasses.length > 0 ? (
@@ -866,8 +864,8 @@ export default function SchedulePage() {
                   {academicGroupClasses.length > 0 && (
                     <section className="space-y-4">
                       <div className="flex items-center gap-2">
-                        <Users className="w-6 h-6 text-secondary-foreground" />
-                        <h2 className="text-xl font-black text-secondary-foreground">Clases Grupales de la Academia 🌍</h2>
+                        <Users className="w-6 h-6 text-accent" />
+                        <h2 className="text-xl font-black text-foreground">Clases Grupales de la Academia 🌍</h2>
                       </div>
                       <div className="grid grid-cols-1 gap-4">
                         {academicGroupClasses.map((slot) => (
@@ -886,13 +884,13 @@ export default function SchedulePage() {
                   <section className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                      <h2 className="text-xl font-black text-secondary-foreground">Clases para Validar/Pasadas 👩‍🎓</h2>
+                      <h2 className="text-xl font-black text-foreground">Clases para Validar/Pasadas 👩‍🎓</h2>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {teacherPastClasses.length > 0 ? (
                         teacherPastClasses.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} isStaffView={true} />)
                       ) : (
-                        <div className="py-8 text-center bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
+                        <div className="py-8 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted">
                           <p className="text-sm font-bold text-muted-foreground">No hay clases pasadas para validar hoy.</p>
                         </div>
                       )}
@@ -904,7 +902,7 @@ export default function SchedulePage() {
                   <section className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-6 bg-accent rounded-full" />
-                      <h2 className="text-xl font-black text-secondary-foreground">Mis Clases Confirmadas 🌟</h2>
+                      <h2 className="text-xl font-black text-foreground">Mis Clases Confirmadas 🌟</h2>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {mySlots.length > 0 ? (
@@ -920,13 +918,13 @@ export default function SchedulePage() {
                   <section className="space-y-4">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-6 bg-primary rounded-full" />
-                      <h2 className="text-xl font-black text-secondary-foreground">Horarios Disponibles para una Reserva Rápida 🎸</h2>
+                      <h2 className="text-xl font-black text-foreground">Horarios Disponibles para una Reserva Rápida 🎸</h2>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {otherAvailableSlots.length > 0 ? (
                         otherAvailableSlots.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} />)
                       ) : (
-                        <div className="py-8 text-center bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
+                        <div className="py-8 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted">
                           <p className="text-sm font-bold text-muted-foreground">No hay más horarios disponibles hoy.</p>
                         </div>
                       )}

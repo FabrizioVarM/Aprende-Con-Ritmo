@@ -157,7 +157,7 @@ export default function LibraryPage() {
             </div>
           </div>
           {isStaff && (
-            <div className="bg-white border-2 border-accent/20 p-2 pl-4 rounded-[2rem] flex flex-col sm:flex-row items-center gap-4 shadow-sm shrink-0">
+            <div className="bg-card border-2 border-accent/20 p-2 pl-4 rounded-[2rem] flex flex-col sm:flex-row items-center gap-4 shadow-sm shrink-0">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-6 h-6 text-accent" />
                 <div className="hidden sm:block">
@@ -167,7 +167,7 @@ export default function LibraryPage() {
               </div>
               <div className="w-full sm:w-64">
                 <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                  <SelectTrigger className="h-12 rounded-2xl border-accent/30 bg-accent/5 font-black text-secondary-foreground focus:ring-accent">
+                  <SelectTrigger className="h-12 rounded-2xl border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
                     <Users className="w-4 h-4 mr-2 text-accent" />
                     <SelectValue placeholder="Seleccionar Alumno" />
                   </SelectTrigger>
@@ -189,7 +189,7 @@ export default function LibraryPage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input 
               placeholder="Buscar recursos..." 
-              className="pl-11 rounded-2xl h-12 border-primary/20 bg-white focus:border-accent transition-all font-medium"
+              className="pl-11 rounded-2xl h-12 border-primary/20 bg-card focus:border-accent transition-all font-medium"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -205,7 +205,7 @@ export default function LibraryPage() {
                     "rounded-full px-5 h-10 transition-all font-black text-xs shrink-0",
                     isActive 
                       ? "bg-accent text-white border-accent shadow-md shadow-accent/20" 
-                      : "border-primary/20 bg-white text-muted-foreground hover:border-accent/50"
+                      : "border-primary/20 bg-card text-muted-foreground hover:border-accent/50"
                   )}
                   onClick={() => toggleFilter(cat)}
                 >
@@ -222,7 +222,7 @@ export default function LibraryPage() {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
             
             return (
-              <Card key={res.id} className="rounded-[2.5rem] border-none shadow-md group overflow-hidden bg-white hover:shadow-xl transition-all duration-300">
+              <Card key={res.id} className="rounded-[2.5rem] border-none shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300">
                 <div className="relative aspect-video overflow-hidden">
                   <Image 
                     src={res.img.imageUrl} 
@@ -232,14 +232,14 @@ export default function LibraryPage() {
                     data-ai-hint={res.img.imageHint}
                   />
                   <div className="absolute top-4 left-4 flex gap-2">
-                    <Badge className="bg-white/95 text-secondary-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none">{res.category}</Badge>
+                    <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none">{res.category}</Badge>
                   </div>
                   {isAdmin && (
                     <div className="absolute top-4 right-4">
                       <Button 
                         size="icon" 
                         variant="secondary" 
-                        className="rounded-full w-10 h-10 shadow-lg bg-white/90 hover:bg-accent hover:text-white transition-all"
+                        className="rounded-full w-10 h-10 shadow-lg bg-white/90 dark:bg-slate-900/90 hover:bg-accent hover:text-white transition-all"
                         onClick={() => setEditingResource(res)}
                       >
                         <Edit2 className="w-4 h-4" />
@@ -248,7 +248,7 @@ export default function LibraryPage() {
                   )}
                 </div>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[3rem] line-clamp-2">{res.title}</CardTitle>
+                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[3rem] line-clamp-2 text-foreground">{res.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-widest">
@@ -258,19 +258,19 @@ export default function LibraryPage() {
 
                   <div className={cn(
                     "p-4 rounded-3xl border-2 transition-all flex items-center justify-between shadow-sm",
-                    isCompleted ? "bg-emerald-50 border-emerald-200" : "bg-orange-50 border-orange-200"
+                    isCompleted ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50" : "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50"
                   )}>
                     <div className="flex items-center gap-3">
                       <div className={cn(
                         "w-10 h-10 rounded-2xl flex items-center justify-center shadow-inner",
-                        isCompleted ? "bg-white text-emerald-600" : "bg-white text-orange-600"
+                        isCompleted ? "bg-card text-emerald-600 dark:text-emerald-400" : "bg-card text-orange-600 dark:text-orange-400"
                       )}>
                         {isCompleted ? <CheckCircle2 className="w-6 h-6" /> : <AlertCircle className="w-6 h-6" />}
                       </div>
                       <div>
                         <p className={cn(
                           "text-[10px] font-black uppercase tracking-widest",
-                          isCompleted ? "text-emerald-700" : "text-orange-700"
+                          isCompleted ? "text-emerald-700 dark:text-emerald-400" : "text-orange-700 dark:text-orange-400"
                         )}>
                           {isCompleted ? "Completado" : "Pendiente"}
                         </p>
@@ -281,7 +281,7 @@ export default function LibraryPage() {
                     </div>
 
                     {isStaff && (
-                      <div className="flex flex-col items-center gap-1.5 bg-white/50 p-2 rounded-2xl border border-primary/5">
+                      <div className="flex flex-col items-center gap-1.5 bg-card/50 p-2 rounded-2xl border border-primary/5">
                         <span className="text-[8px] font-black uppercase text-muted-foreground">Validar</span>
                         <Switch 
                           checked={isCompleted} 
@@ -312,7 +312,7 @@ export default function LibraryPage() {
           }) : (
             <div className="col-span-full py-20 text-center bg-primary/5 rounded-[3rem] border-4 border-dashed border-primary/10">
               <BookOpen className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-              <h3 className="text-xl font-black text-secondary-foreground">Sin resultados</h3>
+              <h3 className="text-xl font-black text-foreground">Sin resultados</h3>
               <p className="text-muted-foreground font-bold italic">No hay recursos que coincidan con los filtros seleccionados.</p>
               <Button variant="link" onClick={() => setSelectedFilters([])} className="text-accent font-black mt-2 underline">Ver todo el catálogo</Button>
             </div>
@@ -322,16 +322,16 @@ export default function LibraryPage() {
 
       <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
         <DialogContent className="rounded-[2.5rem] max-w-xl border-none shadow-2xl p-0 overflow-hidden">
-          <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
-            <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+          <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
+            <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
               <Edit2 className="w-6 h-6 text-accent" />
               Editar Recurso
             </DialogTitle>
-            <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+            <DialogDescription className="text-base text-muted-foreground font-medium">
               Modifica los detalles del material educativo.
             </DialogDescription>
           </DialogHeader>
-          <div className="p-8 space-y-6 bg-white overflow-y-auto max-h-[60vh]">
+          <div className="p-8 space-y-6 bg-card overflow-y-auto max-h-[60vh]">
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -398,7 +398,7 @@ export default function LibraryPage() {
               </div>
             </div>
           </div>
-          <DialogFooter className="p-8 bg-gray-50 flex gap-3 border-t">
+          <DialogFooter className="p-8 bg-muted/30 flex gap-3 border-t">
             <Button variant="outline" onClick={() => setEditingResource(null)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
             <Button onClick={handleSaveResourceEdit} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Guardar Cambios</Button>
           </DialogFooter>
@@ -407,16 +407,16 @@ export default function LibraryPage() {
 
       <Dialog open={isEditingDescription} onOpenChange={isEditingDescription => setIsEditingDescription(isEditingDescription)}>
         <DialogContent className="rounded-[2.5rem] max-w-xl border-none shadow-2xl p-0 overflow-hidden">
-          <DialogHeader className="bg-primary/10 p-8 border-b space-y-2">
-            <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+          <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2">
+            <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
               <FileText className="w-6 h-6 text-accent" />
               Editar Descripción de la Biblioteca
             </DialogTitle>
-            <DialogDescription className="text-base text-secondary-foreground/70 font-medium">
+            <DialogDescription className="text-base text-muted-foreground font-medium">
               Personaliza el mensaje de bienvenida y las instrucciones para tus alumnos.
             </DialogDescription>
           </DialogHeader>
-          <div className="p-8 bg-white">
+          <div className="p-8 bg-card">
             <div className="space-y-4">
               <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Texto Descriptivo</Label>
               <Textarea 
@@ -427,7 +427,7 @@ export default function LibraryPage() {
               />
             </div>
           </div>
-          <DialogFooter className="p-8 bg-gray-50 flex gap-3 border-t">
+          <DialogFooter className="p-8 bg-muted/30 flex gap-3 border-t">
             <Button variant="outline" onClick={() => setIsEditingDescription(false)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
             <Button onClick={handleSaveDescription} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Guardar Descripción</Button>
           </DialogFooter>
