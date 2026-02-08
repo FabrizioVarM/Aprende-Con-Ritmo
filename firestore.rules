@@ -2,7 +2,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Funciones de utilidad
+    // Funciones de utilidad fundamentales
     function isSignedIn() {
       return request.auth != null;
     }
@@ -16,48 +16,50 @@ service cloud.firestore {
     }
 
     function isTeacher() {
-      return isSignedIn() && getUserData().role == 'teacher';
+      return isSignedIn() && (getUserData().role == 'teacher' || getUserData().role == 'admin');
     }
 
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Perfiles: Todos los autenticados leen, solo admin o el dueño escribe
+    // Perfiles: Lectura permitida para todos los registrados (para ver profes), escritura solo dueño o admin
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isOwner(userId);
+      allow create: if isSignedIn(); // Permitir crear perfil inicial tras login
+      allow update: if isAdmin() || isOwner(userId);
+      allow delete: if isAdmin();
     }
     
-    // Disponibilidad: Lectura pública (para ver horarios), escritura si eres admin, profe o el alumno que reserva
+    // Disponibilidad: Lectura pública, reserva permitida para registrados, gestión solo admin/profe
     match /availabilities/{availId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn(); 
+      allow write: if isSignedIn(); // Reservar requiere escribir en el documento del día
     }
     
-    // Completados, Hitos y Habilidades: Admin y Profes editan, Alumnos solo leen
+    // Seguimiento académico: Admin y Profes editan, Alumnos solo leen lo suyo
     match /completions/{compId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isTeacher();
+      allow write: if isTeacher();
     }
 
     match /milestones/{mileId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isTeacher();
+      allow write: if isTeacher();
     }
 
     match /skills/{skillId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || isTeacher();
+      allow write: if isTeacher();
     }
     
-    // Catálogo: Todos leen, solo admin edita
+    // Catálogo: Todos leen, solo admin gestiona materiales
     match /resources/{resId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
     
-    // Ajustes: Lectura pública, solo admin edita
+    // Ajustes del Sistema: Lectura pública, solo admin edita
     match /settings/{docId} {
       allow read: if true;
       allow write: if isAdmin();
