@@ -7,6 +7,8 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   signOut,
+  GoogleAuthProvider,
+  signInWithPopup,
   User as FirebaseUser
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, collection, getDocs, deleteDoc } from 'firebase/firestore';
@@ -69,12 +71,42 @@ export function useAuth() {
 
   const login = async (email: string, password?: string): Promise<boolean> => {
     try {
-      // Si no se provee password en prototipo, esto fallará con Firebase real.
-      // Los usuarios deben usar su contraseña real creada en el registro.
       await signInWithEmailAndPassword(auth, email, password || 'password123');
       return true;
     } catch (e) {
       console.error("Login error", e);
+      return false;
+    }
+  };
+
+  const loginWithGoogle = async (): Promise<boolean> => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+      
+      const profile = await fetchProfile(firebaseUser.uid);
+      
+      if (!profile) {
+        const newUser: User = {
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || 'Usuario Google',
+          email: firebaseUser.email || '',
+          role: 'student',
+          username: (firebaseUser.email || '').split('@')[0],
+          avatarSeed: firebaseUser.uid,
+          photoUrl: firebaseUser.photoURL || undefined,
+          instruments: []
+        };
+        await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+        setUser(newUser);
+      } else {
+        setUser(profile);
+      }
+      
+      return true;
+    } catch (e) {
+      console.error("Google login error", e);
       return false;
     }
   };
@@ -121,8 +153,6 @@ export function useAuth() {
   }, [db, fetchAllUsers]);
 
   const adminAddUser = useCallback(async (userData: Omit<User, 'id'>) => {
-    // Nota: Crear usuarios desde admin requiere Admin SDK en entorno real
-    // Para prototipo, usamos una colección ficticia o permitimos setDoc directo si las reglas lo permiten
     const newId = Math.random().toString(36).substring(7);
     const newUser = { ...userData, id: newId };
     await setDoc(doc(db, 'users', newId), newUser);
@@ -139,5 +169,5 @@ export function useAuth() {
     return allUsers.filter(u => u.role === 'teacher');
   }, [allUsers]);
 
-  return { user, allUsers, loading, login, logout, register, updateUser, adminUpdateUser, adminAddUser, adminDeleteUser, getTeachers };
+  return { user, allUsers, loading, login, loginWithGoogle, logout, register, updateUser, adminUpdateUser, adminAddUser, adminDeleteUser, getTeachers };
 }
