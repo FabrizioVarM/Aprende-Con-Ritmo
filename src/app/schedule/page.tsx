@@ -759,9 +759,12 @@ export default function SchedulePage() {
                         })}
                       </div>
                     ) : (
-                      <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10">
-                        <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30 mb-2" />
-                        <p className="text-sm font-bold text-muted-foreground">¡se llenaron todos los cupos!</p>
+                      <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10 space-y-3">
+                        <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30" />
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-muted-foreground">¡Vaya! Todos los cupos están llenos hoy.</p>
+                          <p className="text-[10px] font-bold text-muted-foreground/60 italic">Te sugerimos elegir otro día o esperar a que se libere un horario.</p>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -864,7 +867,7 @@ export default function SchedulePage() {
                   {academicGroupClasses.length > 0 && (
                     <section className="space-y-4">
                       <div className="flex items-center gap-2">
-                        <Users className="w-6 h-6 text-accent" />
+                        Users className="w-6 h-6 text-accent" />
                         <h2 className="text-xl font-black text-foreground">Clases Grupales de la Academia 🌍</h2>
                       </div>
                       <div className="grid grid-cols-1 gap-4">
@@ -924,8 +927,9 @@ export default function SchedulePage() {
                       {otherAvailableSlots.length > 0 ? (
                         otherAvailableSlots.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} />)
                       ) : (
-                        <div className="py-8 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted">
+                        <div className="py-8 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted space-y-2">
                           <p className="text-sm font-bold text-muted-foreground">No hay más horarios disponibles hoy.</p>
+                          <p className="text-xs font-bold text-muted-foreground/60 italic">Te sugerimos esperar a que se libere un cupo o elegir otro día en el calendario.</p>
                         </div>
                       )}
                     </div>

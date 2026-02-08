@@ -505,9 +505,12 @@ export default function StudentDashboard() {
                         </Button>
                       ))
                     ) : (
-                      <div className="bg-muted/10 p-12 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5">
-                        <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
-                        <p className="font-black text-muted-foreground">¡se llenaron todos los cupos!</p>
+                      <div className="bg-muted/10 p-8 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5 space-y-4">
+                        <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30" />
+                        <div className="space-y-2">
+                          <p className="font-black text-muted-foreground">¡Vaya! Todos los cupos están llenos para este día.</p>
+                          <p className="text-xs font-bold text-muted-foreground/70 italic">Te sugerimos esperar a que se libere uno o elegir otro día en el calendario arriba.</p>
+                        </div>
                       </div>
                     )}
                   </div>
