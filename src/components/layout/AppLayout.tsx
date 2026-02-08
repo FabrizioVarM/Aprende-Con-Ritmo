@@ -2,7 +2,7 @@
 "use client"
 
 import React, { useEffect } from 'react';
-import Link from 'next/link';
+import Link from 'next/navigation';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
@@ -110,7 +110,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             return (
               <div 
                 key={item.label} 
-                className="flex items-center justify-between px-4 py-3 rounded-xl opacity-50 cursor-not-allowed text-muted-foreground group select-none"
+                className="flex items-center justify-between px-4 py-3 rounded-xl opacity-50 text-muted-foreground group select-none"
               >
                 <div className="flex items-center gap-3">
                   <item.icon className="w-5 h-5" />
