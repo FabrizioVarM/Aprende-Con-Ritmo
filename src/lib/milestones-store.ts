@@ -1,7 +1,8 @@
-
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
+import { collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
 export interface UserMilestone {
   id: string;
@@ -13,54 +14,33 @@ export interface UserMilestone {
 
 export function useMilestonesStore() {
   const [milestones, setMilestones] = useState<UserMilestone[]>([]);
-
-  const loadData = useCallback(() => {
-    const saved = localStorage.getItem('ac_user_milestones');
-    if (saved) {
-      try {
-        setMilestones(JSON.parse(saved));
-      } catch (e) {
-        console.error("Error loading milestones", e);
-      }
-    }
-  }, []);
+  const db = useFirestore();
 
   useEffect(() => {
-    loadData();
-    window.addEventListener('ac_sync_milestones', loadData);
-    window.addEventListener('storage', loadData);
-    return () => {
-      window.removeEventListener('ac_sync_milestones', loadData);
-      window.removeEventListener('storage', loadData);
-    };
-  }, [loadData]);
-
-  const saveToStorage = useCallback((data: UserMilestone[]) => {
-    localStorage.setItem('ac_user_milestones', JSON.stringify(data));
-    setMilestones(data);
-    window.dispatchEvent(new CustomEvent('ac_sync_milestones'));
-  }, []);
+    const unsubscribe = onSnapshot(collection(db, 'milestones'), (snapshot) => {
+      const list: UserMilestone[] = [];
+      snapshot.forEach(doc => list.push({ ...doc.data(), id: doc.id } as UserMilestone));
+      setMilestones(list);
+    });
+    return () => unsubscribe();
+  }, [db]);
 
   const addMilestone = useCallback((studentId: string, title: string, date?: string, achieved: boolean = false) => {
-    const newMilestone: UserMilestone = {
-      id: Math.random().toString(36).substring(7),
-      studentId,
-      milestoneTitle: title,
-      achieved,
+    const id = Math.random().toString(36).substring(7);
+    const data: UserMilestone = {
+      id, studentId, milestoneTitle: title, achieved,
       date: date || (achieved ? new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }) : undefined)
     };
-    saveToStorage([...milestones, newMilestone]);
-  }, [milestones, saveToStorage]);
+    setDoc(doc(db, 'milestones', id), data);
+  }, [db]);
 
   const updateMilestone = useCallback((id: string, updates: Partial<Omit<UserMilestone, 'id' | 'studentId'>>) => {
-    const updated = milestones.map(m => m.id === id ? { ...m, ...updates } : m);
-    saveToStorage(updated);
-  }, [milestones, saveToStorage]);
+    updateDoc(doc(db, 'milestones', id), updates);
+  }, [db]);
 
   const deleteMilestone = useCallback((id: string) => {
-    const updated = milestones.filter(m => m.id !== id);
-    saveToStorage(updated);
-  }, [milestones, saveToStorage]);
+    deleteDoc(doc(db, 'milestones', id));
+  }, [db]);
 
   const toggleMilestoneAchieved = useCallback((id: string) => {
     const m = milestones.find(item => item.id === id);
@@ -70,9 +50,8 @@ export function useMilestonesStore() {
     if (newAchieved && !m.date) {
       updates.date = new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' });
     }
-    const updated = milestones.map(item => item.id === id ? { ...item, ...updates } : item);
-    saveToStorage(updated);
-  }, [milestones, saveToStorage]);
+    updateDoc(doc(db, 'milestones', id), updates);
+  }, [db, milestones]);
 
   const getStudentMilestones = useCallback((studentId: string) => {
     return milestones.filter(m => m.studentId === studentId);
@@ -82,13 +61,5 @@ export function useMilestonesStore() {
     return milestones.filter(m => m.studentId === studentId && m.achieved).length;
   }, [milestones]);
 
-  return { 
-    milestones, 
-    addMilestone, 
-    updateMilestone, 
-    deleteMilestone, 
-    toggleMilestoneAchieved, 
-    getStudentMilestones, 
-    getAchievedCount 
-  };
+  return { milestones, addMilestone, updateMilestone, deleteMilestone, toggleMilestoneAchieved, getStudentMilestones, getAchievedCount };
 }

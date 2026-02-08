@@ -10,13 +10,9 @@
           "type": "string",
           "description": "Unique identifier for the UserProfile entity."
         },
-        "firstName": {
+        "name": {
           "type": "string",
-          "description": "First name of the user."
-        },
-        "lastName": {
-          "type": "string",
-          "description": "Last name of the user."
+          "description": "Full name of the user."
         },
         "email": {
           "type": "string",
@@ -25,140 +21,57 @@
         },
         "role": {
           "type": "string",
-          "description": "Role of the user (e.g., student, teacher, admin)."
+          "description": "Role of the user (student, teacher, admin).",
+          "enum": ["student", "teacher", "admin"]
+        },
+        "username": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "instruments": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "avatarSeed": {
+          "type": "string"
+        },
+        "photoUrl": {
+          "type": "string"
         }
       },
-      "required": [
-        "id",
-        "firstName",
-        "lastName",
-        "email",
-        "role"
-      ]
+      "required": ["id", "name", "email", "role"]
     },
     "ClassSchedule": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "ClassSchedule",
       "type": "object",
-      "description": "Represents a scheduled class.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ClassSchedule entity."
-        },
-        "teacherId": {
-          "type": "string",
-          "description": "Reference to Teacher's UserProfile. (Relationship: UserProfile 1:N ClassSchedule)"
-        },
-        "studentIds": {
-          "type": "array",
-          "description": "References to Students' UserProfiles. (Relationship: UserProfile 1:N ClassSchedule)",
-          "items": {
-            "type": "string"
-          }
-        },
-        "startTime": {
-          "type": "string",
-          "description": "Start time of the class.",
-          "format": "date-time"
-        },
-        "endTime": {
-          "type": "string",
-          "description": "End time of the class.",
-          "format": "date-time"
-        },
-        "instrument": {
-          "type": "string",
-          "description": "Instrument taught in the class."
-        }
-      },
-      "required": [
-        "id",
-        "teacherId",
-        "studentIds",
-        "startTime",
-        "endTime",
-        "instrument"
-      ]
+        "id": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "bookedBy": { "type": "string" },
+        "time": { "type": "string" },
+        "instrument": { "type": "string" },
+        "type": { "type": "string", "enum": ["virtual", "presencial"] },
+        "status": { "type": "string", "enum": ["pending", "completed"] },
+        "isGroup": { "type": "boolean" },
+        "students": { "type": "array", "items": { "type": "object" } },
+        "teachers": { "type": "array", "items": { "type": "object" } }
+      }
     },
-    "Resource": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Resource",
+    "AppSetting": {
+      "title": "AppSetting",
       "type": "object",
-      "description": "Represents an educational resource.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Resource entity."
-        },
-        "title": {
-          "type": "string",
-          "description": "Title of the resource."
-        },
-        "description": {
-          "type": "string",
-          "description": "Description of the resource."
-        },
-        "instrument": {
-          "type": "string",
-          "description": "Instrument the resource is related to."
-        },
-        "url": {
-          "type": "string",
-          "description": "URL of the resource.",
-          "format": "uri"
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "description",
-        "instrument",
-        "url"
-      ]
-    },
-    "ProgressUpdate": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ProgressUpdate",
-      "type": "object",
-      "description": "Represents a student's progress update.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the ProgressUpdate entity."
-        },
-        "studentId": {
-          "type": "string",
-          "description": "Reference to the Student's UserProfile. (Relationship: UserProfile 1:N ProgressUpdate)"
-        },
-        "teacherId": {
-          "type": "string",
-          "description": "Reference to the Teacher's UserProfile. (Relationship: UserProfile 1:N ProgressUpdate)"
-        },
-        "date": {
-          "type": "string",
-          "description": "Date of the progress update.",
-          "format": "date-time"
-        },
-        "notes": {
-          "type": "string",
-          "description": "Notes on the student's progress."
-        }
-      },
-      "required": [
-        "id",
-        "studentId",
-        "teacherId",
-        "date",
-        "notes"
-      ]
+        "appLogoUrl": { "type": "string" },
+        "darkMode": { "type": "boolean" },
+        "whatsappNumber": { "type": "string" }
+      }
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["password"]
   },
   "firestore": {
     "structure": [
@@ -166,111 +79,26 @@
         "path": "/users/{userId}",
         "definition": {
           "entityName": "UserProfile",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Stores user profiles. Access controlled by the user's ID.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the user."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/UserProfile" },
+          "description": "User profiles and academic data."
         }
       },
       {
         "path": "/users/{teacherId}/schedules/{scheduleId}",
         "definition": {
           "entityName": "ClassSchedule",
-          "schema": {
-            "$ref": "#/backend/entities/ClassSchedule"
-          },
-          "description": "Stores class schedules for a teacher. Includes denormalized 'teacherId' for authorization independence.",
-          "params": [
-            {
-              "name": "teacherId",
-              "description": "The unique ID of the teacher."
-            },
-            {
-              "name": "scheduleId",
-              "description": "The unique ID of the class schedule."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/ClassSchedule" },
+          "description": "Schedules for teachers."
         }
       },
       {
-        "path": "/users/{studentId}/schedules/{scheduleId}",
+        "path": "/settings/global",
         "definition": {
-          "entityName": "ClassSchedule",
-          "schema": {
-            "$ref": "#/backend/entities/ClassSchedule"
-          },
-          "description": "Stores class schedules for a student. Includes denormalized 'teacherId' for authorization independence.",
-          "params": [
-            {
-              "name": "studentId",
-              "description": "The unique ID of the student."
-            },
-            {
-              "name": "scheduleId",
-              "description": "The unique ID of the class schedule."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/resources/{resourceId}",
-        "definition": {
-          "entityName": "Resource",
-          "schema": {
-            "$ref": "#/backend/entities/Resource"
-          },
-          "description": "Stores educational resources. Accessible to all authenticated users.",
-          "params": [
-            {
-              "name": "resourceId",
-              "description": "The unique ID of the resource."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{studentId}/progressUpdates/{progressUpdateId}",
-        "definition": {
-          "entityName": "ProgressUpdate",
-          "schema": {
-            "$ref": "#/backend/entities/ProgressUpdate"
-          },
-          "description": "Stores progress updates for a student. Includes denormalized 'teacherId' for authorization independence.",
-          "params": [
-            {
-              "name": "studentId",
-              "description": "The unique ID of the student."
-            },
-            {
-              "name": "progressUpdateId",
-              "description": "The unique ID of the progress update."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/roles_admin/{userId}",
-        "definition": {
-          "entityName": "adminRole",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Collection to denote users with 'admin' privileges. Existence of document determines admin status.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique ID of the user."
-            }
-          ]
+          "entityName": "AppSetting",
+          "schema": { "$ref": "#/backend/entities/AppSetting" },
+          "description": "Global application settings."
         }
       }
-    ],
-    "reasoning": "The Firestore structure is designed to securely manage user profiles, class schedules, resources, and progress updates for the 'Aprende Con Ritmo' application. It prioritizes authorization independence, clarity, and scalability. Path-based ownership is used for user-specific data, while membership maps handle collaborative scenarios.\n\n1.  **User Profiles:** User profiles are stored in a path-based structure under `/users/{userId}`. This provides clear ownership and simplifies security rules. Authentication is handled by Firebase Auth, and the `userId` is used to control access to user-specific data. Since password authentication can be bypassed using any data, storing the users on the backend will not fix it, and other verification methods need to be taken into consideration. An optional collection `/roles_admin/{userId}` can store admin privileges.\n\n2.  **Class Schedules:** Class schedules are stored as subcollections of user profiles under `/users/{teacherId}/schedules/{scheduleId}`. The `teacherId` is embedded into each `ClassSchedule` document ensuring authorization independence and enabling atomic operations. Student ID's are listed in an array within the document. Class schedules are also duplicated for each student under `/users/{studentId}/schedules/{scheduleId}`. This duplciation is necessary to enable performant and secure list operations of class schedules for students, without the need for complex query filters. The teacherId is also included in the student's schedule to support rules and queries.\n\n3.  **Resources:** Resources are stored in a top-level `/resources` collection. Access is granted to all authenticated users. Security rules can restrict creation/modification of resources to admin users (checking for existence of `/roles_admin/{userId}`).\n\n4.  **Progress Updates:** Progress updates are stored as subcollections of user profiles, `/users/{studentId}/progressUpdates/{progressUpdateId}`. The `teacherId` is embedded into each `ProgressUpdate` document, ensuring authorization independence. This allows teachers to create and manage progress updates for their students without needing to read the student's profile. The `studentId` is part of the path, clarifying ownership.\n\nThis structure effectively avoids hierarchical authorization dependencies by denormalizing authorization information directly into each document. Segregation is achieved by separating collections with different access requirements (e.g., public resources vs. private user profiles). Access modeling follows path-based ownership for user-specific data and existence-based roles for global admin permissions. The structure supports QAPs by avoiding rules-as-filters and enabling secure list operations based on user roles and document ownership. The duplication of ClassSchedules is a prime example of a structure that guarantees QAP for listing class schedules for students."
+    ]
   }
 }

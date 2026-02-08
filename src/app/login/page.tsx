@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -9,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
-import { Mail, Lock, Music, Music2, Music3, Music4 } from 'lucide-react';
+import { Mail, Lock, Music, Music2, Music3, Music4, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -26,6 +25,8 @@ interface DecorativeNote {
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login } = useAuth();
   const { settings } = useSettingsStore();
   const router = useRouter();
@@ -33,7 +34,6 @@ export default function LoginPage() {
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
 
   useEffect(() => {
-    // Generar notas con delay negativo para inicio inmediato
     const generatedNotes = Array.from({ length: 15 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -46,9 +46,10 @@ export default function LoginPage() {
     setNotes(generatedNotes);
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(email);
+    setIsLoggingIn(true);
+    const success = await login(email, password);
     
     if (success) {
       router.push('/dashboard');
@@ -56,8 +57,9 @@ export default function LoginPage() {
       toast({
         variant: "destructive",
         title: "Error de acceso 🚫",
-        description: "Esta cuenta no existe o ha sido eliminada por el administrador. Por favor, regístrate de nuevo para empezar de cero.",
+        description: "Credenciales incorrectas. Por favor, verifica tu correo y contraseña.",
       });
+      setIsLoggingIn(false);
     }
   };
 
@@ -65,8 +67,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-primary/20 p-6 relative overflow-hidden">
-      
-      {/* Fondo decorativo de notas musicales */}
       <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
         {notes.map((note) => {
           const Icon = icons[note.iconIndex];
@@ -105,7 +105,7 @@ export default function LoginPage() {
         <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm rounded-3xl p-2">
           <CardHeader>
             <CardTitle className="text-foreground">Iniciar Sesión</CardTitle>
-            <CardDescription>Ingresa tus credenciales para acceder al panel</CardDescription>
+            <CardDescription>Ingresa tus credenciales reales de Firebase</CardDescription>
           </CardHeader>
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
@@ -133,13 +133,15 @@ export default function LoginPage() {
                     placeholder="••••••••" 
                     className="pl-10 rounded-xl bg-background text-foreground border-border"
                     required 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-white rounded-xl py-6 text-lg">
-                Ingresar
+              <Button type="submit" disabled={isLoggingIn} className="w-full bg-accent hover:bg-accent/90 text-white rounded-xl py-6 text-lg">
+                {isLoggingIn ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Ingresar'}
               </Button>
               <p className="text-sm text-center text-muted-foreground">
                 ¿No tienes una cuenta? <Link href="/register" className="text-accent font-bold hover:underline">Regístrate</Link>
@@ -147,12 +149,6 @@ export default function LoginPage() {
             </CardFooter>
           </form>
         </Card>
-        
-        <div className="grid grid-cols-3 gap-4 text-xs font-medium opacity-50">
-          <Button variant="ghost" className="h-auto p-2" onClick={() => setEmail('ana@example.com')}>Demo Estudiante</Button>
-          <Button variant="ghost" className="h-auto p-2" onClick={() => setEmail('carlos@example.com')}>Demo Profesor</Button>
-          <Button variant="ghost" className="h-auto p-2" onClick={() => setEmail('admin@example.com')}>Demo Admin</Button>
-        </div>
       </div>
     </div>
   );

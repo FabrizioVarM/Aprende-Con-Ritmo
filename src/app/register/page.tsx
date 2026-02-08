@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -7,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
-import { Mail, Lock, User, Music, Music2, Music3, Music4 } from 'lucide-react';
+import { Mail, Lock, User, Music, Music2, Music3, Music4, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSettingsStore } from '@/lib/settings-store';
 import { useAuth } from '@/lib/auth-store';
+import { useToast } from '@/hooks/use-toast';
 
 interface DecorativeNote {
   id: number;
@@ -27,14 +27,15 @@ export default function RegisterPage() {
   const router = useRouter();
   const { settings } = useSettingsStore();
   const { register } = useAuth();
+  const { toast } = useToast();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
 
   useEffect(() => {
-    // Generar notas con delay negativo para inicio inmediato
     const generatedNotes = Array.from({ length: 15 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -47,20 +48,34 @@ export default function RegisterPage() {
     setNotes(generatedNotes);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Registrar al usuario e iniciar sesión
-    register(name, email);
-    // Redirigir a la selección de instrumentos
-    router.push('/register/instruments');
+    if (password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Contraseña débil",
+        description: "Debe tener al menos 6 caracteres.",
+      });
+      return;
+    }
+    setIsRegistering(true);
+    const newUser = await register(name, email, password);
+    if (newUser) {
+      router.push('/register/instruments');
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Error al registrar",
+        description: "El correo ya podría estar en uso o hubo un fallo de red.",
+      });
+      setIsRegistering(false);
+    }
   };
 
   const icons = [Music, Music2, Music3, Music4];
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-primary/20 p-6 relative overflow-hidden">
-      
-      {/* Fondo decorativo de notas musicales */}
       <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
         {notes.map((note) => {
           const Icon = icons[note.iconIndex];
@@ -99,7 +114,7 @@ export default function RegisterPage() {
         <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm rounded-3xl p-2">
           <CardHeader>
             <CardTitle className="text-foreground">Crear Cuenta</CardTitle>
-            <CardDescription>Únete a nuestra comunidad de músicos</CardDescription>
+            <CardDescription>Usa una contraseña real de al menos 6 caracteres</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
@@ -149,8 +164,8 @@ export default function RegisterPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-white rounded-xl py-6 text-lg">
-                Registrarse
+              <Button type="submit" disabled={isRegistering} className="w-full bg-accent hover:bg-accent/90 text-white rounded-xl py-6 text-lg">
+                {isRegistering ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Registrarse'}
               </Button>
               <p className="text-sm text-center text-muted-foreground">
                 ¿Ya tienes una cuenta? <Link href="/login" className="text-accent font-bold hover:underline">Inicia sesión</Link>

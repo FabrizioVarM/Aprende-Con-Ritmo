@@ -1,7 +1,8 @@
-
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
+import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
 
 export interface AppSettings {
   appLogoUrl: string;
@@ -18,33 +19,27 @@ const DEFAULT_SETTINGS: AppSettings = {
 export function useSettingsStore() {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
-
-  const loadSettings = useCallback(() => {
-    const saved = localStorage.getItem('ac_app_settings');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
-      } catch (e) {
-        console.error("Error loading app settings", e);
-      }
-    }
-    setLoading(false);
-  }, []);
+  const db = useFirestore();
 
   useEffect(() => {
-    loadSettings();
-    const handleSync = () => loadSettings();
-    window.addEventListener('ac_sync_settings', handleSync);
-    return () => window.removeEventListener('ac_sync_settings', handleSync);
-  }, [loadSettings]);
+    const docRef = doc(db, 'settings', 'global');
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setSettings({ ...DEFAULT_SETTINGS, ...docSnap.data() });
+      } else {
+        // Inicializar si no existe
+        setDoc(docRef, DEFAULT_SETTINGS);
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [db]);
 
   const updateSettings = useCallback((newSettings: Partial<AppSettings>) => {
-    const updated = { ...settings, ...newSettings };
-    localStorage.setItem('ac_app_settings', JSON.stringify(updated));
-    setSettings(updated);
-    window.dispatchEvent(new CustomEvent('ac_sync_settings'));
-  }, [settings]);
+    const docRef = doc(db, 'settings', 'global');
+    setDoc(docRef, newSettings, { merge: true });
+  }, [db]);
 
   return { settings, updateSettings, loading };
 }
