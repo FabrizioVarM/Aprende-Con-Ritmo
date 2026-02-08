@@ -11,7 +11,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
-import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X, Phone } from 'lucide-react';
+import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X, Phone, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const INSTRUMENTS_LIST = [
@@ -30,6 +30,7 @@ export default function ProfilePage() {
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
   const [avatarSeed, setAvatarSeed] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -43,20 +44,26 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  const handleSave = () => {
-    updateUser({
-      name,
-      username,
-      phone,
-      instruments: selectedInstruments,
-      avatarSeed,
-      photoUrl
-    });
-    
-    toast({
-      title: "¡Perfil Actualizado! ✨",
-      description: "Tus cambios se han guardado correctamente.",
-    });
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      updateUser({
+        name,
+        username,
+        phone,
+        instruments: selectedInstruments,
+        avatarSeed,
+        photoUrl
+      });
+      
+      toast({
+        title: "¡Perfil Actualizado! ✨",
+        description: "Tus especialidades y datos se han guardado correctamente.",
+      });
+    } finally {
+      // Pequeño retardo para feedback visual
+      setTimeout(() => setIsSaving(false), 500);
+    }
   };
 
   const toggleInstrument = (inst: string) => {
@@ -117,7 +124,7 @@ export default function ProfilePage() {
                   ) : (
                     <AvatarImage src={`https://picsum.photos/seed/${avatarSeed}/200`} />
                   )}
-                  <AvatarFallback className="text-4xl">{name[0]}</AvatarFallback>
+                  <AvatarFallback className="text-4xl font-black">{name[0]}</AvatarFallback>
                 </Avatar>
                 
                 <div className="absolute -bottom-2 flex gap-2 w-full justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -200,7 +207,7 @@ export default function ProfilePage() {
                     <Input 
                       value={name} 
                       onChange={(e) => setName(e.target.value)}
-                      className="h-12 pl-11 rounded-xl border-2 font-bold text-foreground bg-card"
+                      className="h-12 pl-11 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
                       placeholder="Tu nombre"
                     />
                   </div>
@@ -213,7 +220,7 @@ export default function ProfilePage() {
                     <Input 
                       value={username} 
                       onChange={(e) => setUsername(e.target.value)}
-                      className="h-12 pl-11 rounded-xl border-2 font-bold text-foreground bg-card"
+                      className="h-12 pl-11 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
                       placeholder="username"
                     />
                   </div>
@@ -236,7 +243,7 @@ export default function ProfilePage() {
                     <Input 
                       value={phone} 
                       onChange={(e) => setPhone(e.target.value)}
-                      className="h-12 pl-11 rounded-xl border-2 font-bold text-foreground bg-card"
+                      className="h-12 pl-11 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
                       placeholder="+51 999 999 999"
                       type="tel"
                     />
@@ -259,12 +266,12 @@ export default function ProfilePage() {
                         className={cn(
                           "px-4 py-2 rounded-xl text-sm font-black transition-all border-2",
                           isSelected 
-                            ? "bg-accent border-accent text-white shadow-md" 
+                            ? "bg-accent border-accent text-white shadow-md scale-105" 
                             : "bg-card border-primary/10 text-muted-foreground hover:border-accent/30"
                         )}
                       >
                         {inst}
-                        {isSelected && <Check className="w-3 h-3 ml-2 inline" />}
+                        {isSelected && <Check className="w-3 h-3 ml-2 inline animate-in zoom-in" />}
                       </button>
                     );
                   })}
@@ -274,9 +281,11 @@ export default function ProfilePage() {
             <CardFooter className="p-8 bg-muted/30 border-t flex justify-end">
               <Button 
                 onClick={handleSave}
-                className="bg-accent text-white rounded-2xl h-14 px-10 font-black shadow-xl hover:scale-105 transition-all"
+                disabled={isSaving}
+                className="bg-accent text-white rounded-2xl h-14 px-10 font-black shadow-xl hover:scale-105 transition-all gap-2"
               >
-                Guardar Cambios
+                {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                {isSaving ? "Guardando..." : "Guardar Cambios"}
               </Button>
             </CardFooter>
           </Card>

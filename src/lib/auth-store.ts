@@ -170,28 +170,47 @@ export function useAuth() {
 
   const updateUser = useCallback((updatedData: Partial<User>) => {
     if (!user) return;
+    
+    // Limpiar campos undefined para evitar errores en Firestore
+    const cleanData = Object.fromEntries(
+      Object.entries(updatedData).filter(([_, v]) => v !== undefined)
+    );
+
     const docRef = doc(db, 'users', user.id);
-    updateDoc(docRef, updatedData).catch((err) => {
+    // Usar setDoc con merge para mayor robustez en actualizaciones de perfil
+    setDoc(docRef, cleanData, { merge: true }).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
         operation: 'update',
-        requestResourceData: updatedData
+        requestResourceData: cleanData
       }));
     });
-    setUser(prev => prev ? { ...prev, ...updatedData } : null);
+
+    // Actualizar estado local inmediatamente para feedback instantáneo
+    const updatedUser = { ...user, ...cleanData };
+    setUser(updatedUser);
+    
+    // Actualizar también la lista global para evitar inconsistencias en otras vistas
+    setAllUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
   }, [db, user]);
 
   const adminUpdateUser = useCallback((userId: string, updatedData: Partial<User>) => {
+    const cleanData = Object.fromEntries(
+      Object.entries(updatedData).filter(([_, v]) => v !== undefined)
+    );
+
     const docRef = doc(db, 'users', userId);
-    updateDoc(docRef, updatedData).catch((err) => {
+    setDoc(docRef, cleanData, { merge: true }).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
         operation: 'update',
-        requestResourceData: updatedData
+        requestResourceData: cleanData
       }));
     });
-    fetchAllUsers();
-  }, [db, fetchAllUsers]);
+
+    // Sincronizar lista global localmente
+    setAllUsers(prev => prev.map(u => u.id === userId ? { ...u, ...cleanData } : u));
+  }, [db]);
 
   const adminAddUser = useCallback((userData: Omit<User, 'id'>) => {
     const newId = Math.random().toString(36).substring(7);
@@ -204,9 +223,10 @@ export function useAuth() {
         requestResourceData: newUser
       }));
     });
-    fetchAllUsers();
+    
+    setAllUsers(prev => [...prev, newUser]);
     return newUser;
-  }, [db, fetchAllUsers]);
+  }, [db]);
 
   const adminDeleteUser = useCallback((userId: string) => {
     const docRef = doc(db, 'users', userId);
@@ -216,8 +236,9 @@ export function useAuth() {
         operation: 'delete'
       }));
     });
-    fetchAllUsers();
-  }, [db, fetchAllUsers]);
+    
+    setAllUsers(prev => prev.filter(u => u.id !== userId));
+  }, [db]);
 
   const getTeachers = useCallback(() => {
     return allUsers.filter(u => u.role === 'teacher');
