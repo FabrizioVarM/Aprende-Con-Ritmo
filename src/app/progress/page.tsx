@@ -9,21 +9,23 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useBookingStore } from '@/lib/booking-store';
 import { useSkillsStore } from '@/lib/skills-store';
 import { useResourceStore } from '@/lib/resource-store';
+import { useMilestonesStore } from '@/lib/milestones-store';
 import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
 import { Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Clock, ShieldCheck, Star as StarIcon, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const MILESTONES = [
-  { title: 'Nivel 1 Completado', date: 'Oct 2023', achieved: true },
-  { title: 'Primera Presentación', date: 'Dic 2023', achieved: true },
-  { title: 'Maestro de Escalas Mayores', date: 'Ene 2024', achieved: true },
-  { title: 'Eficiencia Nivel 2', date: 'Esperado Abr 2024', achieved: false },
+const MILESTONES_LIST = [
+  { title: 'Nivel 1 Completado', defaultDate: 'En espera' },
+  { title: 'Primera Presentación', defaultDate: 'En espera' },
+  { title: 'Maestro de Escalas Mayores', defaultDate: 'En espera' },
+  { title: 'Eficiencia Nivel 2', defaultDate: 'En espera' },
 ];
 
 const calculateDuration = (timeStr: string): number => {
@@ -72,6 +74,8 @@ function ProgressContent() {
   const { availabilities } = useBookingStore();
   const { updateSkill, getSkillLevel } = useSkillsStore();
   const { resources } = useResourceStore();
+  const { toggleMilestone, isMilestoneAchieved, getMilestoneDate, getAchievedCount } = useMilestonesStore();
+  
   const searchParams = useSearchParams();
   const queryStudentId = searchParams.get('studentId');
   
@@ -188,9 +192,9 @@ function ProgressContent() {
 
   const totalAchievementPoints = useMemo(() => {
     const basePoints = Object.values(instrumentStats).reduce((sum, s) => sum + (s?.points || 0), 0);
-    const milestonePoints = MILESTONES.filter(m => m.achieved).length * 200;
+    const milestonePoints = currentStudent ? getAchievedCount(currentStudent.id) * 200 : 0;
     return basePoints + milestonePoints;
-  }, [instrumentStats]);
+  }, [instrumentStats, currentStudent, getAchievedCount]);
 
   const currentSkills = useMemo(() => {
     if (!currentStudent || !selectedInstrument) return [];
@@ -201,7 +205,9 @@ function ProgressContent() {
     }));
   }, [currentStudent, selectedInstrument, getSkillLevel]);
 
-  const achievedMilestonesCount = useMemo(() => MILESTONES.filter(m => m.achieved).length, []);
+  const achievedMilestonesCount = useMemo(() => {
+    return currentStudent ? getAchievedCount(currentStudent.id) : 0;
+  }, [currentStudent, getAchievedCount]);
 
   if (!isMounted || !user) return null;
 
@@ -252,7 +258,7 @@ function ProgressContent() {
                           </li>
                           <li className="flex items-start gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
-                            <span><b>Hitos desbloqueados:</b> +200 pts por cada Hito de Carrera que hayas completado.</span>
+                            <span><b>Hitos desbloqueados:</b> +200 pts por cada Hito de Carrera que un docente te asigne.</span>
                           </li>
                         </ul>
                       </TooltipContent>
@@ -394,27 +400,41 @@ function ProgressContent() {
                 </Badge>
               </CardHeader>
               <CardContent className="p-8 space-y-8">
-                {MILESTONES.map((m, i) => (
-                  <div key={i} className="flex gap-5 items-start group">
-                    <div className={cn(
-                      "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2",
-                      m.achieved 
-                        ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm" 
-                        : "bg-muted/30 border-dashed border-muted-foreground/20 text-muted-foreground/40"
-                    )}>
-                      {m.achieved ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
-                    </div>
-                    <div className="space-y-1">
+                {MILESTONES_LIST.map((m, i) => {
+                  const isAchieved = currentStudent ? isMilestoneAchieved(currentStudent.id, m.title) : false;
+                  const date = currentStudent ? getMilestoneDate(currentStudent.id, m.title) : m.defaultDate;
+                  
+                  return (
+                    <div key={i} className="flex gap-5 items-start group">
                       <div className={cn(
-                        "font-black text-lg leading-tight",
-                        m.achieved ? "text-foreground" : "text-muted-foreground/60"
+                        "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 transition-all",
+                        isAchieved 
+                          ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm" 
+                          : "bg-muted/30 border-dashed border-muted-foreground/20 text-muted-foreground/40"
                       )}>
-                        {m.title}
+                        {isAchieved ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
                       </div>
-                      <div className="text-sm font-bold text-muted-foreground">{m.date}</div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className={cn(
+                            "font-black text-lg leading-tight",
+                            isAchieved ? "text-foreground" : "text-muted-foreground/60"
+                          )}>
+                            {m.title}
+                          </div>
+                          {isStaff && currentStudent && (
+                            <Switch 
+                              checked={isAchieved}
+                              onCheckedChange={() => toggleMilestone(currentStudent.id, m.title)}
+                              className="scale-75 data-[state=checked]:bg-emerald-500"
+                            />
+                          )}
+                        </div>
+                        <div className="text-sm font-bold text-muted-foreground">{isAchieved ? date : 'Pendiente de asignación'}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
           </div>
