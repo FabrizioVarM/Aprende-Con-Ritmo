@@ -278,13 +278,13 @@ export default function TeacherDashboard() {
           </DialogTrigger>
           <DialogContent className="rounded-[2rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
             <DialogHeader className="bg-primary/10 p-6 border-b space-y-2 shrink-0">
-              <DialogTitle className="text-2xl font-black text-secondary-foreground flex items-center gap-3">
+              <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
                 <CalendarIcon className="w-6 h-6 text-accent" />
                 Gestionar Horarios
               </DialogTitle>
             </DialogHeader>
             
-            <div className="p-6 space-y-6 bg-white overflow-y-auto flex-1 max-h-[60vh]">
+            <div className="p-6 space-y-6 bg-card overflow-y-auto flex-1 max-h-[60vh]">
               <div className="flex flex-col gap-6">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
@@ -294,14 +294,14 @@ export default function TeacherDashboard() {
                         const prev = new Date(selectedDate);
                         prev.setDate(prev.getDate() - 7);
                         setSelectedDate(prev);
-                      }} className="rounded-full h-8 w-8">
+                      }} className="rounded-full h-8 w-8 text-foreground">
                         <ChevronLeft className="w-4 h-4" />
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => {
                         const next = new Date(selectedDate);
                         next.setDate(next.getDate() + 7);
                         setSelectedDate(next);
-                      }} className="rounded-full h-8 w-8">
+                      }} className="rounded-full h-8 w-8 text-foreground">
                         <ChevronRight className="w-4 h-4" />
                       </Button>
                     </div>
@@ -325,13 +325,13 @@ export default function TeacherDashboard() {
                               ? "bg-accent border-accent text-white shadow-md scale-105" 
                               : "bg-primary/5 border-transparent hover:border-accent/20",
                             isToday && !isSelected && "border-accent/30",
-                            isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-gray-100 border-gray-200"
+                            isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
                           )}
                         >
-                          <span className="text-[8px] font-black uppercase tracking-wider">
+                          <span className={cn("text-[8px] font-black uppercase tracking-wider", isSelected ? "text-white" : "text-muted-foreground")}>
                             {d.toLocaleDateString('es-ES', { weekday: 'short' })}
                           </span>
-                          <span className="text-base font-black">{d.getDate()}</span>
+                          <span className={cn("text-base font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
                         </button>
                       );
                     })}
@@ -340,7 +340,7 @@ export default function TeacherDashboard() {
                 
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <p className="text-base font-black text-secondary-foreground capitalize">
+                    <p className="text-base font-black text-foreground capitalize">
                       {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
                     </p>
                     {!isSelectedDatePast && (
@@ -359,7 +359,7 @@ export default function TeacherDashboard() {
                     {localSlots.map((slot, i) => (
                       <div key={slot.id} className={cn(
                         "flex items-center gap-3 p-3 rounded-xl border-2 transition-all",
-                        slot.isBooked ? "bg-orange-50 border-orange-200" : slot.isAvailable ? "bg-emerald-50 border-emerald-200" : "bg-gray-50 border-gray-100 opacity-60",
+                        slot.isBooked ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50" : slot.isAvailable ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50" : "bg-muted/20 border-border opacity-60",
                         isSelectedDatePast && "opacity-50 grayscale pointer-events-none"
                       )}>
                         <div className="flex-1 relative">
@@ -367,12 +367,12 @@ export default function TeacherDashboard() {
                             value={slot.time}
                             onChange={(e) => updateSlotTime(i, e.target.value)}
                             disabled={slot.isBooked || isSelectedDatePast}
-                            className="h-9 pl-3 text-xs rounded-lg font-bold bg-white border-2"
+                            className="h-9 pl-3 text-xs rounded-lg font-bold bg-card border-2 text-foreground"
                           />
                           {slot.isBooked && (
                             <div className="flex items-center gap-1 mt-0.5 ml-1">
-                              <User className="w-2 h-2 text-orange-600" />
-                              <span className="text-[8px] font-black text-orange-600 uppercase">{slot.bookedBy}</span>
+                              <User className="w-2 h-2 text-orange-600 dark:text-orange-400" />
+                              <span className="text-[8px] font-black text-orange-600 dark:text-orange-400 uppercase">{slot.bookedBy}</span>
                             </div>
                           )}
                         </div>
@@ -381,7 +381,7 @@ export default function TeacherDashboard() {
                           disabled={slot.isBooked || isSelectedDatePast}
                           onCheckedChange={() => toggleSlotAvailability(i)}
                         />
-                        <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="h-7 w-7">
+                        <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="h-7 w-7 text-foreground">
                           <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
@@ -391,8 +391,8 @@ export default function TeacherDashboard() {
               </div>
             </div>
 
-            <div className="p-6 bg-gray-50 border-t flex gap-3">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 h-12 font-black">Cancelar</Button>
+            <div className="p-6 bg-muted/30 border-t flex gap-3">
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
               <Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-12 font-black gap-2">Guardar</Button>
             </div>
           </DialogContent>
@@ -400,21 +400,21 @@ export default function TeacherDashboard() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="rounded-2xl border-none shadow-sm bg-blue-50/50 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">Alumnos Activos</p>
-          <div className="text-3xl font-black text-blue-900 mt-1">{trackedStudents.length}</div>
+        <Card className="rounded-2xl border-none shadow-sm bg-blue-50/50 dark:bg-blue-950/20 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">Alumnos Activos</p>
+          <div className="text-3xl font-black text-blue-900 dark:text-blue-100 mt-1">{trackedStudents.length}</div>
         </Card>
-        <Card className="rounded-2xl border-none shadow-sm bg-green-50/50 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-green-600">Horas Semanales Habilitadas</p>
-          <div className="text-3xl font-black text-green-900 mt-1">{totalWeeklyEnabledHours.toFixed(1)} h</div>
+        <Card className="rounded-2xl border-none shadow-sm bg-green-50/50 dark:bg-green-950/20 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-green-600 dark:text-green-400">Horas Semanales Habilitadas</p>
+          <div className="text-3xl font-black text-green-900 dark:text-green-100 mt-1">{totalWeeklyEnabledHours.toFixed(1)} h</div>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm bg-accent/5 p-4">
           <p className="text-[10px] font-black uppercase tracking-widest text-accent">Materiales disponibles</p>
-          <div className="text-3xl font-black text-accent-foreground mt-1">12</div>
+          <div className="text-3xl font-black text-accent mt-1">12</div>
         </Card>
         <Card className="rounded-2xl border-none shadow-sm bg-secondary/20 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-secondary-foreground">Total de horas ejercidas</p>
-          <div className="text-3xl font-black text-secondary-foreground mt-1">
+          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/70">Total de horas ejercidas</p>
+          <div className="text-3xl font-black text-foreground mt-1">
             {Math.round(trackedStudents.reduce((acc, s) => {
               let h = 0;
               s.hoursByInstrument.forEach(val => h += val);
@@ -425,16 +425,16 @@ export default function TeacherDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 rounded-[2rem] border-none shadow-md overflow-hidden bg-white">
+        <Card className="lg:col-span-2 rounded-[2rem] border-none shadow-md overflow-hidden bg-card">
           <CardHeader className="bg-primary/5 p-6 border-b">
-            <CardTitle className="flex items-center gap-2 font-black text-xl">
+            <CardTitle className="flex items-center gap-2 font-black text-xl text-foreground">
               <GraduationCap className="w-6 h-6 text-accent" />
               Seguimiento de Alumnos
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
             {trackedStudents.length > 0 ? trackedStudents.map((student) => (
-              <div key={student.id} className="flex flex-col gap-4 p-4 rounded-3xl border border-primary/10 bg-white hover:shadow-lg transition-all">
+              <div key={student.id} className="flex flex-col gap-4 p-4 rounded-3xl border border-primary/10 bg-card hover:shadow-lg transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <Avatar className="w-12 h-12 border-2 border-accent shrink-0 shadow-sm">
@@ -442,7 +442,7 @@ export default function TeacherDashboard() {
                       <AvatarFallback className="bg-primary text-secondary-foreground font-black">{student.name[0]}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <h4 className="font-black text-lg text-secondary-foreground truncate leading-tight">{student.name}</h4>
+                      <h4 className="font-black text-lg text-foreground truncate leading-tight">{student.name}</h4>
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">Resumen Académico</p>
                       <p className="text-[10px] font-bold text-muted-foreground mt-1">
                         Última clase: <span className="text-accent">{formatTimeAgo(student.lastClassTimestamp)}</span>
@@ -452,7 +452,7 @@ export default function TeacherDashboard() {
                   <div className="flex flex-col items-end gap-1">
                     <div className="flex items-center gap-2 bg-accent/5 px-3 py-1.5 rounded-xl border border-accent/10">
                       <span className="text-[9px] font-black uppercase tracking-widest text-accent">Recursos Completados:</span>
-                      <span className="text-xs font-black text-secondary-foreground">{student.completedResourcesCount}</span>
+                      <span className="text-xs font-black text-foreground">{student.completedResourcesCount}</span>
                     </div>
                   </div>
                 </div>
@@ -465,7 +465,7 @@ export default function TeacherDashboard() {
                       <div key={inst} className="bg-primary/5 rounded-2xl p-2 px-3 flex items-center justify-between border border-primary/5">
                         <div className="flex items-center gap-1.5 min-w-0">
                           <span className="text-sm">{emoji}</span>
-                          <span className="text-xs font-bold text-secondary-foreground truncate">{inst}</span>
+                          <span className="text-xs font-bold text-foreground truncate">{inst}</span>
                         </div>
                         <Badge variant="secondary" className="bg-accent text-white rounded-lg px-2 py-0.5 text-[10px] font-black shadow-sm shrink-0 ml-1">
                           {hours.toFixed(1)} h
@@ -484,9 +484,9 @@ export default function TeacherDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-none shadow-md overflow-hidden bg-white">
+        <Card className="rounded-[2rem] border-none shadow-md overflow-hidden bg-card">
           <CardHeader className="bg-accent/5 p-4 border-b">
-            <CardTitle className="text-base flex items-center gap-2 font-black">
+            <CardTitle className="text-base flex items-center gap-2 font-black text-foreground">
               <CheckCircle2 className="w-5 h-5 text-accent" />
               Sesiones Hoy
             </CardTitle>
@@ -494,11 +494,11 @@ export default function TeacherDashboard() {
           <CardContent className="p-0">
             {currentDayBookedSlots.length > 0 ? (
               currentDayBookedSlots.map((cls, i) => (
-                <div key={i} className="flex items-center justify-between p-4 border-b last:border-0 hover:bg-accent/5 transition-colors">
+                <div key={i} className="flex items-center justify-between p-4 border-b last:border-0 border-border hover:bg-accent/5 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="font-black text-xs">{cls.time.split(' ')[0]}</div>
+                    <div className="font-black text-xs text-foreground">{cls.time.split(' ')[0]}</div>
                     <div className="min-w-0">
-                      <div className="text-xs font-black truncate">{cls.bookedBy}</div>
+                      <div className="text-xs font-black truncate text-foreground">{cls.bookedBy}</div>
                       <div className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
                         <Music className="w-2.5 h-2.5" /> {cls.instrument || 'Música'}
                       </div>
@@ -506,7 +506,7 @@ export default function TeacherDashboard() {
                   </div>
                   <Badge className={cn(
                     "rounded-full px-2 py-0 text-[8px] font-black uppercase",
-                    cls.type === 'virtual' ? "bg-blue-100 text-blue-600" : "bg-red-100 text-red-600"
+                    cls.type === 'virtual' ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300" : "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
                   )}>
                     {cls.type === 'virtual' ? 'Online' : 'Sede'}
                   </Badge>

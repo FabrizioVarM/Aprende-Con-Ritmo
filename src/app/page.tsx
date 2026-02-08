@@ -39,7 +39,7 @@ export default function Home() {
           </div>
         </div>
         
-        <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight text-secondary-foreground">
+        <h1 className="text-6xl md:text-7xl font-extrabold tracking-tight text-foreground">
           Aprende Con <span className="text-accent underline decoration-secondary underline-offset-8">Ritmo</span>
         </h1>
         
@@ -59,7 +59,7 @@ export default function Home() {
           <Button 
             variant="outline" 
             size="lg" 
-            className="rounded-full px-8 py-7 text-lg bg-white/50 border-primary"
+            className="rounded-full px-8 py-7 text-lg bg-white/50 border-primary dark:text-foreground"
             onClick={() => router.push('/login')}
           >
             Iniciar sesión <ArrowRight className="ml-2 w-5 h-5" />
