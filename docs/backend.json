@@ -77,68 +77,50 @@
         "interactUrl": { "type": "string" },
         "img": { "type": "object" }
       }
+    },
+    "AppSetting": {
+      "title": "AppSetting",
+      "type": "object",
+      "description": "Configuración global del sistema.",
+      "properties": {
+        "appLogoUrl": { "type": "string" },
+        "darkMode": { "type": "boolean" },
+        "whatsappNumber": { "type": "string" },
+        "description": { "type": "string" }
+      }
     }
   },
   "auth": {
     "providers": ["password", "google.com"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "UserProfile",
-          "schema": { "$ref": "#/backend/entities/UserProfile" },
-          "description": "Perfiles de alumnos, profesores y admins."
-        }
-      },
-      {
-        "path": "/availabilities/{availId}",
-        "definition": {
-          "entityName": "DayAvailability",
-          "schema": { "$ref": "#/backend/entities/DayAvailability" },
-          "description": "Agenda de clases y disponibilidad docente."
-        }
-      },
-      {
-        "path": "/completions/{compId}",
-        "definition": {
-          "entityName": "ResourceCompletion",
-          "schema": { "$ref": "#/backend/entities/ResourceCompletion" },
-          "description": "Validación de materiales estudiados."
-        }
-      },
-      {
-        "path": "/milestones/{mileId}",
-        "definition": {
-          "entityName": "UserMilestone",
-          "schema": { "$ref": "#/backend/entities/UserMilestone" },
-          "description": "Logros históricos de los alumnos."
-        }
-      },
-      {
-        "path": "/skills/{skillId}",
-        "definition": {
-          "entityName": "StudentSkill",
-          "schema": { "$ref": "#/backend/entities/StudentSkill" },
-          "description": "Progreso técnico detallado por instrumento."
-        }
-      },
-      {
-        "path": "/resources/{resId}",
-        "definition": {
-          "entityName": "MusicResource",
-          "schema": { "$ref": "#/backend/entities/MusicResource" },
-          "description": "Catálogo de la biblioteca musical."
-        }
-      },
-      {
-        "path": "/settings/{docId}",
-        "definition": {
-          "entityName": "AppSetting",
-          "description": "Configuración global del sistema (logo, whatsapp, tema, biblioteca)."
-        }
-      }
-    ]
+    "/users/{userId}": {
+      "schema": { "$ref": "#/backend/entities/UserProfile" },
+      "description": "Perfiles de alumnos, profesores y admins."
+    },
+    "/availabilities/{availId}": {
+      "schema": { "$ref": "#/backend/entities/DayAvailability" },
+      "description": "Agenda de clases y disponibilidad docente."
+    },
+    "/completions/{compId}": {
+      "schema": { "$ref": "#/backend/entities/ResourceCompletion" },
+      "description": "Validación de materiales estudiados por el alumno."
+    },
+    "/milestones/{mileId}": {
+      "schema": { "$ref": "#/backend/entities/UserMilestone" },
+      "description": "Logros históricos y medallas de carrera."
+    },
+    "/skills/{skillId}": {
+      "schema": { "$ref": "#/backend/entities/StudentSkill" },
+      "description": "Niveles de técnica detallados."
+    },
+    "/resources/{resId}": {
+      "schema": { "$ref": "#/backend/entities/MusicResource" },
+      "description": "Catálogo de la biblioteca musical."
+    },
+    "/settings/{docId}": {
+      "schema": { "$ref": "#/backend/entities/AppSetting" },
+      "description": "Ajustes globales como logo y contacto."
+    }
   }
 }
