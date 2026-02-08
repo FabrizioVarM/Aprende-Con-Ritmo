@@ -63,7 +63,7 @@ export default function InstrumentSelectionPage() {
             ¡Casi listo, <span className="text-accent">{user.name.split(' ')[0]}</span>! 🎼
           </h1>
           <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto leading-relaxed">
-            Cuéntanos, ¿qué instrumento te gustaría aprender en Aprende Con Ritmo? Si tienes un objetivo más amplio, ¡puedes elegir más de un instrumento!
+            Cuéntanos, ¿qué instrumento te gustaría aprender en Aprende Con Ritmo? Si tienes un objetivo más grande, puedes elegir más de un instrumento!
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default function InstrumentSelectionPage() {
                 )}>
                   {inst.icon}
                 </div>
-                <span className="font-black text-sm uppercase tracking-widest">{inst.name}</span>
+                <span className="font-black text-sm uppercase tracking-widest text-foreground group-data-[state=selected]:text-white">{inst.name}</span>
                 
                 {isSelected && (
                   <div className="absolute -top-2 -right-2 bg-white text-accent p-1.5 rounded-full shadow-lg border-2 border-accent animate-in zoom-in">
