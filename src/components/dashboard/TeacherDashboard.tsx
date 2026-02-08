@@ -33,7 +33,8 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Canto': '🎤',
   'Teoría': '📖',
   'Bajo': '🎸',
-  'Música': '🎵'
+  'Música': '🎵',
+  'Tormenta de Oro': '⚡'
 };
 
 const calculateDuration = (timeStr: string): number => {
@@ -202,7 +203,6 @@ export default function TeacherDashboard() {
               const currentHours = studentData.hoursByInstrument.get(instrument) || 0;
               studentData.hoursByInstrument.set(instrument, currentHours + duration);
 
-              // Update last class timestamp
               try {
                 const startTime = slot.time.split(' - ')[0];
                 const classDate = new Date(`${day.date}T${startTime}:00`);
@@ -211,7 +211,6 @@ export default function TeacherDashboard() {
                   studentData.lastClassTimestamp = ts;
                 }
               } catch (e) {
-                // Ignore parse errors
               }
             }
           }

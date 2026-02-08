@@ -46,7 +46,8 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Canto': '🎤',
   'Teoría': '📖',
   'Bajo': '🎸',
-  'Música': '🎵'
+  'Música': '🎵',
+  'Tormenta de Oro': '⚡'
 };
 
 const DEFAULT_TEACHER_ID = '2';
@@ -218,7 +219,6 @@ export default function SchedulePage() {
     mySlots.filter(s => isPastSlot(s.time)),
   [mySlots, date, currentTime]);
 
-  // Global view for other teachers
   const academicGroupClasses = useMemo(() => {
     if (!isTeacher) return [];
     const list: any[] = [];
@@ -257,7 +257,6 @@ export default function SchedulePage() {
       .filter(s => groupStudents.includes(s.id))
       .map(s => ({ id: s.id, name: s.name }));
 
-    // Calculate end time (+90 mins)
     const [h, m] = groupStartTime.split(':').map(Number);
     const endMinutes = h * 60 + m + 90;
     const endH = Math.floor(endMinutes / 60);
@@ -357,7 +356,7 @@ export default function SchedulePage() {
                       {slot.isGroup ? '🎓' : emoji}
                     </div>
                     <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                      {slot.isGroup ? 'Clase Grupal Especial' : `Clase de ${slot.instrument || 'Música'}`}
+                      {slot.isGroup ? `Clase Grupal Especial: ${slot.instrument}` : `Clase de ${slot.instrument || 'Música'}`}
                     </span>
                   </div>
                   <div className="flex flex-col gap-1">
@@ -402,7 +401,7 @@ export default function SchedulePage() {
                         <div className="w-10 h-10 flex items-center justify-center text-2xl rounded-xl border shadow-sm bg-primary/5">
                           {slot.isGroup ? '🎓' : emoji}
                         </div>
-                        <span>{slot.isGroup ? 'Clase Grupal Especial' : `Clase de ${slot.instrument || 'Música'}`}</span>
+                        <span>{slot.isGroup ? `Clase Grupal Especial: ${slot.instrument}` : `Clase de ${slot.instrument || 'Música'}`}</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-3 overflow-hidden">
@@ -605,7 +604,7 @@ export default function SchedulePage() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
-                                  {['Música', 'Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría'].map(cat => (
+                                  {['Música', 'Guitarra', 'Piano', 'Violín', 'Batería', 'Canto', 'Teoría', 'Tormenta de Oro'].map(cat => (
                                     <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
                                   ))}
                                 </SelectContent>

@@ -51,7 +51,8 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Canto': '🎤',
   'Teoría': '📖',
   'Bajo': '🎸',
-  'Música': '🎵'
+  'Música': '🎵',
+  'Tormenta de Oro': '⚡'
 };
 
 const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: string }> = {
@@ -62,6 +63,7 @@ const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: str
   'Canto': { color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
   'Teoría': { color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
   'Bajo': { color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
+  'Tormenta de Oro': { color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-200' },
   'Default': { color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
 };
 
@@ -598,7 +600,7 @@ export default function StudentDashboard() {
                       </div>
                       <div className="min-w-0">
                         <div className="font-black text-base sm:text-lg text-secondary-foreground leading-tight truncate flex items-center gap-2">
-                          <span>{lesson.isGroup ? 'Clase Grupal Especial' : `Lección de ${lesson.instrument}`}</span>
+                          <span>{lesson.isGroup ? `Clase Grupal Especial: ${lesson.instrument}` : `Lección de ${lesson.instrument}`}</span>
                         </div>
                         <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
                           {new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}
