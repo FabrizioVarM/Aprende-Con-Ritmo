@@ -136,7 +136,7 @@
         "path": "/settings/global",
         "definition": {
           "entityName": "AppSetting",
-          "description": "Configuración global del sistema."
+          "description": "Configuración global del sistema (logo, whatsapp, tema)."
         }
       }
     ]
