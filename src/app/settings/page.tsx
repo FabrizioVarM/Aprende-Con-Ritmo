@@ -86,7 +86,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-8">
-          <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-card overflow-hidden">
+          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-xl bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
                 <ImageIcon className="w-8 h-8 text-accent" />
@@ -165,7 +165,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-card overflow-hidden">
+          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-xl bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
                 <MessageCircle className="w-8 h-8 text-accent" />
@@ -189,7 +189,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-[2.5rem] border-none shadow-xl bg-white dark:bg-card overflow-hidden">
+          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-xl bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
                 <Moon className="w-8 h-8 text-accent" />

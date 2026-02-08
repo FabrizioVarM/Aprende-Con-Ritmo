@@ -47,14 +47,13 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Usar setDoc con merge para mayor robustez en actualizaciones de perfil
       updateUser({
         name,
         username,
         phone,
         instruments: selectedInstruments,
         avatarSeed,
-        photoUrl: photoUrl || "" // Si es undefined, lo guardamos como string vacío para asegurar persistencia
+        photoUrl: photoUrl || ""
       });
       
       toast({
@@ -62,7 +61,6 @@ export default function ProfilePage() {
         description: "Tus especialidades y datos se han guardado correctamente.",
       });
     } finally {
-      // Pequeño retardo para feedback visual
       setTimeout(() => setIsSaving(false), 800);
     }
   };
@@ -87,7 +85,6 @@ export default function ProfilePage() {
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validar tamaño aproximado (evitar > 1MB para Firestore)
       if (file.size > 800000) {
         toast({
           variant: "destructive",
@@ -126,7 +123,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card className="md:col-span-1 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
+          <Card className="md:col-span-1 rounded-[2.5rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
             <CardContent className="p-8 flex flex-col items-center text-center space-y-6">
               <div className="relative group">
                 <Avatar className="w-32 h-32 border-4 border-primary shadow-xl">
@@ -142,14 +139,14 @@ export default function ProfilePage() {
                   <button 
                     onClick={() => fileInputRef.current?.click()}
                     className="bg-accent text-white p-2 rounded-xl shadow-lg hover:scale-110 transition-transform"
-                    title="Subir foto propia"
+                    title="Subir foto"
                   >
                     <Upload className="w-4 h-4" />
                   </button>
                   <button 
                     onClick={generateRandomAvatar}
                     className="bg-secondary text-secondary-foreground p-2 rounded-xl shadow-lg hover:scale-110 transition-transform"
-                    title="Generar avatar aleatorio"
+                    title="Avatar aleatorio"
                   >
                     <RefreshCw className="w-4 h-4" />
                   </button>
@@ -157,7 +154,7 @@ export default function ProfilePage() {
                     <button 
                       onClick={removePhoto}
                       className="bg-destructive text-white p-2 rounded-xl shadow-lg hover:scale-110 transition-transform"
-                      title="Eliminar foto propia"
+                      title="Eliminar foto"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -202,7 +199,7 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-2 rounded-[2.5rem] border-none shadow-md bg-card">
+          <Card className="md:col-span-2 rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-card">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground">
                 <User className="w-6 h-6 text-accent" />

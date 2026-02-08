@@ -436,7 +436,7 @@ function UsersContent() {
           </Dialog>
         </div>
 
-        <div className="bg-card rounded-[2.5rem] shadow-md border-none p-8 space-y-8">
+        <div className="bg-card rounded-[2.5rem] shadow-md border-2 border-primary/20 p-8 space-y-8">
           <div className="flex flex-col md:flex-row gap-4 justify-between">
             <div className="relative w-full md:max-w-md">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -495,7 +495,7 @@ function UsersContent() {
 
       <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
         <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
-          <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+          <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <div className="flex items-center gap-6">
               <div className="relative group">
                 <Avatar className="w-20 h-20 border-4 border-card shadow-xl">

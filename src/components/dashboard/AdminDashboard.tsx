@@ -343,7 +343,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="rounded-[2rem] border-none shadow-sm bg-card">
+        <Card className="rounded-[2rem] border-2 border-blue-200 dark:border-blue-900/50 shadow-sm bg-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-blue-100 dark:bg-blue-950/30 rounded-2xl">
@@ -357,7 +357,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-none shadow-sm bg-card">
+        <Card className="rounded-[2rem] border-2 border-orange-200 dark:border-orange-900/50 shadow-sm bg-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-orange-100 dark:bg-orange-950/30 rounded-2xl">
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-none shadow-sm bg-card">
+        <Card className="rounded-[2rem] border-2 border-green-200 dark:border-green-900/50 shadow-sm bg-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-green-100 dark:bg-green-950/30 rounded-2xl">
@@ -385,7 +385,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-none shadow-sm bg-card">
+        <Card className="rounded-[2rem] border-2 border-accent/20 shadow-sm bg-card">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-accent/20 rounded-2xl">
@@ -401,7 +401,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
+        <Card className="lg:col-span-2 rounded-[2.5rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
           <CardHeader className="bg-primary/5 p-8 border-b flex flex-row items-center justify-between">
             <div className="space-y-1">
               <CardTitle className="text-xl font-black flex items-center gap-3 text-foreground">
@@ -492,7 +492,7 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
+        <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
           <CardHeader className="border-b bg-muted/50 p-6">
             <CardTitle className="text-lg font-black flex items-center gap-2 text-foreground">
               <TrendingUp className="w-5 h-5 text-accent" />
