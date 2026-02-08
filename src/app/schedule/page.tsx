@@ -932,7 +932,7 @@ export default function SchedulePage() {
                               "flex items-center justify-between p-4 rounded-2xl transition-all duration-300 border-2 group", 
                               isSelected 
                                 ? "bg-accent border-accent text-white shadow-lg scale-[1.02]" 
-                                : "bg-card border-primary/5 hover:border-accent/30 hover:bg-accent/5",
+                                : "bg-card border-primary/10 hover:border-accent/30 hover:bg-accent/5",
                               isToday && !isSelected && "border-accent/30"
                             )}
                           >

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -482,7 +481,7 @@ export default function StudentDashboard() {
                               "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
                               isSelected 
                                 ? "bg-accent border-accent text-white shadow-md" 
-                                : "bg-primary/5 border-transparent hover:border-accent/20",
+                                : "bg-primary/5 border-primary/10 hover:border-accent/20",
                               isToday && !isSelected && "border-accent/30",
                               isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
                             )}
@@ -519,7 +518,7 @@ export default function StudentDashboard() {
                               "justify-between rounded-2xl h-20 border-2 font-black px-6",
                               isSelected 
                                 ? 'bg-accent text-white border-accent shadow-md' 
-                                : 'bg-card text-foreground border-primary/5 hover:border-accent/30'
+                                : 'bg-card text-foreground border-primary/10 hover:border-accent/30'
                             )}
                             onClick={() => setSelectedSlotId(slot.id)}
                           >

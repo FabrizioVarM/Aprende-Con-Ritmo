@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo, useState, useEffect } from 'react';
@@ -571,7 +570,7 @@ export default function AdminDashboard() {
                           "flex flex-col items-center py-2 md:py-3 rounded-xl transition-all border-2 relative group",
                           isSelected 
                             ? "bg-accent border-accent text-white shadow-md scale-105" 
-                            : "bg-muted/30 border-transparent hover:border-accent/20",
+                            : "bg-muted/30 border-primary/10 hover:border-accent/20",
                           isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
                         )}
                       >

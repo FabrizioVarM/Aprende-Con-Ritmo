@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -284,7 +283,7 @@ export default function TeacherDashboard() {
               <Clock className="w-5 h-5" /> Gestionar Horarios
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-[2rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+          <DialogContent className="rounded-[2rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
             <DialogHeader className="bg-primary/10 p-6 border-b space-y-2 shrink-0">
               <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
                 <CalendarIcon className="w-6 h-6 text-accent" />
@@ -331,7 +330,7 @@ export default function TeacherDashboard() {
                             "flex flex-col items-center py-2 md:py-3 rounded-xl transition-all border-2 relative group",
                             isSelected 
                               ? "bg-accent border-accent text-white shadow-md scale-105" 
-                              : "bg-primary/5 border-transparent hover:border-accent/20",
+                              : "bg-primary/5 border-primary/10 hover:border-accent/20",
                             isToday && !isSelected && "border-accent/30",
                             isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
                           )}
