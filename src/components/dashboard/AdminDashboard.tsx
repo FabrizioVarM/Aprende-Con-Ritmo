@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo, useState, useEffect } from 'react';
@@ -20,6 +19,7 @@ import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from 'next/navigation';
 import { 
   Users, 
   Music, 
@@ -47,6 +47,7 @@ export default function AdminDashboard() {
   const { completions } = useCompletionStore();
   const { resources } = useResourceStore();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [editingTeacherId, setEditingTeacherId] = useState<string | null>(null);
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
@@ -287,7 +288,11 @@ export default function AdminDashboard() {
           <p className="text-muted-foreground mt-1 text-lg font-medium">Resumen de las operaciones y crecimiento de la escuela.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="rounded-2xl gap-2 h-12 border-2 font-black">
+          <Button 
+            variant="outline" 
+            className="rounded-2xl gap-2 h-12 border-2 font-black"
+            onClick={() => router.push('/settings')}
+          >
             <Settings className="w-4 h-4" /> Ajustes
           </Button>
           <Button className="bg-accent text-white rounded-2xl gap-2 h-12 shadow-lg shadow-accent/20 font-black px-6">
