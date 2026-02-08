@@ -105,7 +105,7 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card className="md:col-span-1 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-white">
+          <Card className="md:col-span-1 rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
             <CardContent className="p-8 flex flex-col items-center text-center space-y-6">
               <div className="relative group">
                 <Avatar className="w-32 h-32 border-4 border-primary shadow-xl">
@@ -153,7 +153,7 @@ export default function ProfilePage() {
               </div>
               
               <div className="pt-4">
-                <h2 className="text-xl font-black text-secondary-foreground">{name}</h2>
+                <h2 className="text-xl font-black text-foreground">{name}</h2>
                 <p className="text-sm font-bold text-accent uppercase tracking-widest mt-1">@{username || 'usuario'}</p>
                 <Badge variant="secondary" className="mt-3 bg-primary/20 text-secondary-foreground rounded-full px-4 capitalize font-bold">
                   {user.role === 'student' ? 'Estudiante' : user.role === 'teacher' ? 'Profesor' : 'Administrador'}
@@ -181,9 +181,9 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          <Card className="md:col-span-2 rounded-[2.5rem] border-none shadow-md bg-white">
+          <Card className="md:col-span-2 rounded-[2.5rem] border-none shadow-md bg-card">
             <CardHeader className="bg-primary/5 p-8 border-b">
-              <CardTitle className="text-xl font-black flex items-center gap-2">
+              <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground">
                 <User className="w-6 h-6 text-accent" />
                 Información Personal
               </CardTitle>
@@ -197,7 +197,7 @@ export default function ProfilePage() {
                     <Input 
                       value={name} 
                       onChange={(e) => setName(e.target.value)}
-                      className="h-12 pl-11 rounded-xl border-2 font-bold"
+                      className="h-12 pl-11 rounded-xl border-2 font-bold text-foreground bg-card"
                       placeholder="Tu nombre"
                     />
                   </div>
@@ -210,7 +210,7 @@ export default function ProfilePage() {
                     <Input 
                       value={username} 
                       onChange={(e) => setUsername(e.target.value)}
-                      className="h-12 pl-11 rounded-xl border-2 font-bold"
+                      className="h-12 pl-11 rounded-xl border-2 font-bold text-foreground bg-card"
                       placeholder="username"
                     />
                   </div>
@@ -222,7 +222,7 @@ export default function ProfilePage() {
                 <Input 
                   value={email} 
                   disabled
-                  className="h-12 rounded-xl border-2 bg-muted/30 font-bold opacity-60"
+                  className="h-12 rounded-xl border-2 bg-muted/30 font-bold opacity-60 text-foreground"
                 />
               </div>
 
@@ -242,7 +242,7 @@ export default function ProfilePage() {
                           "px-4 py-2 rounded-xl text-sm font-black transition-all border-2",
                           isSelected 
                             ? "bg-accent border-accent text-white shadow-md" 
-                            : "bg-white border-primary/10 text-muted-foreground hover:border-accent/30"
+                            : "bg-card border-primary/10 text-muted-foreground hover:border-accent/30"
                         )}
                       >
                         {inst}
@@ -253,7 +253,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="p-8 bg-gray-50 border-t flex justify-end">
+            <CardFooter className="p-8 bg-muted/30 border-t flex justify-end">
               <Button 
                 onClick={handleSave}
                 className="bg-accent text-white rounded-2xl h-14 px-10 font-black shadow-xl hover:scale-105 transition-all"
