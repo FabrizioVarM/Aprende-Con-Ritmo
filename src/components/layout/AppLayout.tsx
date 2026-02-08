@@ -1,7 +1,7 @@
 
 "use client"
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -53,6 +53,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Apply dark mode theme class to document root
+  useEffect(() => {
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.darkMode]);
+
   if (!user) {
     return <>{children}</>;
   }
@@ -60,7 +69,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const filteredNav = NAV_ITEMS.filter(item => item.roles.includes(user.role));
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full bg-white/50 backdrop-blur-sm border-r border-border p-6">
+    <div className="flex flex-col h-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-r border-border p-6">
       <div className="flex items-center gap-3 mb-10 px-2">
         <div className="relative w-10 h-10 overflow-hidden rounded-xl shadow-md border-2 border-accent shrink-0">
           <Image 
@@ -84,8 +93,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <span className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer",
                 isActive 
-                  ? "bg-secondary text-secondary-foreground font-semibold shadow-sm" 
-                  : "text-muted-foreground hover:bg-primary/30 hover:text-foreground"
+                  ? "bg-secondary dark:bg-accent/20 text-secondary-foreground dark:text-accent font-semibold shadow-sm" 
+                  : "text-muted-foreground hover:bg-primary/30 dark:hover:bg-slate-800 hover:text-foreground"
               )}>
                 <item.icon className={cn(
                   "w-5 h-5",
@@ -99,7 +108,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </nav>
 
       <div className="mt-auto pt-6 border-t border-border">
-        <Link href="/profile" className="flex items-center gap-3 px-4 py-4 mb-4 hover:bg-primary/10 rounded-2xl transition-all">
+        <Link href="/profile" className="flex items-center gap-3 px-4 py-4 mb-4 hover:bg-primary/10 dark:hover:bg-slate-800 rounded-2xl transition-all">
           <Avatar className="w-10 h-10 border-2 border-primary shrink-0">
             {user.photoUrl ? (
               <AvatarImage src={user.photoUrl} className="object-cover" />
@@ -109,7 +118,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <AvatarFallback className="bg-primary">{user.name[0]}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col overflow-hidden min-w-0">
-            <span className="text-sm font-bold truncate">{user.name}</span>
+            <span className="text-sm font-bold truncate dark:text-slate-200">{user.name}</span>
             <span className="text-xs text-muted-foreground capitalize truncate">
               {user.role === 'student' ? 'Estudiante' : user.role === 'teacher' ? 'Profesor' : 'Administrador'}
             </span>
@@ -139,7 +148,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Contenido Principal */}
       <main className="flex-1 min-w-0">
-        <header className="md:hidden flex items-center justify-between p-4 bg-white/80 border-b">
+        <header className="md:hidden flex items-center justify-between p-4 bg-white/80 dark:bg-slate-900/80 border-b">
           <div className="flex items-center gap-2">
             <div className="relative w-8 h-8 overflow-hidden rounded-lg border-2 border-accent">
               <Image 
@@ -150,11 +159,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 data-ai-hint="academy logo"
               />
             </div>
-            <span className="font-bold">Aprende Con Ritmo</span>
+            <span className="font-bold dark:text-slate-200">Aprende Con Ritmo</span>
           </div>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="dark:text-slate-200">
                 <Menu />
               </Button>
             </SheetTrigger>

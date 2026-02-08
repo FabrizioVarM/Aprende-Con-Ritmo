@@ -5,10 +5,12 @@ import { useState, useEffect, useCallback } from 'react';
 
 export interface AppSettings {
   appLogoUrl: string;
+  darkMode: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-  appLogoUrl: 'https://picsum.photos/seed/ritmologo/200/200'
+  appLogoUrl: 'https://picsum.photos/seed/ritmologo/200/200',
+  darkMode: false
 };
 
 export function useSettingsStore() {
@@ -19,7 +21,8 @@ export function useSettingsStore() {
     const saved = localStorage.getItem('ac_app_settings');
     if (saved) {
       try {
-        setSettings(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
       } catch (e) {
         console.error("Error loading app settings", e);
       }
