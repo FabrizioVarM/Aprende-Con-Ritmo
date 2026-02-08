@@ -1,18 +1,17 @@
-
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'Aprende Con Ritmo',
+  title: 'Aprende con Ritmo',
   description: 'Plataforma de Gestión para Educación Musical',
   manifest: '/manifest.json',
   themeColor: '#FF8B7A',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'Aprende Con Ritmo',
+    title: 'Aprende con Ritmo',
   },
 };
 

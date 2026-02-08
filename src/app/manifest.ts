@@ -1,10 +1,9 @@
-
 import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Aprende Con Ritmo',
-    short_name: 'AprendeRitmo',
+    name: 'Aprende con Ritmo',
+    short_name: 'Aprende con Ritmo',
     description: 'Plataforma de Gestión para Educación Musical',
     start_url: '/',
     display: 'standalone',
