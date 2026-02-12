@@ -19,8 +19,13 @@ import {
   DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog"
+import { 
+  Collapsible, 
+  CollapsibleContent, 
+  CollapsibleTrigger 
+} from "@/components/ui/collapsible"
 import { Label } from "@/components/ui/label"
-import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType, Eye, EyeOff, Globe, UserCheck } from 'lucide-react';
+import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType, Eye, EyeOff, Globe, UserCheck, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
@@ -320,39 +325,56 @@ export default function LibraryPage() {
                     )}
                   </div>
 
-                  {/* Sección de Gestión Staff */}
+                  {/* Sección de Gestión Staff Desplegable */}
                   {isStaff && (
-                    <div className="grid grid-cols-2 gap-2 pb-2">
-                      <div className={cn(
-                        "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
-                        isVisibleForTarget ? "bg-blue-50 border-blue-100 dark:bg-blue-900/10" : "bg-muted/30 border-primary/5",
-                        res.isVisibleGlobally && "opacity-40 grayscale-[0.5]"
-                      )}>
-                        <div className="flex items-center gap-1.5">
-                          <Eye className={cn("w-3 h-3", isVisibleForTarget ? "text-blue-600" : "text-muted-foreground")} />
-                          <span className="text-[8px] font-black uppercase text-muted-foreground">Visibilidad Alumno</span>
+                    <Collapsible className="pb-2">
+                      <CollapsibleTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="w-full justify-between h-9 rounded-xl bg-accent/5 hover:bg-accent/10 border border-accent/10 mb-2 px-3 group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <Eye className="w-3.5 h-3.5 text-accent" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-accent">Gestionar Visibilidad</span>
+                          </div>
+                          <ChevronDown className="w-3.5 h-3.5 text-accent transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className={cn(
+                            "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
+                            isVisibleForTarget ? "bg-blue-50 border-blue-100 dark:bg-blue-900/10" : "bg-muted/30 border-primary/5",
+                            res.isVisibleGlobally && "opacity-40 grayscale-[0.5]"
+                          )}>
+                            <div className="flex items-center gap-1.5">
+                              <Eye className={cn("w-3 h-3", isVisibleForTarget ? "text-blue-600" : "text-muted-foreground")} />
+                              <span className="text-[8px] font-black uppercase text-muted-foreground">Alumno</span>
+                            </div>
+                            <Switch 
+                              checked={isVisibleForTarget} 
+                              onCheckedChange={() => toggleStudentVisibility(res.id, selectedStudentId)}
+                              className="scale-75 data-[state=checked]:bg-blue-500"
+                            />
+                          </div>
+                          <div className={cn(
+                            "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
+                            res.isVisibleGlobally ? "bg-purple-50 border-purple-100 dark:bg-purple-900/10" : "bg-muted/30 border-primary/5"
+                          )}>
+                            <div className="flex items-center gap-1.5">
+                              <Globe className={cn("w-3 h-3", res.isVisibleGlobally ? "text-purple-600" : "text-muted-foreground")} />
+                              <span className="text-[8px] font-black uppercase text-muted-foreground">Global</span>
+                            </div>
+                            <Switch 
+                              checked={res.isVisibleGlobally || false} 
+                              onCheckedChange={() => toggleGlobalVisibility(res.id)}
+                              className="scale-75 data-[state=checked]:bg-purple-500"
+                            />
+                          </div>
                         </div>
-                        <Switch 
-                          checked={isVisibleForTarget} 
-                          onCheckedChange={() => toggleStudentVisibility(res.id, selectedStudentId)}
-                          className="scale-75 data-[state=checked]:bg-blue-500"
-                        />
-                      </div>
-                      <div className={cn(
-                        "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
-                        res.isVisibleGlobally ? "bg-purple-50 border-purple-100 dark:bg-purple-900/10" : "bg-muted/30 border-primary/5"
-                      )}>
-                        <div className="flex items-center gap-1.5">
-                          <Globe className={cn("w-3 h-3", res.isVisibleGlobally ? "text-purple-600" : "text-muted-foreground")} />
-                          <span className="text-[8px] font-black uppercase text-muted-foreground">Global (Todos)</span>
-                        </div>
-                        <Switch 
-                          checked={res.isVisibleGlobally || false} 
-                          onCheckedChange={() => toggleGlobalVisibility(res.id)}
-                          className="scale-75 data-[state=checked]:bg-purple-500"
-                        />
-                      </div>
-                    </div>
+                      </CollapsibleContent>
+                    </Collapsible>
                   )}
 
                   <div className={cn(
