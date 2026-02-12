@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -449,6 +450,42 @@ export default function TeacherDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="rounded-[2rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
+          <CardHeader className="bg-accent/5 p-4 border-b">
+            <CardTitle className="text-base flex items-center gap-2 font-black text-foreground">
+              <CheckCircle2 className="w-5 h-5 text-accent" />
+              Sesiones Hoy
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {currentDayBookedSlots.length > 0 ? (
+              currentDayBookedSlots.map((cls, i) => (
+                <div key={i} className="flex items-center justify-between p-4 border-b last:border-0 border-border hover:bg-accent/5 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="font-black text-xs text-foreground">{cls.time.split(' ')[0]}</div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-black truncate text-foreground">{cls.bookedBy}</div>
+                      <div className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
+                        <Music className="w-2.5 h-2.5" /> {cls.instrument || 'Música'}
+                      </div>
+                    </div>
+                  </div>
+                  <Badge className={cn(
+                    "rounded-full px-2 py-0 text-[8px] font-black uppercase",
+                    cls.type === 'virtual' ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300" : "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
+                  )}>
+                    {cls.type === 'virtual' ? 'Online' : 'Sede'}
+                  </Badge>
+                </div>
+              ))
+            ) : (
+              <div className="p-12 text-center text-muted-foreground italic text-xs font-medium">
+                <p>Sin sesiones pendientes.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="lg:col-span-2 rounded-[2rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
           <CardHeader className="bg-primary/5 p-6 border-b">
             <CardTitle className="flex items-center gap-2 font-black text-xl text-foreground">
@@ -503,42 +540,6 @@ export default function TeacherDashboard() {
               <div className="py-20 text-center">
                 <GraduationCap className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
                 <p className="text-muted-foreground font-bold italic">No hay alumnos con clases registradas todavía.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
-          <CardHeader className="bg-accent/5 p-4 border-b">
-            <CardTitle className="text-base flex items-center gap-2 font-black text-foreground">
-              <CheckCircle2 className="w-5 h-5 text-accent" />
-              Sesiones Hoy
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {currentDayBookedSlots.length > 0 ? (
-              currentDayBookedSlots.map((cls, i) => (
-                <div key={i} className="flex items-center justify-between p-4 border-b last:border-0 border-border hover:bg-accent/5 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="font-black text-xs text-foreground">{cls.time.split(' ')[0]}</div>
-                    <div className="min-w-0">
-                      <div className="text-xs font-black truncate text-foreground">{cls.bookedBy}</div>
-                      <div className="text-[10px] text-muted-foreground font-bold flex items-center gap-1">
-                        <Music className="w-2.5 h-2.5" /> {cls.instrument || 'Música'}
-                      </div>
-                    </div>
-                  </div>
-                  <Badge className={cn(
-                    "rounded-full px-2 py-0 text-[8px] font-black uppercase",
-                    cls.type === 'virtual' ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300" : "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
-                  )}>
-                    {cls.type === 'virtual' ? 'Online' : 'Sede'}
-                  </Badge>
-                </div>
-              ))
-            ) : (
-              <div className="p-12 text-center text-muted-foreground italic text-xs font-medium">
-                <p>Sin sesiones pendientes.</p>
               </div>
             )}
           </CardContent>
