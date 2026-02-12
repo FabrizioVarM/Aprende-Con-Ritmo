@@ -26,6 +26,12 @@ export interface UserProfile {
   photoUrl?: string;
   phone?: string;
   fcmToken?: string;
+  canManageLibrary?: boolean;
+  photoTransform?: {
+    scale: number;
+    x: number;
+    y: number;
+  };
 }
 
 // Internal state for user authentication and profile

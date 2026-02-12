@@ -86,6 +86,7 @@ function UsersContent() {
   const [editPhotoUrl, setEditPhotoUrl] = useState<string | undefined>(undefined);
   const [editAvatarSeed, setEditAvatarSeed] = useState('');
   const [editCanManageLibrary, setEditCanManageLibrary] = useState(false);
+  const [editPhotoTransform, setEditPhotoTransform] = useState<{scale: number, x: number, y: number} | undefined>(undefined);
 
   // Create State
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -125,6 +126,7 @@ function UsersContent() {
     setEditPhotoUrl(u.photoUrl);
     setEditAvatarSeed(u.avatarSeed || u.id);
     setEditCanManageLibrary(u.canManageLibrary || false);
+    setEditPhotoTransform(u.photoTransform);
   };
 
   const handleSaveEdit = () => {
@@ -137,7 +139,8 @@ function UsersContent() {
         instruments: editInstruments,
         photoUrl: editPhotoUrl,
         avatarSeed: editAvatarSeed,
-        canManageLibrary: editCanManageLibrary
+        canManageLibrary: editCanManageLibrary,
+        photoTransform: editPhotoTransform
       });
       setEditingUser(null);
       toast({
@@ -200,6 +203,7 @@ function UsersContent() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setEditPhotoUrl(reader.result as string);
+        setEditPhotoTransform(undefined); // Reset transform
         toast({ description: "Foto cargada correctamente." });
       };
       reader.readAsDataURL(file);
@@ -210,11 +214,13 @@ function UsersContent() {
     const newSeed = Math.random().toString(36).substring(7);
     setEditAvatarSeed(newSeed);
     setEditPhotoUrl(undefined);
+    setEditPhotoTransform(undefined);
     toast({ description: "Nuevo avatar generado." });
   };
 
   const removePhoto = () => {
     setEditPhotoUrl(undefined);
+    setEditPhotoTransform(undefined);
     toast({ description: "Se ha vuelto al avatar por defecto." });
   };
 
@@ -244,77 +250,84 @@ function UsersContent() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.length > 0 ? users.map((u) => (
-            <TableRow key={u.id} className="hover:bg-muted/30 transition-colors">
-              <TableCell>
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10 border-2 border-primary/20 shadow-sm">
-                    {u.photoUrl ? (
-                      <AvatarImage src={u.photoUrl} className="object-cover" />
-                    ) : (
-                      <AvatarImage src={`https://picsum.photos/seed/${u.avatarSeed || u.id}/100`} />
-                    )}
-                    <AvatarFallback className="bg-primary text-secondary-foreground font-black">{u.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-black text-foreground">{u.name}</div>
-                    <div className="text-xs text-muted-foreground font-medium">{u.email}</div>
+          {users.length > 0 ? users.map((u) => {
+            const avatarStyle = u.photoTransform ? {
+              transform: `translate(${u.photoTransform.x}px, ${u.photoTransform.y}px) scale(${u.photoTransform.scale})`,
+              transition: 'transform 0.2s ease-out'
+            } : {};
+            
+            return (
+              <TableRow key={u.id} className="hover:bg-muted/30 transition-colors">
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-10 h-10 border-2 border-primary/20 shadow-sm">
+                      {u.photoUrl ? (
+                        <AvatarImage src={u.photoUrl} className="object-cover" style={avatarStyle} />
+                      ) : (
+                        <AvatarImage src={`https://picsum.photos/seed/${u.avatarSeed || u.id}/100`} style={avatarStyle} />
+                      )}
+                      <AvatarFallback className="bg-primary text-secondary-foreground font-black">{u.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-black text-foreground">{u.name}</div>
+                      <div className="text-xs text-muted-foreground font-medium">{u.email}</div>
+                    </div>
                   </div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex flex-col gap-1">
-                  <Badge variant="secondary" className="capitalize rounded-full px-3 font-bold text-[10px] bg-primary/20 text-secondary-foreground w-fit">
-                    {u.role === 'student' ? 'Estudiante' : u.role === 'teacher' ? 'Profesor' : 'Admin'}
-                  </Badge>
-                  {u.role === 'teacher' && u.canManageLibrary && (
-                    <Badge variant="outline" className="text-[8px] font-black uppercase border-accent text-accent w-fit bg-accent/5">
-                      Gestor Biblioteca
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col gap-1">
+                    <Badge variant="secondary" className="capitalize rounded-full px-3 font-bold text-[10px] bg-primary/20 text-secondary-foreground w-fit">
+                      {u.role === 'student' ? 'Estudiante' : u.role === 'teacher' ? 'Profesor' : 'Admin'}
                     </Badge>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                <span className="inline-flex items-center gap-1.5 text-xs font-black text-green-600 uppercase tracking-widest">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-600" />
-                  Activo
-                </span>
-              </TableCell>
-              <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10">
-                      <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="rounded-2xl w-48 border-none shadow-xl p-2">
-                    <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-muted-foreground px-2 pb-2">Opciones</DropdownMenuLabel>
-                    <DropdownMenuItem 
-                      className="gap-2 rounded-xl font-bold py-2 cursor-pointer"
-                      onClick={() => openEditDialog(u)}
-                    >
-                      <Edit className="w-4 h-4" /> Editar Perfil
-                    </DropdownMenuItem>
-                    {u.role === 'student' && (
+                    {u.role === 'teacher' && u.canManageLibrary && (
+                      <Badge variant="outline" className="text-[8px] font-black uppercase border-accent text-accent w-fit bg-accent/5">
+                        Gestor Biblioteca
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-black text-green-600 uppercase tracking-widest">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-600" />
+                    Activo
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10">
+                        <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="rounded-2xl w-48 border-none shadow-xl p-2">
+                      <DropdownMenuLabel className="font-black text-[10px] uppercase tracking-widest text-muted-foreground px-2 pb-2">Opciones</DropdownMenuLabel>
                       <DropdownMenuItem 
                         className="gap-2 rounded-xl font-bold py-2 cursor-pointer"
-                        onClick={() => router.push(`/progress?studentId=${u.id}`)}
+                        onClick={() => openEditDialog(u)}
                       >
-                        <TrendingUp className="w-4 h-4" /> Ver Progreso
+                        <Edit className="w-4 h-4" /> Editar Perfil
                       </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator className="my-1" />
-                    <DropdownMenuItem 
-                      className="gap-2 rounded-xl font-bold py-2 text-destructive focus:text-destructive cursor-pointer"
-                      onClick={() => setDeletingUserId(u.id)}
-                    >
-                      <Trash className="w-4 h-4" /> Eliminar Cuenta
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          )) : (
+                      {u.role === 'student' && (
+                        <DropdownMenuItem 
+                          className="gap-2 rounded-xl font-bold py-2 cursor-pointer"
+                          onClick={() => router.push(`/progress?studentId=${u.id}`)}
+                        >
+                          <TrendingUp className="w-4 h-4" /> Ver Progreso
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator className="my-1" />
+                      <DropdownMenuItem 
+                        className="gap-2 rounded-xl font-bold py-2 text-destructive focus:text-destructive cursor-pointer"
+                        onClick={() => setDeletingUserId(u.id)}
+                      >
+                        <Trash className="w-4 h-4" /> Eliminar Cuenta
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            );
+          }) : (
             <TableRow>
               <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-bold italic bg-primary/5">
                 No se encontraron usuarios en esta categoría.
@@ -532,9 +545,9 @@ function UsersContent() {
               <div className="relative group">
                 <Avatar className="w-20 h-20 border-4 border-card shadow-xl">
                   {editPhotoUrl ? (
-                    <AvatarImage src={editPhotoUrl} className="object-cover" />
+                    <AvatarImage src={editPhotoUrl} className="object-cover" style={editPhotoTransform ? { transform: `translate(${editPhotoTransform.x}px, ${editPhotoTransform.y}px) scale(${editPhotoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                   ) : (
-                    <AvatarImage src={`https://picsum.photos/seed/${editAvatarSeed}/150`} />
+                    <AvatarImage src={`https://picsum.photos/seed/${editAvatarSeed}/150`} style={editPhotoTransform ? { transform: `translate(${editPhotoTransform.x}px, ${editPhotoTransform.y}px) scale(${editPhotoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                   )}
                   <AvatarFallback className="text-2xl font-black">{editName[0]}</AvatarFallback>
                 </Avatar>

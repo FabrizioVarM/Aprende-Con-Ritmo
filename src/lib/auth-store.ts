@@ -31,6 +31,11 @@ export interface User {
   phone?: string;
   fcmToken?: string;
   canManageLibrary?: boolean;
+  photoTransform?: {
+    scale: number;
+    x: number;
+    y: number;
+  };
 }
 
 /**

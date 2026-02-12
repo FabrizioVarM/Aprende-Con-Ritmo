@@ -276,9 +276,9 @@ export default function LibraryPage() {
                     <div className="cursor-zoom-in hover:scale-110 transition-transform relative group">
                       <Avatar className="w-12 h-12 border-2 border-accent shadow-md shrink-0">
                         {selectedStudent.photoUrl ? (
-                          <AvatarImage src={selectedStudent.photoUrl} className="object-cover" />
+                          <AvatarImage src={selectedStudent.photoUrl} className="object-cover" style={selectedStudent.photoTransform ? { transform: `translate(${selectedStudent.photoTransform.x}px, ${selectedStudent.photoTransform.y}px) scale(${selectedStudent.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                         ) : (
-                          <AvatarImage src={`https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/200`} />
+                          <AvatarImage src={`https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/200`} style={selectedStudent.photoTransform ? { transform: `translate(${selectedStudent.photoTransform.x}px, ${selectedStudent.photoTransform.y}px) scale(${selectedStudent.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                         )}
                         <AvatarFallback className="text-sm font-black">{selectedStudent.name[0]}</AvatarFallback>
                       </Avatar>
@@ -308,9 +308,9 @@ export default function LibraryPage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 border-2 border-primary/10 shrink-0 shadow-sm">
                             {student.photoUrl ? (
-                              <AvatarImage src={student.photoUrl} className="object-cover" />
+                              <AvatarImage src={student.photoUrl} className="object-cover" style={student.photoTransform ? { transform: `translate(${student.photoTransform.x}px, ${student.photoTransform.y}px) scale(${student.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                             ) : (
-                              <AvatarImage src={`https://picsum.photos/seed/${student.avatarSeed || student.id}/100`} />
+                              <AvatarImage src={`https://picsum.photos/seed/${student.avatarSeed || student.id}/100`} style={student.photoTransform ? { transform: `translate(${student.photoTransform.x}px, ${student.photoTransform.y}px) scale(${student.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                             )}
                             <AvatarFallback className="text-xs font-black">{student.name[0]}</AvatarFallback>
                           </Avatar>

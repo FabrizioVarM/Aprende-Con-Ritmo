@@ -37,6 +37,7 @@ export default function ProfilePage() {
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
   const [avatarSeed, setAvatarSeed] = useState('');
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(undefined);
+  const [photoTransform, setPhotoTransform] = useState<{scale: number, x: number, y: number} | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,7 @@ export default function ProfilePage() {
       setSelectedInstruments(user.instruments || []);
       setAvatarSeed(user.avatarSeed || user.id);
       setPhotoUrl(user.photoUrl);
+      setPhotoTransform(user.photoTransform);
     }
   }, [user]);
 
@@ -60,7 +62,8 @@ export default function ProfilePage() {
         phone,
         instruments: selectedInstruments,
         avatarSeed,
-        photoUrl: photoUrl || ""
+        photoUrl: photoUrl || "",
+        photoTransform
       });
       
       toast({
@@ -70,6 +73,17 @@ export default function ProfilePage() {
     } finally {
       setTimeout(() => setIsSaving(false), 800);
     }
+  };
+
+  const handleSaveTransform = (transform: { scale: number; position: { x: number; y: number } }) => {
+    const newTransform = {
+      scale: transform.scale,
+      x: transform.position.x,
+      y: transform.position.y
+    };
+    setPhotoTransform(newTransform);
+    // Persistir inmediatamente el cambio de encuadre
+    updateUser({ photoTransform: newTransform });
   };
 
   const toggleInstrument = (inst: string) => {
@@ -84,6 +98,7 @@ export default function ProfilePage() {
     const newSeed = Math.random().toString(36).substring(7);
     setAvatarSeed(newSeed);
     setPhotoUrl(undefined); 
+    setPhotoTransform(undefined);
     toast({
       description: "Se ha generado un nuevo avatar aleatorio.",
     });
@@ -104,8 +119,9 @@ export default function ProfilePage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoUrl(reader.result as string);
+        setPhotoTransform(undefined); // Reset transform for new photo
         toast({
-          description: "Foto cargada. Recuerda pulsar 'Guardar Cambios'.",
+          description: "Foto cargada. Recuerda ajustar el encuadre si lo deseas.",
         });
       };
       reader.readAsDataURL(file);
@@ -114,12 +130,18 @@ export default function ProfilePage() {
 
   const removePhoto = () => {
     setPhotoUrl(undefined);
+    setPhotoTransform(undefined);
     toast({
       description: "Se ha vuelto al avatar aleatorio.",
     });
   };
 
   if (!user) return null;
+
+  const avatarStyle = photoTransform ? {
+    transform: `translate(${photoTransform.x}px, ${photoTransform.y}px) scale(${photoTransform.scale})`,
+    transition: 'transform 0.2s ease-out'
+  } : {};
 
   return (
     <AppLayout>
@@ -138,9 +160,9 @@ export default function ProfilePage() {
                     <div className="relative group cursor-zoom-in">
                       <Avatar className="w-32 h-32 border-4 border-primary shadow-xl transition-transform hover:scale-105">
                         {photoUrl ? (
-                          <AvatarImage src={photoUrl} className="object-cover" />
+                          <AvatarImage src={photoUrl} className="object-cover" style={avatarStyle} />
                         ) : (
-                          <AvatarImage src={`https://picsum.photos/seed/${avatarSeed}/200`} />
+                          <AvatarImage src={`https://picsum.photos/seed/${avatarSeed}/200`} style={avatarStyle} />
                         )}
                         <AvatarFallback className="text-4xl font-black">{name[0]}</AvatarFallback>
                       </Avatar>
@@ -154,6 +176,7 @@ export default function ProfilePage() {
                       src={photoUrl || `https://picsum.photos/seed/${avatarSeed}/600`}
                       name={name}
                       subtitle={`@${username || 'usuario'}`}
+                      onSave={handleSaveTransform}
                     />
                   </DialogContent>
                 </Dialog>
