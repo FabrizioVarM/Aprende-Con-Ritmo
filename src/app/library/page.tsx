@@ -520,9 +520,12 @@ export default function LibraryPage() {
                   <CardFooter className="flex gap-3 pt-2">
                     {canShowDownload && (
                       <Button 
-                        variant="outline" 
+                        variant={canShowInteract ? "outline" : "default"}
                         className={cn(
-                          "flex-none rounded-2xl border-2 border-primary/10 h-12 gap-2 font-black px-4 text-xs hover:border-accent hover:bg-accent/5 text-foreground transition-all",
+                          canShowInteract ? "flex-none" : "flex-1",
+                          !canShowInteract && "bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 border-accent",
+                          canShowInteract && "border-primary/10 hover:border-accent hover:bg-accent/5 text-foreground",
+                          "rounded-2xl border-2 h-12 gap-2 font-black px-4 text-xs transition-all",
                           isLockedForStudent && "opacity-40 grayscale pointer-events-none"
                         )}
                         onClick={() => !isLockedForStudent && window.open(res.downloadUrl, '_blank')}
@@ -854,3 +857,5 @@ export default function LibraryPage() {
     </AppLayout>
   );
 }
+
+    
