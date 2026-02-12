@@ -62,10 +62,11 @@ export function useResourceStore() {
   }, [db]);
 
   const addResource = useCallback((newRes: Resource) => {
-    // Asegurar que por defecto sean ocultos si no viene el campo
+    // Asegurar que por defecto sean ocultos y deshabilitados si no viene el campo
     const finalRes = {
       ...newRes,
       isVisibleGlobally: newRes.isVisibleGlobally ?? false,
+      isEnabled: newRes.isEnabled ?? false,
       assignedStudentIds: newRes.assignedStudentIds ?? []
     };
     
@@ -110,6 +111,13 @@ export function useResourceStore() {
     updateResource(resourceId, { isVisibleGlobally: !res.isVisibleGlobally });
   }, [resources, updateResource]);
 
+  const toggleEnabledStatus = useCallback((resourceId: number) => {
+    const res = resources.find(r => r.id === resourceId);
+    if (!res) return;
+
+    updateResource(resourceId, { isEnabled: !res.isEnabled });
+  }, [resources, updateResource]);
+
   return { 
     resources, 
     libraryDescription, 
@@ -117,6 +125,7 @@ export function useResourceStore() {
     addResource, 
     updateLibraryDescription,
     toggleStudentVisibility,
-    toggleGlobalVisibility
+    toggleGlobalVisibility,
+    toggleEnabledStatus
   };
 }

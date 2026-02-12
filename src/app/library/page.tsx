@@ -25,7 +25,7 @@ import {
   CollapsibleTrigger 
 } from "@/components/ui/collapsible"
 import { Label } from "@/components/ui/label"
-import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType, Eye, EyeOff, Globe, UserCheck, ChevronDown } from 'lucide-react';
+import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType, Eye, EyeOff, Globe, UserCheck, ChevronDown, Lock, Unlock } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
@@ -47,7 +47,8 @@ export default function LibraryPage() {
     updateResource, 
     updateLibraryDescription,
     toggleStudentVisibility,
-    toggleGlobalVisibility
+    toggleGlobalVisibility,
+    toggleEnabledStatus
   } = useResourceStore();
   const { toast } = useToast();
   
@@ -251,7 +252,11 @@ export default function LibraryPage() {
           {filtered.length > 0 ? filtered.map((res) => {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
             const isVisibleForTarget = res.isVisibleGlobally || res.assignedStudentIds?.includes(selectedStudentId);
+            const isEnabled = res.isEnabled !== false; // Por defecto habilitado si no existe la propiedad (para retrocompatibilidad)
             
+            // Si no es staff, y no está habilitado, bloqueamos visualmente
+            const isLockedForStudent = !isStaff && !isEnabled;
+
             // Obtener URL de imagen de forma segura
             let imgUrl = FALLBACK_IMAGE;
             if (typeof res.img === 'string') {
@@ -262,23 +267,27 @@ export default function LibraryPage() {
             
             const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
 
-            // Lógica para atenuar botones si no hay link
-            const hasDownload = res.downloadUrl && res.downloadUrl !== '#';
-            const hasInteract = res.interactUrl && res.interactUrl !== '#';
+            // Lógica para atenuar botones si no hay link o está bloqueado
+            const hasDownload = res.downloadUrl && res.downloadUrl !== '#' && !isLockedForStudent;
+            const hasInteract = res.interactUrl && res.interactUrl !== '#' && !isLockedForStudent;
 
             return (
               <Card key={res.id} className={cn(
                 "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300",
                 isStaff && !res.isVisibleGlobally && !res.assignedStudentIds?.includes(selectedStudentId) 
                   ? "border-dashed border-primary/20 opacity-80" 
-                  : "border-primary/40 hover:border-accent/40"
+                  : "border-primary/40 hover:border-accent/40",
+                isLockedForStudent && "opacity-70 grayscale-[0.3]"
               )}>
                 <div className="relative aspect-video overflow-hidden bg-muted">
                   <Image 
                     src={imgUrl} 
                     alt={res.title}
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    className={cn(
+                      "object-cover transition-transform duration-700 group-hover:scale-110",
+                      isLockedForStudent && "blur-[2px]"
+                    )}
                     data-ai-hint={imgHint}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
@@ -287,11 +296,16 @@ export default function LibraryPage() {
                       }
                     }}
                   />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none">{res.category}</Badge>
+                  <div className="absolute top-4 left-4 flex flex-col gap-2">
+                    <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none w-fit">{res.category}</Badge>
                     {isStaff && !res.isVisibleGlobally && (
-                      <Badge variant="destructive" className="rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1">
+                      <Badge variant="destructive" className="rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1 w-fit">
                         <EyeOff className="w-2.5 h-2.5" /> Privado
+                      </Badge>
+                    )}
+                    {!isEnabled && (
+                      <Badge variant="secondary" className="bg-orange-500 text-white rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1 w-fit border-none">
+                        <Lock className="w-2.5 h-2.5" /> Bloqueado
                       </Badge>
                     )}
                   </div>
@@ -305,6 +319,16 @@ export default function LibraryPage() {
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
+                    </div>
+                  )}
+                  {isLockedForStudent && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-6 text-center">
+                      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                        <Lock className="w-8 h-8 text-white mx-auto mb-2" />
+                        <p className="text-white text-[10px] font-black uppercase tracking-widest leading-tight">
+                          Completa materiales anteriores para desbloquear
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -336,7 +360,7 @@ export default function LibraryPage() {
                         >
                           <div className="flex items-center gap-2">
                             <Eye className="w-3.5 h-3.5 text-accent" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-accent">Gestionar Visibilidad</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-accent">Gestión Staff</span>
                           </div>
                           <ChevronDown className="w-3.5 h-3.5 text-accent transition-transform duration-200 group-data-[state=open]:rotate-180" />
                         </Button>
@@ -372,6 +396,21 @@ export default function LibraryPage() {
                               className="scale-75 data-[state=checked]:bg-purple-500"
                             />
                           </div>
+                        </div>
+                        {/* Nuevo interruptor de habilitar */}
+                        <div className={cn(
+                          "p-3 rounded-2xl border flex items-center justify-between transition-all duration-300",
+                          isEnabled ? "bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10" : "bg-orange-50 border-orange-100 dark:bg-orange-900/10"
+                        )}>
+                          <div className="flex items-center gap-2">
+                            {isEnabled ? <Unlock className="w-3.5 h-3.5 text-emerald-600" /> : <Lock className="w-3.5 h-3.5 text-orange-600" />}
+                            <span className="text-[9px] font-black uppercase text-muted-foreground">Habilitar Acceso</span>
+                          </div>
+                          <Switch 
+                            checked={isEnabled} 
+                            onCheckedChange={() => toggleEnabledStatus(res.id)}
+                            className="scale-75 data-[state=checked]:bg-emerald-500"
+                          />
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
