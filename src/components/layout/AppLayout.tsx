@@ -158,7 +158,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               />
             </div>
             <span className="text-xl font-extrabold text-foreground font-headline tracking-tight leading-tight">
-              Ritmo
+              Aprende con Ritmo
             </span>
           </div>
 
@@ -452,7 +452,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 data-ai-hint="academy logo"
               />
             </div>
-            <span className="font-bold text-foreground leading-tight">Ritmo</span>
+            <span className="font-bold text-foreground leading-tight">Aprende con Ritmo</span>
           </div>
           <div className="flex items-center gap-2">
             <Popover>
