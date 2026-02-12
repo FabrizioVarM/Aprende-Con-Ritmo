@@ -24,6 +24,7 @@ import {
   CollapsibleTrigger 
 } from "@/components/ui/collapsible"
 import { Label } from "@/components/ui/label"
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType, Eye, EyeOff, Globe, UserCheck, ChevronDown, Lock, Unlock, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -81,6 +82,7 @@ export default function LibraryPage() {
   });
 
   const studentsList = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
+  const selectedStudent = useMemo(() => studentsList.find(s => s.id === selectedStudentId), [studentsList, selectedStudentId]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -265,16 +267,35 @@ export default function LibraryPage() {
                   <p className="text-xs font-bold text-muted-foreground">Alumno:</p>
                 </div>
               </div>
-              <div className="w-full sm:w-64">
+              <div className="w-full sm:w-72">
                 <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                  <SelectTrigger className="h-12 rounded-2xl border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
-                    <Users className="w-4 h-4 mr-2 text-accent" />
+                  <SelectTrigger className="h-14 rounded-2xl border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent flex items-center gap-3 px-4 transition-all">
+                    {selectedStudent && (
+                      <Avatar className="w-8 h-8 border-2 border-accent/20 shrink-0 shadow-sm">
+                        {selectedStudent.photoUrl ? (
+                          <AvatarImage src={selectedStudent.photoUrl} className="object-cover" />
+                        ) : (
+                          <AvatarImage src={`https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/100`} />
+                        )}
+                        <AvatarFallback className="text-[10px] font-black">{selectedStudent.name[0]}</AvatarFallback>
+                      </Avatar>
+                    )}
                     <SelectValue placeholder="Seleccionar Alumno" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl">
+                  <SelectContent className="rounded-2xl border-2 shadow-xl p-1">
                     {studentsList.map(student => (
-                      <SelectItem key={student.id} value={student.id} className="font-bold py-3">
-                        {student.name}
+                      <SelectItem key={student.id} value={student.id} className="font-bold py-3 rounded-xl cursor-pointer">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-8 h-8 border-2 border-primary/10 shrink-0 shadow-sm">
+                            {student.photoUrl ? (
+                              <AvatarImage src={student.photoUrl} className="object-cover" />
+                            ) : (
+                              <AvatarImage src={`https://picsum.photos/seed/${student.avatarSeed || student.id}/100`} />
+                            )}
+                            <AvatarFallback className="text-[10px] font-black">{student.name[0]}</AvatarFallback>
+                          </Avatar>
+                          <span className="truncate">{student.name}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
