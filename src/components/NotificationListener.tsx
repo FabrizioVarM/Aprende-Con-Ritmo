@@ -2,7 +2,7 @@
 "use client"
 
 import { useEffect, useRef } from 'react';
-import { collection, query, where, onSnapshot, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +10,7 @@ import { Bell } from 'lucide-react';
 
 /**
  * Componente invisible que escucha nuevas notificaciones y muestra Toasts instantáneos.
+ * Optimizado para evitar el error de índice de Firestore ordenando localmente.
  */
 export function NotificationListener() {
   const { user } = useAuth();
@@ -21,14 +22,10 @@ export function NotificationListener() {
   useEffect(() => {
     if (!user?.id || !db) return;
 
-    // Solo escuchar notificaciones recientes (creadas después de ahora)
-    // Pero como no tenemos un campo timestamp fácil de comparar con "ahora" en JS directo sin server-side
-    // usaremos una bandera de carga inicial para evitar disparar toasts por notificaciones viejas.
+    // Simplificamos la consulta eliminando el orderBy para evitar el error de failed-precondition (índice faltante)
     const q = query(
       collection(db, 'notifications'),
-      where('recipientId', '==', user.id),
-      orderBy('createdAt', 'desc'),
-      limit(1)
+      where('recipientId', '==', user.id)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -37,8 +34,11 @@ export function NotificationListener() {
         return;
       }
 
-      const latest = snapshot.docs[0];
-      const data = latest.data();
+      // Obtenemos todos los documentos y los ordenamos localmente para encontrar el más reciente
+      const docs = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as any));
+      docs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      const latest = docs[0];
 
       // Si es la carga inicial, guardar el ID de la más reciente pero no mostrar toast
       if (isInitialLoad.current) {
@@ -47,15 +47,14 @@ export function NotificationListener() {
         return;
       }
 
-      // Si el ID es diferente al último procesado y no está marcada como leída (opcional)
-      if (latest.id !== lastProcessedRef.current) {
+      // Si el ID es diferente al último procesado y no está marcada como leída
+      if (latest.id !== lastProcessedRef.current && !latest.read) {
         lastProcessedRef.current = latest.id;
         
         toast({
-          title: data.title || "Nueva Notificación",
-          description: data.body,
+          title: latest.title || "Nueva Notificación",
+          description: latest.body,
           duration: 6000,
-          // Icono personalizado según el tipo
           action: (
             <div className="bg-accent text-white p-2 rounded-xl shadow-lg">
               <Bell className="w-4 h-4" />

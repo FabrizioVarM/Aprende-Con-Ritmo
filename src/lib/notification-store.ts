@@ -9,8 +9,6 @@ import {
   onSnapshot, 
   query, 
   where, 
-  orderBy, 
-  limit,
   updateDoc,
   deleteDoc
 } from 'firebase/firestore';
@@ -36,22 +34,29 @@ export function useNotificationStore(userId?: string) {
   useEffect(() => {
     if (!userId || !db) return;
 
+    // Simplificamos la consulta eliminando el orderBy para evitar el error de failed-precondition (índice faltante)
     const q = query(
       collection(db, 'notifications'),
-      where('recipientId', '==', userId),
-      orderBy('createdAt', 'desc'),
-      limit(50)
+      where('recipientId', '==', userId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: AppNotification[] = [];
-      let unread = 0;
       snapshot.forEach(doc => {
         const data = doc.data() as AppNotification;
         list.push({ ...data, id: doc.id });
-        if (!data.read) unread++;
       });
-      setNotifications(list);
+
+      // Realizamos la ordenación localmente en el cliente
+      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      let unread = 0;
+      list.forEach(n => {
+        if (!n.read) unread++;
+      });
+
+      // Limitamos a las 50 más recientes después de ordenar
+      setNotifications(list.slice(0, 50));
       setUnreadCount(unread);
     }, (error) => {
       console.error("Error loading notifications:", error);
