@@ -12,7 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Dialog, 
   DialogContent, 
-  DialogTrigger 
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription
 } from '@/components/ui/dialog';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
@@ -172,6 +175,10 @@ export default function ProfilePage() {
                     </div>
                   </DialogTrigger>
                   <DialogContent className="max-w-md p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl">
+                    <DialogHeader className="sr-only">
+                      <DialogTitle>Previsualización de Foto de Perfil</DialogTitle>
+                      <DialogDescription>Ajusta el zoom y la posición de tu foto de perfil para el encuadre perfecto.</DialogDescription>
+                    </DialogHeader>
                     <AvatarPreviewContent 
                       src={photoUrl || `https://picsum.photos/seed/${avatarSeed}/600`}
                       name={name}

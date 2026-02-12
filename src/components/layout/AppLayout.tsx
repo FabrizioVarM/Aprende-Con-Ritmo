@@ -2,7 +2,7 @@
 "use client"
 
 import React, { useEffect, useMemo } from 'react';
-import Link from 'next/link';
+import Link from 'next/navigation';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
@@ -382,7 +382,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </Avatar>
                 </div>
               </DialogTrigger>
-              <DialogContent className="max-w-sm p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl bg-card">
+              <DialogContent className="max-sm p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl bg-card">
+                <DialogHeader className="sr-only">
+                  <DialogTitle>Mi Identidad Musical</DialogTitle>
+                  <DialogDescription>Previsualización y ajuste de tu imagen de perfil personal.</DialogDescription>
+                </DialogHeader>
                 <AvatarPreviewContent 
                   src={user.photoUrl || `https://picsum.photos/seed/${user.avatarSeed || user.id}/600`}
                   name={user.name}

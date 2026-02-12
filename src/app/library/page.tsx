@@ -288,6 +288,10 @@ export default function LibraryPage() {
                     </div>
                   </DialogTrigger>
                   <DialogContent className="rounded-[2.5rem] max-w-sm border-none shadow-2xl p-0 overflow-hidden bg-card">
+                    <DialogHeader className="sr-only">
+                      <DialogTitle>Perfil del Estudiante</DialogTitle>
+                      <DialogDescription>Vista detallada del perfil del alumno bajo evaluación actual.</DialogDescription>
+                    </DialogHeader>
                     <AvatarPreviewContent 
                       src={selectedStudent.photoUrl || `https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/600`}
                       name={selectedStudent.name}
