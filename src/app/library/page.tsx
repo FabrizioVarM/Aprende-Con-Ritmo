@@ -270,16 +270,6 @@ export default function LibraryPage() {
               <div className="w-full sm:w-72">
                 <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                   <SelectTrigger className="h-14 rounded-2xl border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent flex items-center gap-3 px-4 transition-all">
-                    {selectedStudent && (
-                      <Avatar className="w-8 h-8 border-2 border-accent/20 shrink-0 shadow-sm">
-                        {selectedStudent.photoUrl ? (
-                          <AvatarImage src={selectedStudent.photoUrl} className="object-cover" />
-                        ) : (
-                          <AvatarImage src={`https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/100`} />
-                        )}
-                        <AvatarFallback className="text-[10px] font-black">{selectedStudent.name[0]}</AvatarFallback>
-                      </Avatar>
-                    )}
                     <SelectValue placeholder="Seleccionar Alumno" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-2 shadow-xl p-1">
