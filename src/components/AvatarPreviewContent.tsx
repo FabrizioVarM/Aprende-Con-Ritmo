@@ -4,24 +4,27 @@
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 import { Slider } from '@/components/ui/slider';
-import { ZoomIn, ZoomOut, Move, RotateCcw } from 'lucide-react';
+import { ZoomIn, ZoomOut, Move, RotateCcw, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface AvatarPreviewContentProps {
   src: string;
   name: string;
   subtitle?: string;
+  onSave?: (transform: { scale: number; position: { x: number; y: number } }) => void;
 }
 
 /**
  * Componente que permite previsualizar una imagen con zoom y desplazamiento
  * para simular el recorte circular de la foto de perfil.
  */
-export function AvatarPreviewContent({ src, name, subtitle }: AvatarPreviewContentProps) {
+export function AvatarPreviewContent({ src, name, subtitle, onSave }: AvatarPreviewContentProps) {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const { toast } = useToast();
 
   const handleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
     setIsDragging(true);
@@ -47,6 +50,16 @@ export function AvatarPreviewContent({ src, name, subtitle }: AvatarPreviewConte
   const reset = () => {
     setScale(1);
     setPosition({ x: 0, y: 0 });
+  };
+
+  const handleSave = () => {
+    if (onSave) {
+      onSave({ scale, position });
+    }
+    toast({
+      title: "Ajustes de imagen aplicados ✨",
+      description: "El nuevo encuadre se ha guardado correctamente para tu perfil.",
+    });
   };
 
   return (
@@ -119,11 +132,20 @@ export function AvatarPreviewContent({ src, name, subtitle }: AvatarPreviewConte
           </div>
         </div>
 
-        <div className="text-center pt-2">
-          <h3 className="text-2xl font-black text-foreground leading-none">{name}</h3>
-          {subtitle && (
-            <p className="text-sm font-bold text-accent uppercase tracking-widest mt-2">{subtitle}</p>
-          )}
+        <div className="text-center pt-2 space-y-6">
+          <div>
+            <h3 className="text-2xl font-black text-foreground leading-none">{name}</h3>
+            {subtitle && (
+              <p className="text-sm font-bold text-accent uppercase tracking-widest mt-2">{subtitle}</p>
+            )}
+          </div>
+
+          <Button 
+            onClick={handleSave}
+            className="w-full bg-accent text-white rounded-2xl h-14 font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all gap-2"
+          >
+            <Check className="w-5 h-5" /> Guardar Cambios
+          </Button>
         </div>
       </div>
     </div>
