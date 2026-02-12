@@ -62,6 +62,10 @@ export default function LibraryPage() {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tempDescription, setTempDescription] = useState(libraryDescription);
 
+  // Helper local states for UI toggles in forms
+  const [enableDownloadInForm, setEnableDownloadInForm] = useState(true);
+  const [enableInteractInForm, setEnableInteractInForm] = useState(true);
+
   // Create State
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newResource, setNewResource] = useState<Partial<Resource>>({
@@ -110,6 +114,14 @@ export default function LibraryPage() {
     }
   }, [selectedStudentId, isStaff, studentsList]);
 
+  // Sincronizar toggles de formulario cuando se edita un recurso
+  useEffect(() => {
+    if (editingResource) {
+      setEnableDownloadInForm(editingResource.downloadUrl !== '#' && !!editingResource.downloadUrl);
+      setEnableInteractInForm(editingResource.interactUrl !== '#' && !!editingResource.interactUrl);
+    }
+  }, [editingResource]);
+
   const toggleFilter = (cat: string) => {
     if (cat === 'Todos') {
       setSelectedFilters([]);
@@ -152,7 +164,12 @@ export default function LibraryPage() {
 
   const handleSaveResourceEdit = () => {
     if (editingResource) {
-      updateResource(editingResource.id, editingResource);
+      const finalResource = {
+        ...editingResource,
+        downloadUrl: enableDownloadInForm ? editingResource.downloadUrl : '#',
+        interactUrl: enableInteractInForm ? editingResource.interactUrl : '#'
+      };
+      updateResource(editingResource.id, finalResource);
       toast({
         title: "Recurso Actualizado ✨",
         description: "Los cambios se han guardado correctamente.",
@@ -167,7 +184,14 @@ export default function LibraryPage() {
       return;
     }
     const id = Date.now();
-    addResource({ ...newResource, id } as Resource);
+    const finalResource = {
+      ...newResource,
+      id,
+      downloadUrl: enableDownloadInForm ? newResource.downloadUrl : '#',
+      interactUrl: enableInteractInForm ? newResource.interactUrl : '#'
+    } as Resource;
+
+    addResource(finalResource);
     toast({ title: "Material Creado 🎊", description: "El recurso ha sido añadido a la biblioteca." });
     setIsCreateDialogOpen(false);
     setNewResource({
@@ -308,8 +332,10 @@ export default function LibraryPage() {
             }
             
             const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
-            const hasDownload = res.downloadUrl && res.downloadUrl !== '#' && !isLockedForStudent;
-            const hasInteract = res.interactUrl && res.interactUrl !== '#' && !isLockedForStudent;
+            
+            // Check if buttons should be shown at all
+            const canShowDownload = res.downloadUrl && res.downloadUrl !== '#';
+            const canShowInteract = res.interactUrl && res.interactUrl !== '#';
 
             return (
               <Card key={res.id} className={cn(
@@ -490,29 +516,35 @@ export default function LibraryPage() {
                     )}
                   </div>
                 </CardContent>
-                <CardFooter className="flex gap-3 pt-2">
-                  <Button 
-                    variant="outline" 
-                    className={cn(
-                      "flex-none rounded-2xl border-2 border-primary/10 h-12 gap-2 font-black px-4 text-xs hover:border-accent hover:bg-accent/5 text-foreground transition-all",
-                      !hasDownload && "opacity-40 grayscale pointer-events-none"
+                {(canShowDownload || canShowInteract) && (
+                  <CardFooter className="flex gap-3 pt-2">
+                    {canShowDownload && (
+                      <Button 
+                        variant="outline" 
+                        className={cn(
+                          "flex-none rounded-2xl border-2 border-primary/10 h-12 gap-2 font-black px-4 text-xs hover:border-accent hover:bg-accent/5 text-foreground transition-all",
+                          isLockedForStudent && "opacity-40 grayscale pointer-events-none"
+                        )}
+                        onClick={() => !isLockedForStudent && window.open(res.downloadUrl, '_blank')}
+                        disabled={isLockedForStudent}
+                      >
+                        <Download className="w-4 h-4" /> Descargar
+                      </Button>
                     )}
-                    onClick={() => hasDownload && window.open(res.downloadUrl, '_blank')}
-                    disabled={!hasDownload}
-                  >
-                    <Download className="w-4 h-4" /> Descargar
-                  </Button>
-                  <Button 
-                    className={cn(
-                      "flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20 transition-all",
-                      !hasInteract && "opacity-40 grayscale pointer-events-none"
+                    {canShowInteract && (
+                      <Button 
+                        className={cn(
+                          "flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20 transition-all",
+                          isLockedForStudent && "opacity-40 grayscale pointer-events-none"
+                        )}
+                        onClick={() => !isLockedForStudent && window.open(res.interactUrl, '_blank')}
+                        disabled={isLockedForStudent}
+                      >
+                        <Play className="w-4 h-4" /> Interactúa!
+                      </Button>
                     )}
-                    onClick={() => hasInteract && window.open(res.interactUrl, '_blank')}
-                    disabled={!hasInteract}
-                  >
-                    <Play className="w-4 h-4" /> Interactúa!
-                  </Button>
-                </CardFooter>
+                  </CardFooter>
+                )}
               </Card>
             );
           }) : (
@@ -527,7 +559,13 @@ export default function LibraryPage() {
       </div>
 
       {/* DIÁLOGO: AGREGAR NUEVO RECURSO */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+      <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+        setIsCreateDialogOpen(open);
+        if (open) {
+          setEnableDownloadInForm(true);
+          setEnableInteractInForm(true);
+        }
+      }}>
         <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
@@ -606,24 +644,38 @@ export default function LibraryPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Enlace de Descarga</Label>
-                  <Input 
-                    value={newResource.downloadUrl} 
-                    onChange={(e) => setNewResource(prev => ({...prev, downloadUrl: e.target.value}))}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                    placeholder="#"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-primary/10">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Botón de Descarga</Label>
+                    <Switch checked={enableDownloadInForm} onCheckedChange={setEnableDownloadInForm} />
+                  </div>
+                  {enableDownloadInForm && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <Input 
+                        value={newResource.downloadUrl === '#' ? '' : newResource.downloadUrl} 
+                        onChange={(e) => setNewResource(prev => ({...prev, downloadUrl: e.target.value}))}
+                        className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
+                        placeholder="Enlace de descarga"
+                      />
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Enlace de Interacción</Label>
-                  <Input 
-                    value={newResource.interactUrl} 
-                    onChange={(e) => setNewResource(prev => ({...prev, interactUrl: e.target.value}))}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                    placeholder="#"
-                  />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Botón de Interacción</Label>
+                    <Switch checked={enableInteractInForm} onCheckedChange={setEnableInteractInForm} />
+                  </div>
+                  {enableInteractInForm && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <Input 
+                        value={newResource.interactUrl === '#' ? '' : newResource.interactUrl} 
+                        onChange={(e) => setNewResource(prev => ({...prev, interactUrl: e.target.value}))}
+                        className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
+                        placeholder="Enlace de interacción"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -724,28 +776,42 @@ export default function LibraryPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Download className="w-3 h-3" /> Enlace de Descarga
-                  </Label>
-                  <Input 
-                    value={editingResource?.downloadUrl || ''} 
-                    onChange={(e) => setEditingResource(prev => prev ? {...prev, downloadUrl: e.target.value} : null)}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                    placeholder="#"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-primary/10">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <Download className="w-3 h-3" /> Botón Descarga
+                    </Label>
+                    <Switch checked={enableDownloadInForm} onCheckedChange={setEnableDownloadInForm} />
+                  </div>
+                  {enableDownloadInForm && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <Input 
+                        value={editingResource?.downloadUrl === '#' ? '' : editingResource?.downloadUrl || ''} 
+                        onChange={(e) => setEditingResource(prev => prev ? {...prev, downloadUrl: e.target.value} : null)}
+                        className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <LinkIcon className="w-3 h-3" /> Enlace de Interacción
-                  </Label>
-                  <Input 
-                    value={editingResource?.interactUrl || ''} 
-                    onChange={(e) => setEditingResource(prev => prev ? {...prev, interactUrl: e.target.value} : null)}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                    placeholder="#"
-                  />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <LinkIcon className="w-3 h-3" /> Botón Interacción
+                    </Label>
+                    <Switch checked={enableInteractInForm} onCheckedChange={setEnableInteractInForm} />
+                  </div>
+                  {enableInteractInForm && (
+                    <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <Input 
+                        value={editingResource?.interactUrl === '#' ? '' : editingResource?.interactUrl || ''} 
+                        onChange={(e) => setEditingResource(prev => prev ? {...prev, interactUrl: e.target.value} : null)}
+                        className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
