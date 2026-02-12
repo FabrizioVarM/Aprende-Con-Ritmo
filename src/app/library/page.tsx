@@ -356,7 +356,8 @@ export default function LibraryPage() {
                     fill
                     className={cn(
                       "object-cover transition-transform duration-700 group-hover:scale-110",
-                      isLockedForStudent && "blur-[2px]"
+                      isLockedForStudent && "blur-[2px]",
+                      !isEnabled && "opacity-60 grayscale-[0.2]"
                     )}
                     data-ai-hint={imgHint}
                     onError={(e) => {
@@ -485,32 +486,32 @@ export default function LibraryPage() {
                   )}
 
                   <div className={cn(
-                    "p-2.5 rounded-[1.5rem] border-2 transition-all flex items-center justify-between shadow-sm",
+                    "p-2 rounded-[1.5rem] border-2 transition-all flex items-center justify-between shadow-sm",
                     isCompleted ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50" : "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50"
                   )}>
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2">
                       <div className={cn(
-                        "w-8 h-8 rounded-xl flex items-center justify-center shadow-inner",
+                        "w-7 h-7 rounded-xl flex items-center justify-center shadow-inner",
                         isCompleted ? "bg-card text-emerald-600 dark:text-emerald-400" : "bg-card text-orange-600 dark:text-orange-400"
                       )}>
-                        {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                        {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                       </div>
                       <div>
                         <p className={cn(
-                          "text-[9px] font-black uppercase tracking-widest leading-none",
+                          "text-[8px] font-black uppercase tracking-widest leading-none",
                           isCompleted ? "text-emerald-700 dark:text-emerald-400" : "text-orange-700 dark:text-orange-400"
                         )}>
                           {isCompleted ? "Completado" : "Pendiente"}
                         </p>
-                        <p className="text-[10px] font-bold text-muted-foreground leading-none mt-1">
+                        <p className="text-[9px] font-bold text-muted-foreground leading-none mt-0.5">
                           {isCompleted ? "Validado ✅" : "Sin validar ⏳"}
                         </p>
                       </div>
                     </div>
 
                     {isStaff && (
-                      <div className="flex items-center gap-2 bg-card/50 px-2.5 py-1 rounded-xl border border-primary/5">
-                        <span className="text-[8px] font-black uppercase text-muted-foreground">Validar</span>
+                      <div className="flex items-center gap-1.5 bg-card/50 px-2 py-0.5 rounded-lg border border-primary/5">
+                        <span className="text-[7px] font-black uppercase text-muted-foreground">Validar</span>
                         <Switch 
                           checked={isCompleted} 
                           onCheckedChange={() => handleToggleCompletion(res.id, res.title)}
