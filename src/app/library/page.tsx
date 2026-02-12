@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -338,6 +337,10 @@ export default function LibraryPage() {
             const canShowDownload = res.downloadUrl && res.downloadUrl !== '#';
             const canShowInteract = res.interactUrl && res.interactUrl !== '#';
 
+            // Check if links are short (less than 4 chars) to dim buttons
+            const isDownloadLinkShort = (res.downloadUrl?.length || 0) < 4;
+            const isInteractLinkShort = (res.interactUrl?.length || 0) < 4;
+
             return (
               <Card key={res.id} className={cn(
                 "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300",
@@ -527,10 +530,10 @@ export default function LibraryPage() {
                           !canShowInteract && "bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 border-accent",
                           canShowInteract && "border-primary/10 hover:border-accent hover:bg-accent/5 text-foreground",
                           "rounded-2xl border-2 h-12 gap-2 font-black px-4 text-xs transition-all",
-                          isLockedForStudent && "opacity-40 grayscale pointer-events-none"
+                          (isLockedForStudent || isDownloadLinkShort) && "opacity-40 grayscale pointer-events-none"
                         )}
-                        onClick={() => !isLockedForStudent && window.open(res.downloadUrl, '_blank')}
-                        disabled={isLockedForStudent}
+                        onClick={() => !(isLockedForStudent || isDownloadLinkShort) && window.open(res.downloadUrl, '_blank')}
+                        disabled={isLockedForStudent || isDownloadLinkShort}
                       >
                         <Download className="w-4 h-4" /> Descargar
                       </Button>
@@ -539,10 +542,10 @@ export default function LibraryPage() {
                       <Button 
                         className={cn(
                           "flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20 transition-all",
-                          isLockedForStudent && "opacity-40 grayscale pointer-events-none"
+                          (isLockedForStudent || isInteractLinkShort) && "opacity-40 grayscale pointer-events-none"
                         )}
-                        onClick={() => !isLockedForStudent && window.open(res.interactUrl, '_blank')}
-                        disabled={isLockedForStudent}
+                        onClick={() => !(isLockedForStudent || isInteractLinkShort) && window.open(res.interactUrl, '_blank')}
+                        disabled={isLockedForStudent || isInteractLinkShort}
                       >
                         <Play className="w-4 h-4" /> Interactúa!
                       </Button>
