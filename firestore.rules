@@ -62,5 +62,14 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    match /notifications/{notifId} {
+      // El usuario solo puede leer sus propias notificaciones
+      allow read: if isSignedIn() && request.auth.uid == resource.data.recipientId;
+      // Cualquier usuario autenticado puede crear una notificación (ej. al agendar)
+      allow create: if isSignedIn();
+      // Solo el destinatario puede marcar como leída o borrar su notificación
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.recipientId;
+    }
   }
 }
