@@ -277,13 +277,13 @@ export default function LibraryPage() {
                     {studentsList.map(student => (
                       <SelectItem key={student.id} value={student.id} className="font-bold py-3 rounded-xl cursor-pointer">
                         <div className="flex items-center gap-3">
-                          <Avatar className="w-8 h-8 border-2 border-primary/10 shrink-0 shadow-sm">
+                          <Avatar className="w-10 h-10 border-2 border-primary/10 shrink-0 shadow-sm">
                             {student.photoUrl ? (
                               <AvatarImage src={student.photoUrl} className="object-cover" />
                             ) : (
                               <AvatarImage src={`https://picsum.photos/seed/${student.avatarSeed || student.id}/100`} />
                             )}
-                            <AvatarFallback className="text-[10px] font-black">{student.name[0]}</AvatarFallback>
+                            <AvatarFallback className="text-[12px] font-black">{student.name[0]}</AvatarFallback>
                           </Avatar>
                           <span className="truncate">{student.name}</span>
                         </div>
