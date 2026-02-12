@@ -233,10 +233,9 @@ export default function LibraryPage() {
               {canManage && (
                 <Button 
                   onClick={() => setIsCreateDialogOpen(true)}
-                  className="rounded-full bg-accent text-white h-10 w-10 shadow-lg hover:scale-110 transition-transform p-0 flex items-center justify-center"
-                  title="Agregar nuevo material"
+                  className="rounded-2xl bg-accent text-white h-12 px-6 shadow-lg hover:scale-105 transition-all font-black gap-2"
                 >
-                  <Plus className="w-6 h-6" />
+                  <Plus className="w-5 h-5" /> Material nuevo
                 </Button>
               )}
             </div>
