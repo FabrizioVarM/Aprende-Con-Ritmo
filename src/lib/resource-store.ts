@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -6,6 +7,7 @@ import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Resource, INITIAL_RESOURCES } from './resources';
+import { useAuth } from './auth-store';
 
 const DEFAULT_DESCRIPTION = "Materiales curados para acelerar tu aprendizaje. ¡Descarga el material para tus prácticas, o interactúa directamente reproduciendo y escuchando en tiempo real! Edita la velocidad, repite indefinidamente y más. Completa el examen del material con tu profesor, y gana más puntos de progreso.";
 
@@ -13,8 +15,14 @@ export function useResourceStore() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [libraryDescription, setLibraryDescription] = useState<string>(DEFAULT_DESCRIPTION);
   const db = useFirestore();
+  const { firebaseUser } = useAuth();
 
   useEffect(() => {
+    if (!firebaseUser) {
+      setResources([]);
+      return;
+    }
+
     // Cargar recursos
     const unsubscribeRes = onSnapshot(collection(db, 'resources'), (snapshot) => {
       const list: Resource[] = [];
@@ -27,7 +35,7 @@ export function useResourceStore() {
       }));
     });
 
-    // Cargar descripción
+    // Cargar descripción (Este documento es público según las reglas, pero lo mantenemos en el ciclo del usuario)
     const unsubscribeDesc = onSnapshot(doc(db, 'settings', 'library'), (docSnap) => {
       if (docSnap.exists()) {
         setLibraryDescription(docSnap.data().description);
@@ -40,7 +48,7 @@ export function useResourceStore() {
       unsubscribeRes();
       unsubscribeDesc();
     };
-  }, [db]);
+  }, [db, firebaseUser]);
 
   const updateResource = useCallback((id: number, updatedData: Partial<Resource>) => {
     const docRef = doc(db, 'resources', String(id));

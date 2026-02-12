@@ -1,8 +1,10 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
 import { collection, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
+import { useAuth } from './auth-store';
 
 export interface StudentSkill {
   id?: string;
@@ -15,15 +17,21 @@ export interface StudentSkill {
 export function useSkillsStore() {
   const [skills, setSkills] = useState<StudentSkill[]>([]);
   const db = useFirestore();
+  const { firebaseUser } = useAuth();
 
   useEffect(() => {
+    if (!firebaseUser) {
+      setSkills([]);
+      return;
+    }
+
     const unsubscribe = onSnapshot(collection(db, 'skills'), (snapshot) => {
       const list: StudentSkill[] = [];
       snapshot.forEach(doc => list.push({ ...doc.data(), id: doc.id } as StudentSkill));
       setSkills(list);
     });
     return () => unsubscribe();
-  }, [db]);
+  }, [db, firebaseUser]);
 
   const updateSkill = useCallback((studentId: string, instrument: string, skillName: string, level: number) => {
     const id = `${studentId}_${instrument}_${skillName.replace(/\s+/g, '')}`;

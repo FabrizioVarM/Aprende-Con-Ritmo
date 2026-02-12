@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -5,6 +6,7 @@ import { collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc } from 'fireb
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useAuth } from './auth-store';
 
 export interface UserMilestone {
   id: string;
@@ -17,8 +19,14 @@ export interface UserMilestone {
 export function useMilestonesStore() {
   const [milestones, setMilestones] = useState<UserMilestone[]>([]);
   const db = useFirestore();
+  const { firebaseUser } = useAuth();
 
   useEffect(() => {
+    if (!firebaseUser) {
+      setMilestones([]);
+      return;
+    }
+
     const unsubscribe = onSnapshot(collection(db, 'milestones'), (snapshot) => {
       const list: UserMilestone[] = [];
       snapshot.forEach(doc => list.push({ ...doc.data(), id: doc.id } as UserMilestone));
@@ -30,7 +38,7 @@ export function useMilestonesStore() {
       }));
     });
     return () => unsubscribe();
-  }, [db]);
+  }, [db, firebaseUser]);
 
   const addMilestone = useCallback((studentId: string, title: string, date?: string, achieved: boolean = false) => {
     const id = Math.random().toString(36).substring(7);
@@ -68,7 +76,7 @@ export function useMilestonesStore() {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: docRef.path,
           operation: 'delete'
-        }));
+        })).emit('permission-error', error);
       });
   }, [db]);
 

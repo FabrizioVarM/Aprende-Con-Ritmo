@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -5,6 +6,7 @@ import { collection, doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useAuth } from './auth-store';
 
 export interface ResourceCompletion {
   resourceId: number;
@@ -17,8 +19,14 @@ export interface ResourceCompletion {
 export function useCompletionStore() {
   const [completions, setCompletions] = useState<ResourceCompletion[]>([]);
   const db = useFirestore();
+  const { firebaseUser } = useAuth();
 
   useEffect(() => {
+    if (!firebaseUser) {
+      setCompletions([]);
+      return;
+    }
+
     const unsubscribe = onSnapshot(collection(db, 'completions'), (snapshot) => {
       const list: ResourceCompletion[] = [];
       snapshot.forEach(doc => list.push(doc.data() as ResourceCompletion));
@@ -30,7 +38,7 @@ export function useCompletionStore() {
       }));
     });
     return () => unsubscribe();
-  }, [db]);
+  }, [db, firebaseUser]);
 
   const toggleCompletion = useCallback((resourceId: number, studentId: string, teacherId: string) => {
     const id = `${studentId}_${resourceId}`;

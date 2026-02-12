@@ -11,6 +11,7 @@ import {
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useAuth } from './auth-store';
 
 export interface TimeSlot {
   id: string;
@@ -66,8 +67,14 @@ function cleanData(obj: any): any {
 export function useBookingStore() {
   const [availabilities, setAvailabilities] = useState<DayAvailability[]>([]);
   const db = useFirestore();
+  const { firebaseUser } = useAuth();
 
   useEffect(() => {
+    if (!firebaseUser) {
+      setAvailabilities([]);
+      return;
+    }
+
     const q = collection(db, 'availabilities');
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const list: DayAvailability[] = [];
@@ -80,7 +87,7 @@ export function useBookingStore() {
       }));
     });
     return () => unsubscribe();
-  }, [db]);
+  }, [db, firebaseUser]);
 
   const addNotification = useCallback(async (recipientId: string, title: string, body: string, type: string) => {
     const notifId = Math.random().toString(36).substring(7);
