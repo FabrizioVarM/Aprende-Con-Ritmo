@@ -81,14 +81,20 @@ export function useAuth() {
       }
       return !!result.user;
     } catch (e: any) {
+      // Manejar específicamente el cierre del popup por el usuario
+      if (e.code === 'auth/popup-closed-by-user') {
+        toast({
+          title: "Acceso cancelado",
+          description: "Has cerrado la ventana de Google antes de completar el inicio de sesión.",
+        });
+        return false;
+      }
+
       console.error("Error Auth Google:", e);
-      let message = "No se pudo completar el inicio de sesión.";
-      if (e.code === 'auth/popup-closed-by-user') message = "Cerraste la ventana de Google antes de terminar.";
-      
       toast({
         variant: "destructive",
         title: "Error con Google 🚫",
-        description: message,
+        description: "No se pudo completar el inicio de sesión en este momento.",
       });
       return false;
     }

@@ -77,11 +77,7 @@ export default function LoginPage() {
     if (success) {
       router.push('/dashboard');
     } else {
-      toast({
-        variant: "destructive",
-        title: "Error con Google 🚫",
-        description: "No se pudo iniciar sesión con Google en este momento.",
-      });
+      // El store ya maneja los toasts de error específicos de Google
       setIsGoogleLoading(false);
     }
   };

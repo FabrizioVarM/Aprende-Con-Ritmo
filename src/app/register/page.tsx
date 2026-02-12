@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -80,11 +81,7 @@ export default function RegisterPage() {
     if (success) {
       router.push('/register/instruments');
     } else {
-      toast({
-        variant: "destructive",
-        title: "Error con Google 🚫",
-        description: "No se pudo completar el registro con Google.",
-      });
+      // El store ya maneja los toasts de error específicos de Google
       setIsGoogleLoading(false);
     }
   };
@@ -113,7 +110,7 @@ export default function RegisterPage() {
         })}
       </div>
 
-      <div className="w-full max-w-md space-y-8 relative z-10">
+      <div className="w-full max-md space-y-8 relative z-10">
         <div className="flex flex-col items-center text-center">
           <div className="relative w-16 h-16 bg-white p-1 rounded-2xl shadow-lg mb-4 overflow-hidden border-2 border-accent">
             <Image 
