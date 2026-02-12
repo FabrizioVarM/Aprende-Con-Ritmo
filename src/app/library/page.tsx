@@ -257,6 +257,10 @@ export default function LibraryPage() {
             
             const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
 
+            // Lógica para atenuar botones si no hay link
+            const hasDownload = res.downloadUrl && res.downloadUrl !== '#';
+            const hasInteract = res.interactUrl && res.interactUrl !== '#';
+
             return (
               <Card key={res.id} className={cn(
                 "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300",
@@ -390,14 +394,22 @@ export default function LibraryPage() {
                 <CardFooter className="flex gap-3 pt-2">
                   <Button 
                     variant="outline" 
-                    className="flex-none rounded-2xl border-2 border-primary/10 h-12 gap-2 font-black px-4 text-xs hover:border-accent hover:bg-accent/5 text-foreground"
-                    onClick={() => res.downloadUrl && window.open(res.downloadUrl, '_blank')}
+                    className={cn(
+                      "flex-none rounded-2xl border-2 border-primary/10 h-12 gap-2 font-black px-4 text-xs hover:border-accent hover:bg-accent/5 text-foreground transition-all",
+                      !hasDownload && "opacity-40 grayscale pointer-events-none"
+                    )}
+                    onClick={() => hasDownload && window.open(res.downloadUrl, '_blank')}
+                    disabled={!hasDownload}
                   >
                     <Download className="w-4 h-4" /> Descargar
                   </Button>
                   <Button 
-                    className="flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20"
-                    onClick={() => res.interactUrl && window.open(res.interactUrl, '_blank')}
+                    className={cn(
+                      "flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20 transition-all",
+                      !hasInteract && "opacity-40 grayscale pointer-events-none"
+                    )}
+                    onClick={() => hasInteract && window.open(res.interactUrl, '_blank')}
+                    disabled={!hasInteract}
                   >
                     <Play className="w-4 h-4" /> Interactúa!
                   </Button>
