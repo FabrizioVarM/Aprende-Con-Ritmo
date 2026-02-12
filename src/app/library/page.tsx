@@ -20,7 +20,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText } from 'lucide-react';
+import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 
 const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'];
+const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
 const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 
 export default function LibraryPage() {
@@ -165,7 +166,7 @@ export default function LibraryPage() {
                 <ShieldCheck className="w-6 h-6 text-accent" />
                 <div className="hidden sm:block">
                   <p className="text-[10px] font-black uppercase tracking-widest text-accent">Modo Evaluación</p>
-                  <p className="text-xs font-bold text-muted-foreground">Alumno seleccionado:</p>
+                  <p className="text-xs font-bold text-muted-foreground">Alumno:</p>
                 </div>
               </div>
               <div className="w-full sm:w-64">
@@ -224,9 +225,15 @@ export default function LibraryPage() {
           {filtered.length > 0 ? filtered.map((res) => {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
             
-            // Robustez para URLs de imagen
-            const imgUrl = typeof res.img === 'string' ? res.img : (res.img?.imageUrl || FALLBACK_IMAGE);
-            const imgHint = typeof res.img === 'object' ? res.img.imageHint : "music resource";
+            // Obtener URL de imagen de forma segura
+            let imgUrl = FALLBACK_IMAGE;
+            if (typeof res.img === 'string') {
+              imgUrl = res.img;
+            } else if (res.img && res.img.imageUrl) {
+              imgUrl = res.img.imageUrl;
+            }
+            
+            const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
 
             return (
               <Card key={res.id} className="rounded-[2.5rem] border-2 border-primary/40 shadow-md group overflow-hidden bg-card hover:shadow-xl hover:border-accent/40 transition-all duration-300">
@@ -239,7 +246,9 @@ export default function LibraryPage() {
                     data-ai-hint={imgHint}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = FALLBACK_IMAGE;
+                      if (target.src !== FALLBACK_IMAGE) {
+                        target.src = FALLBACK_IMAGE;
+                      }
                     }}
                   />
                   <div className="absolute top-4 left-4 flex gap-2">
@@ -262,9 +271,17 @@ export default function LibraryPage() {
                   <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[3rem] line-clamp-2 text-foreground">{res.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground font-black uppercase tracking-widest">
-                    <BookOpen className="w-4 h-4 text-accent" />
-                    <span>Contenido {res.type}</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                      <BookOpen className="w-3.5 h-3.5 text-accent" />
+                      <span>{res.type}</span>
+                    </div>
+                    {res.length && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-black uppercase tracking-widest">
+                        <Timer className="w-3.5 h-3.5 text-accent" />
+                        <span>{res.length}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className={cn(
@@ -286,7 +303,7 @@ export default function LibraryPage() {
                           {isCompleted ? "Completado" : "Pendiente"}
                         </p>
                         <p className="text-[11px] font-bold text-muted-foreground leading-none mt-1">
-                          {isCompleted ? "Examen validado ✅" : "Examen no completado ⏳"}
+                          {isCompleted ? "Validado ✅" : "Sin validar ⏳"}
                         </p>
                       </div>
                     </div>
@@ -339,20 +356,21 @@ export default function LibraryPage() {
               Editar Recurso
             </DialogTitle>
             <DialogDescription className="text-base text-muted-foreground font-medium">
-              Modifica los detalles del material educativo.
+              Modifica los detalles técnicos y descriptivos del material.
             </DialogDescription>
           </DialogHeader>
           <div className="p-8 space-y-6 bg-card overflow-y-auto max-h-[60vh]">
             <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
+                <Input 
+                  value={editingResource?.title || ''} 
+                  onChange={(e) => setEditingResource(prev => prev ? {...prev, title: e.target.value} : null)}
+                  className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
-                  <Input 
-                    value={editingResource?.title || ''} 
-                    onChange={(e) => setEditingResource(prev => prev ? {...prev, title: e.target.value} : null)}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card"
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
                   <Select 
@@ -369,22 +387,53 @@ export default function LibraryPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <FileType className="w-3 h-3" /> Tipo de Contenido
+                  </Label>
+                  <Select 
+                    value={editingResource?.type || ''} 
+                    onValueChange={(val) => setEditingResource(prev => prev ? {...prev, type: val} : null)}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {CONTENT_TYPES.map(type => (
+                        <SelectItem key={type} value={type} className="font-bold">{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <ImageIcon className="w-3 h-3" /> URL de Imagen de Portada
-                </Label>
-                <Input 
-                  value={typeof editingResource?.img === 'string' ? editingResource.img : editingResource?.img.imageUrl || ''} 
-                  onChange={(e) => setEditingResource(prev => {
-                    if (!prev) return null;
-                    if (typeof prev.img === 'string') return {...prev, img: e.target.value};
-                    return {...prev, img: {...prev.img, imageUrl: e.target.value}};
-                  })}
-                  className="h-12 rounded-xl border-2 font-bold text-foreground bg-card"
-                  placeholder="https://images.unsplash.com/..."
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Timer className="w-3 h-3" /> Duración / Extensión
+                  </Label>
+                  <Input 
+                    value={editingResource?.length || ''} 
+                    onChange={(e) => setEditingResource(prev => prev ? {...prev, length: e.target.value} : null)}
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                    placeholder="Ej: 15 min o 12 págs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <ImageIcon className="w-3 h-3" /> URL Imagen
+                  </Label>
+                  <Input 
+                    value={typeof editingResource?.img === 'string' ? editingResource.img : editingResource?.img?.imageUrl || ''} 
+                    onChange={(e) => setEditingResource(prev => {
+                      if (!prev) return null;
+                      if (typeof prev.img === 'string') return {...prev, img: e.target.value};
+                      return {...prev, img: {...(prev.img || { imageHint: 'music' }), imageUrl: e.target.value}};
+                    })}
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                    placeholder="https://..."
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -395,7 +444,7 @@ export default function LibraryPage() {
                   <Input 
                     value={editingResource?.downloadUrl || ''} 
                     onChange={(e) => setEditingResource(prev => prev ? {...prev, downloadUrl: e.target.value} : null)}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card"
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
                     placeholder="#"
                   />
                 </div>
@@ -406,7 +455,7 @@ export default function LibraryPage() {
                   <Input 
                     value={editingResource?.interactUrl || ''} 
                     onChange={(e) => setEditingResource(prev => prev ? {...prev, interactUrl: e.target.value} : null)}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card"
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
                     placeholder="#"
                   />
                 </div>
@@ -428,7 +477,7 @@ export default function LibraryPage() {
               Editar Descripción de la Biblioteca
             </DialogTitle>
             <DialogDescription className="text-base text-muted-foreground font-medium">
-              Personaliza el mensaje de bienvenida y las instrucciones para tus alumnos.
+              Personaliza el mensaje de bienvenida para tus alumnos.
             </DialogDescription>
           </DialogHeader>
           <div className="p-8 bg-card">
