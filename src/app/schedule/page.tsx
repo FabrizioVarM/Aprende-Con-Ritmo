@@ -100,7 +100,7 @@ export default function SchedulePage() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
-  const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(true);
+  const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(false);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
@@ -642,7 +642,7 @@ export default function SchedulePage() {
                                       )
                                     }}
                                   />
-                                  <label htmlFor={`teacher-invite-${t.id}`} className="text-sm font-bold leading-none cursor-pointer">
+                                  <label htmlFor={`teacher-invite-${t.id}`} className="text-sm font-bold Bird-none cursor-pointer">
                                     {t.name}
                                   </label>
                                 </div>
