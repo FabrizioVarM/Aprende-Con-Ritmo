@@ -82,6 +82,20 @@ export function useBookingStore() {
     return () => unsubscribe();
   }, [db]);
 
+  const addNotification = useCallback(async (recipientId: string, title: string, body: string, type: string) => {
+    const notifId = Math.random().toString(36).substring(7);
+    const docRef = doc(db, 'notifications', notifId);
+    await setDoc(docRef, {
+      id: notifId,
+      recipientId,
+      title,
+      body,
+      createdAt: new Date().toISOString(),
+      read: false,
+      type
+    });
+  }, [db]);
+
   const getDayAvailability = useCallback((teacherId: string, date: Date): DayAvailability => {
     const dateStr = toLocalDateString(date);
     const existing = availabilities.find(a => a.teacherId === teacherId && a.date === dateStr);
@@ -116,28 +130,36 @@ export function useBookingStore() {
       });
   }, [db]);
 
-  const bookSlot = useCallback((teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string, teacherName?: string) => {
+  const bookSlot = useCallback(async (teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string, teacherName?: string, adminIds: string[] = []) => {
     const dateStr = toLocalDateString(date);
     const id = `${teacherId}_${dateStr}`;
     const existing = availabilities.find(a => a.teacherId === teacherId && a.date === dateStr);
     
     let updatedSlots: TimeSlot[] = [];
+    let targetSlot: TimeSlot | undefined;
+
     if (existing) {
-      updatedSlots = existing.slots.map(s => s.id === slotId ? { 
-        ...s, 
-        isBooked: true, 
-        bookedBy: studentName, 
-        studentId, 
-        isAvailable: false, 
-        instrument, 
-        status: 'pending', 
-        teacherName: teacherName || null 
-      } : s);
+      updatedSlots = existing.slots.map(s => {
+        if (s.id === slotId) {
+          targetSlot = { 
+            ...s, 
+            isBooked: true, 
+            bookedBy: studentName, 
+            studentId, 
+            isAvailable: false, 
+            instrument, 
+            status: 'pending', 
+            teacherName: teacherName || null 
+          };
+          return targetSlot;
+        }
+        return s;
+      });
     } else {
       updatedSlots = INITIAL_SLOTS.map(s => {
         const sid = Math.random().toString(36).substring(2, 9);
         const isTarget = sid === slotId;
-        return {
+        const newSlot: TimeSlot = {
           id: sid, 
           time: s, 
           isAvailable: false,
@@ -149,11 +171,15 @@ export function useBookingStore() {
           type: 'presencial', 
           status: 'pending'
         };
+        if (isTarget) targetSlot = newSlot;
+        return newSlot;
       });
     }
+
     const docRef = doc(db, 'availabilities', id);
     const data = cleanData({ teacherId, date: dateStr, slots: updatedSlots });
-    setDoc(docRef, data, { merge: true })
+    
+    await setDoc(docRef, data, { merge: true })
       .catch(async () => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: docRef.path,
@@ -161,7 +187,26 @@ export function useBookingStore() {
           requestResourceData: data
         }));
       });
-  }, [db, availabilities]);
+
+    // Enviar notificaciones
+    if (targetSlot) {
+      const time = targetSlot.time;
+      const formattedDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+      
+      // 1. Notificación al Profesor
+      const profTitle = "¡Nueva Clase Agendada! 🎸";
+      const profBody = `${studentName} ha reservado una clase de ${instrument} para el ${formattedDate} en el horario de ${time}.`;
+      addNotification(teacherId, profTitle, profBody, 'booking');
+
+      // 2. Notificación al Admin (si hay IDs proporcionados)
+      const adminTitle = "Nueva Reserva en la Academia 🏢";
+      const adminBody = `${studentName} reservó con Prof. ${teacherName || 'Docente'} para ${instrument} el ${formattedDate} (${time}).`;
+      
+      adminIds.forEach(adminId => {
+        addNotification(adminId, adminTitle, adminBody, 'admin_alert');
+      });
+    }
+  }, [db, availabilities, addNotification]);
 
   const createGroupClass = useCallback((teacherId: string, date: Date, time: string, studentList: {id: string, name: string}[], instrument: string, type: 'virtual' | 'presencial', teacherList: {id: string, name: string}[]) => {
     const dateStr = toLocalDateString(date);

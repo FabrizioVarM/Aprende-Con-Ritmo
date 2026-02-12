@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -18,10 +18,15 @@ import {
   ShoppingBag,
   Mic2,
   ClipboardList,
-  Gift
+  Gift,
+  Bell,
+  Trash2,
+  CheckCircle2,
+  Clock
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
 import { useSettingsStore, AppSettings } from '@/lib/settings-store';
+import { useNotificationStore } from '@/lib/notification-store';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -41,6 +46,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { NotificationListener } from '@/components/NotificationListener';
 import Image from 'next/image';
 
 interface NavItem {
@@ -96,6 +108,7 @@ const NAV_ITEMS: NavItem[] = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { settings } = useSettingsStore();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification } = useNotificationStore(user?.id);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -113,21 +126,93 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-r border-border">
+      <NotificationListener />
       {/* Header Fijo */}
       <div className="p-6 pb-2">
-        <div className="flex items-center gap-3 mb-6 px-2">
-          <div className="relative w-10 h-10 overflow-hidden rounded-xl shadow-md border-2 border-accent shrink-0">
-            <Image 
-              src={settings.appLogoUrl} 
-              alt="Logo" 
-              fill 
-              className="object-cover"
-              data-ai-hint="academy logo"
-            />
+        <div className="flex items-center justify-between mb-6 px-2">
+          <div className="flex items-center gap-3">
+            <div className="relative w-10 h-10 overflow-hidden rounded-xl shadow-md border-2 border-accent shrink-0">
+              <Image 
+                src={settings.appLogoUrl} 
+                alt="Logo" 
+                fill 
+                className="object-cover"
+                data-ai-hint="academy logo"
+              />
+            </div>
+            <span className="text-xl font-extrabold text-foreground font-headline tracking-tight leading-tight">
+              Ritmo
+            </span>
           </div>
-          <span className="text-xl font-extrabold text-foreground font-headline tracking-tight leading-tight">
-            Aprende Con Ritmo
-          </span>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-xl hover:bg-accent/10">
+                <Bell className={cn("w-5 h-5", unreadCount > 0 ? "text-accent animate-bounce" : "text-muted-foreground")} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-2 right-2 w-4 h-4 bg-accent text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                    {unreadCount}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 rounded-[2rem] p-0 border-none shadow-2xl overflow-hidden" align="end">
+              <div className="bg-primary/10 p-4 border-b flex items-center justify-between">
+                <h4 className="font-black text-sm text-foreground flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-accent" /> Notificaciones
+                </h4>
+                {unreadCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-7 text-[9px] font-black uppercase text-accent hover:bg-accent/10 rounded-lg">
+                    Marcar todo leído
+                  </Button>
+                )}
+              </div>
+              <ScrollArea className="h-[350px]">
+                {notifications.length > 0 ? (
+                  <div className="divide-y border-b dark:divide-white/5">
+                    {notifications.map((n) => (
+                      <div key={n.id} className={cn(
+                        "p-4 transition-colors group relative",
+                        n.read ? "opacity-60 bg-transparent" : "bg-accent/5"
+                      )}>
+                        <div className="flex gap-3">
+                          <div className={cn(
+                            "mt-1 w-2 h-2 rounded-full shrink-0",
+                            n.read ? "bg-muted-foreground/30" : "bg-accent animate-pulse"
+                          )} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-black text-foreground leading-tight mb-1">{n.title}</p>
+                            <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{n.body}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Clock className="w-2.5 h-2.5 text-muted-foreground/50" />
+                              <span className="text-[9px] font-bold text-muted-foreground/50 italic">
+                                {new Date(n.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {!n.read && (
+                            <Button size="icon" variant="ghost" onClick={() => markAsRead(n.id)} className="h-6 w-6 rounded-full hover:bg-emerald-100 text-emerald-600">
+                              <CheckCircle2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                          <Button size="icon" variant="ghost" onClick={() => clearNotification(n.id)} className="h-6 w-6 rounded-full hover:bg-destructive/10 text-destructive">
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-12 text-center space-y-3">
+                    <Bell className="w-10 h-10 text-muted-foreground/20 mx-auto" />
+                    <p className="text-xs text-muted-foreground font-bold italic">No tienes notificaciones pendientes.</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -332,22 +417,44 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 data-ai-hint="academy logo"
               />
             </div>
-            <span className="font-bold text-foreground leading-tight">Aprende Con Ritmo</span>
+            <span className="font-bold text-foreground leading-tight">Ritmo</span>
           </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="dark:text-slate-200">
-                <Menu />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-72">
-              <SheetHeader className="sr-only">
-                <SheetTitle>Menú de Navegación</SheetTitle>
-                <SheetDescription>Acceso a las secciones principales de la academia Aprende Con Ritmo</SheetDescription>
-              </SheetHeader>
-              <SidebarContent />
-            </SheetContent>
-          </Sheet>
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative">
+                  <Bell className={cn("w-5 h-5", unreadCount > 0 ? "text-accent" : "")} />
+                  {unreadCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72 rounded-2xl">
+                {/* Contenido simplificado para móvil */}
+                <p className="text-xs font-black p-2 border-b">Notificaciones ({unreadCount})</p>
+                <div className="max-h-60 overflow-y-auto">
+                  {notifications.map(n => (
+                    <div key={n.id} className="p-3 border-b last:border-0 text-[10px]">
+                      <p className="font-bold">{n.title}</p>
+                      <p className="text-muted-foreground">{n.body}</p>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="dark:text-slate-200">
+                  <Menu />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="p-0 w-72">
+                <SheetHeader className="sr-only">
+                  <SheetTitle>Menú de Navegación</SheetTitle>
+                  <SheetDescription>Acceso a las secciones principales de la academia Aprende Con Ritmo</SheetDescription>
+                </SheetHeader>
+                <SidebarContent />
+              </SheetContent>
+            </Sheet>
+          </div>
         </header>
 
         <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-2 duration-500">

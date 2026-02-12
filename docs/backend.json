@@ -41,6 +41,20 @@
         "date": { "type": "string" }
       }
     },
+    "AppNotification": {
+      "title": "AppNotification",
+      "type": "object",
+      "description": "Notificaciones internas del sistema.",
+      "properties": {
+        "id": { "type": "string" },
+        "recipientId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" },
+        "type": { "type": "string" }
+      }
+    },
     "UserMilestone": {
       "title": "UserMilestone",
       "type": "object",
@@ -114,6 +128,10 @@
     "/completions/{compId}": {
       "schema": { "$ref": "#/backend/entities/ResourceCompletion" },
       "description": "Seguimiento de materiales completados."
+    },
+    "/notifications/{notifId}": {
+      "schema": { "$ref": "#/backend/entities/AppNotification" },
+      "description": "Historial de notificaciones de usuario."
     },
     "/milestones/{mileId}": {
       "schema": { "$ref": "#/backend/entities/UserMilestone" },

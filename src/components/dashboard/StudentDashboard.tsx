@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -114,7 +115,7 @@ const getTimePeriod = (timeStr: string) => {
 };
 
 export default function StudentDashboard() {
-  const { user, getTeachers } = useAuth();
+  const { user, getTeachers, allUsers } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<string>('Guitarra');
@@ -142,6 +143,7 @@ export default function StudentDashboard() {
   }, []);
 
   const teachers = useMemo(() => getTeachers(), [getTeachers]);
+  const adminIds = useMemo(() => allUsers.filter(u => u.role === 'admin').map(u => u.id), [allUsers]);
 
   const availableInstruments = useMemo(() => {
     const instruments = new Set<string>();
@@ -313,15 +315,15 @@ export default function StudentDashboard() {
     }).slice(0, 3);
   }, [user, getCompletionStatus, resources]);
 
-  const handleBookLesson = () => {
+  const handleBookLesson = async () => {
     if (!selectedSlotId || !user || !selectedTeacherId) return;
 
     const teacher = teachers.find(t => t.id === selectedTeacherId);
-    bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name);
+    await bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name, adminIds);
     
     toast({
       title: "¡Reserva Exitosa! 🎸",
-      description: "Tu clase ha sido agendada con éxito.",
+      description: "Tu clase ha sido agendada. El profesor y administración han sido notificados.",
     });
     
     setIsOpen(false);
