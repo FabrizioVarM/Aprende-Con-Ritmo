@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 
 const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'];
+const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 
 export default function LibraryPage() {
   const { user, allUsers, loading } = useAuth();
@@ -223,15 +224,23 @@ export default function LibraryPage() {
           {filtered.length > 0 ? filtered.map((res) => {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
             
+            // Robustez para URLs de imagen
+            const imgUrl = typeof res.img === 'string' ? res.img : (res.img?.imageUrl || FALLBACK_IMAGE);
+            const imgHint = typeof res.img === 'object' ? res.img.imageHint : "music resource";
+
             return (
               <Card key={res.id} className="rounded-[2.5rem] border-2 border-primary/40 shadow-md group overflow-hidden bg-card hover:shadow-xl hover:border-accent/40 transition-all duration-300">
-                <div className="relative aspect-video overflow-hidden">
+                <div className="relative aspect-video overflow-hidden bg-muted">
                   <Image 
-                    src={res.img.imageUrl} 
+                    src={imgUrl} 
                     alt={res.title}
                     fill
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    data-ai-hint={res.img.imageHint}
+                    data-ai-hint={imgHint}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = FALLBACK_IMAGE;
+                    }}
                   />
                   <div className="absolute top-4 left-4 flex gap-2">
                     <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none">{res.category}</Badge>
@@ -367,8 +376,12 @@ export default function LibraryPage() {
                   <ImageIcon className="w-3 h-3" /> URL de Imagen de Portada
                 </Label>
                 <Input 
-                  value={editingResource?.img.imageUrl || ''} 
-                  onChange={(e) => setEditingResource(prev => prev ? {...prev, img: {...prev.img, imageUrl: e.target.value}} : null)}
+                  value={typeof editingResource?.img === 'string' ? editingResource.img : editingResource?.img.imageUrl || ''} 
+                  onChange={(e) => setEditingResource(prev => {
+                    if (!prev) return null;
+                    if (typeof prev.img === 'string') return {...prev, img: e.target.value};
+                    return {...prev, img: {...prev.img, imageUrl: e.target.value}};
+                  })}
                   className="h-12 rounded-xl border-2 font-bold text-foreground bg-card"
                   placeholder="https://images.unsplash.com/..."
                 />
