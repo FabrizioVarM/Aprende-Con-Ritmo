@@ -2,7 +2,7 @@
 "use client"
 
 import React, { useEffect, useMemo } from 'react';
-import Link from 'next/navigation';
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, 
