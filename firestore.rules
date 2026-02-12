@@ -22,6 +22,11 @@ service cloud.firestore {
              (getUserData().role == 'teacher' || getUserData().role == 'admin');
     }
 
+    function canManageLibrary() {
+      let userData = getUserData();
+      return isSignedIn() && (userData.role == 'admin' || (userData.role == 'teacher' && userData.canManageLibrary == true));
+    }
+
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
@@ -55,7 +60,7 @@ service cloud.firestore {
     
     match /resources/{resId} {
       allow read: if isSignedIn();
-      allow write: if isTeacher();
+      allow write: if canManageLibrary();
     }
     
     match /settings/{docId} {
@@ -64,11 +69,8 @@ service cloud.firestore {
     }
 
     match /notifications/{notifId} {
-      // El usuario solo puede leer sus propias notificaciones
       allow read: if isSignedIn() && request.auth.uid == resource.data.recipientId;
-      // Cualquier usuario autenticado puede crear una notificación (ej. al agendar)
       allow create: if isSignedIn();
-      // Solo el destinatario puede marcar como leída o borrar su notificación
       allow update, delete: if isSignedIn() && request.auth.uid == resource.data.recipientId;
     }
   }

@@ -30,6 +30,7 @@ export interface User {
   photoUrl?: string;
   phone?: string;
   fcmToken?: string;
+  canManageLibrary?: boolean;
 }
 
 /**
@@ -74,7 +75,8 @@ export function useAuth() {
             role: 'student', // Solo los nuevos usuarios entran como estudiantes por defecto
             username: (result.user.email || '').split('@')[0],
             avatarSeed: result.user.uid,
-            instruments: []
+            instruments: [],
+            canManageLibrary: false
           };
           await setDoc(userDocRef, newUser);
         }
@@ -114,7 +116,8 @@ export function useAuth() {
         role: 'student',
         username: email.split('@')[0],
         avatarSeed: firebaseUser.uid,
-        instruments: []
+        instruments: [],
+        canManageLibrary: false
       };
 
       await setDoc(doc(db, 'users', firebaseUser.uid), newUser);

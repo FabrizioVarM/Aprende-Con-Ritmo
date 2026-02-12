@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { 
   Dialog, 
   DialogContent, 
@@ -43,7 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock, Phone, ShieldCheck } from 'lucide-react';
+import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock, Phone, ShieldCheck, Library } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -84,6 +85,7 @@ function UsersContent() {
   const [editInstruments, setEditInstruments] = useState<string[]>([]);
   const [editPhotoUrl, setEditPhotoUrl] = useState<string | undefined>(undefined);
   const [editAvatarSeed, setEditAvatarSeed] = useState('');
+  const [editCanManageLibrary, setEditCanManageLibrary] = useState(false);
 
   // Create State
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -93,6 +95,7 @@ function UsersContent() {
   const [newRole, setNewRole] = useState<UserRole>('student');
   const [newUsername, setNewUsername] = useState('');
   const [newInstruments, setNewInstruments] = useState<string[]>([]);
+  const [newCanManageLibrary, setNewCanManageLibrary] = useState(false);
 
   // Delete State
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
@@ -121,6 +124,7 @@ function UsersContent() {
     setEditInstruments(u.instruments || []);
     setEditPhotoUrl(u.photoUrl);
     setEditAvatarSeed(u.avatarSeed || u.id);
+    setEditCanManageLibrary(u.canManageLibrary || false);
   };
 
   const handleSaveEdit = () => {
@@ -132,7 +136,8 @@ function UsersContent() {
         role: editRole,
         instruments: editInstruments,
         photoUrl: editPhotoUrl,
-        avatarSeed: editAvatarSeed
+        avatarSeed: editAvatarSeed,
+        canManageLibrary: editCanManageLibrary
       });
       setEditingUser(null);
       toast({
@@ -159,6 +164,7 @@ function UsersContent() {
       username: newUsername,
       phone: newPhone,
       instruments: newInstruments,
+      canManageLibrary: newCanManageLibrary
     });
 
     setIsCreateDialogOpen(false);
@@ -168,6 +174,7 @@ function UsersContent() {
     setNewRole('student');
     setNewUsername('');
     setNewInstruments([]);
+    setNewCanManageLibrary(false);
 
     toast({
       title: "¡Usuario Creado! 🎊",
@@ -256,9 +263,16 @@ function UsersContent() {
                 </div>
               </TableCell>
               <TableCell>
-                <Badge variant="secondary" className="capitalize rounded-full px-3 font-bold text-[10px] bg-primary/20 text-secondary-foreground">
-                  {u.role === 'student' ? 'Estudiante' : u.role === 'teacher' ? 'Profesor' : 'Admin'}
-                </Badge>
+                <div className="flex flex-col gap-1">
+                  <Badge variant="secondary" className="capitalize rounded-full px-3 font-bold text-[10px] bg-primary/20 text-secondary-foreground w-fit">
+                    {u.role === 'student' ? 'Estudiante' : u.role === 'teacher' ? 'Profesor' : 'Admin'}
+                  </Badge>
+                  {u.role === 'teacher' && u.canManageLibrary && (
+                    <Badge variant="outline" className="text-[8px] font-black uppercase border-accent text-accent w-fit bg-accent/5">
+                      Gestor Biblioteca
+                    </Badge>
+                  )}
+                </div>
               </TableCell>
               <TableCell>
                 <span className="inline-flex items-center gap-1.5 text-xs font-black text-green-600 uppercase tracking-widest">
@@ -402,6 +416,21 @@ function UsersContent() {
                     </div>
                   </div>
                 </div>
+
+                {newRole === 'teacher' && (
+                  <div className="flex items-center justify-between p-4 bg-accent/5 rounded-2xl border-2 border-accent/10">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+                        <Library className="w-5 h-5 text-accent" />
+                      </div>
+                      <div>
+                        <Label className="text-sm font-black text-foreground">Permisos de Biblioteca</Label>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase">Permite crear y editar materiales</p>
+                      </div>
+                    </div>
+                    <Switch checked={newCanManageLibrary} onCheckedChange={setNewCanManageLibrary} />
+                  </div>
+                )}
 
                 <div className="space-y-4">
                   <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -580,7 +609,7 @@ function UsersContent() {
                   <Input 
                     value={editPhone} 
                     onChange={(e) => setEditPhone(e.target.value)}
-                    className="h-12 pl-11 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
+                    className="h-12 font-bold pl-11 rounded-xl border-2 focus:border-accent bg-card text-foreground"
                     placeholder="Número de contacto"
                     type="tel"
                   />
@@ -602,6 +631,21 @@ function UsersContent() {
                 </Select>
               </div>
             </div>
+
+            {editRole === 'teacher' && (
+              <div className="flex items-center justify-between p-4 bg-accent/5 rounded-2xl border-2 border-accent/10">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+                    <Library className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-black text-foreground">Permisos de Biblioteca</Label>
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase">Permite crear y editar materiales</p>
+                  </div>
+                </div>
+                <Switch checked={editCanManageLibrary} onCheckedChange={setEditCanManageLibrary} />
+              </div>
+            )}
 
             <div className="space-y-4">
               <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">

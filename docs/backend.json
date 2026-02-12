@@ -15,7 +15,8 @@
         "instruments": { "type": "array", "items": { "type": "string" } },
         "avatarSeed": { "type": "string" },
         "photoUrl": { "type": "string" },
-        "fcmToken": { "type": "string", "description": "Token para notificaciones push (FCM)." }
+        "fcmToken": { "type": "string", "description": "Token para notificaciones push (FCM)." },
+        "canManageLibrary": { "type": "boolean", "description": "Si el profesor tiene permiso para crear/editar materiales." }
       },
       "required": ["id", "name", "email", "role"]
     },

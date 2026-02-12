@@ -89,6 +89,7 @@ export default function LibraryPage() {
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
+  const canManage = isAdmin || (user?.role === 'teacher' && user?.canManageLibrary);
 
   useEffect(() => {
     if (user && user.role === 'student' && !isInitialFilterSet) {
@@ -226,7 +227,7 @@ export default function LibraryPage() {
           <div className="max-w-4xl">
             <div className="flex items-center gap-4">
               <h1 className="text-3xl font-extrabold text-foreground font-headline tracking-tight">Biblioteca de Recursos 📚</h1>
-              {isAdmin && (
+              {canManage && (
                 <Button 
                   onClick={() => setIsCreateDialogOpen(true)}
                   className="rounded-full bg-accent text-white h-10 w-10 shadow-lg hover:scale-110 transition-transform p-0 flex items-center justify-center"
@@ -240,7 +241,7 @@ export default function LibraryPage() {
               <p className="text-muted-foreground text-lg font-medium leading-relaxed pr-10">
                 {libraryDescription}
               </p>
-              {isAdmin && (
+              {canManage && (
                 <Button 
                   size="icon" 
                   variant="ghost" 
@@ -317,7 +318,7 @@ export default function LibraryPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filtered.length > 0 ? filtered.map((res) => {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
             const isVisibleForTarget = res.isVisibleGlobally || res.assignedStudentIds?.includes(selectedStudentId);
@@ -375,7 +376,7 @@ export default function LibraryPage() {
                       </Badge>
                     )}
                   </div>
-                  {isAdmin && (
+                  {canManage && (
                     <div className="absolute top-4 right-4">
                       <Button 
                         size="icon" 
