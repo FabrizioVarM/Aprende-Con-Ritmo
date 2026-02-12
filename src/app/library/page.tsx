@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -269,7 +270,7 @@ export default function LibraryPage() {
               </div>
               <div className="w-full sm:w-72">
                 <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                  <SelectTrigger className="h-14 rounded-2xl border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent flex items-center gap-3 px-4 transition-all">
+                  <SelectTrigger className="h-14 rounded-2xl border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent flex items-center gap-3 px-4 transition-all overflow-hidden">
                     <SelectValue placeholder="Seleccionar Alumno" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-2 shadow-xl p-1">
@@ -538,28 +539,28 @@ export default function LibraryPage() {
                       <Button 
                         variant={canShowInteract ? "outline" : "default"}
                         className={cn(
-                          canShowInteract ? "flex-none" : "flex-1",
+                          "flex-1",
                           !canShowInteract && "bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 border-accent",
                           canShowInteract && "border-primary/10 hover:border-accent hover:bg-accent/5 text-foreground",
-                          "rounded-2xl border-2 h-12 gap-2 font-black px-4 text-xs transition-all",
+                          "rounded-2xl border-2 h-12 gap-2 font-black px-2 sm:px-4 text-[10px] sm:text-xs transition-all overflow-hidden",
                           (isLockedForStudent || isDownloadLinkShort) && "opacity-40 grayscale pointer-events-none"
                         )}
                         onClick={() => !(isLockedForStudent || isDownloadLinkShort) && window.open(res.downloadUrl, '_blank')}
                         disabled={isLockedForStudent || isDownloadLinkShort}
                       >
-                        <Download className="w-4 h-4" /> Descargar
+                        <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> <span className="truncate">Descargar</span>
                       </Button>
                     )}
                     {canShowInteract && (
                       <Button 
                         className={cn(
-                          "flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20 transition-all",
+                          "flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20 transition-all px-2 sm:px-4 text-[10px] sm:text-xs overflow-hidden",
                           (isLockedForStudent || isInteractLinkShort) && "opacity-40 grayscale pointer-events-none"
                         )}
                         onClick={() => !(isLockedForStudent || isInteractLinkShort) && window.open(res.interactUrl, '_blank')}
                         disabled={isLockedForStudent || isInteractLinkShort}
                       >
-                        <Play className="w-4 h-4" /> Interactúa!
+                        <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> <span className="truncate">Interactúa!</span>
                       </Button>
                     )}
                   </CardFooter>
