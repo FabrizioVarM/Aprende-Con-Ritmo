@@ -7,7 +7,9 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  setPersistence,
+  browserLocalPersistence
 } from 'firebase/auth';
 import { doc, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
@@ -27,6 +29,7 @@ export interface User {
   avatarSeed?: string;
   photoUrl?: string;
   phone?: string;
+  fcmToken?: string;
 }
 
 /**
@@ -38,6 +41,8 @@ export function useAuth() {
 
   const login = async (email: string, password?: string): Promise<boolean> => {
     try {
+      // Asegurar que la sesión se mantenga al cerrar el navegador
+      await setPersistence(auth, browserLocalPersistence);
       await signInWithEmailAndPassword(auth, email, password || 'password123');
       return true;
     } catch (e: any) {
@@ -47,6 +52,8 @@ export function useAuth() {
 
   const loginWithGoogle = async (): Promise<boolean> => {
     try {
+      // Asegurar que la sesión se mantenga al cerrar el navegador
+      await setPersistence(auth, browserLocalPersistence);
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
@@ -89,6 +96,8 @@ export function useAuth() {
 
   const register = async (name: string, email: string, password?: string): Promise<User | null> => {
     try {
+      // Asegurar que la sesión se mantenga al cerrar el navegador
+      await setPersistence(auth, browserLocalPersistence);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password || 'password123');
       const firebaseUser = userCredential.user;
       

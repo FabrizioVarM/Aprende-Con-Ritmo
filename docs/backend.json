@@ -14,7 +14,8 @@
         "phone": { "type": "string" },
         "instruments": { "type": "array", "items": { "type": "string" } },
         "avatarSeed": { "type": "string" },
-        "photoUrl": { "type": "string" }
+        "photoUrl": { "type": "string" },
+        "fcmToken": { "type": "string", "description": "Token para notificaciones push (FCM)." }
       },
       "required": ["id", "name", "email", "role"]
     },

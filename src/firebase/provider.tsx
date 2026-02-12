@@ -25,6 +25,7 @@ export interface UserProfile {
   avatarSeed?: string;
   photoUrl?: string;
   phone?: string;
+  fcmToken?: string;
 }
 
 // Internal state for user authentication and profile
