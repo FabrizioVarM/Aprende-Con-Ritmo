@@ -25,7 +25,7 @@ import {
   CollapsibleTrigger 
 } from "@/components/ui/collapsible"
 import { Label } from "@/components/ui/label"
-import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType, Eye, EyeOff, Globe, UserCheck, ChevronDown, Lock, Unlock } from 'lucide-react';
+import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType, Eye, EyeOff, Globe, UserCheck, ChevronDown, Lock, Unlock, Plus } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
@@ -45,6 +45,7 @@ export default function LibraryPage() {
     resources, 
     libraryDescription, 
     updateResource, 
+    addResource,
     updateLibraryDescription,
     toggleStudentVisibility,
     toggleGlobalVisibility,
@@ -60,6 +61,21 @@ export default function LibraryPage() {
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tempDescription, setTempDescription] = useState(libraryDescription);
+
+  // Create State
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [newResource, setNewResource] = useState<Partial<Resource>>({
+    title: '',
+    category: 'Guitarra',
+    type: 'PDF',
+    length: '',
+    img: { imageUrl: '', imageHint: 'music' },
+    downloadUrl: '#',
+    interactUrl: '#',
+    isVisibleGlobally: false,
+    isEnabled: false,
+    assignedStudentIds: []
+  });
 
   const studentsList = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
 
@@ -106,14 +122,9 @@ export default function LibraryPage() {
     );
   };
 
-  // Lógica de filtrado de visibilidad
   const visibleResources = useMemo(() => {
     if (!user) return [];
-    
-    // Si es staff, ve todo
     if (isStaff) return resources;
-
-    // Si es alumno, solo ve lo global o lo asignado a él
     return resources.filter(res => 
       res.isVisibleGlobally === true || 
       res.assignedStudentIds?.includes(user.id)
@@ -150,6 +161,29 @@ export default function LibraryPage() {
     }
   };
 
+  const handleCreateResource = () => {
+    if (!newResource.title) {
+      toast({ variant: "destructive", title: "Error", description: "El título es obligatorio." });
+      return;
+    }
+    const id = Date.now();
+    addResource({ ...newResource, id } as Resource);
+    toast({ title: "Material Creado 🎊", description: "El recurso ha sido añadido a la biblioteca." });
+    setIsCreateDialogOpen(false);
+    setNewResource({
+      title: '',
+      category: 'Guitarra',
+      type: 'PDF',
+      length: '',
+      img: { imageUrl: '', imageHint: 'music' },
+      downloadUrl: '#',
+      interactUrl: '#',
+      isVisibleGlobally: false,
+      isEnabled: false,
+      assignedStudentIds: []
+    });
+  };
+
   const handleSaveDescription = () => {
     updateLibraryDescription(tempDescription);
     toast({
@@ -166,7 +200,18 @@ export default function LibraryPage() {
       <div className="space-y-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="max-w-4xl">
-            <h1 className="text-3xl font-extrabold text-foreground font-headline tracking-tight">Biblioteca de Recursos 📚</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-3xl font-extrabold text-foreground font-headline tracking-tight">Biblioteca de Recursos 📚</h1>
+              {isAdmin && (
+                <Button 
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="rounded-full bg-accent text-white h-10 w-10 shadow-lg hover:scale-110 transition-transform p-0 flex items-center justify-center"
+                  title="Agregar nuevo material"
+                >
+                  <Plus className="w-6 h-6" />
+                </Button>
+              )}
+            </div>
             <div className="mt-2 group relative">
               <p className="text-muted-foreground text-lg font-medium leading-relaxed pr-10">
                 {libraryDescription}
@@ -252,12 +297,9 @@ export default function LibraryPage() {
           {filtered.length > 0 ? filtered.map((res) => {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
             const isVisibleForTarget = res.isVisibleGlobally || res.assignedStudentIds?.includes(selectedStudentId);
-            const isEnabled = res.isEnabled !== false; // Por defecto habilitado si no existe la propiedad (para retrocompatibilidad)
-            
-            // Si no es staff, y no está habilitado, bloqueamos visualmente
+            const isEnabled = res.isEnabled !== false;
             const isLockedForStudent = !isStaff && !isEnabled;
 
-            // Obtener URL de imagen de forma segura
             let imgUrl = FALLBACK_IMAGE;
             if (typeof res.img === 'string') {
               imgUrl = res.img;
@@ -266,8 +308,6 @@ export default function LibraryPage() {
             }
             
             const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
-
-            // Lógica para atenuar botones si no hay link o está bloqueado
             const hasDownload = res.downloadUrl && res.downloadUrl !== '#' && !isLockedForStudent;
             const hasInteract = res.interactUrl && res.interactUrl !== '#' && !isLockedForStudent;
 
@@ -349,7 +389,6 @@ export default function LibraryPage() {
                     )}
                   </div>
 
-                  {/* Sección de Gestión Staff Desplegable */}
                   {isStaff && (
                     <Collapsible className="pb-2">
                       <CollapsibleTrigger asChild>
@@ -397,7 +436,6 @@ export default function LibraryPage() {
                             />
                           </div>
                         </div>
-                        {/* Nuevo interruptor de habilitar */}
                         <div className={cn(
                           "p-3 rounded-2xl border flex items-center justify-between transition-all duration-300",
                           isEnabled ? "bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10" : "bg-orange-50 border-orange-100 dark:bg-orange-900/10"
@@ -488,6 +526,116 @@ export default function LibraryPage() {
         </div>
       </div>
 
+      {/* DIÁLOGO: AGREGAR NUEVO RECURSO */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden">
+          <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
+            <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
+              <Plus className="w-8 h-8 text-accent" />
+              Nuevo Material Didáctico
+            </DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground font-medium">
+              Configura cada aspecto del nuevo material. Por defecto será privado y bloqueado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-8 space-y-6 bg-card overflow-y-auto max-h-[60vh]">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
+                <Input 
+                  value={newResource.title} 
+                  onChange={(e) => setNewResource(prev => ({...prev, title: e.target.value}))}
+                  className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                  placeholder="Ej: Acordes de Jazz Vol 1"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
+                  <Select 
+                    value={newResource.category} 
+                    onValueChange={(val) => setNewResource(prev => ({...prev, category: val}))}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
+                      <SelectValue placeholder="Categoría" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {ALL_CATEGORIES.filter(c => c !== 'Todos').map(cat => (
+                        <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tipo de Contenido</Label>
+                  <Select 
+                    value={newResource.type} 
+                    onValueChange={(val) => setNewResource(prev => ({...prev, type: val}))}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {CONTENT_TYPES.map(type => (
+                        <SelectItem key={type} value={type} className="font-bold">{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Duración / Extensión</Label>
+                  <Input 
+                    value={newResource.length} 
+                    onChange={(e) => setNewResource(prev => ({...prev, length: e.target.value}))}
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                    placeholder="Ej: 15 min o 12 págs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">URL Imagen Portada</Label>
+                  <Input 
+                    value={newResource.img?.imageUrl} 
+                    onChange={(e) => setNewResource(prev => ({...prev, img: { imageUrl: e.target.value, imageHint: 'music' }}))}
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Enlace de Descarga</Label>
+                  <Input 
+                    value={newResource.downloadUrl} 
+                    onChange={(e) => setNewResource(prev => ({...prev, downloadUrl: e.target.value}))}
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                    placeholder="#"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Enlace de Interacción</Label>
+                  <Input 
+                    value={newResource.interactUrl} 
+                    onChange={(e) => setNewResource(prev => ({...prev, interactUrl: e.target.value}))}
+                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                    placeholder="#"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="p-8 bg-muted/30 flex gap-3 border-t shrink-0">
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="rounded-xl flex-1 h-14 font-black text-foreground">Cancelar</Button>
+            <Button onClick={handleCreateResource} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20">Crear Material</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIÁLOGO: EDITAR RECURSO EXISTENTE */}
       <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
         <DialogContent className="rounded-[2.5rem] max-w-xl border-none shadow-2xl p-0 overflow-hidden">
           <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
