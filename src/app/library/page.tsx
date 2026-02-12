@@ -320,8 +320,9 @@ export default function LibraryPage() {
                   {isStaff && (
                     <div className="grid grid-cols-2 gap-2 pb-2">
                       <div className={cn(
-                        "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center",
-                        isVisibleForTarget ? "bg-blue-50 border-blue-100 dark:bg-blue-900/10" : "bg-muted/30 border-primary/5"
+                        "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
+                        isVisibleForTarget ? "bg-blue-50 border-blue-100 dark:bg-blue-900/10" : "bg-muted/30 border-primary/5",
+                        res.isVisibleGlobally && "opacity-40 grayscale-[0.5]"
                       )}>
                         <div className="flex items-center gap-1.5">
                           <Eye className={cn("w-3 h-3", isVisibleForTarget ? "text-blue-600" : "text-muted-foreground")} />
@@ -334,7 +335,7 @@ export default function LibraryPage() {
                         />
                       </div>
                       <div className={cn(
-                        "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center",
+                        "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
                         res.isVisibleGlobally ? "bg-purple-50 border-purple-100 dark:bg-purple-900/10" : "bg-muted/30 border-primary/5"
                       )}>
                         <div className="flex items-center gap-1.5">
