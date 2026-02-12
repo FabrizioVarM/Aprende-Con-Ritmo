@@ -260,7 +260,7 @@ export default function LibraryPage() {
             </div>
           </div>
           {isStaff && (
-            <div className="bg-card border-2 border-accent/40 p-2 pl-4 rounded-[2rem] flex flex-col sm:flex-row items-center gap-4 shadow-sm shrink-0">
+            <div className="bg-card border-2 border-accent/40 p-2 pl-4 pr-4 rounded-[2rem] flex flex-col sm:flex-row items-center gap-4 shadow-sm shrink-0">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-6 h-6 text-accent" />
                 <div className="hidden sm:block">
@@ -268,7 +268,42 @@ export default function LibraryPage() {
                   <p className="text-xs font-bold text-muted-foreground">Alumno:</p>
                 </div>
               </div>
-              <div className="w-full sm:w-72">
+
+              {selectedStudent && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <div className="cursor-zoom-in hover:scale-110 transition-transform relative group">
+                      <Avatar className="w-12 h-12 border-2 border-accent shadow-md shrink-0">
+                        {selectedStudent.photoUrl ? (
+                          <AvatarImage src={selectedStudent.photoUrl} className="object-cover" />
+                        ) : (
+                          <AvatarImage src={`https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/200`} />
+                        )}
+                        <AvatarFallback className="text-sm font-black">{selectedStudent.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <Search className="w-4 h-4 text-white" />
+                      </div>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="rounded-[2.5rem] max-w-sm border-none shadow-2xl p-0 overflow-hidden bg-card">
+                    <div className="relative aspect-square">
+                      <Image 
+                        src={selectedStudent.photoUrl || `https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/600`} 
+                        alt={selectedStudent.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="p-6 text-center">
+                      <h3 className="text-xl font-black text-foreground">{selectedStudent.name}</h3>
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Estudiante bajo evaluación</p>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              <div className="w-full sm:w-64">
                 <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                   <SelectTrigger className="h-14 rounded-2xl border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent flex items-center gap-3 px-4 transition-all overflow-hidden">
                     <SelectValue placeholder="Seleccionar Alumno" />
@@ -277,13 +312,13 @@ export default function LibraryPage() {
                     {studentsList.map(student => (
                       <SelectItem key={student.id} value={student.id} className="font-bold py-3 rounded-xl cursor-pointer">
                         <div className="flex items-center gap-3">
-                          <Avatar className="w-10 h-10 border-2 border-primary/10 shrink-0 shadow-sm">
+                          <Avatar className="w-8 h-8 border-2 border-primary/10 shrink-0 shadow-sm">
                             {student.photoUrl ? (
                               <AvatarImage src={student.photoUrl} className="object-cover" />
                             ) : (
                               <AvatarImage src={`https://picsum.photos/seed/${student.avatarSeed || student.id}/100`} />
                             )}
-                            <AvatarFallback className="text-[12px] font-black">{student.name[0]}</AvatarFallback>
+                            <AvatarFallback className="text-[10px] font-black">{student.name[0]}</AvatarFallback>
                           </Avatar>
                           <span className="truncate">{student.name}</span>
                         </div>

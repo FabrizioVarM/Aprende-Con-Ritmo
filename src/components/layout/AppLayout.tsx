@@ -22,7 +22,8 @@ import {
   Bell,
   Trash2,
   CheckCircle2,
-  Clock
+  Clock,
+  Search
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
 import { useSettingsStore, AppSettings } from '@/lib/settings-store';
@@ -352,14 +353,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3 px-4 py-4 bg-primary/5 rounded-2xl border-2 border-primary/10">
-            <Avatar className="w-10 h-10 border-2 border-primary shrink-0">
-              {user.photoUrl ? (
-                <AvatarImage src={user.photoUrl} className="object-cover" />
-              ) : (
-                <AvatarImage src={`https://picsum.photos/seed/${user.avatarSeed || user.id}/100`} />
-              )}
-              <AvatarFallback className="bg-primary">{user.name[0]}</AvatarFallback>
-            </Avatar>
+            <Dialog>
+              <DialogTrigger asChild>
+                <div className="cursor-zoom-in hover:scale-110 transition-transform shrink-0">
+                  <Avatar className="w-10 h-10 border-2 border-primary">
+                    {user.photoUrl ? (
+                      <AvatarImage src={user.photoUrl} className="object-cover" />
+                    ) : (
+                      <AvatarImage src={`https://picsum.photos/seed/${user.avatarSeed || user.id}/100`} />
+                    )}
+                    <AvatarFallback className="bg-primary">{user.name[0]}</AvatarFallback>
+                  </Avatar>
+                </div>
+              </DialogTrigger>
+              <DialogContent className="max-w-sm p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl bg-card">
+                <div className="relative aspect-square">
+                  <Image 
+                    src={user.photoUrl || `https://picsum.photos/seed/${user.avatarSeed || user.id}/600`} 
+                    alt={user.name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="p-6 text-center">
+                  <h3 className="text-xl font-black text-foreground">{user.name}</h3>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">Mi Identidad Musical</p>
+                </div>
+              </DialogContent>
+            </Dialog>
             <div className="flex flex-col overflow-hidden min-w-0">
               <span className="text-sm font-bold truncate dark:text-slate-200">{user.name}</span>
               <span className="text-xs text-muted-foreground capitalize truncate">

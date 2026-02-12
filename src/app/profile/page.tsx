@@ -9,10 +9,16 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogTrigger 
+} from '@/components/ui/dialog';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
-import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X, Phone, Loader2 } from 'lucide-react';
+import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X, Phone, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 const INSTRUMENTS_LIST = [
   'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
@@ -126,14 +132,37 @@ export default function ProfilePage() {
           <Card className="md:col-span-1 rounded-[2.5rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
             <CardContent className="p-8 flex flex-col items-center text-center space-y-6">
               <div className="relative group">
-                <Avatar className="w-32 h-32 border-4 border-primary shadow-xl">
-                  {photoUrl ? (
-                    <AvatarImage src={photoUrl} className="object-cover" />
-                  ) : (
-                    <AvatarImage src={`https://picsum.photos/seed/${avatarSeed}/200`} />
-                  )}
-                  <AvatarFallback className="text-4xl font-black">{name[0]}</AvatarFallback>
-                </Avatar>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <div className="relative group cursor-zoom-in">
+                      <Avatar className="w-32 h-32 border-4 border-primary shadow-xl transition-transform hover:scale-105">
+                        {photoUrl ? (
+                          <AvatarImage src={photoUrl} className="object-cover" />
+                        ) : (
+                          <AvatarImage src={`https://picsum.photos/seed/${avatarSeed}/200`} />
+                        )}
+                        <AvatarFallback className="text-4xl font-black">{name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <Search className="w-8 h-8 text-white" />
+                      </div>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl">
+                    <div className="relative aspect-square">
+                      <Image 
+                        src={photoUrl || `https://picsum.photos/seed/${avatarSeed}/600`} 
+                        alt={name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="p-8 bg-card text-center">
+                      <h3 className="text-2xl font-black text-foreground">{name}</h3>
+                      <p className="text-sm font-bold text-accent uppercase tracking-widest mt-1">@{username || 'usuario'}</p>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 
                 <div className="absolute -bottom-2 flex gap-2 w-full justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
