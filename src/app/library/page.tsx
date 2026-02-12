@@ -317,7 +317,7 @@ export default function LibraryPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 grid-cols-2 lg:grid-cols-3 gap-8">
           {filtered.length > 0 ? filtered.map((res) => {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
             const isVisibleForTarget = res.isVisibleGlobally || res.assignedStudentIds?.includes(selectedStudentId);
@@ -425,7 +425,7 @@ export default function LibraryPage() {
                         >
                           <div className="flex items-center gap-2">
                             <Eye className="w-3.5 h-3.5 text-accent" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-accent">Gestión Staff</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-accent">Editar Visibilidad</span>
                           </div>
                           <ChevronDown className="w-3.5 h-3.5 text-accent transition-transform duration-200 group-data-[state=open]:rotate-180" />
                         </Button>
@@ -857,5 +857,3 @@ export default function LibraryPage() {
     </AppLayout>
   );
 }
-
-    
