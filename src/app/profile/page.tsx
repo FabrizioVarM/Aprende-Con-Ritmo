@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Music, User, AtSign, Check, Camera, Upload, RefreshCw, X, Phone, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { AvatarPreviewContent } from '@/components/AvatarPreviewContent';
 
 const INSTRUMENTS_LIST = [
   'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
@@ -149,18 +150,11 @@ export default function ProfilePage() {
                     </div>
                   </DialogTrigger>
                   <DialogContent className="max-w-md p-0 overflow-hidden rounded-[2.5rem] border-none shadow-2xl">
-                    <div className="relative aspect-square">
-                      <Image 
-                        src={photoUrl || `https://picsum.photos/seed/${avatarSeed}/600`} 
-                        alt={name}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="p-8 bg-card text-center">
-                      <h3 className="text-2xl font-black text-foreground">{name}</h3>
-                      <p className="text-sm font-bold text-accent uppercase tracking-widest mt-1">@{username || 'usuario'}</p>
-                    </div>
+                    <AvatarPreviewContent 
+                      src={photoUrl || `https://picsum.photos/seed/${avatarSeed}/600`}
+                      name={name}
+                      subtitle={`@${username || 'usuario'}`}
+                    />
                   </DialogContent>
                 </Dialog>
                 
