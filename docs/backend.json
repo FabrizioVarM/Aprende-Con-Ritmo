@@ -90,7 +90,9 @@
         "length": { "type": "string" },
         "downloadUrl": { "type": "string" },
         "interactUrl": { "type": "string" },
-        "img": { "type": "object" }
+        "img": { "type": "object" },
+        "isVisibleGlobally": { "type": "boolean", "description": "Si el material es visible para todos por defecto." },
+        "assignedStudentIds": { "type": "array", "items": { "type": "string" }, "description": "IDs de alumnos específicos que pueden ver este material si no es global." }
       }
     },
     "AppSetting": {

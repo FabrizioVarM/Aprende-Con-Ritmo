@@ -20,7 +20,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType } from 'lucide-react';
+import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType, Eye, EyeOff, Globe, UserCheck } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
@@ -36,7 +36,14 @@ const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 export default function LibraryPage() {
   const { user, allUsers, loading } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
-  const { resources, libraryDescription, updateResource, updateLibraryDescription } = useResourceStore();
+  const { 
+    resources, 
+    libraryDescription, 
+    updateResource, 
+    updateLibraryDescription,
+    toggleStudentVisibility,
+    toggleGlobalVisibility
+  } = useResourceStore();
   const { toast } = useToast();
   
   const [isMounted, setIsMounted] = useState(false);
@@ -93,7 +100,21 @@ export default function LibraryPage() {
     );
   };
 
-  const filtered = resources.filter(res => 
+  // Lógica de filtrado de visibilidad
+  const visibleResources = useMemo(() => {
+    if (!user) return [];
+    
+    // Si es staff, ve todo
+    if (isStaff) return resources;
+
+    // Si es alumno, solo ve lo global o lo asignado a él
+    return resources.filter(res => 
+      res.isVisibleGlobally === true || 
+      res.assignedStudentIds?.includes(user.id)
+    );
+  }, [resources, user, isStaff]);
+
+  const filtered = visibleResources.filter(res => 
     (selectedFilters.length === 0 || selectedFilters.includes(res.category)) &&
     (res.title.toLowerCase().includes(search.toLowerCase()))
   );
@@ -224,6 +245,7 @@ export default function LibraryPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {filtered.length > 0 ? filtered.map((res) => {
             const isCompleted = getCompletionStatus(res.id, user?.role === 'student' ? user.id : selectedStudentId);
+            const isVisibleForTarget = res.isVisibleGlobally || res.assignedStudentIds?.includes(selectedStudentId);
             
             // Obtener URL de imagen de forma segura
             let imgUrl = FALLBACK_IMAGE;
@@ -236,7 +258,12 @@ export default function LibraryPage() {
             const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
 
             return (
-              <Card key={res.id} className="rounded-[2.5rem] border-2 border-primary/40 shadow-md group overflow-hidden bg-card hover:shadow-xl hover:border-accent/40 transition-all duration-300">
+              <Card key={res.id} className={cn(
+                "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300",
+                isStaff && !res.isVisibleGlobally && !res.assignedStudentIds?.includes(selectedStudentId) 
+                  ? "border-dashed border-primary/20 opacity-80" 
+                  : "border-primary/40 hover:border-accent/40"
+              )}>
                 <div className="relative aspect-video overflow-hidden bg-muted">
                   <Image 
                     src={imgUrl} 
@@ -253,6 +280,11 @@ export default function LibraryPage() {
                   />
                   <div className="absolute top-4 left-4 flex gap-2">
                     <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none">{res.category}</Badge>
+                    {isStaff && !res.isVisibleGlobally && (
+                      <Badge variant="destructive" className="rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1">
+                        <EyeOff className="w-2.5 h-2.5" /> Privado
+                      </Badge>
+                    )}
                   </div>
                   {isAdmin && (
                     <div className="absolute top-4 right-4">
@@ -283,6 +315,40 @@ export default function LibraryPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Sección de Gestión Staff */}
+                  {isStaff && (
+                    <div className="grid grid-cols-2 gap-2 pb-2">
+                      <div className={cn(
+                        "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center",
+                        isVisibleForTarget ? "bg-blue-50 border-blue-100 dark:bg-blue-900/10" : "bg-muted/30 border-primary/5"
+                      )}>
+                        <div className="flex items-center gap-1.5">
+                          <Eye className={cn("w-3 h-3", isVisibleForTarget ? "text-blue-600" : "text-muted-foreground")} />
+                          <span className="text-[8px] font-black uppercase text-muted-foreground">Visibilidad Alumno</span>
+                        </div>
+                        <Switch 
+                          checked={isVisibleForTarget} 
+                          onCheckedChange={() => toggleStudentVisibility(res.id, selectedStudentId)}
+                          className="scale-75 data-[state=checked]:bg-blue-500"
+                        />
+                      </div>
+                      <div className={cn(
+                        "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center",
+                        res.isVisibleGlobally ? "bg-purple-50 border-purple-100 dark:bg-purple-900/10" : "bg-muted/30 border-primary/5"
+                      )}>
+                        <div className="flex items-center gap-1.5">
+                          <Globe className={cn("w-3 h-3", res.isVisibleGlobally ? "text-purple-600" : "text-muted-foreground")} />
+                          <span className="text-[8px] font-black uppercase text-muted-foreground">Global (Todos)</span>
+                        </div>
+                        <Switch 
+                          checked={res.isVisibleGlobally || false} 
+                          onCheckedChange={() => toggleGlobalVisibility(res.id)}
+                          className="scale-75 data-[state=checked]:bg-purple-500"
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <div className={cn(
                     "p-4 rounded-3xl border-2 transition-all flex items-center justify-between shadow-sm",
@@ -341,7 +407,7 @@ export default function LibraryPage() {
             <div className="col-span-full py-20 text-center bg-primary/5 rounded-[3rem] border-4 border-dashed border-primary/10">
               <BookOpen className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
               <h3 className="text-xl font-black text-foreground">Sin resultados</h3>
-              <p className="text-muted-foreground font-bold italic">No hay recursos que coincidan con los filtros seleccionados.</p>
+              <p className="text-muted-foreground font-bold italic">No hay recursos que coincidan con los filtros seleccionados o no tienes permisos de acceso.</p>
               <Button variant="link" onClick={() => setSelectedFilters([])} className="text-accent font-black mt-2 underline">Ver todo el catálogo</Button>
             </div>
           )}

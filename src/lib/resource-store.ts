@@ -26,7 +26,7 @@ export function useResourceStore() {
     // Cargar recursos
     const unsubscribeRes = onSnapshot(collection(db, 'resources'), (snapshot) => {
       const list: Resource[] = [];
-      snapshot.forEach(doc => list.push(doc.data() as Resource));
+      snapshot.forEach(doc => list.push({ ...doc.data(), id: Number(doc.id) } as Resource));
       setResources(list);
     }, (error) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -35,13 +35,13 @@ export function useResourceStore() {
       }));
     });
 
-    // Cargar descripción (Este documento es público según las reglas, pero lo mantenemos en el ciclo del usuario)
+    // Cargar descripción
     const unsubscribeDesc = onSnapshot(doc(db, 'settings', 'library'), (docSnap) => {
       if (docSnap.exists()) {
         setLibraryDescription(docSnap.data().description);
       }
     }, (error) => {
-      // Ignorar errores de lectura en settings para alumnos no autenticados o similares
+      // Ignorar errores de lectura en settings
     });
 
     return () => {
@@ -62,12 +62,19 @@ export function useResourceStore() {
   }, [db]);
 
   const addResource = useCallback((newRes: Resource) => {
-    const docRef = doc(db, 'resources', String(newRes.id));
-    setDoc(docRef, newRes).catch((err) => {
+    // Asegurar que por defecto sean ocultos si no viene el campo
+    const finalRes = {
+      ...newRes,
+      isVisibleGlobally: newRes.isVisibleGlobally ?? false,
+      assignedStudentIds: newRes.assignedStudentIds ?? []
+    };
+    
+    const docRef = doc(db, 'resources', String(finalRes.id));
+    setDoc(docRef, finalRes).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
         operation: 'create',
-        requestResourceData: newRes
+        requestResourceData: finalRes
       }));
     });
   }, [db]);
@@ -83,5 +90,33 @@ export function useResourceStore() {
     });
   }, [db]);
 
-  return { resources, libraryDescription, updateResource, addResource, updateLibraryDescription };
+  const toggleStudentVisibility = useCallback((resourceId: number, studentId: string) => {
+    const res = resources.find(r => r.id === resourceId);
+    if (!res) return;
+
+    const currentAssigned = res.assignedStudentIds || [];
+    const isAssigned = currentAssigned.includes(studentId);
+    const newAssigned = isAssigned 
+      ? currentAssigned.filter(id => id !== studentId)
+      : [...currentAssigned, studentId];
+
+    updateResource(resourceId, { assignedStudentIds: newAssigned });
+  }, [resources, updateResource]);
+
+  const toggleGlobalVisibility = useCallback((resourceId: number) => {
+    const res = resources.find(r => r.id === resourceId);
+    if (!res) return;
+
+    updateResource(resourceId, { isVisibleGlobally: !res.isVisibleGlobally });
+  }, [resources, updateResource]);
+
+  return { 
+    resources, 
+    libraryDescription, 
+    updateResource, 
+    addResource, 
+    updateLibraryDescription,
+    toggleStudentVisibility,
+    toggleGlobalVisibility
+  };
 }
