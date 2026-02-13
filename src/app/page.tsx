@@ -27,7 +27,7 @@ export default function Home() {
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      router.push('/home');
     }
 
     const generatedNotes = Array.from({ length: 18 }).map((_, i) => ({

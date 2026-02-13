@@ -37,9 +37,9 @@ export default function LoginPage() {
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
 
   useEffect(() => {
-    // Si ya hay un usuario logueado, redirigir al dashboard inmediatamente
+    // Si ya hay un usuario logueado, redirigir al inicio inmediatamente
     if (!authLoading && user) {
-      router.push('/dashboard');
+      router.push('/home');
     }
 
     const generatedNotes = Array.from({ length: 15 }).map((_, i) => ({
@@ -60,7 +60,7 @@ export default function LoginPage() {
     const success = await login(email, password);
     
     if (success) {
-      router.push('/dashboard');
+      router.push('/home');
     } else {
       toast({
         variant: "destructive",
@@ -75,7 +75,7 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
     const success = await loginWithGoogle();
     if (success) {
-      router.push('/dashboard');
+      router.push('/home');
     } else {
       // El store ya maneja los toasts de error específicos de Google
       setIsGoogleLoading(false);

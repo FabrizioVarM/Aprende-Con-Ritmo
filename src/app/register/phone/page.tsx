@@ -31,14 +31,14 @@ export default function PhoneRegistrationPage() {
       updateUser({ phone: phoneNumber });
     }
     
-    router.push('/dashboard');
+    router.push('/home');
   };
 
   if (loading || !user) return null;
 
   return (
     <div className="min-h-screen bg-primary/10 flex flex-col items-center justify-center p-6">
-      <div className="max-w-md w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="max-md w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <div className="text-center space-y-4">
           <div className="relative w-20 h-20 bg-white rounded-3xl shadow-xl mx-auto mb-6 border-4 border-accent overflow-hidden">
             <Image 
@@ -93,7 +93,7 @@ export default function PhoneRegistrationPage() {
                 type="button" 
                 variant="ghost" 
                 className="w-full h-12 rounded-xl font-bold text-muted-foreground hover:bg-primary/10"
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/home')}
               >
                 Saltar por ahora <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
