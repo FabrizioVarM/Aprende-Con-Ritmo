@@ -162,7 +162,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </span>
           </div>
 
-          <Popover>
+          <Popover onOpenChange={(open) => open && unreadCount > 0 && markAllAsRead()}>
             <PopoverTrigger asChild>
               <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-xl hover:bg-accent/10">
                 <Bell className={cn("w-5 h-5", unreadCount > 0 ? "text-accent animate-bounce" : "text-muted-foreground")} />
@@ -455,7 +455,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <span className="font-bold text-foreground leading-tight">Aprende con Ritmo</span>
           </div>
           <div className="flex items-center gap-2">
-            <Popover>
+            <Popover onOpenChange={(open) => open && unreadCount > 0 && markAllAsRead()}>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className={cn("w-5 h-5", unreadCount > 0 ? "text-accent" : "")} />
