@@ -274,7 +274,7 @@ export default function TeacherDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 className="text-3xl font-black text-foreground font-headline tracking-tight">Panel Principal del Profesor {user?.name?.replace('Prof. ', '')} 🎻</h1>
+          <h1 className="text-3xl font-black text-foreground font-headline tracking-tight">Inicio del Profesor {user?.name?.replace('Prof. ', '')} 🎻</h1>
           <p className="text-muted-foreground mt-1 text-sm font-medium">Gestiona tu agenda y el progreso de tus alumnos.</p>
         </div>
         
