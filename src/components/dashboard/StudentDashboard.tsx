@@ -59,15 +59,15 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
 };
 
 const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: string }> = {
-  'Guitarra': { color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-200' },
-  'Piano': { color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200' },
-  'Violín': { color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-200' },
-  'Batería': { color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-200' },
-  'Canto': { color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-200' },
-  'Teoría': { color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-200' },
-  'Bajo': { color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-200' },
-  'Tormenta de Oro': { color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-200' },
-  'Default': { color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/20' }
+  'Guitarra': { color: 'text-amber-600', bg: 'bg-amber-100', border: 'border-amber-400' },
+  'Piano': { color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-400' },
+  'Violín': { color: 'text-rose-600', bg: 'bg-rose-100', border: 'border-rose-400' },
+  'Batería': { color: 'text-indigo-600', bg: 'bg-indigo-100', border: 'border-indigo-400' },
+  'Canto': { color: 'text-emerald-600', bg: 'bg-emerald-100', border: 'border-emerald-400' },
+  'Teoría': { color: 'text-cyan-600', bg: 'bg-cyan-100', border: 'border-cyan-400' },
+  'Bajo': { color: 'text-orange-700', bg: 'bg-orange-100', border: 'border-orange-400' },
+  'Tormenta de Oro': { color: 'text-yellow-600', bg: 'bg-yellow-100', border: 'border-yellow-400' },
+  'Default': { color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/40' }
 };
 
 const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
@@ -584,34 +584,34 @@ export default function StudentDashboard() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className={cn("rounded-[2.5rem] border-2 shadow-sm p-6", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
-          <CardHeader className="p-0 pb-4">
-            <CardTitle className={cn("text-sm font-black uppercase tracking-widest flex items-center gap-2", topInstConfig.color)}>
-              <Star className="w-5 h-5 fill-current" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <Card className={cn("rounded-[2rem] border-2 shadow-sm p-4 sm:p-5", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
+          <CardHeader className="p-0 pb-2 sm:pb-3">
+            <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-2", topInstConfig.color)}>
+              <Star className="w-4 h-4 fill-current" />
               Tu Instrumento Principal
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className={cn("text-4xl font-black truncate", topInstConfig.color)}>
+            <div className={cn("text-2xl sm:text-3xl font-black truncate", topInstConfig.color)}>
               {topInstrument}
             </div>
-            <p className={cn("text-sm font-bold mt-1 opacity-60", topInstConfig.color)}>Máximo Progreso</p>
+            <p className={cn("text-[10px] font-bold mt-0.5 opacity-60", topInstConfig.color)}>Máximo Progreso</p>
           </CardContent>
         </Card>
         
-        <Card className="rounded-[2.5rem] border-2 border-emerald-200 dark:border-emerald-900/50 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6">
-          <CardHeader className="p-0 pb-4">
-            <CardTitle className={cn("text-sm font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2")}>
-              <CalendarIcon className="w-5 h-5 text-accent" />
+        <Card className="rounded-[2rem] border-2 border-emerald-500 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-4 sm:p-5">
+          <CardHeader className="p-0 pb-2 sm:pb-3">
+            <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2")}>
+              <CalendarIcon className="w-4 h-4 text-accent" />
               CLASE MÁS PROXIMA
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-3xl font-black text-emerald-900 dark:text-emerald-300 leading-tight truncate">
+            <div className="text-2xl sm:text-3xl font-black text-emerald-900 dark:text-emerald-300 leading-tight truncate">
               {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin fecha'}
             </div>
-            <p className="text-sm text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-1">
+            <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-0.5">
               {nextLesson 
                 ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con ${nextLesson.teacherName}` 
                 : '¡Agenda una clase!'}
@@ -619,16 +619,16 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2.5rem] border-2 border-orange-200 dark:border-orange-900/50 shadow-sm bg-orange-100/50 dark:bg-orange-950/20 p-6">
-          <CardHeader className="p-0 pb-4">
-            <CardTitle className="text-sm font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-accent" />
-              TOTAL RESERVAS PENDIENTES
+        <Card className="rounded-[2rem] border-2 border-orange-500 shadow-sm bg-orange-50 dark:bg-orange-950/20 p-4 sm:p-5">
+          <CardHeader className="p-0 pb-2 sm:pb-3">
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-accent" />
+              PENDIENTES
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-5xl font-black text-orange-900 dark:text-orange-300">{myUpcomingLessons.length}</div>
-            <p className="text-sm text-orange-600 dark:text-orange-400 font-bold mt-1">Clases programadas</p>
+            <div className="text-3xl sm:text-4xl font-black text-orange-900 dark:text-orange-300">{myUpcomingLessons.length}</div>
+            <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold mt-0.5">Clases programadas</p>
           </CardContent>
         </Card>
       </div>
