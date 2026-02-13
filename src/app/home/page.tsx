@@ -123,9 +123,9 @@ export default function HomePage() {
 
             <div className="space-y-8">
               {NEWS_MOCK.map((item) => (
-                <Card key={item.id} className="rounded-[2.5rem] border-2 border-primary/10 shadow-sm hover:shadow-xl hover:border-accent/20 transition-all duration-500 group overflow-hidden bg-card">
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-0 md:gap-6">
-                    <div className="md:col-span-2 relative aspect-video md:aspect-square h-full overflow-hidden">
+                <Card key={item.id} className="rounded-[2.5rem] border-2 border-primary/20 shadow-sm hover:shadow-xl hover:border-accent/20 transition-all duration-500 group overflow-hidden bg-card">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
+                    <div className="md:col-span-2 relative h-64 md:h-auto overflow-hidden">
                       <Image 
                         src={item.image} 
                         alt={item.title} 
@@ -139,7 +139,7 @@ export default function HomePage() {
                         </Badge>
                       </div>
                     </div>
-                    <div className="md:col-span-3 p-8 flex flex-col justify-center space-y-4">
+                    <div className="md:col-span-3 p-6 sm:p-8 flex flex-col justify-center space-y-4">
                       <div className="flex items-center gap-2 text-xs font-black text-muted-foreground uppercase tracking-[0.2em]">
                         <Clock className="w-3 h-3 text-accent" />
                         {item.date}
@@ -207,7 +207,7 @@ export default function HomePage() {
             </Card>
 
             {/* Quick Stats / Achievements */}
-            <Card className="rounded-[2.5rem] border-2 border-primary/10 shadow-sm bg-card p-8">
+            <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-sm bg-card p-8">
               <div className="flex flex-col items-center text-center space-y-4">
                 <div className="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center text-accent">
                   <Trophy className="w-10 h-10" />
