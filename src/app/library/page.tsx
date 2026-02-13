@@ -303,7 +303,7 @@ export default function LibraryPage() {
               <div className="w-full sm:w-64">
                 <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                   <SelectTrigger className="h-14 rounded-2xl border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent flex items-center gap-3 px-4 transition-all overflow-hidden">
-                    <SelectValue placeholder="Seleccionar Alumno" />
+                    <span className="truncate">{selectedStudent ? selectedStudent.name : "Seleccionar Alumno"}</span>
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-2 shadow-xl p-1">
                     {studentsList.map(student => (
