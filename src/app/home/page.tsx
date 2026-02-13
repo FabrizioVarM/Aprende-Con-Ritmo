@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-store';
+import { useRouter } from 'next/navigation';
 import { 
   Sparkles, 
   Newspaper, 
@@ -18,7 +19,10 @@ import {
   Trophy, 
   Star,
   Zap,
-  Info
+  Info,
+  Clock,
+  ShoppingBag,
+  Gift
 } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -65,6 +69,7 @@ const NEWS_MOCK: NewsItem[] = [
 
 export default function HomePage() {
   const { user, loading } = useAuth();
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -89,7 +94,7 @@ export default function HomePage() {
               Explora las últimas noticias, eventos y actualizaciones de Aprende Con Ritmo. ¡Mantente conectado con tu comunidad!
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
-              <Button className="bg-white text-accent hover:bg-white/90 rounded-2xl h-14 px-8 font-black text-lg shadow-xl shadow-black/10">
+              <Button className="bg-white text-accent hover:bg-white/90 rounded-2xl h-14 px-8 font-black text-lg shadow-xl shadow-black/10" onClick={() => router.push('/schedule')}>
                 Ver Calendario
               </Button>
               <Button variant="outline" className="border-white/30 bg-white/10 hover:bg-white/20 text-white rounded-2xl h-14 px-8 font-black text-lg backdrop-blur-sm">
