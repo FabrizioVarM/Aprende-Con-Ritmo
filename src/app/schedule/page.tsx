@@ -987,14 +987,14 @@ export default function SchedulePage() {
           </div>
 
           <div className="lg:col-span-8 space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-6 bg-accent/5 p-8 rounded-[2.5rem] border-2 border-accent/20 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-accent/5 p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-accent/20 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
-              <div className="bg-accent text-white p-5 rounded-[2rem] shadow-xl shadow-accent/20 shrink-0">
-                <Clock className="w-10 h-10" />
+              <div className="bg-accent text-white p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] shadow-xl shadow-accent/20 shrink-0 w-fit">
+                <Clock className="w-6 h-6 sm:w-10 sm:h-10" />
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-black text-accent uppercase tracking-[0.2em] mb-1">Resumen del día</p>
-                <h3 className="text-4xl sm:text-5xl font-black text-foreground capitalize leading-tight tracking-tight">
+                <h3 className="text-3xl sm:text-5xl font-black text-foreground capitalize leading-tight tracking-tight">
                   {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </h3>
                 <div className="flex items-center gap-2 text-muted-foreground font-bold text-sm">
