@@ -280,7 +280,7 @@ export default function TeacherDashboard() {
         
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-accent text-white rounded-xl gap-2 h-12 px-6 shadow-lg shadow-accent/20 hover:scale-105 transition-all font-black">
+            <Button className="bg-accent text-white rounded-xl gap-2 h-12 px-6 shadow-lg shadow-accent/20 hover:scale-105 transition-all font-black w-full md:w-auto">
               <Clock className="w-5 h-5" /> Gestionar Horarios
             </Button>
           </DialogTrigger>
@@ -424,22 +424,22 @@ export default function TeacherDashboard() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="rounded-2xl border-2 border-blue-400/40 shadow-sm bg-blue-100 dark:bg-blue-900/30 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">Mis Alumnos Activos</p>
-          <div className="text-3xl font-black text-blue-900 dark:text-blue-100 mt-1">{trackedStudents.length}</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="rounded-2xl border-2 border-blue-600 dark:border-blue-400 shadow-sm bg-blue-50/50 dark:bg-blue-900/30 p-3 sm:p-4">
+          <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">Mis Alumnos Activos</p>
+          <div className="text-2xl sm:text-3xl font-black text-blue-900 dark:text-blue-100 mt-1">{trackedStudents.length}</div>
         </Card>
-        <Card className="rounded-2xl border-2 border-emerald-400/40 shadow-sm bg-emerald-100 dark:bg-emerald-900/30 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">Horas Semanales Habilitadas</p>
-          <div className="text-3xl font-black text-emerald-900 dark:text-emerald-100 mt-1">{totalWeeklyEnabledHours.toFixed(1)} h</div>
+        <Card className="rounded-2xl border-2 border-emerald-600 dark:border-emerald-400 shadow-sm bg-emerald-50/50 dark:bg-emerald-900/30 p-3 sm:p-4">
+          <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 leading-tight">Horas Semanales Habilitadas</p>
+          <div className="text-2xl sm:text-3xl font-black text-emerald-900 dark:text-emerald-100 mt-1">{totalWeeklyEnabledHours.toFixed(1)} h</div>
         </Card>
-        <Card className="rounded-2xl border-2 border-accent/40 shadow-sm bg-accent/10 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-accent-foreground">Materiales disponibles</p>
-          <div className="text-3xl font-black text-accent mt-1">12</div>
+        <Card className="rounded-2xl border-2 border-accent/80 shadow-sm bg-accent/5 dark:bg-accent/10 p-3 sm:p-4">
+          <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-accent-foreground">Materiales disponibles</p>
+          <div className="text-2xl sm:text-3xl font-black text-accent mt-1">12</div>
         </Card>
-        <Card className="rounded-2xl border-2 border-primary/40 shadow-sm bg-secondary/30 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/80">Total de horas ejercidas</p>
-          <div className="text-3xl font-black text-foreground mt-1">
+        <Card className="rounded-2xl border-2 border-primary-foreground/40 dark:border-primary/40 shadow-sm bg-secondary/30 p-3 sm:p-4">
+          <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-foreground/80 leading-tight">Total de horas ejercidas</p>
+          <div className="text-2xl sm:text-3xl font-black text-foreground mt-1">
             {Math.round(trackedStudents.reduce((acc, s) => {
               let h = 0;
               s.hoursByInstrument.forEach(val => h += val);
