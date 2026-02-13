@@ -425,20 +425,20 @@ export default function TeacherDashboard() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="rounded-2xl border-2 border-blue-200 dark:border-blue-900/50 shadow-sm bg-blue-50/50 dark:bg-blue-950/20 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">Mis Alumnos Activos</p>
+        <Card className="rounded-2xl border-2 border-blue-400/40 shadow-sm bg-blue-100 dark:bg-blue-900/30 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">Mis Alumnos Activos</p>
           <div className="text-3xl font-black text-blue-900 dark:text-blue-100 mt-1">{trackedStudents.length}</div>
         </Card>
-        <Card className="rounded-2xl border-2 border-green-200 dark:border-green-900/50 shadow-sm bg-green-50/50 dark:bg-green-950/20 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-green-600 dark:text-green-400">Horas Semanales Habilitadas</p>
-          <div className="text-3xl font-black text-green-900 dark:text-green-100 mt-1">{totalWeeklyEnabledHours.toFixed(1)} h</div>
+        <Card className="rounded-2xl border-2 border-emerald-400/40 shadow-sm bg-emerald-100 dark:bg-emerald-900/30 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">Horas Semanales Habilitadas</p>
+          <div className="text-3xl font-black text-emerald-900 dark:text-emerald-100 mt-1">{totalWeeklyEnabledHours.toFixed(1)} h</div>
         </Card>
-        <Card className="rounded-2xl border-2 border-accent/20 shadow-sm bg-accent/5 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-accent">Materiales disponibles</p>
+        <Card className="rounded-2xl border-2 border-accent/40 shadow-sm bg-accent/10 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-accent-foreground">Materiales disponibles</p>
           <div className="text-3xl font-black text-accent mt-1">12</div>
         </Card>
-        <Card className="rounded-2xl border-2 border-primary/20 shadow-sm bg-secondary/20 p-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/70">Total de horas ejercidas</p>
+        <Card className="rounded-2xl border-2 border-primary/40 shadow-sm bg-secondary/30 p-4">
+          <p className="text-[10px] font-black uppercase tracking-widest text-foreground/80">Total de horas ejercidas</p>
           <div className="text-3xl font-black text-foreground mt-1">
             {Math.round(trackedStudents.reduce((acc, s) => {
               let h = 0;
