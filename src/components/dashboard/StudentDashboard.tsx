@@ -28,7 +28,9 @@ import {
   Sun,
   Moon,
   MapPin as MapPinIcon,
-  AlertTriangle
+  AlertTriangle,
+  Building2,
+  Home
 } from 'lucide-react';
 import {
   Dialog,
@@ -123,6 +125,7 @@ export default function StudentDashboard() {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedZone, setSelectedZone] = useState<string>('Miraflores');
+  const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio'>('domicilio');
   const [todayStr, setTodayStr] = useState<string>('');
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
@@ -194,7 +197,8 @@ export default function StudentDashboard() {
   };
 
   const getSlotTravelMarginError = (slot: any) => {
-    if (selectedZone === 'Virtual' || slot.type === 'virtual') return null;
+    // No travel margin for virtual modality
+    if (selectedModality === 'virtual' || slot.type === 'virtual') return null;
 
     const teacher = teachers.find(t => t.id === selectedTeacherId);
     if (!teacher) return null;
@@ -239,6 +243,11 @@ export default function StudentDashboard() {
     
     return availability.slots.filter(s => {
       if (!s.isAvailable || s.isBooked) return false;
+
+      // Filter by modality
+      if (selectedModality === 'virtual' && s.type !== 'virtual') return false;
+      if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
+      if (selectedModality === 'sede') return false; // Sede disabled
       
       const startTimeStr = s.time.split(' - ')[0];
       const [h, m] = startTimeStr.split(':').map(Number);
@@ -252,7 +261,7 @@ export default function StudentDashboard() {
       const selectedDateStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).getTime();
       return selectedDateStart >= todayTimestamp;
     });
-  }, [availability.slots, selectedDate, currentTime, todayTimestamp]);
+  }, [availability.slots, selectedDate, currentTime, todayTimestamp, selectedModality]);
 
   const myUpcomingLessons = useMemo(() => {
     if (!user || !currentTime) return [];
@@ -400,7 +409,9 @@ export default function StudentDashboard() {
     }
 
     const teacher = teachers.find(t => t.id === selectedTeacherId);
-    await bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name, adminIds, selectedZone);
+    const finalZone = selectedModality === 'virtual' ? 'Virtual' : selectedZone;
+    
+    await bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name, adminIds, finalZone);
     
     toast({
       title: "¡Reserva Exitosa! 🎸",
@@ -449,7 +460,7 @@ export default function StudentDashboard() {
                 Agendar Sesión
               </DialogTitle>
               <DialogDescription className="text-lg text-muted-foreground font-medium">
-                Elige tu instrumento y profesor para encontrar el horario perfecto.
+                Elige tu instrumento y modalidad para encontrar el horario perfecto.
               </DialogDescription>
             </DialogHeader>
 
@@ -483,29 +494,62 @@ export default function StudentDashboard() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Zona de la Clase</label>
-                      <Select value={selectedZone} onValueChange={setSelectedZone}>
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Modalidad de la Clase</label>
+                      <Select value={selectedModality} onValueChange={(val: any) => setSelectedModality(val)}>
                         <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-card text-foreground">
-                          <SelectValue placeholder="¿Dónde será la clase?" />
+                          <SelectValue placeholder="Seleccionar modalidad" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl">
-                          {ACADEMIC_ZONES.map(zone => (
-                            <SelectItem key={zone} value={zone} className="font-bold py-3">
-                              <div className="flex items-center gap-2">
-                                <MapPinIcon className="w-4 h-4 text-accent" />
-                                <span>{zone}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
+                          <SelectItem value="domicilio" className="font-bold py-3">
+                            <div className="flex items-center gap-2">
+                              <Home className="w-4 h-4 text-accent" />
+                              <span>A domicilio</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="virtual" className="font-bold py-3">
+                            <div className="flex items-center gap-2">
+                              <Video className="w-4 h-4 text-blue-500" />
+                              <span>Virtual (Online)</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-4 h-4 text-muted-foreground" />
+                              <span>En Sede (Próximamente)</span>
+                            </div>
+                          </SelectItem>
                         </SelectContent>
                       </Select>
-                      <p className="text-[10px] font-bold text-muted-foreground italic px-2">
-                        * Si el profesor está en otra zona, se aplicará 1 hora de margen para su traslado.
-                      </p>
                     </div>
 
+                    {selectedModality === 'domicilio' && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Zona de la Clase</label>
+                        <Select value={selectedZone} onValueChange={setSelectedZone}>
+                          <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-card text-foreground">
+                            <SelectValue placeholder="¿En qué zona estás?" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl">
+                            {ACADEMIC_ZONES.filter(z => z !== 'Virtual').map(zone => (
+                              <SelectItem key={zone} value={zone} className="font-bold py-3">
+                                <div className="flex items-center gap-2">
+                                  <MapPinIcon className="w-4 h-4 text-accent" />
+                                  <span>{zone}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-[10px] font-bold text-muted-foreground italic px-2 mt-1">
+                          * Se aplica 1 hora de margen de traslado si el profesor viene de otra zona.
+                        </p>
+                      </div>
+                    )}
+
                     <div className="space-y-3">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Elige tu Profesor</label>
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                        {selectedModality === 'domicilio' ? '4.' : '3.'} Elige tu Profesor
+                      </label>
                       <div className="grid grid-cols-1 gap-2">
                         {filteredTeachers.length > 0 ? filteredTeachers.map(t => (
                           <Button
@@ -542,7 +586,9 @@ export default function StudentDashboard() {
 
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">4. Selecciona el Día</label>
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                        {selectedModality === 'domicilio' ? '5.' : '4.'} Selecciona el Día
+                      </label>
                       <div className="flex gap-1">
                         <Button 
                           variant="ghost" 
@@ -609,7 +655,9 @@ export default function StudentDashboard() {
                 </div>
 
                 <div className="space-y-6">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">HORARIOS LIBRES RESTANTES</label>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                    HORARIOS {selectedModality === 'virtual' ? 'VIRTUALES' : 'PRESENCIALES'} DISPONIBLES
+                  </label>
                   <div className="grid grid-cols-1 gap-2">
                     {freeSlots.length > 0 ? (
                       freeSlots.map((slot) => {
