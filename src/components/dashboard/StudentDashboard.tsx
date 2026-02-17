@@ -170,10 +170,26 @@ export default function StudentDashboard() {
     }
   }, [selectedInstrument, filteredTeachers, selectedTeacherId]);
 
+  const dateStrKey = useMemo(() => {
+    return `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+  }, [selectedDate]);
+
   const availability = useMemo(() => {
     if (!selectedTeacherId) return { slots: [] };
     return getDayAvailability(selectedTeacherId, selectedDate);
   }, [selectedTeacherId, selectedDate, getDayAvailability, availabilities]);
+
+  const hasConflict = (slotTime: string) => {
+    if (!user) return false;
+    return availabilities.some(day => 
+      day.date === dateStrKey && 
+      day.slots.some(s => 
+        s.isBooked && 
+        (s.studentId === user.id || s.bookedBy === user.name || s.students?.some(st => st.id === user.id)) &&
+        s.time === slotTime
+      )
+    );
+  };
 
   const freeSlots = useMemo(() => {
     if (!currentTime || !selectedDate) return [];
@@ -317,6 +333,17 @@ export default function StudentDashboard() {
 
   const handleBookLesson = async () => {
     if (!selectedSlotId || !user || !selectedTeacherId) return;
+
+    // Last minute conflict check
+    const targetSlot = freeSlots.find(s => s.id === selectedSlotId);
+    if (targetSlot && hasConflict(targetSlot.time)) {
+      toast({
+        variant: "destructive",
+        title: "Conflicto de Horario",
+        description: "Ya tienes una clase reservada en este horario con otro profesor."
+      });
+      return;
+    }
 
     const teacher = teachers.find(t => t.id === selectedTeacherId);
     await bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name, adminIds);
@@ -512,6 +539,8 @@ export default function StudentDashboard() {
                       freeSlots.map((slot) => {
                         const isSelected = selectedSlotId === slot.id;
                         const period = getTimePeriod(slot.time);
+                        const conflict = hasConflict(slot.time);
+
                         return (
                           <Button
                             key={slot.id}
@@ -520,33 +549,49 @@ export default function StudentDashboard() {
                               "justify-between rounded-2xl h-20 border-2 font-black px-6",
                               isSelected 
                                 ? 'bg-accent text-white border-accent shadow-md' 
-                                : 'bg-card text-foreground border-primary/10 hover:border-accent/30'
+                                : 'bg-card text-foreground border-primary/10 hover:border-accent/30',
+                              conflict && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed hover:bg-orange-50/30"
                             )}
-                            onClick={() => setSelectedSlotId(slot.id)}
+                            onClick={() => {
+                              if (conflict) {
+                                toast({
+                                  variant: "destructive",
+                                  title: "Horario Ocupado",
+                                  description: "Ya tienes una clase en este horario."
+                                });
+                                return;
+                              }
+                              setSelectedSlotId(slot.id);
+                            }}
                           >
                             <div className="flex items-center gap-4">
                               <div className={cn(
                                 "p-2.5 rounded-xl border shadow-inner",
-                                isSelected ? "bg-white/20 border-white/30" : `${period.bg} ${period.border} ${period.color}`
+                                isSelected ? "bg-white/20 border-white/30" : (conflict ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`)
                               )}>
-                                <period.icon className="w-5 h-5" />
+                                {conflict ? <AlertCircle className="w-5 h-5" /> : <period.icon className="w-5 h-5" />}
                               </div>
                               <div className="flex flex-col items-start">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-lg leading-none">{slot.time}</span>
+                                    <span className={cn("text-lg leading-none", conflict && "text-orange-700")}>{slot.time}</span>
                                     <span className={cn(
                                       "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border",
-                                      isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
+                                      isSelected ? "bg-white/20 border-white/30 text-white" : (conflict ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`)
                                     )}>
-                                      {period.label}
+                                      {conflict ? 'Conflicto' : period.label}
                                     </span>
                                   </div>
                                   <span className={cn(
                                       "text-[9px] font-black uppercase flex items-center gap-1 mt-1",
-                                      slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500")
+                                      slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500"),
+                                      conflict && "text-orange-600"
                                   )}>
-                                      {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                                      {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                                      {conflict ? "Ya reservaste en este horario con otro profesor" : (
+                                        <>
+                                          {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                          {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                                        </>
+                                      )}
                                   </span>
                               </div>
                             </div>
@@ -621,7 +666,7 @@ export default function StudentDashboard() {
 
         <Card className="rounded-[2rem] border-2 border-orange-500 shadow-sm bg-orange-50 dark:bg-orange-950/20 p-4 sm:p-5">
           <CardHeader className="p-0 pb-2 sm:pb-3">
-            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2">
+            <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2")}>
               <Clock className="w-4 h-4 text-accent" />
               PENDIENTES
             </CardTitle>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -174,6 +175,18 @@ export default function SchedulePage() {
     return comparisonTime > slotEndDate;
   };
 
+  const hasConflict = (slotTime: string) => {
+    if (!user) return false;
+    return availabilities.some(day => 
+      day.date === dateStrKey && 
+      day.slots.some(s => 
+        s.isBooked && 
+        (s.studentId === user.id || s.bookedBy === user.name || s.students?.some(st => st.id === user.id)) &&
+        s.time === slotTime
+      )
+    );
+  };
+
   const mySlots = useMemo(() => {
     if (isTeacher) {
       return allDaySlots.filter(s => s.isBooked);
@@ -255,6 +268,18 @@ export default function SchedulePage() {
 
   const handleBook = () => {
     if (!selectedSlotId || !date || !user || !selectedTeacherId) return;
+    
+    // Final check for conflict before committing
+    const targetSlot = otherAvailableSlots.find(s => s.id === selectedSlotId);
+    if (targetSlot && hasConflict(targetSlot.time)) {
+      toast({
+        variant: "destructive",
+        title: "Conflicto de Horario",
+        description: "Ya tienes una clase reservada en este horario con otro profesor."
+      });
+      return;
+    }
+
     const instrument = bookingInstrument || user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
     const teacherName = currentTeacherProfile?.name || DEFAULT_TEACHER_NAME;
     bookSlot(selectedTeacherId, date, selectedSlotId, user.name, user.id, instrument, teacherName);
@@ -753,6 +778,8 @@ export default function SchedulePage() {
                         {otherAvailableSlots.map((slot) => {
                           const isSelected = selectedSlotId === slot.id;
                           const period = getTimePeriod(slot.time);
+                          const conflict = hasConflict(slot.time);
+
                           return (
                             <div 
                               key={slot.id} 
@@ -760,9 +787,18 @@ export default function SchedulePage() {
                                 "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
                                 isSelected 
                                   ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
-                                  : "bg-card border-primary/10 hover:border-accent/30"
+                                  : "bg-card border-primary/10 hover:border-accent/30",
+                                conflict && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed"
                               )}
                               onClick={() => {
+                                if (conflict) {
+                                  toast({
+                                    variant: "destructive",
+                                    title: "Horario Ocupado",
+                                    description: "Ya tienes una clase reservada en este horario."
+                                  });
+                                  return;
+                                }
                                 setSelectedSlotId(slot.id);
                                 if (!bookingInstrument && teacherInstruments.length > 0) {
                                   setBookingInstrument(teacherInstruments[0]);
@@ -773,25 +809,34 @@ export default function SchedulePage() {
                                 <div className="flex items-center gap-4">
                                   <div className={cn(
                                     "p-2.5 rounded-2xl border shadow-inner",
-                                    isSelected ? "bg-accent text-white border-accent" : `${period.bg} ${period.border} ${period.color}`
+                                    isSelected ? "bg-accent text-white border-accent" : `${period.bg} ${period.border} ${period.color}`,
+                                    conflict && "bg-orange-100 border-orange-200 text-orange-600"
                                   )}>
-                                    <period.icon className="w-5 h-5 shrink-0" />
+                                    {conflict ? <AlertCircle className="w-5 h-5 shrink-0" /> : <period.icon className="w-5 h-5 shrink-0" />}
                                   </div>
                                   <div className="flex flex-col items-start min-w-0">
-                                    <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground")}>
+                                    <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground", conflict && "text-orange-700")}>
                                       {formatToAmPm(slot.time)}
                                     </span>
                                     <div className="flex items-center gap-2">
-                                      <span className={cn(
-                                        "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-1",
-                                        isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
-                                      )}>
-                                        <period.icon className="w-2.5 h-2.5" />
-                                        {period.label}
-                                      </span>
-                                      <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
-                                        {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME}
-                                      </span>
+                                      {conflict ? (
+                                        <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">
+                                          Ya reservaste en este horario
+                                        </span>
+                                      ) : (
+                                        <>
+                                          <span className={cn(
+                                            "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-1",
+                                            isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
+                                          )}>
+                                            <period.icon className="w-2.5 h-2.5" />
+                                            {period.label}
+                                          </span>
+                                          <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
+                                            {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME}
+                                          </span>
+                                        </>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
