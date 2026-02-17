@@ -91,18 +91,18 @@ export default function HomePage() {
               Tu aventura musical <br className="hidden md:block" /> continúa aquí 🎼
             </h1>
             <p className="text-white/80 text-sm md:text-lg font-medium leading-relaxed max-w-md">
-              Explora las últimas noticias, eventos y actualizaciones de Aprende Con Ritmo.
+              Explora las últimas noticias, eventos y actualizaciones de Aprende con Ritmo.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <Button 
-                className="bg-white text-accent hover:bg-white/90 rounded-xl h-10 md:h-12 px-6 font-black text-xs md:text-sm shadow-lg shadow-black/10 transition-transform active:scale-95" 
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-xl h-10 md:h-14 px-8 font-black text-sm md:text-base shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all hover:scale-105 active:scale-95 border-2 border-white group" 
                 onClick={() => router.push('/schedule')}
               >
-                Ver Calendario
+                <Music className="w-5 h-5 mr-2 animate-bounce group-hover:animate-spin" /> ¡Reserva tu Clase Ahora!
               </Button>
               <Button 
                 variant="outline"
-                className="border-white/30 bg-white/10 hover:bg-white/20 text-white rounded-xl h-10 md:h-12 px-6 font-black text-xs md:text-sm backdrop-blur-sm transition-transform active:scale-95 border-2"
+                className="border-white/30 bg-white/10 hover:bg-white/20 text-white rounded-xl h-10 md:h-14 px-6 font-black text-xs md:text-sm backdrop-blur-sm transition-transform active:scale-95 border-2"
               >
                 Sobre Nosotros
               </Button>
@@ -131,7 +131,7 @@ export default function HomePage() {
               {NEWS_MOCK.map((item) => (
                 <Card key={item.id} className="rounded-[1.5rem] md:rounded-[2rem] border-2 border-primary/20 shadow-sm hover:shadow-lg hover:border-accent/20 transition-all duration-500 group overflow-hidden bg-card">
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
-                    <div className="md:col-span-2 relative h-48 md:h-auto overflow-hidden">
+                    <div className="md:col-span-2 relative h-64 md:h-full min-h-[200px] overflow-hidden">
                       <Image 
                         src={item.image} 
                         alt={item.title} 
