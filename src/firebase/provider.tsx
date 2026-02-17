@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -27,6 +26,7 @@ export interface UserProfile {
   phone?: string;
   fcmToken?: string;
   canManageLibrary?: boolean;
+  currentZone?: string; // Nueva propiedad para ubicación del profesor
   photoTransform?: {
     scale: number;
     x: number;

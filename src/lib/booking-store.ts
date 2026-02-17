@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -23,6 +22,7 @@ export interface TimeSlot {
   teacherName?: string | null;
   instrument?: string | null;
   type: 'virtual' | 'presencial';
+  zone?: string | null; // Zona donde se realiza la clase
   status?: 'pending' | 'completed';
   isGroup?: boolean;
   students?: { id: string, name: string }[] | null;
@@ -35,6 +35,8 @@ export interface DayAvailability {
   teacherId: string;
   slots: TimeSlot[];
 }
+
+export const ACADEMIC_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
 
 export const INITIAL_SLOTS = [
   "08:00 - 09:00", "09:00 - 10:00", "10:00 - 11:00", "11:00 - 12:00",
@@ -137,7 +139,7 @@ export function useBookingStore() {
       });
   }, [db]);
 
-  const bookSlot = useCallback(async (teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string, teacherName?: string, adminIds: string[] = []) => {
+  const bookSlot = useCallback(async (teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string, teacherName?: string, adminIds: string[] = [], zone?: string) => {
     const dateStr = toLocalDateString(date);
     const id = `${teacherId}_${dateStr}`;
     const existing = availabilities.find(a => a.teacherId === teacherId && a.date === dateStr);
@@ -145,19 +147,21 @@ export function useBookingStore() {
     let updatedSlots: TimeSlot[] = [];
     let targetSlot: TimeSlot | undefined;
 
+    const slotPayload = {
+      isBooked: true, 
+      bookedBy: studentName, 
+      studentId, 
+      isAvailable: false, 
+      instrument, 
+      status: 'pending', 
+      teacherName: teacherName || null,
+      zone: zone || 'Miraflores'
+    };
+
     if (existing) {
       updatedSlots = existing.slots.map(s => {
         if (s.id === slotId) {
-          targetSlot = { 
-            ...s, 
-            isBooked: true, 
-            bookedBy: studentName, 
-            studentId, 
-            isAvailable: false, 
-            instrument, 
-            status: 'pending', 
-            teacherName: teacherName || null 
-          };
+          targetSlot = { ...s, ...slotPayload };
           return targetSlot;
         }
         return s;
@@ -176,6 +180,7 @@ export function useBookingStore() {
           instrument: isTarget ? instrument : null,
           teacherName: isTarget ? (teacherName || null) : null,
           type: 'presencial', 
+          zone: isTarget ? (zone || 'Miraflores') : null,
           status: 'pending'
         };
         if (isTarget) targetSlot = newSlot;
@@ -202,12 +207,12 @@ export function useBookingStore() {
       
       // 1. Notificación al Profesor
       const profTitle = "¡Nueva Clase Agendada! 🎸";
-      const profBody = `${studentName} ha reservado una clase de ${instrument} para el ${formattedDate} en el horario de ${time}.`;
+      const profBody = `${studentName} ha reservado una clase de ${instrument} para el ${formattedDate} en el horario de ${time}. Zona: ${zone || 'No especificada'}.`;
       addNotification(teacherId, profTitle, profBody, 'booking');
 
       // 2. Notificación al Admin (si hay IDs proporcionados)
       const adminTitle = "Nueva Reserva en la Academia 🏢";
-      const adminBody = `${studentName} reservó con Prof. ${teacherName || 'Docente'} para ${instrument} el ${formattedDate} (${time}).`;
+      const adminBody = `${studentName} reservó con Prof. ${teacherName || 'Docente'} para ${instrument} el ${formattedDate} (${time}) en ${zone || 'Miraflores'}.`;
       
       adminIds.forEach(adminId => {
         addNotification(adminId, adminTitle, adminBody, 'admin_alert');
@@ -223,7 +228,8 @@ export function useBookingStore() {
     const newSlot: TimeSlot = {
       id: 'group-' + Math.random().toString(36).substring(2, 9),
       time, isAvailable: false, isBooked: true, isGroup: true,
-      students: studentList, teachers: teacherList, instrument, type, status: 'pending'
+      students: studentList, teachers: teacherList, instrument, type, status: 'pending',
+      zone: type === 'virtual' ? 'Virtual' : 'Centro' // Default zone for group classes
     };
 
     const slots = existing ? [...existing.slots, newSlot] : [newSlot];
@@ -256,7 +262,8 @@ export function useBookingStore() {
         status: 'pending', 
         students: null, 
         isGroup: false, 
-        teachers: null 
+        teachers: null,
+        zone: null
       } : s
     ).filter(s => !s.id.startsWith('group-') || s.isBooked);
 

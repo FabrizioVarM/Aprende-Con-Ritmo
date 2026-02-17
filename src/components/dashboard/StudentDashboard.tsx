@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -27,7 +26,9 @@ import {
   Users,
   Sunrise,
   Sun,
-  Moon
+  Moon,
+  MapPin as MapPinIcon,
+  AlertTriangle
 } from 'lucide-react';
 import {
   Dialog,
@@ -39,7 +40,7 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useBookingStore } from '@/lib/booking-store';
+import { useBookingStore, ACADEMIC_ZONES } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useResourceStore } from '@/lib/resource-store';
@@ -121,6 +122,7 @@ export default function StudentDashboard() {
   const [selectedInstrument, setSelectedInstrument] = useState<string>('Guitarra');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedZone, setSelectedZone] = useState<string>('Miraflores');
   const [todayStr, setTodayStr] = useState<string>('');
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
@@ -191,6 +193,45 @@ export default function StudentDashboard() {
     );
   };
 
+  const getSlotTravelMarginError = (slot: any) => {
+    if (selectedZone === 'Virtual' || slot.type === 'virtual') return null;
+
+    const teacher = teachers.find(t => t.id === selectedTeacherId);
+    if (!teacher) return null;
+
+    const slotIndex = availability.slots.findIndex(s => s.id === slot.id);
+    if (slotIndex === -1) return null;
+
+    // 1. Check Previous Slot
+    if (slotIndex > 0) {
+      const prev = availability.slots[slotIndex - 1];
+      if (prev.isBooked && prev.zone && prev.zone !== selectedZone && prev.zone !== 'Virtual') {
+        return `Margen de viaje: El profesor tiene una clase previa en ${prev.zone}. Necesita 1 hora para llegar a ${selectedZone}.`;
+      }
+    }
+
+    // 2. Check Next Slot
+    if (slotIndex < availability.slots.length - 1) {
+      const next = availability.slots[slotIndex + 1];
+      if (next.isBooked && next.zone && next.zone !== selectedZone && next.zone !== 'Virtual') {
+        return `Margen de viaje: El profesor tiene una clase posterior en ${next.zone}. Necesita 1 hora para trasladarse.`;
+      }
+    }
+
+    // 3. Check Against Teacher Current Location (if within 1 hour)
+    const startTimeStr = slot.time.split(' - ')[0];
+    const [h, m] = startTimeStr.split(':').map(Number);
+    const slotStartTime = new Date(selectedDate);
+    slotStartTime.setHours(h, m, 0, 0);
+
+    const isNearFuture = currentTime && (slotStartTime.getTime() - currentTime.getTime() < 3600000);
+    if (isNearFuture && teacher.currentZone && teacher.currentZone !== selectedZone && teacher.currentZone !== 'Virtual') {
+      return `Margen de viaje: El profesor se encuentra actualmente en ${teacher.currentZone}. No llegará a tiempo a ${selectedZone}.`;
+    }
+
+    return null;
+  };
+
   const freeSlots = useMemo(() => {
     if (!currentTime || !selectedDate) return [];
     
@@ -254,6 +295,7 @@ export default function StudentDashboard() {
               teacherName: slot.teacherName || teacher?.name || 'Profesor',
               instrument: slot.instrument || (teacher?.instruments?.includes(selectedInstrument) ? selectedInstrument : (teacher?.instruments?.[0] || 'Música')),
               type: slot.type,
+              zone: slot.zone,
               isGroup: slot.isGroup,
               sortDate: new Date(`${lessonDate}T${startTime}:00`)
             });
@@ -334,9 +376,11 @@ export default function StudentDashboard() {
   const handleBookLesson = async () => {
     if (!selectedSlotId || !user || !selectedTeacherId) return;
 
-    // Last minute conflict check
     const targetSlot = freeSlots.find(s => s.id === selectedSlotId);
-    if (targetSlot && hasConflict(targetSlot.time)) {
+    if (!targetSlot) return;
+
+    // Conflict checks
+    if (hasConflict(targetSlot.time)) {
       toast({
         variant: "destructive",
         title: "Conflicto de Horario",
@@ -345,8 +389,18 @@ export default function StudentDashboard() {
       return;
     }
 
+    const travelError = getSlotTravelMarginError(targetSlot);
+    if (travelError) {
+      toast({
+        variant: "destructive",
+        title: "No es posible reservar",
+        description: travelError
+      });
+      return;
+    }
+
     const teacher = teachers.find(t => t.id === selectedTeacherId);
-    await bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name, adminIds);
+    await bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name, adminIds, selectedZone);
     
     toast({
       title: "¡Reserva Exitosa! 🎸",
@@ -428,8 +482,30 @@ export default function StudentDashboard() {
                       </Select>
                     </div>
 
+                    <div className="space-y-2">
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Zona de la Clase</label>
+                      <Select value={selectedZone} onValueChange={setSelectedZone}>
+                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-card text-foreground">
+                          <SelectValue placeholder="¿Dónde será la clase?" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl">
+                          {ACADEMIC_ZONES.map(zone => (
+                            <SelectItem key={zone} value={zone} className="font-bold py-3">
+                              <div className="flex items-center gap-2">
+                                <MapPinIcon className="w-4 h-4 text-accent" />
+                                <span>{zone}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[10px] font-bold text-muted-foreground italic px-2">
+                        * Si el profesor está en otra zona, se aplicará 1 hora de margen para su traslado.
+                      </p>
+                    </div>
+
                     <div className="space-y-3">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Elige tu Profesor</label>
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Elige tu Profesor</label>
                       <div className="grid grid-cols-1 gap-2">
                         {filteredTeachers.length > 0 ? filteredTeachers.map(t => (
                           <Button
@@ -466,7 +542,7 @@ export default function StudentDashboard() {
 
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Selecciona el Día</label>
+                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">4. Selecciona el Día</label>
                       <div className="flex gap-1">
                         <Button 
                           variant="ghost" 
@@ -540,62 +616,69 @@ export default function StudentDashboard() {
                         const isSelected = selectedSlotId === slot.id;
                         const period = getTimePeriod(slot.time);
                         const conflict = hasConflict(slot.time);
+                        const travelError = getSlotTravelMarginError(slot);
 
                         return (
                           <Button
                             key={slot.id}
                             variant={isSelected ? "default" : "outline"}
                             className={cn(
-                              "justify-between rounded-2xl h-20 border-2 font-black px-6",
+                              "justify-between rounded-2xl h-auto min-h-[5rem] border-2 font-black px-6 py-4",
                               isSelected 
                                 ? 'bg-accent text-white border-accent shadow-md' 
                                 : 'bg-card text-foreground border-primary/10 hover:border-accent/30',
-                              conflict && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed hover:bg-orange-50/30"
+                              (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed hover:bg-orange-50/30"
                             )}
                             onClick={() => {
                               if (conflict) {
-                                toast({
-                                  variant: "destructive",
-                                  title: "Horario Ocupado",
-                                  description: "Ya tienes una clase en este horario."
-                                });
+                                toast({ variant: "destructive", title: "Horario Ocupado", description: "Ya tienes una clase en este horario." });
+                                return;
+                              }
+                              if (travelError) {
+                                toast({ variant: "destructive", title: "Margen de Viaje", description: travelError });
                                 return;
                               }
                               setSelectedSlotId(slot.id);
                             }}
                           >
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 w-full">
                               <div className={cn(
-                                "p-2.5 rounded-xl border shadow-inner",
-                                isSelected ? "bg-white/20 border-white/30" : (conflict ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`)
+                                "p-2.5 rounded-xl border shadow-inner shrink-0",
+                                isSelected ? "bg-white/20 border-white/30" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`)
                               )}>
-                                {conflict ? <AlertCircle className="w-5 h-5" /> : <period.icon className="w-5 h-5" />}
+                                {conflict || travelError ? <AlertTriangle className="w-5 h-5" /> : <period.icon className="w-5 h-5" />}
                               </div>
-                              <div className="flex flex-col items-start">
-                                  <div className="flex items-center gap-2">
-                                    <span className={cn("text-lg leading-none", conflict && "text-orange-700")}>{slot.time}</span>
+                              <div className="flex flex-col items-start min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className={cn("text-lg leading-none", (conflict || travelError) && "text-orange-700")}>{slot.time}</span>
                                     <span className={cn(
                                       "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border",
-                                      isSelected ? "bg-white/20 border-white/30 text-white" : (conflict ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`)
+                                      isSelected ? "bg-white/20 border-white/30 text-white" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`)
                                     )}>
-                                      {conflict ? 'Conflicto' : period.label}
+                                      {conflict ? 'Conflicto' : (travelError ? 'Sin Margen' : period.label)}
                                     </span>
                                   </div>
-                                  <span className={cn(
-                                      "text-[9px] font-black uppercase flex items-center gap-1 mt-1",
-                                      slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500"),
-                                      conflict && "text-orange-600"
-                                  )}>
-                                      {conflict ? "Ya reservaste en este horario con otro profesor" : (
-                                        <>
-                                          {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                                          {slot.type === 'virtual' ? 'Online' : 'Presencial'}
-                                        </>
-                                      )}
-                                  </span>
+                                  
+                                  {travelError ? (
+                                    <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">
+                                      {travelError}
+                                    </p>
+                                  ) : conflict ? (
+                                    <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">
+                                      Ya reservaste en este horario con otro profesor
+                                    </p>
+                                  ) : (
+                                    <span className={cn(
+                                        "text-[9px] font-black uppercase flex items-center gap-1 mt-1",
+                                        slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500")
+                                    )}>
+                                        {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                        {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                                    </span>
+                                  )}
                               </div>
                             </div>
-                            {isSelected && <CheckCircle2 className="w-5 h-5 animate-in zoom-in" />}
+                            {isSelected && <CheckCircle2 className="w-5 h-5 animate-in zoom-in shrink-0 ml-2" />}
                           </Button>
                         );
                       })
@@ -668,7 +751,7 @@ export default function StudentDashboard() {
           <CardHeader className="p-0 pb-2 sm:pb-3">
             <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2")}>
               <Clock className="w-4 h-4 text-accent" />
-              PENDIENTES
+              TOTAL RESERVAS PENDIENTES
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -704,12 +787,14 @@ export default function StudentDashboard() {
                         <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
                           {new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}
                         </div>
-                        <div className={cn(
-                            "text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1 mt-1",
-                            lesson.type === 'virtual' ? "text-blue-500" : "text-red-500"
-                        )}>
-                          {lesson.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                          {lesson.type === 'virtual' ? 'Online' : 'Presencial'}
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={cn(
+                              "text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1",
+                              lesson.type === 'virtual' ? "text-blue-500" : "text-red-500"
+                          )}>
+                            {lesson.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                            {lesson.type === 'virtual' ? 'Online' : (lesson.zone || 'Presencial')}
+                          </span>
                         </div>
                       </div>
                     </div>

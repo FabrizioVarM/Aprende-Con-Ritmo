@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -6,7 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, ChevronDown, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check, MousePointerClick } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, ChevronDown, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check, MousePointerClick, MapPin as MapPinIcon, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -30,7 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { useBookingStore, TimeSlot } from '@/lib/booking-store';
+import { useBookingStore, TimeSlot, ACADEMIC_ZONES, INITIAL_SLOTS } from '@/lib/booking-store';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -105,6 +104,7 @@ export default function SchedulePage() {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
+  const [selectedZone, setSelectedZone] = useState<string>('Miraflores');
   
   // Group class state
   const [groupStudents, setGroupStudents] = useState<string[]>([]);
@@ -185,6 +185,47 @@ export default function SchedulePage() {
         s.time === slotTime
       )
     );
+  };
+
+  const getSlotTravelMarginError = (slot: any) => {
+    if (selectedZone === 'Virtual' || slot.type === 'virtual') return null;
+
+    const teacher = currentTeacherProfile;
+    if (!teacher) return null;
+
+    const slotIndex = allDaySlots.findIndex(s => s.id === slot.id);
+    if (slotIndex === -1) return null;
+
+    // 1. Check Previous Slot
+    if (slotIndex > 0) {
+      const prev = allDaySlots[slotIndex - 1];
+      if (prev.isBooked && prev.zone && prev.zone !== selectedZone && prev.zone !== 'Virtual') {
+        return `Margen de viaje: El profesor tiene una clase previa en ${prev.zone}. Necesita 1 hora de traslado a ${selectedZone}.`;
+      }
+    }
+
+    // 2. Check Next Slot
+    if (slotIndex < allDaySlots.length - 1) {
+      const next = allDaySlots[slotIndex + 1];
+      if (next.isBooked && next.zone && next.zone !== selectedZone && next.zone !== 'Virtual') {
+        return `Margen de viaje: El profesor tiene una clase posterior en ${next.zone}. Necesita 1 hora de traslado.`;
+      }
+    }
+
+    // 3. Check Against Teacher Current Location
+    const startTimeStr = slot.time.split(' - ')[0];
+    const [h, m] = startTimeStr.split(':').map(Number);
+    const slotStartTime = new Date(date);
+    slotStartTime.setHours(h, m, 0, 0);
+
+    const isNearFuture = currentTime && (slotStartTime.getTime() - currentTime.getTime() < 3600000);
+    const isToday = date.toDateString() === (currentTime?.toDateString() || '');
+
+    if (isToday && isNearFuture && teacher.currentZone && teacher.currentZone !== selectedZone && teacher.currentZone !== 'Virtual') {
+      return `Margen de viaje: El profesor se encuentra actualmente en ${teacher.currentZone}. No llegará a tiempo a ${selectedZone}.`;
+    }
+
+    return null;
   };
 
   const mySlots = useMemo(() => {
@@ -269,9 +310,11 @@ export default function SchedulePage() {
   const handleBook = () => {
     if (!selectedSlotId || !date || !user || !selectedTeacherId) return;
     
-    // Final check for conflict before committing
     const targetSlot = otherAvailableSlots.find(s => s.id === selectedSlotId);
-    if (targetSlot && hasConflict(targetSlot.time)) {
+    if (!targetSlot) return;
+
+    // Conflict check
+    if (hasConflict(targetSlot.time)) {
       toast({
         variant: "destructive",
         title: "Conflicto de Horario",
@@ -280,9 +323,20 @@ export default function SchedulePage() {
       return;
     }
 
+    // Travel Margin check
+    const travelError = getSlotTravelMarginError(targetSlot);
+    if (travelError) {
+      toast({
+        variant: "destructive",
+        title: "Margen de Viaje",
+        description: travelError
+      });
+      return;
+    }
+
     const instrument = bookingInstrument || user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
     const teacherName = currentTeacherProfile?.name || DEFAULT_TEACHER_NAME;
-    bookSlot(selectedTeacherId, date, selectedSlotId, user.name, user.id, instrument, teacherName);
+    bookSlot(selectedTeacherId, date, selectedSlotId, user.name, user.id, instrument, teacherName, adminIds, selectedZone);
     toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
     setIsBookingOpen(false);
     setSelectedSlotId(null);
@@ -393,6 +447,8 @@ export default function SchedulePage() {
     }
   }, [weekDays]);
 
+  const adminIds = useMemo(() => allUsers.filter(u => u.role === 'admin').map(u => u.id), [allUsers]);
+
   if (!isMounted || loading || !user) return null;
 
   const SlotCard = ({ slot, isMine, isStaffView, customTeacherId }: { slot: any, isMine: boolean, isStaffView?: boolean, customTeacherId?: string }) => {
@@ -451,13 +507,13 @@ export default function SchedulePage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
+                  <div className="flex flex-wrap items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
                     <span className={cn(
                         "flex items-center gap-1 shrink-0",
                         slot.type === 'virtual' ? "text-blue-500 dark:text-blue-400" : "text-red-500 dark:text-red-400"
                     )}>
                       {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                      {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                      {slot.type === 'virtual' ? 'Online' : (slot.zone || 'Presencial')}
                     </span>
                     <span className={cn(
                       "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
@@ -771,7 +827,25 @@ export default function SchedulePage() {
                       </Select>
                     </div>
 
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">2. Selecciona un Horario Disponible</Label>
+                    <div className="space-y-3 pb-4 border-b border-accent/10">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                        <MapPinIcon className="w-3 h-3" /> 2. Zona de la Clase
+                      </Label>
+                      <Select value={selectedZone} onValueChange={setSelectedZone}>
+                        <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
+                          <SelectValue placeholder="Seleccionar zona" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-2">
+                          {ACADEMIC_ZONES.map(z => (
+                            <SelectItem key={z} value={z} className="font-bold py-3">
+                              {z}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">3. Selecciona un Horario Disponible</Label>
                     
                     {otherAvailableSlots.length > 0 ? (
                       <div className="grid grid-cols-1 gap-4">
@@ -779,6 +853,7 @@ export default function SchedulePage() {
                           const isSelected = selectedSlotId === slot.id;
                           const period = getTimePeriod(slot.time);
                           const conflict = hasConflict(slot.time);
+                          const travelError = getSlotTravelMarginError(slot);
 
                           return (
                             <div 
@@ -788,15 +863,15 @@ export default function SchedulePage() {
                                 isSelected 
                                   ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
                                   : "bg-card border-primary/10 hover:border-accent/30",
-                                conflict && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed"
+                                (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed"
                               )}
                               onClick={() => {
                                 if (conflict) {
-                                  toast({
-                                    variant: "destructive",
-                                    title: "Horario Ocupado",
-                                    description: "Ya tienes una clase reservada en este horario."
-                                  });
+                                  toast({ variant: "destructive", title: "Horario Ocupado", description: "Ya tienes una clase reservada en este horario." });
+                                  return;
+                                }
+                                if (travelError) {
+                                  toast({ variant: "destructive", title: "Margen de Viaje", description: travelError });
                                   return;
                                 }
                                 setSelectedSlotId(slot.id);
@@ -809,19 +884,22 @@ export default function SchedulePage() {
                                 <div className="flex items-center gap-4">
                                   <div className={cn(
                                     "p-2.5 rounded-2xl border shadow-inner",
-                                    isSelected ? "bg-accent text-white border-accent" : `${period.bg} ${period.border} ${period.color}`,
-                                    conflict && "bg-orange-100 border-orange-200 text-orange-600"
+                                    isSelected ? "bg-accent text-white border-accent" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`),
                                   )}>
-                                    {conflict ? <AlertCircle className="w-5 h-5 shrink-0" /> : <period.icon className="w-5 h-5 shrink-0" />}
+                                    {conflict || travelError ? <AlertTriangle className="w-5 h-5 shrink-0" /> : <period.icon className="w-5 h-5 shrink-0" />}
                                   </div>
                                   <div className="flex flex-col items-start min-w-0">
-                                    <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground", conflict && "text-orange-700")}>
+                                    <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground", (conflict || travelError) && "text-orange-700")}>
                                       {formatToAmPm(slot.time)}
                                     </span>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex flex-wrap items-center gap-2">
                                       {conflict ? (
                                         <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">
-                                          Ya reservaste en este horario
+                                          Conflicto de horario
+                                        </span>
+                                      ) : travelError ? (
+                                        <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">
+                                          Sin margen de viaje
                                         </span>
                                       ) : (
                                         <>
@@ -843,10 +921,16 @@ export default function SchedulePage() {
                                 {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
                               </div>
 
+                              {travelError && (
+                                <p className="text-[8px] font-bold text-orange-600 leading-tight">
+                                  {travelError}
+                                </p>
+                              )}
+
                               {isSelected && (
                                 <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
                                   <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                                    <Music className="w-3 h-3" /> 3. ¿Qué instrumento tocarás?
+                                    <Music className="w-3 h-3" /> 4. ¿Qué instrumento tocarás?
                                   </Label>
                                   <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
                                     <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">

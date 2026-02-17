@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -14,15 +13,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { useBookingStore, TimeSlot } from '@/lib/booking-store';
+import { useBookingStore, TimeSlot, ACADEMIC_ZONES } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useSkillsStore } from '@/lib/skills-store';
 import { useCompletionStore } from '@/lib/completion-store';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer, MapPin as MapPinIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
@@ -72,10 +78,10 @@ export default function TeacherDashboard() {
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const { toast } = useToast();
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
-  const { user, allUsers } = useAuth();
+  const { user, allUsers, updateUser } = useAuth();
   const { completions } = useCompletionStore();
 
-  const teacherId = user?.id || '2'; 
+  const teacherId = user?.id || ''; 
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
 
   useEffect(() => {
@@ -88,11 +94,19 @@ export default function TeacherDashboard() {
   }, []);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && teacherId) {
       const data = getDayAvailability(teacherId, selectedDate);
       setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
     }
   }, [selectedDate, isOpen, getDayAvailability, teacherId]);
+
+  const handleUpdateZone = (zone: string) => {
+    updateUser({ currentZone: zone });
+    toast({
+      title: "Ubicación Actualizada 📍",
+      description: `Has marcado tu zona actual como: ${zone}.`,
+    });
+  };
 
   const toggleSlotAvailability = (index: number) => {
     const newSlots = [...localSlots];
@@ -148,12 +162,15 @@ export default function TeacherDashboard() {
   };
 
   const handleSaveAvailability = () => {
-    updateAvailability(teacherId, selectedDate, localSlots);
-    toast({ title: "Disponibilidad Guardada ✅", description: "Horarios actualizados." });
-    setIsOpen(false);
+    if (teacherId) {
+      updateAvailability(teacherId, selectedDate, localSlots);
+      toast({ title: "Disponibilidad Guardada ✅", description: "Horarios actualizados." });
+      setIsOpen(false);
+    }
   };
 
   const currentDayBookedSlots = useMemo(() => {
+    if (!teacherId) return [];
     const data = getDayAvailability(teacherId, selectedDate);
     const now = new Date();
     return data.slots.filter(s => {
@@ -168,6 +185,7 @@ export default function TeacherDashboard() {
   }, [selectedDate, getDayAvailability, teacherId, availabilities]);
 
   const trackedStudents = useMemo(() => {
+    if (!teacherId) return [];
     const studentsMap = new Map<string, { 
       id: string, 
       name: string, 
@@ -242,6 +260,7 @@ export default function TeacherDashboard() {
   }, [selectedDate]);
 
   const totalWeeklyEnabledHours = useMemo(() => {
+    if (!teacherId) return 0;
     let total = 0;
     const weekDateStrings = weekDays.map(d => {
       const year = d.getFullYear();
@@ -272,158 +291,176 @@ export default function TeacherDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black text-foreground font-headline tracking-tight">Inicio del Profesor {user?.name?.replace('Prof. ', '')} 🎻</h1>
           <p className="text-muted-foreground mt-1 text-sm font-medium">Gestiona tu agenda y el progreso de tus alumnos.</p>
         </div>
         
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-accent text-white rounded-xl gap-2 h-12 px-6 shadow-lg shadow-accent/20 hover:scale-105 transition-all font-black w-full md:w-auto">
-              <Clock className="w-5 h-5" /> Gestionar Horarios
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="rounded-[2rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
-            <DialogHeader className="bg-primary/10 p-6 border-b space-y-2 shrink-0">
-              <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
-                <CalendarIcon className="w-6 h-6 text-accent" />
-                Gestionar Horarios
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="p-6 space-y-6 bg-card overflow-y-auto flex-1 max-h-[60vh]">
-              <div className="flex flex-col gap-6">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">1. Día</Label>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => {
-                        const prev = new Date(selectedDate);
-                        prev.setDate(prev.getDate() - 7);
-                        setSelectedDate(prev);
-                      }} className="rounded-full h-8 w-8 text-foreground">
-                        <ChevronLeft className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => {
-                        const next = new Date(selectedDate);
-                        next.setDate(next.getDate() + 7);
-                        setSelectedDate(next);
-                      }} className="rounded-full h-8 w-8 text-foreground">
-                        <ChevronRight className="w-4 h-4" />
-                      </Button>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          {/* Selector de Zona Actual para el Profesor */}
+          <div className="flex items-center gap-2 bg-card border-2 border-primary/20 rounded-xl px-3 h-12 w-full sm:w-64">
+            <MapPinIcon className="w-4 h-4 text-accent shrink-0" />
+            <Select value={user?.currentZone || ACADEMIC_ZONES[0]} onValueChange={handleUpdateZone}>
+              <SelectTrigger className="border-none bg-transparent focus:ring-0 font-bold h-full p-0">
+                <SelectValue placeholder="Zona actual" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                {ACADEMIC_ZONES.map(zone => (
+                  <SelectItem key={zone} value={zone} className="font-bold">{zone}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <button className="bg-accent text-white rounded-xl flex items-center justify-center gap-2 h-12 px-6 shadow-lg shadow-accent/20 hover:scale-105 transition-all font-black w-full sm:w-auto">
+                <Clock className="w-5 h-5" /> Gestionar Horarios
+              </button>
+            </DialogTrigger>
+            <DialogContent className="rounded-[2rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+              <DialogHeader className="bg-primary/10 p-6 border-b space-y-2 shrink-0">
+                <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
+                  <CalendarIcon className="w-6 h-6 text-accent" />
+                  Gestionar Horarios
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="p-6 space-y-6 bg-card overflow-y-auto flex-1 max-h-[60vh]">
+                <div className="flex flex-col gap-6">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">1. Día</Label>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          const prev = new Date(selectedDate);
+                          prev.setDate(prev.getDate() - 7);
+                          setSelectedDate(prev);
+                        }} className="rounded-full h-8 w-8 text-foreground">
+                          <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => {
+                          const next = new Date(selectedDate);
+                          next.setDate(next.getDate() + 7);
+                          setSelectedDate(next);
+                        }} className="rounded-full h-8 w-8 text-foreground">
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-7 gap-2">
+                      {weekDays.map((d, i) => {
+                        const isSelected = d.toDateString() === selectedDate.toDateString();
+                        const isToday = d.toDateString() === todayStr;
+                        const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                        const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
+
+                        return (
+                          <button
+                            key={i}
+                            disabled={isPast}
+                            onClick={() => !isPast && setSelectedDate(d)}
+                            className={cn(
+                              "flex flex-col items-center py-2 md:py-3 rounded-xl transition-all border-2 relative group",
+                              isSelected 
+                                ? "bg-accent border-accent text-white shadow-md scale-105" 
+                                : "bg-muted/30 border-primary/10 hover:border-accent/20",
+                              isToday && !isSelected && "border-accent/30",
+                              isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
+                            )}
+                          >
+                            <span className={cn("text-[8px] font-black uppercase tracking-wider", isSelected ? "text-white" : "text-muted-foreground")}>
+                              {d.toLocaleDateString('es-ES', { weekday: 'short' })}
+                            </span>
+                            <span className={cn("text-base font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-7 gap-2">
-                    {weekDays.map((d, i) => {
-                      const isSelected = d.toDateString() === selectedDate.toDateString();
-                      const isToday = d.toDateString() === todayStr;
-                      const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-                      const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
-
-                      return (
-                        <button
-                          key={i}
-                          disabled={isPast}
-                          onClick={() => !isPast && setSelectedDate(d)}
-                          className={cn(
-                            "flex flex-col items-center py-2 md:py-3 rounded-xl transition-all border-2 relative group",
-                            isSelected 
-                              ? "bg-accent border-accent text-white shadow-md scale-105" 
-                              : "bg-muted/30 border-primary/10 hover:border-accent/20",
-                            isToday && !isSelected && "border-accent/30",
-                            isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
-                          )}
-                        >
-                          <span className={cn("text-[8px] font-black uppercase tracking-wider", isSelected ? "text-white" : "text-muted-foreground")}>
-                            {d.toLocaleDateString('es-ES', { weekday: 'short' })}
-                          </span>
-                          <span className={cn("text-base font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <p className="text-base font-black text-foreground capitalize">
-                      {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
-                    </p>
-                    {!isSelectedDatePast && (
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" onClick={clearAllSlots} className="rounded-full border-destructive/50 text-destructive h-8 px-3 text-[10px] font-black">
-                          <Eraser className="w-3 h-3 mr-1" /> Limpiar
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent h-8 px-3 text-[10px] font-black">
-                          <Plus className="w-3 h-3 mr-1" /> Añadir
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {localSlots.map((slot, i) => (
-                      <div key={slot.id} className={cn(
-                        "flex items-center gap-3 p-3 rounded-xl border-2 transition-all",
-                        slot.isBooked ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50" : slot.isAvailable ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50" : "bg-muted/20 border-border opacity-60",
-                        isSelectedDatePast && "opacity-50 grayscale pointer-events-none"
-                      )}>
-                        <div className="flex-1 relative">
-                          <Input
-                            value={slot.time}
-                            onChange={(e) => updateSlotTime(i, e.target.value)}
-                            disabled={slot.isBooked || isSelectedDatePast}
-                            className="h-9 pl-3 text-xs rounded-lg font-bold bg-card border-2 text-foreground"
-                          />
-                          {slot.isBooked && (
-                            <div className="flex items-center gap-1 mt-0.5 ml-1">
-                              <User className="w-2 h-2 text-orange-600 dark:text-orange-400" />
-                              <span className="text-[8px] font-black text-orange-600 dark:text-orange-400 uppercase">{slot.bookedBy}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex flex-col gap-1 shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={slot.isBooked || isSelectedDatePast}
-                            onClick={() => toggleSlotType(i)}
-                            className={cn(
-                              "h-7 px-2 text-[8px] font-black uppercase rounded-md border",
-                              slot.type === 'virtual' ? "text-blue-600 border-blue-200 bg-blue-50" : "text-red-600 border-red-200 bg-red-50"
-                            )}
-                          >
-                            {slot.type === 'virtual' ? <Video className="w-3 h-3 mr-1" /> : <MapPin className="w-3 h-3 mr-1" />}
-                            {slot.type}
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <p className="text-base font-black text-foreground capitalize">
+                        {selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}
+                      </p>
+                      {!isSelectedDatePast && (
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" onClick={clearAllSlots} className="rounded-full border-destructive/50 text-destructive h-8 px-3 text-[10px] font-black">
+                            <Eraser className="w-3 h-3 mr-1" /> Limpiar
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={addSlot} className="rounded-full border-accent text-accent h-8 px-3 text-[10px] font-black">
+                            <Plus className="w-3 h-3 mr-1" /> Añadir
                           </Button>
                         </div>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {localSlots.map((slot, i) => (
+                        <div key={slot.id} className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl border-2 transition-all",
+                          slot.isBooked ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50" : slot.isAvailable ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50" : "bg-muted/20 border-border opacity-60",
+                          isSelectedDatePast && "opacity-50 grayscale pointer-events-none"
+                        )}>
+                          <div className="flex-1 relative">
+                            <Input
+                              value={slot.time}
+                              onChange={(e) => updateSlotTime(i, e.target.value)}
+                              disabled={slot.isBooked || isSelectedDatePast}
+                              className="h-9 pl-3 text-xs rounded-lg font-bold bg-card border-2 text-foreground"
+                            />
+                            {slot.isBooked && (
+                              <div className="flex items-center gap-1 mt-0.5 ml-1">
+                                <User className="w-2 h-2 text-orange-600 dark:text-orange-400" />
+                                <span className="text-[8px] font-black text-orange-600 dark:text-orange-400 uppercase">{slot.bookedBy}</span>
+                              </div>
+                            )}
+                          </div>
 
-                        <Switch 
-                          checked={slot.isAvailable || slot.isBooked} 
-                          disabled={slot.isBooked || isSelectedDatePast}
-                          onCheckedChange={() => toggleSlotAvailability(i)}
-                        />
-                        <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="h-7 w-7 text-foreground">
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
+                          <div className="flex flex-col gap-1 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={slot.isBooked || isSelectedDatePast}
+                              onClick={() => toggleSlotType(i)}
+                              className={cn(
+                                "h-7 px-2 text-[8px] font-black uppercase rounded-md border",
+                                slot.type === 'virtual' ? "text-blue-600 border-blue-200 bg-blue-50" : "text-red-600 border-red-200 bg-red-50"
+                              )}
+                            >
+                              {slot.type === 'virtual' ? <Video className="w-3 h-3 mr-1" /> : <MapPin className="w-3 h-3 mr-1" />}
+                              {slot.type}
+                            </Button>
+                          </div>
+
+                          <Switch 
+                            checked={slot.isAvailable || slot.isBooked} 
+                            disabled={slot.isBooked || isSelectedDatePast}
+                            onCheckedChange={() => toggleSlotAvailability(i)}
+                          />
+                          <Button variant="ghost" size="icon" onClick={() => removeSlot(i)} disabled={slot.isBooked || isSelectedDatePast} className="h-7 w-7 text-foreground">
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="p-6 bg-muted/30 border-t flex gap-3">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
-              <Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-12 font-black gap-2">Guardar</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+              <div className="p-6 bg-muted/30 border-t flex gap-3">
+                <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
+                <Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-12 font-black gap-2">Guardar</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
+      {/* Tarjetas de estadísticas con bordes definidos */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className="rounded-2xl border-2 border-blue-600 dark:border-blue-400 shadow-sm bg-blue-50/50 dark:bg-blue-900/30 p-3 sm:p-4">
           <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">Mis Alumnos Activos</p>
@@ -474,7 +511,7 @@ export default function TeacherDashboard() {
                     "rounded-full px-2 py-0 text-[8px] font-black uppercase",
                     cls.type === 'virtual' ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300" : "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
                   )}>
-                    {cls.type === 'virtual' ? 'Online' : 'Sede'}
+                    {cls.type === 'virtual' ? 'Online' : (cls.zone || 'Sede')}
                   </Badge>
                 </div>
               ))
