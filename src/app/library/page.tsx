@@ -40,6 +40,23 @@ const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'ViolÃ­n', 'BaterÃ
 const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
 const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 
+/**
+ * Helper para transformar enlaces de Google Drive en enlaces de acceso directo directo.
+ */
+const getDirectImageUrl = (url: string) => {
+  if (!url) return url;
+  if (url.includes('drive.google.com')) {
+    let id = '';
+    if (url.includes('/file/d/')) {
+      id = url.split('/d/')[1]?.split('/')[0];
+    } else if (url.includes('id=')) {
+      id = url.split('id=')[1]?.split('&')[0];
+    }
+    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
+  }
+  return url;
+};
+
 export default function LibraryPage() {
   const { user, allUsers, loading } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
@@ -368,13 +385,15 @@ export default function LibraryPage() {
             const isEnabled = res.isEnabled !== false;
             const isLockedForStudent = !isStaff && !isEnabled;
 
-            let imgUrl = FALLBACK_IMAGE;
+            let rawImgUrl = FALLBACK_IMAGE;
             if (typeof res.img === 'string') {
-              imgUrl = res.img;
+              rawImgUrl = res.img;
             } else if (res.img && res.img.imageUrl) {
-              imgUrl = res.img.imageUrl;
+              rawImgUrl = res.img.imageUrl;
             }
             
+            // Transformar URL si es de Drive para asegurar visibilidad directa
+            const imgUrl = getDirectImageUrl(rawImgUrl);
             const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
             
             // Check if buttons should be shown at all
@@ -448,7 +467,7 @@ export default function LibraryPage() {
                   )}
                 </div>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[3rem] line-clamp-2 text-foreground">{res.title}</CardTitle>
+                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[3rem] line-clamp-2 text-foreground font-headline">{res.title}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">

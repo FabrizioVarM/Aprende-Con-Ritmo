@@ -68,6 +68,23 @@ const ICON_OPTIONS = [
   { id: 'Flame', icon: Flame },
 ];
 
+/**
+ * Helper para transformar enlaces de Google Drive en enlaces de acceso directo directo.
+ */
+const getDirectImageUrl = (url: string) => {
+  if (!url) return url;
+  if (url.includes('drive.google.com')) {
+    let id = '';
+    if (url.includes('/file/d/')) {
+      id = url.split('/d/')[1]?.split('/')[0];
+    } else if (url.includes('id=')) {
+      id = url.split('id=')[1]?.split('&')[0];
+    }
+    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
+  }
+  return url;
+};
+
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
   const { settings, updateSettings } = useSettingsStore();
@@ -269,7 +286,7 @@ export default function HomePage() {
                 )}
               >
                 <Image 
-                  src={img} 
+                  src={getDirectImageUrl(img)} 
                   alt={`Hero ${idx}`}
                   fill
                   className="object-cover brightness-[0.4]"
@@ -378,7 +395,7 @@ export default function HomePage() {
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
                     <div className="md:col-span-2 relative h-64 md:h-full min-h-[200px] overflow-hidden">
                       <Image 
-                        src={item.image} 
+                        src={getDirectImageUrl(item.image)} 
                         alt={item.title} 
                         fill 
                         className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -522,7 +539,7 @@ export default function HomePage() {
             <>
               <div className="relative h-48 md:h-64 w-full shrink-0">
                 <Image 
-                  src={selectedNews.image} 
+                  src={getDirectImageUrl(selectedNews.image)} 
                   alt={selectedNews.title} 
                   fill 
                   className="object-cover"
@@ -554,7 +571,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <p className="text-base md:text-lg font-bold text-foreground leading-relaxed">
+                  <p className="text-base md:text-lg font-bold text-foreground font-headline leading-relaxed">
                     {selectedNews.content}
                   </p>
                   <div className="h-px w-full bg-primary/10 my-4 md:my-6" />
@@ -574,7 +591,7 @@ export default function HomePage() {
                       {selectedNews.extraImages.map((img, i) => (
                         <div key={i} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-primary/10 shadow-sm group/img">
                           <Image 
-                            src={img} 
+                            src={getDirectImageUrl(img)} 
                             alt={`Imagen ${i + 1}`} 
                             fill 
                             className="object-cover transition-transform duration-500 group-hover/img:scale-110"

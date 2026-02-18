@@ -78,6 +78,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'docs.google.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: '**.dreamstime.com',
         port: '',
         pathname: '/**',
