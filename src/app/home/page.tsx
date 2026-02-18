@@ -60,7 +60,8 @@ export default function HomePage() {
   const [tempHero, setTempHero] = useState({ 
     title: '', 
     subtitle: '', 
-    badge: '' 
+    badge: '',
+    newsTitle: ''
   });
 
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
@@ -85,7 +86,8 @@ export default function HomePage() {
     setTempHero({
       title: settings.heroTitle || '',
       subtitle: settings.heroSubtitle || '',
-      badge: settings.heroBadge || ''
+      badge: settings.heroBadge || '',
+      newsTitle: settings.newsSectionTitle || 'Lo Último en Ritmo'
     });
     setIsHeroEditing(true);
   };
@@ -94,10 +96,11 @@ export default function HomePage() {
     updateSettings({
       heroTitle: tempHero.title,
       heroSubtitle: tempHero.subtitle,
-      heroBadge: tempHero.badge
+      heroBadge: tempHero.badge,
+      newsSectionTitle: tempHero.newsTitle
     });
     setIsHeroEditing(false);
-    toast({ title: "Portada Actualizada ✨", description: "Los textos principales han sido guardados." });
+    toast({ title: "Contenidos Actualizados ✨", description: "Los cambios han sido guardados." });
   };
 
   const openCreateArticle = () => {
@@ -196,9 +199,21 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-8 space-y-6">
             <div className="flex items-center justify-between px-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 group/news-title">
                 <div className="w-1.5 h-6 bg-accent rounded-full" />
-                <h2 className="text-xl md:text-2xl font-black text-foreground">Lo Último en Ritmo</h2>
+                <h2 className="text-xl md:text-2xl font-black text-foreground">
+                  {settings.newsSectionTitle || 'Lo Último en Ritmo'}
+                </h2>
+                {isAdmin && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 rounded-full opacity-0 group-hover/news-title:opacity-100 transition-opacity"
+                    onClick={handleEditHero}
+                  >
+                    <Edit2 className="w-3 h-3 text-accent" />
+                  </Button>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 {isAdmin && (
@@ -423,19 +438,19 @@ export default function HomePage() {
         </DialogContent>
       </Dialog>
 
-      {/* Admin: Modal de Edición de Hero */}
+      {/* Admin: Modal de Edición de Textos de Inicio */}
       <Dialog open={isHeroEditing} onOpenChange={setIsHeroEditing}>
         <DialogContent className="rounded-[2.5rem] max-w-xl border-none shadow-2xl p-0 overflow-hidden">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2">
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <Edit2 className="w-6 h-6 text-accent" />
-              Editar Portada
+              Editar Textos de Inicio
             </DialogTitle>
-            <DialogDescription className="font-medium text-muted-foreground">Modifica el mensaje principal que ven todos los usuarios.</DialogDescription>
+            <DialogDescription className="font-medium text-muted-foreground">Modifica los mensajes principales que ven todos los usuarios.</DialogDescription>
           </DialogHeader>
           <div className="p-8 space-y-6 bg-card">
             <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Texto de la Etiqueta (Badge)</Label>
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Etiqueta de Portada (Badge)</Label>
               <Input 
                 value={tempHero.badge} 
                 onChange={(e) => setTempHero(prev => ({...prev, badge: e.target.value}))}
@@ -455,14 +470,22 @@ export default function HomePage() {
               <Textarea 
                 value={tempHero.subtitle} 
                 onChange={(e) => setTempHero(prev => ({...prev, subtitle: e.target.value}))}
-                className="min-h-[100px] rounded-xl border-2 font-bold p-4 focus:border-accent bg-card text-foreground"
+                className="min-h-[80px] rounded-xl border-2 font-bold p-4 focus:border-accent bg-card text-foreground"
+              />
+            </div>
+            <div className="space-y-2 pt-2 border-t border-primary/10">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título Sección de Noticias</Label>
+              <Input 
+                value={tempHero.newsTitle} 
+                onChange={(e) => setTempHero(prev => ({...prev, newsTitle: e.target.value}))}
+                className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
               />
             </div>
           </div>
           <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3">
             <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground" onClick={() => setIsHeroEditing(false)}>Cancelar</Button>
             <Button className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20" onClick={handleSaveHero}>
-              <Save className="w-4 h-4 mr-2" /> Guardar Portada
+              <Save className="w-4 h-4 mr-2" /> Guardar Cambios
             </Button>
           </DialogFooter>
         </DialogContent>

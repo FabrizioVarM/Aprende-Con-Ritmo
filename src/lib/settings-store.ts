@@ -26,6 +26,7 @@ export interface AppSettings {
   heroTitle?: string;
   heroSubtitle?: string;
   heroBadge?: string;
+  newsSectionTitle?: string;
 }
 
 export const FALLBACK_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
@@ -45,7 +46,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   zones: FALLBACK_ZONES,
   heroTitle: 'Tu aventura musical continúa aquí 🎼',
   heroSubtitle: 'Explora las últimas noticias, eventos y actualizaciones de Aprende con Ritmo.',
-  heroBadge: 'Novedades de la Academia'
+  heroBadge: 'Novedades de la Academia',
+  newsSectionTitle: 'Lo Último en Ritmo'
 };
 
 export function useSettingsStore() {
