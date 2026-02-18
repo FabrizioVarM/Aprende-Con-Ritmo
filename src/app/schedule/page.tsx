@@ -110,6 +110,12 @@ export default function SchedulePage() {
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio'>('domicilio');
   
+  // Group Class States
+  const [groupStudents, setGroupStudents] = useState<string[]>([]);
+  const [groupTeachers, setGroupTeachers] = useState<string[]>([]);
+  const [groupStartTime, setGroupStartTime] = useState<string>('10:00');
+  const [groupInstrument, setGroupInstrument] = useState<string>('Música');
+
   const { toast } = useToast();
   const { getDayAvailability, bookSlot, cancelBooking, availabilities, setSlotStatus, createGroupClass } = useBookingStore();
 
@@ -342,6 +348,58 @@ export default function SchedulePage() {
     setIsBookingOpen(false);
     setSelectedSlotId(null);
     setBookingInstrument('');
+  };
+
+  const handleCreateGroupClass = () => {
+    if (groupStudents.length === 0 || !selectedTeacherId) return;
+
+    const studentObjects = groupStudents.map(id => {
+      const s = allUsers.find(u => u.id === id);
+      return { id, name: s?.name || 'Alumno' };
+    });
+
+    const teacherObjects = groupTeachers.map(id => {
+      const t = allUsers.find(u => u.id === id);
+      return { id, name: t?.name || 'Profesor' };
+    });
+
+    // Duración fija de 90 min como dice el diálogo
+    const [h, m] = groupStartTime.split(':').map(Number);
+    const startDate = new Date();
+    startDate.setHours(h, m, 0, 0);
+    const endDate = new Date(startDate.getTime() + 90 * 60000);
+    const timeStr = `${groupStartTime} - ${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+
+    createGroupClass(
+      selectedTeacherId, 
+      date, 
+      timeStr, 
+      studentObjects, 
+      groupInstrument, 
+      'presencial', 
+      teacherObjects
+    );
+
+    toast({ title: "Clase Grupal Creada 🎓", description: "Se ha programado la sesión especial." });
+    setIsGroupDialogOpen(false);
+    setGroupStudents([]);
+    setGroupTeachers([]);
+  };
+
+  const handleCancel = (slotId: string, teacherId?: string) => {
+    const tid = teacherId || selectedTeacherId;
+    cancelBooking(tid, date, slotId);
+    toast({ title: "Reserva Cancelada", description: "El espacio ha sido liberado." });
+  };
+
+  const handleToggleStatus = (slot: any, teacherId?: string) => {
+    const tid = teacherId || selectedTeacherId;
+    const newStatus = slot.status === 'completed' ? 'pending' : 'completed';
+    setSlotStatus(tid, dateStrKey, slot.id, newStatus);
+    toast({ 
+      title: newStatus === 'completed' ? "Clase Validada ✅" : "Estado Actualizado",
+      description: newStatus === 'completed' ? "Se han sumado puntos al alumno." : "La clase vuelve a estar pendiente."
+    });
   };
 
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -663,7 +721,7 @@ export default function SchedulePage() {
                                       )
                                     }}
                                   />
-                                  <label htmlFor={`teacher-invite-${t.id}`} className="text-sm font-bold Bird-none cursor-pointer">
+                                  <label htmlFor={`teacher-invite-${t.id}`} className="text-sm font-bold cursor-pointer">
                                     {t.name}
                                   </label>
                                 </div>
@@ -736,7 +794,7 @@ export default function SchedulePage() {
                     <Plus className="w-5 h-5" /> Nueva Reserva Rápida
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="rounded-[2.5rem] max-w-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                <DialogContent className="rounded-[2.5rem] max-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                   <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
                     <DialogTitle className="text-2xl font-black text-foreground">Agendar Sesión 🎵</DialogTitle>
                     <DialogDescription className="space-y-1">
