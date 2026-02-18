@@ -49,7 +49,7 @@ import { useCompletionStore } from '@/lib/completion-store';
 import { useResourceStore } from '@/lib/resource-store';
 import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { cn } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -136,6 +136,7 @@ export default function StudentDashboard() {
   
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
   const { completions, getCompletionStatus } = useCompletionStore();
   const { resources } = useResourceStore();
@@ -148,7 +149,12 @@ export default function StudentDashboard() {
     setTodayTimestamp(startOfToday.getTime());
     setCurrentTime(now);
     setSelectedDate(now);
-  }, []);
+
+    // Auto-abrir diálogo de reserva si viene del Hero
+    if (searchParams.get('book') === 'true') {
+      setIsOpen(true);
+    }
+  }, [searchParams]);
 
   const activeZones = useMemo(() => settings.zones || FALLBACK_ZONES, [settings]);
 

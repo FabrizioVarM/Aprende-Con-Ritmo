@@ -7,7 +7,7 @@ import StudentDashboard from '@/components/dashboard/StudentDashboard';
 import TeacherDashboard from '@/components/dashboard/TeacherDashboard';
 import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 
 export default function DashboardPage() {
   const { user, firebaseUser, loading } = useAuth();
@@ -28,9 +28,11 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      {user.role === 'student' && <StudentDashboard />}
-      {user.role === 'teacher' && <TeacherDashboard />}
-      {user.role === 'admin' && <AdminDashboard />}
+      <Suspense fallback={null}>
+        {user.role === 'student' && <StudentDashboard />}
+        {user.role === 'teacher' && <TeacherDashboard />}
+        {user.role === 'admin' && <AdminDashboard />}
+      </Suspense>
     </AppLayout>
   );
 }

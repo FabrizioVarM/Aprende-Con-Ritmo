@@ -304,7 +304,13 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-3 pt-2">
               <Button 
                 className="bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-xl h-10 md:h-12 px-6 font-black text-xs md:text-sm shadow-lg transition-all hover:scale-105 active:scale-95 border-2 border-white group" 
-                onClick={() => router.push('/schedule')}
+                onClick={() => {
+                  if (user?.role === 'student') {
+                    router.push('/dashboard?book=true');
+                  } else {
+                    router.push('/dashboard');
+                  }
+                }}
               >
                 <Music className="w-4 h-4 mr-2 animate-bounce group-hover:animate-spin" /> ¡Reserva tu Clase Ahora!
               </Button>
