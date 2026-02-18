@@ -317,6 +317,7 @@ export default function HomePage() {
               <Button 
                 variant="outline"
                 className="border-white/30 bg-white/10 hover:bg-white/20 text-white rounded-xl h-10 md:h-12 px-6 font-black text-xs md:text-sm backdrop-blur-sm transition-transform active:scale-95 border-2"
+                onClick={() => router.push('/about')}
               >
                 Sobre Nosotros
               </Button>
@@ -945,7 +946,7 @@ export default function HomePage() {
             </div>
           </div>
           <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3 shrink-0">
-            <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground" onClick={() => setIsArticleModalOpen(false)}>Cancelar</Button>
+            <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
             <Button className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20" onClick={handleSaveArticle}>
               {editingArticle ? 'Guardar Cambios' : 'Publicar Ahora'}
             </Button>
