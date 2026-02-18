@@ -18,13 +18,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'plus.unsplash.com',
+        hostname: '**.unsplash.com',
         port: '',
         pathname: '/**',
       },
@@ -36,25 +30,25 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'img.freepik.com',
+        hostname: '**.freepik.com',
         port: '',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'pikaso.cdnpk.net',
+        hostname: '**.cdnpk.net',
         port: '',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'images.pexels.com',
+        hostname: '**.pexels.com',
         port: '',
         pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'cdn.pixabay.com',
+        hostname: '**.pixabay.com',
         port: '',
         pathname: '/**',
       },
@@ -66,7 +60,13 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
+        hostname: '**.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.gstatic.com',
         port: '',
         pathname: '/**',
       },
@@ -78,7 +78,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'thumbs.dreamstime.com',
+        hostname: '**.dreamstime.com',
         port: '',
         pathname: '/**',
       },
