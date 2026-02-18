@@ -253,12 +253,13 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Modal de Detalle de Noticia */}
+      {/* Modal de Detalle de Noticia - Redimensionado para mayor compacidad */}
       <Dialog open={!!selectedNews} onOpenChange={(open) => !open && setSelectedNews(null)}>
         <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden bg-card flex flex-col max-h-[90vh]">
           {selectedNews && (
             <>
-              <div className="relative aspect-video w-full shrink-0">
+              {/* Imagen con altura controlada en lugar de relación de aspecto fija */}
+              <div className="relative h-48 md:h-64 w-full shrink-0">
                 <Image 
                   src={selectedNews.image} 
                   alt={selectedNews.title} 
@@ -278,24 +279,24 @@ export default function HomePage() {
                 </button>
               </div>
               
-              <div className="p-8 space-y-6 overflow-y-auto">
+              <div className="p-6 md:p-8 space-y-6 overflow-y-auto">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-[0.2em]">
                     <Clock className="w-3.5 h-3.5" />
                     Publicado: {selectedNews.date}
                   </div>
                   <DialogHeader>
-                    <DialogTitle className="text-3xl md:text-4xl font-black text-foreground leading-tight">
+                    <DialogTitle className="text-2xl md:text-3xl font-black text-foreground leading-tight">
                       {selectedNews.title}
                     </DialogTitle>
                   </DialogHeader>
                 </div>
 
                 <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <p className="text-lg font-bold text-foreground leading-relaxed">
+                  <p className="text-base md:text-lg font-bold text-foreground leading-relaxed">
                     {selectedNews.content}
                   </p>
-                  <div className="h-px w-full bg-primary/10 my-6" />
+                  <div className="h-px w-full bg-primary/10 my-4 md:my-6" />
                   <p className="text-muted-foreground font-medium leading-relaxed whitespace-pre-wrap">
                     {selectedNews.fullContent || "Pronto tendremos más detalles sobre esta publicación. ¡Mantente atento a las actualizaciones de la academia!"}
                   </p>
@@ -311,7 +312,7 @@ export default function HomePage() {
                       <p className="text-xs font-bold text-foreground">Aprende con Ritmo</p>
                     </div>
                   </div>
-                  <Button variant="outline" className="rounded-xl font-black gap-2 border-2">
+                  <Button variant="outline" className="rounded-xl font-black gap-2 border-2 text-xs md:text-sm">
                     <Share2 className="w-4 h-4" /> Compartir
                   </Button>
                 </div>
