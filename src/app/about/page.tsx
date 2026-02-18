@@ -244,7 +244,7 @@ export default function AboutPage() {
 
       {/* Admin: Modal de Edición de Sobre Nosotros */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="rounded-[2.5rem] max-w-3xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+        <DialogContent className="rounded-[2.5rem] max-w-3xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[90vh] max-h-[90vh]">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <Edit2 className="w-6 h-6 text-accent" />
@@ -261,162 +261,160 @@ export default function AboutPage() {
               <TabsTrigger value="footer" className="rounded-lg font-black text-[10px] uppercase">Cierre</TabsTrigger>
             </TabsList>
 
-            <ScrollArea className="flex-1 min-h-0">
-              <div className="p-8">
-                <TabsContent value="hero" className="space-y-6 m-0 outline-none">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Etiqueta (Badge)</Label>
-                      <Input 
-                        value={tempAbout.heroBadge} 
-                        onChange={(e) => setTempAbout(prev => ({...prev, heroBadge: e.target.value}))}
-                        className="h-12 rounded-xl border-2 font-bold"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título Principal</Label>
-                      <Input 
-                        value={tempAbout.heroTitle} 
-                        onChange={(e) => setTempAbout(prev => ({...prev, heroTitle: e.target.value}))}
-                        className="h-12 rounded-xl border-2 font-bold"
-                      />
-                    </div>
-                  </div>
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <TabsContent value="hero" className="space-y-6 m-0 outline-none p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Descripción de Identidad</Label>
-                    <Textarea 
-                      value={tempAbout.heroSubtitle} 
-                      onChange={(e) => setTempAbout(prev => ({...prev, heroSubtitle: e.target.value}))}
-                      className="min-h-[100px] rounded-xl border-2 font-bold p-4"
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Etiqueta (Badge)</Label>
+                    <Input 
+                      value={tempAbout.heroBadge} 
+                      onChange={(e) => setTempAbout(prev => ({...prev, heroBadge: e.target.value}))}
+                      className="h-12 rounded-xl border-2 font-bold"
                     />
                   </div>
-                </TabsContent>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título Principal</Label>
+                    <Input 
+                      value={tempAbout.heroTitle} 
+                      onChange={(e) => setTempAbout(prev => ({...prev, heroTitle: e.target.value}))}
+                      className="h-12 rounded-xl border-2 font-bold"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Descripción de Identidad</Label>
+                  <Textarea 
+                    value={tempAbout.heroSubtitle} 
+                    onChange={(e) => setTempAbout(prev => ({...prev, heroSubtitle: e.target.value}))}
+                    className="min-h-[100px] rounded-xl border-2 font-bold p-4"
+                  />
+                </div>
+              </TabsContent>
 
-                <TabsContent value="values" className="space-y-6 m-0 outline-none">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Tarjetas de Valores</h3>
-                    <Button size="sm" variant="outline" onClick={addValue} className="rounded-lg border-2 h-8 text-[10px] font-black uppercase">
-                      <Plus className="w-3 h-3 mr-1" /> Añadir Valor
+              <TabsContent value="values" className="space-y-6 m-0 outline-none p-8">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Tarjetas de Valores</h3>
+                  <Button size="sm" variant="outline" onClick={addValue} className="rounded-lg border-2 h-8 text-[10px] font-black uppercase">
+                    <Plus className="w-3 h-3 mr-1" /> Añadir Valor
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {tempAbout.values.map((v, i) => (
+                    <div key={i} className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 space-y-3 relative group">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeValue(i)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <Input 
+                        value={v.title} 
+                        onChange={(e) => updateValue(i, 'title', e.target.value)}
+                        className="h-10 rounded-lg border-2 font-black text-sm"
+                        placeholder="Título del Valor"
+                      />
+                      <Textarea 
+                        value={v.desc} 
+                        onChange={(e) => updateValue(i, 'desc', e.target.value)}
+                        className="min-h-[60px] rounded-lg border-2 font-bold text-xs"
+                        placeholder="Descripción corta"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="guide" className="space-y-6 m-0 outline-none p-8">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título de la Sección</Label>
+                    <Input 
+                      value={tempAbout.guideTitle} 
+                      onChange={(e) => setTempAbout(prev => ({...prev, guideTitle: e.target.value}))}
+                      className="h-12 rounded-xl border-2 font-bold"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-4">
+                    <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Guía por Sección</h3>
+                    <Button size="sm" variant="outline" onClick={addGuideItem} className="rounded-lg border-2 h-8 text-[10px] font-black uppercase">
+                      <Plus className="w-3 h-3 mr-1" /> Añadir Sección
                     </Button>
                   </div>
-                  <div className="space-y-4">
-                    {tempAbout.values.map((v, i) => (
-                      <div key={i} className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 space-y-3 relative group">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="absolute top-2 right-2 h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeValue(i)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                        <Input 
-                          value={v.title} 
-                          onChange={(e) => updateValue(i, 'title', e.target.value)}
-                          className="h-10 rounded-lg border-2 font-black text-sm"
-                          placeholder="Título del Valor"
-                        />
-                        <Textarea 
-                          value={v.desc} 
-                          onChange={(e) => updateValue(i, 'desc', e.target.value)}
-                          className="min-h-[60px] rounded-lg border-2 font-bold text-xs"
-                          placeholder="Descripción corta"
-                        />
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {tempAbout.guideItems.map((f, i) => (
+                      <div key={i} className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 space-y-3 group">
+                        <div className="flex gap-3">
+                          <div className="space-y-2 flex-1">
+                            <Label className="text-[8px] font-black uppercase text-muted-foreground">Título</Label>
+                            <Input 
+                              value={f.title} 
+                              onChange={(e) => updateGuideItem(i, 'title', e.target.value)}
+                              className="h-10 rounded-lg border-2 font-black text-sm"
+                            />
+                          </div>
+                          <div className="space-y-2 w-32">
+                            <Label className="text-[8px] font-black uppercase text-muted-foreground">Icono (Lucide)</Label>
+                            <Select value={f.icon} onValueChange={(val) => updateGuideItem(i, 'icon', val)}>
+                              <SelectTrigger className="h-10 rounded-lg border-2 font-bold text-[10px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                {Object.keys(ICON_MAP).map(iconName => (
+                                  <SelectItem key={iconName} value={iconName} className="font-bold text-[10px] uppercase">
+                                    {iconName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="mt-6 h-10 w-10 text-destructive hover:bg-destructive/10"
+                            onClick={() => removeGuideItem(i)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[8px] font-black uppercase text-muted-foreground">Descripción del Módulo</Label>
+                          <Textarea 
+                            value={f.desc} 
+                            onChange={(e) => updateGuideItem(i, 'desc', e.target.value)}
+                            className="min-h-[60px] rounded-lg border-2 font-bold text-xs"
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
-                </TabsContent>
+                </div>
+              </TabsContent>
 
-                <TabsContent value="guide" className="space-y-6 m-0 outline-none">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título de la Sección</Label>
-                      <Input 
-                        value={tempAbout.guideTitle} 
-                        onChange={(e) => setTempAbout(prev => ({...prev, guideTitle: e.target.value}))}
-                        className="h-12 rounded-xl border-2 font-bold"
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between pt-4">
-                      <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Guía por Sección</h3>
-                      <Button size="sm" variant="outline" onClick={addGuideItem} className="rounded-lg border-2 h-8 text-[10px] font-black uppercase">
-                        <Plus className="w-3 h-3 mr-1" /> Añadir Sección
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4">
-                      {tempAbout.guideItems.map((f, i) => (
-                        <div key={i} className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 space-y-3 group">
-                          <div className="flex gap-3">
-                            <div className="space-y-2 flex-1">
-                              <Label className="text-[8px] font-black uppercase text-muted-foreground">Título</Label>
-                              <Input 
-                                value={f.title} 
-                                onChange={(e) => updateGuideItem(i, 'title', e.target.value)}
-                                className="h-10 rounded-lg border-2 font-black text-sm"
-                              />
-                            </div>
-                            <div className="space-y-2 w-32">
-                              <Label className="text-[8px] font-black uppercase text-muted-foreground">Icono (Lucide)</Label>
-                              <Select value={f.icon} onValueChange={(val) => updateGuideItem(i, 'icon', val)}>
-                                <SelectTrigger className="h-10 rounded-lg border-2 font-bold text-[10px]">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-xl">
-                                  {Object.keys(ICON_MAP).map(iconName => (
-                                    <SelectItem key={iconName} value={iconName} className="font-bold text-[10px] uppercase">
-                                      {iconName}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="mt-6 h-10 w-10 text-destructive hover:bg-destructive/10"
-                              onClick={() => removeGuideItem(i)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-[8px] font-black uppercase text-muted-foreground">Descripción del Módulo</Label>
-                            <Textarea 
-                              value={f.desc} 
-                              onChange={(e) => updateGuideItem(i, 'desc', e.target.value)}
-                              className="min-h-[60px] rounded-lg border-2 font-bold text-xs"
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+              <TabsContent value="footer" className="space-y-6 m-0 outline-none p-8">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título de Cierre</Label>
+                    <Input 
+                      value={tempAbout.footerTitle} 
+                      onChange={(e) => setTempAbout(prev => ({...prev, footerTitle: e.target.value}))}
+                      className="h-12 rounded-xl border-2 font-bold"
+                    />
                   </div>
-                </TabsContent>
-
-                <TabsContent value="footer" className="space-y-6 m-0 outline-none">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título de Cierre</Label>
-                      <Input 
-                        value={tempAbout.footerTitle} 
-                        onChange={(e) => setTempAbout(prev => ({...prev, footerTitle: e.target.value}))}
-                        className="h-12 rounded-xl border-2 font-bold"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Descripción de Cierre</Label>
-                      <Textarea 
-                        value={tempAbout.footerSubtitle} 
-                        onChange={(e) => setTempAbout(prev => ({...prev, footerSubtitle: e.target.value}))}
-                        className="min-h-[100px] rounded-xl border-2 font-bold p-4"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Descripción de Cierre</Label>
+                    <Textarea 
+                      value={tempAbout.footerSubtitle} 
+                      onChange={(e) => setTempAbout(prev => ({...prev, footerSubtitle: e.target.value}))}
+                      className="min-h-[100px] rounded-xl border-2 font-bold p-4"
+                    />
                   </div>
-                </TabsContent>
-              </div>
-            </ScrollArea>
+                </div>
+              </TabsContent>
+            </div>
           </Tabs>
 
           <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3 shrink-0">
