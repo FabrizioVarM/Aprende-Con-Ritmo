@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -22,8 +21,17 @@ import {
   Info,
   Clock,
   ShoppingBag,
-  Gift
+  Gift,
+  X,
+  Share2
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +40,7 @@ interface NewsItem {
   tag: string;
   title: string;
   content: string;
+  fullContent?: string;
   image: string;
   date: string;
   type: 'news' | 'event' | 'update';
@@ -43,6 +52,7 @@ const NEWS_MOCK: NewsItem[] = [
     tag: 'Evento Próximo',
     title: 'Recital de Invierno 2025 🎹',
     content: '¡Prepárate para nuestra gala anual! Todos los alumnos están invitados a participar. Las inscripciones para solistas ya están abiertas en la pestaña de postulaciones.',
+    fullContent: 'Nuestro Recital de Invierno es el evento más esperado del año. En esta edición 2025, contaremos con una puesta en escena profesional, grabación multi-cámara para todos los participantes y un jurado invitado de la Sinfónica Nacional. Alumnos de todos los niveles pueden inscribirse. El repertorio es libre, pero sugerimos coordinar con sus profesores para pulir sus interpretaciones en las próximas semanas.',
     image: 'https://picsum.photos/seed/recital/800/400',
     date: '20 de Julio, 2025',
     type: 'event'
@@ -52,6 +62,7 @@ const NEWS_MOCK: NewsItem[] = [
     tag: 'Nueva Función',
     title: '¡Editor de Perfil Mejorado! ✨',
     content: 'Ahora puedes ajustar el zoom y el encuadre de tu foto de perfil directamente desde la aplicación. ¡Haz que tu imagen musical luzca profesional!',
+    fullContent: 'Hemos escuchado sus sugerencias y ahora el sistema de fotos de perfil permite un control total. Al subir o editar tu foto, se activará un editor dinámico donde podrás rotar, hacer zoom y desplazar la imagen para que encaje perfectamente en el círculo de identidad. Esta función utiliza procesamiento local para garantizar que tu imagen se guarde exactamente como la ves.',
     image: 'https://picsum.photos/seed/update1/800/400',
     date: 'Hoy',
     type: 'update'
@@ -61,6 +72,7 @@ const NEWS_MOCK: NewsItem[] = [
     tag: 'Academia',
     title: 'Nuevos Materiales de Teoría 📖',
     content: 'Hemos añadido 5 nuevos libros interactivos a la biblioteca para ayudarte con la lectura de pentagrama y armonía moderna.',
+    fullContent: 'La biblioteca digital sigue creciendo. Hemos incorporado la colección "Armonía Moderna: Del Jazz al Pop", una serie de libros interactivos donde puedes escuchar los ejemplos musicales mientras lees. También se han añadido guías prácticas de solfeo rítmico y entrenamiento auditivo avanzado. Todos estos materiales ya están disponibles para descarga en formato PDF y para consulta online en la pestaña de Biblioteca.',
     image: 'https://picsum.photos/seed/library/800/400',
     date: 'Hace 2 días',
     type: 'news'
@@ -71,6 +83,7 @@ export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -129,7 +142,11 @@ export default function HomePage() {
 
             <div className="space-y-6">
               {NEWS_MOCK.map((item) => (
-                <Card key={item.id} className="rounded-[1.5rem] md:rounded-[2rem] border-2 border-primary/20 shadow-sm hover:shadow-lg hover:border-accent/20 transition-all duration-500 group overflow-hidden bg-card">
+                <Card 
+                  key={item.id} 
+                  className="rounded-[1.5rem] md:rounded-[2rem] border-2 border-primary/20 shadow-sm hover:shadow-lg hover:border-accent/40 transition-all duration-500 group overflow-hidden bg-card cursor-pointer"
+                  onClick={() => setSelectedNews(item)}
+                >
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
                     <div className="md:col-span-2 relative h-64 md:h-full min-h-[200px] overflow-hidden">
                       <Image 
@@ -235,6 +252,74 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Detalle de Noticia */}
+      <Dialog open={!!selectedNews} onOpenChange={(open) => !open && setSelectedNews(null)}>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden bg-card flex flex-col max-h-[90vh]">
+          {selectedNews && (
+            <>
+              <div className="relative aspect-video w-full shrink-0">
+                <Image 
+                  src={selectedNews.image} 
+                  alt={selectedNews.title} 
+                  fill 
+                  className="object-cover"
+                />
+                <div className="absolute top-4 left-4">
+                  <Badge className="bg-white/95 text-accent rounded-full font-black px-3 py-1 shadow-md border-none text-[10px] uppercase tracking-widest">
+                    {selectedNews.tag}
+                  </Badge>
+                </div>
+                <button 
+                  onClick={() => setSelectedNews(null)}
+                  className="absolute top-4 right-4 bg-black/20 backdrop-blur-md hover:bg-black/40 text-white p-2 rounded-full transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="p-8 space-y-6 overflow-y-auto">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-[0.2em]">
+                    <Clock className="w-3.5 h-3.5" />
+                    Publicado: {selectedNews.date}
+                  </div>
+                  <DialogHeader>
+                    <DialogTitle className="text-3xl md:text-4xl font-black text-foreground leading-tight">
+                      {selectedNews.title}
+                    </DialogTitle>
+                  </DialogHeader>
+                </div>
+
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="text-lg font-bold text-foreground leading-relaxed">
+                    {selectedNews.content}
+                  </p>
+                  <div className="h-px w-full bg-primary/10 my-6" />
+                  <p className="text-muted-foreground font-medium leading-relaxed whitespace-pre-wrap">
+                    {selectedNews.fullContent || "Pronto tendremos más detalles sobre esta publicación. ¡Mantente atento a las actualizaciones de la academia!"}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-6 border-t border-primary/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+                      <Music className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-muted-foreground leading-none">Academia</p>
+                      <p className="text-xs font-bold text-foreground">Aprende con Ritmo</p>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="rounded-xl font-black gap-2 border-2">
+                    <Share2 className="w-4 h-4" /> Compartir
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
