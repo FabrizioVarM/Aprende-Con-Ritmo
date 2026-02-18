@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, onSnapshot, collection } from 'firebase/firestore';
+import { Firestore, doc, onSnapshot, collection, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
@@ -26,7 +27,8 @@ export interface UserProfile {
   phone?: string;
   fcmToken?: string;
   canManageLibrary?: boolean;
-  currentZone?: string; // Nueva propiedad para ubicación del profesor
+  currentZone?: string; 
+  lastSeen?: string; // Última conexión
   photoTransform?: {
     scale: number;
     x: number;
@@ -102,6 +104,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         if (firebaseUser) {
           // Asegurar que el estado de carga esté activo mientras esperamos al perfil
           setUserAuthState(prev => ({ ...prev, user: firebaseUser, isUserLoading: true }));
+
+          // Actualizar marca de última conexión
+          const userRef = doc(firestore, 'users', firebaseUser.uid);
+          setDoc(userRef, { lastSeen: new Date().toISOString() }, { merge: true });
 
           // 1. Escucha en TIEMPO REAL del perfil del usuario logueado
           const profileRef = doc(firestore, 'users', firebaseUser.uid);

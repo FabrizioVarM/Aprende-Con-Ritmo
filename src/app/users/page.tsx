@@ -44,7 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock, Phone, ShieldCheck, Library } from 'lucide-react';
+import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock, Phone, ShieldCheck, Library, Clock } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -58,7 +58,7 @@ import {
   TabsContent, 
   TabsList, 
   TabsTrigger 
-} from '@/components/ui/tabs';
+} from '@/tabs';
 import { cn } from '@/lib/utils';
 import { useAuth, User, UserRole } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
@@ -66,6 +66,33 @@ import { useToast } from '@/hooks/use-toast';
 const INSTRUMENTS_LIST = [
   'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
 ];
+
+/**
+ * Formatea una fecha ISO a una cadena de tiempo relativo.
+ */
+const formatLastSeen = (isoString?: string) => {
+  if (!isoString) return 'Nunca';
+  
+  try {
+    const lastSeen = new Date(isoString).getTime();
+    const now = new Date().getTime();
+    const diff = now - lastSeen;
+    
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (minutes < 1) return 'ahora mismo';
+    if (minutes < 60) return `hace ${minutes} min`;
+    if (hours < 24) return `hace ${hours} h`;
+    if (days === 1) return 'ayer';
+    if (days < 7) return `hace ${days} días`;
+    
+    return new Date(isoString).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  } catch (e) {
+    return 'Recientemente';
+  }
+};
 
 function UsersContent() {
   const { allUsers, adminUpdateUser, adminAddUser, adminDeleteUser, loading, user: currentUser } = useAuth();
@@ -245,7 +272,7 @@ function UsersContent() {
           <TableRow>
             <TableHead className="w-[300px] font-black uppercase text-[10px] tracking-widest text-muted-foreground">Usuario</TableHead>
             <TableHead className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Rol</TableHead>
-            <TableHead className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Estado</TableHead>
+            <TableHead className="font-black uppercase text-[10px] tracking-widest text-muted-foreground">Última Conexión</TableHead>
             <TableHead className="text-right font-black uppercase text-[10px] tracking-widest text-muted-foreground">Acciones</TableHead>
           </TableRow>
         </TableHeader>
@@ -287,10 +314,12 @@ function UsersContent() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-black text-green-600 uppercase tracking-widest">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-600" />
-                    Activo
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-accent" />
+                    <span className="text-xs font-black text-foreground uppercase tracking-widest">
+                      {formatLastSeen(u.lastSeen)}
+                    </span>
+                  </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

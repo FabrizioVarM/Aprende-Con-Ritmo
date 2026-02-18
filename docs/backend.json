@@ -25,7 +25,8 @@
         },
         "fcmToken": { "type": "string", "description": "Token para notificaciones push (FCM)." },
         "canManageLibrary": { "type": "boolean", "description": "Si el profesor tiene permiso para crear/editar materiales." },
-        "currentZone": { "type": "string", "description": "Ubicación actual del profesor para cálculo de márgenes." }
+        "currentZone": { "type": "string", "description": "Ubicación actual del profesor para cálculo de márgenes." },
+        "lastSeen": { "type": "string", "format": "date-time", "description": "Última vez que el usuario abrió la aplicación." }
       },
       "required": ["id", "name", "email", "role"]
     },
