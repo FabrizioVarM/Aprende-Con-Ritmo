@@ -136,6 +136,7 @@
         "heroTitle": { "type": "string" },
         "heroSubtitle": { "type": "string" },
         "heroBadge": { "type": "string" },
+        "heroImages": { "type": "array", "items": { "type": "string" }, "description": "URLs de imágenes para el carrusel de fondo del hero." },
         "showProduction": { "type": "boolean" },
         "enableProduction": { "type": "boolean" },
         "showRewards": { "type": "boolean" },

@@ -26,6 +26,7 @@ export interface AppSettings {
   heroTitle?: string;
   heroSubtitle?: string;
   heroBadge?: string;
+  heroImages?: string[];
   newsSectionTitle?: string;
   // Textos de Módulos en Inicio
   moduleMarketTitle?: string;
@@ -55,6 +56,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   heroTitle: 'Tu aventura musical continúa aquí 🎼',
   heroSubtitle: 'Explora las últimas noticias, eventos y actualizaciones de Aprende con Ritmo.',
   heroBadge: 'Novedades de la Academia',
+  heroImages: [
+    'https://picsum.photos/seed/music1/1200/600',
+    'https://picsum.photos/seed/music2/1200/600',
+    'https://picsum.photos/seed/music3/1200/600'
+  ],
   newsSectionTitle: 'Lo Último en Ritmo',
   moduleMarketTitle: 'RitmoMarket',
   moduleMarketDesc: 'Tienda de accesorios',

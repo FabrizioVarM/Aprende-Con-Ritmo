@@ -59,6 +59,24 @@ export default function HomePage() {
   const [isMounted, setIsMounted] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsArticle | null>(null);
   
+  // Carousel logic for Hero background
+  const [currentHeroImageIndex, setCurrentHeroImageIndex] = useState(0);
+  const heroImages = settings.heroImages || [];
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentHeroImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [heroImages]);
+
+  const isAdmin = user?.role === 'admin';
+
   // Admin Editing States
   const [isHeroEditing, setIsHeroEditing] = useState(false);
   const [tempHero, setTempHero] = useState({ 
@@ -72,7 +90,8 @@ export default function HomePage() {
     prodDesc: '',
     rewTitle: '',
     rewDesc: '',
-    footerInfo: ''
+    footerInfo: '',
+    heroImages: [] as string[]
   });
 
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
@@ -88,12 +107,6 @@ export default function HomePage() {
     date: ''
   });
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const isAdmin = user?.role === 'admin';
-
   const handleEditHero = () => {
     setTempHero({
       title: settings.heroTitle || '',
@@ -106,7 +119,8 @@ export default function HomePage() {
       prodDesc: settings.moduleProductionDesc || 'Graba tus clases en HD',
       rewTitle: settings.moduleRewardsTitle || 'Recompensas',
       rewDesc: settings.moduleRewardsDesc || 'Canjea tus puntos',
-      footerInfo: settings.moduleFooterInfo || 'Administración trabaja en pasarelas de pago y sistemas de recompensas.'
+      footerInfo: settings.moduleFooterInfo || 'Administración trabaja en pasarelas de pago y sistemas de recompensas.',
+      heroImages: settings.heroImages || []
     });
     setIsHeroEditing(true);
   };
@@ -123,10 +137,29 @@ export default function HomePage() {
       moduleProductionDesc: tempHero.prodDesc,
       moduleRewardsTitle: tempHero.rewTitle,
       moduleRewardsDesc: tempHero.rewDesc,
-      moduleFooterInfo: tempHero.footerInfo
+      moduleFooterInfo: tempHero.footerInfo,
+      heroImages: tempHero.heroImages
     });
     setIsHeroEditing(false);
     toast({ title: "Contenidos Actualizados ✨", description: "Los cambios han sido guardados." });
+  };
+
+  const handleAddHeroImage = () => {
+    setTempHero(prev => ({
+      ...prev,
+      heroImages: [...prev.heroImages, '']
+    }));
+  };
+
+  const handleUpdateHeroImage = (index: number, value: string) => {
+    const newImages = [...tempHero.heroImages];
+    newImages[index] = value;
+    setTempHero(prev => ({ ...prev, heroImages: newImages }));
+  };
+
+  const handleRemoveHeroImage = (index: number) => {
+    const newImages = tempHero.heroImages.filter((_, i) => i !== index);
+    setTempHero(prev => ({ ...prev, heroImages: newImages }));
   };
 
   const openCreateArticle = () => {
@@ -199,8 +232,31 @@ export default function HomePage() {
   return (
     <AppLayout>
       <div className="space-y-6 md:space-y-8">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] bg-accent p-6 md:p-10 text-white shadow-xl shadow-accent/20 group">
+        {/* Hero Section with Editable Background Carousel */}
+        <section className="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] bg-accent p-6 md:p-10 text-white shadow-xl shadow-accent/20 group min-h-[300px] flex flex-col justify-center">
+          {/* Background Image Carousel */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            {heroImages.length > 0 ? heroImages.map((img, idx) => (
+              <div 
+                key={idx}
+                className={cn(
+                  "absolute inset-0 transition-opacity duration-1000 ease-in-out",
+                  idx === currentHeroImageIndex ? "opacity-100" : "opacity-0"
+                )}
+              >
+                <Image 
+                  src={img} 
+                  alt={`Hero ${idx}`}
+                  fill
+                  className="object-cover brightness-[0.4]"
+                  priority={idx === 0}
+                />
+              </div>
+            )) : (
+              <div className="absolute inset-0 bg-accent" />
+            )}
+          </div>
+
           {isAdmin && (
             <Button 
               size="icon" 
@@ -215,15 +271,15 @@ export default function HomePage() {
             <Badge className="bg-white/20 hover:bg-white/30 text-white border-none px-3 py-1 backdrop-blur-md font-black text-[10px] uppercase tracking-widest gap-2">
               <Sparkles className="w-3 h-3" /> {settings.heroBadge}
             </Badge>
-            <h1 className="text-2xl md:text-4xl font-black font-headline tracking-tight leading-tight">
+            <h1 className="text-2xl md:text-4xl font-black font-headline tracking-tight leading-tight drop-shadow-md">
               {settings.heroTitle}
             </h1>
-            <p className="text-white/80 text-xs md:text-base font-medium leading-relaxed max-w-md">
+            <p className="text-white/90 text-xs md:text-base font-medium leading-relaxed max-w-md drop-shadow-sm">
               {settings.heroSubtitle}
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <Button 
-                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-xl h-10 md:h-12 px-6 font-black text-xs md:text-sm shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all hover:scale-105 active:scale-95 border-2 border-white group" 
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-xl h-10 md:h-12 px-6 font-black text-xs md:text-sm shadow-lg transition-all hover:scale-105 active:scale-95 border-2 border-white group" 
                 onClick={() => router.push('/schedule')}
               >
                 <Music className="w-4 h-4 mr-2 animate-bounce group-hover:animate-spin" /> ¡Reserva tu Clase Ahora!
@@ -238,7 +294,7 @@ export default function HomePage() {
           </div>
           
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 right-0 hidden lg:block opacity-10 transform translate-x-10 translate-y-10">
+          <div className="absolute bottom-0 right-0 hidden lg:block opacity-10 transform translate-x-10 translate-y-10 z-10">
             <Music size={200} className="text-white" />
           </div>
         </section>
@@ -526,7 +582,7 @@ export default function HomePage() {
               <Edit2 className="w-6 h-6 text-accent" />
               Editar Contenidos de Inicio
             </DialogTitle>
-            <DialogDescription className="font-medium text-muted-foreground">Modifica los mensajes principales y los módulos de comunidad.</DialogDescription>
+            <DialogDescription className="font-medium text-muted-foreground">Modifica los mensajes principales, imágenes de fondo y módulos.</DialogDescription>
           </DialogHeader>
           <ScrollArea className="flex-1 overflow-y-auto">
             <div className="p-8 space-y-8 bg-card">
@@ -568,6 +624,49 @@ export default function HomePage() {
                     onChange={(e) => setTempHero(prev => ({...prev, subtitle: e.target.value}))}
                     className="min-h-[80px] rounded-xl border-2 font-bold p-4 focus:border-accent bg-card text-foreground"
                   />
+                </div>
+
+                <div className="space-y-4 border-t border-primary/10 pt-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <ImageIcon className="w-3 h-3" /> Secuencia de Imágenes de Fondo
+                    </Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 rounded-lg border-2 text-[10px] font-black uppercase px-3"
+                      onClick={handleAddHeroImage}
+                    >
+                      <Plus className="w-3 h-3 mr-1" /> Añadir Imagen
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {tempHero.heroImages.map((url, index) => (
+                      <div key={index} className="flex gap-2 animate-in fade-in slide-in-from-top-1">
+                        <Input 
+                          value={url} 
+                          onChange={(e) => handleUpdateHeroImage(index, e.target.value)}
+                          className="h-10 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground text-xs"
+                          placeholder={`URL Imagen Hero ${index + 1}`}
+                        />
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl"
+                          onClick={() => handleRemoveHeroImage(index)}
+                        >
+                          <Trash className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    {tempHero.heroImages.length === 0 && (
+                      <p className="text-[10px] text-muted-foreground font-medium italic text-center py-2">
+                        Sin imágenes de fondo. Se usará el color base.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
