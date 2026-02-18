@@ -69,7 +69,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Inicio', href: '/home', icon: Home, roles: ['student', 'teacher', 'admin'] },
-  { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'teacher', 'admin'] },
+  { label: 'Panel Personal', href: '/dashboard', icon: LayoutDashboard, roles: ['student', 'teacher', 'admin'] },
   { label: 'Horario', href: '/schedule', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
   { label: 'Biblioteca', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
   { label: 'Progreso', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher', 'admin'] },
