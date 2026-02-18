@@ -63,6 +63,10 @@ import { cn } from '@/lib/utils';
 import { useAuth, User, UserRole } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
 
+const INSTRUMENTS_LIST = [
+  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
+];
+
 /**
  * Formatea una fecha ISO a una cadena de tiempo relativo.
  */
@@ -131,10 +135,12 @@ function UsersContent() {
     }
   }, [searchParams]);
 
-  const filteredUsers = allUsers.filter(user => 
-    user.name.toLowerCase().includes(search.toLowerCase()) ||
-    user.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = allUsers.filter(user => {
+    const name = (user?.name || '').toLowerCase();
+    const email = (user?.email || '').toLowerCase();
+    const searchTerm = (search || '').toLowerCase();
+    return name.includes(searchTerm) || email.includes(searchTerm);
+  });
 
   const students = filteredUsers.filter(u => u.role === 'student');
   const staff = filteredUsers.filter(u => u.role === 'teacher' || u.role === 'admin');
@@ -289,10 +295,10 @@ function UsersContent() {
                       ) : (
                         <AvatarImage src={`https://picsum.photos/seed/${u.avatarSeed || u.id}/100`} style={avatarStyle} />
                       )}
-                      <AvatarFallback className="bg-primary text-secondary-foreground font-black">{u.name[0]}</AvatarFallback>
+                      <AvatarFallback className="bg-primary text-secondary-foreground font-black">{u.name ? u.name[0] : 'U'}</AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="font-black text-foreground">{u.name}</div>
+                      <div className="font-black text-foreground">{u.name || 'Sin nombre'}</div>
                       <div className="text-xs text-muted-foreground font-medium">{u.email}</div>
                     </div>
                   </div>
@@ -574,7 +580,7 @@ function UsersContent() {
                   ) : (
                     <AvatarImage src={`https://picsum.photos/seed/${editAvatarSeed}/150`} style={editPhotoTransform ? { transform: `translate(${editPhotoTransform.x}px, ${editPhotoTransform.y}px) scale(${editPhotoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                   )}
-                  <AvatarFallback className="text-2xl font-black">{editName[0]}</AvatarFallback>
+                  <AvatarFallback className="text-2xl font-black">{editName ? editName[0] : 'U'}</AvatarFallback>
                 </Avatar>
                 <div className="absolute -bottom-2 -right-2 flex flex-col gap-1">
                   <Button 
