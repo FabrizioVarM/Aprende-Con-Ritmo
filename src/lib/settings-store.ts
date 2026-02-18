@@ -20,7 +20,11 @@ export interface AppSettings {
   enableMarket: boolean;
   showPostulations: boolean;
   enablePostulations: boolean;
+  // Zonas configurables
+  zones: string[];
 }
+
+export const FALLBACK_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
 
 const DEFAULT_SETTINGS: AppSettings = {
   appLogoUrl: 'https://picsum.photos/seed/ritmologo/200/200',
@@ -33,7 +37,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   showMarket: true,
   enableMarket: false,
   showPostulations: true,
-  enablePostulations: false
+  enablePostulations: false,
+  zones: FALLBACK_ZONES
 };
 
 export function useSettingsStore() {
@@ -42,7 +47,7 @@ export function useSettingsStore() {
   const db = useFirestore();
 
   useEffect(() => {
-    const cached = localStorage.getItem('ritmo_app_settings_v2');
+    const cached = localStorage.getItem('ritmo_app_settings_v3');
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
@@ -59,7 +64,7 @@ export function useSettingsStore() {
         const data = docSnap.data() as AppSettings;
         const updatedSettings = { ...DEFAULT_SETTINGS, ...data };
         setSettings(updatedSettings);
-        localStorage.setItem('ritmo_app_settings_v2', JSON.stringify(updatedSettings));
+        localStorage.setItem('ritmo_app_settings_v3', JSON.stringify(updatedSettings));
       }
       setLoading(false);
     }, (error) => {
@@ -74,7 +79,7 @@ export function useSettingsStore() {
     
     setSettings(prev => {
       const nextSettings = { ...prev, ...newSettings };
-      localStorage.setItem('ritmo_app_settings_v2', JSON.stringify(nextSettings));
+      localStorage.setItem('ritmo_app_settings_v3', JSON.stringify(nextSettings));
       return nextSettings;
     });
 

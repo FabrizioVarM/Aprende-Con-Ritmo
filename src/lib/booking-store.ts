@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
@@ -22,7 +23,7 @@ export interface TimeSlot {
   teacherName?: string | null;
   instrument?: string | null;
   type: 'virtual' | 'presencial';
-  zone?: string | null; // Zona donde se realiza la clase
+  zone?: string | null; 
   status?: 'pending' | 'completed';
   isGroup?: boolean;
   students?: { id: string, name: string }[] | null;
@@ -36,8 +37,6 @@ export interface DayAvailability {
   slots: TimeSlot[];
 }
 
-export const ACADEMIC_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
-
 export const INITIAL_SLOTS = [
   "08:00 - 09:00", "09:00 - 10:00", "10:00 - 11:00", "11:00 - 12:00",
   "12:00 - 13:00", "14:00 - 15:00", "15:00 - 16:00", "16:00 - 17:00", "17:00 - 18:00"
@@ -50,9 +49,6 @@ const toLocalDateString = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-/**
- * Limpia un objeto de valores undefined antes de enviarlo a Firestore
- */
 function cleanData(obj: any): any {
   if (Array.isArray(obj)) {
     return obj.map(v => cleanData(v));
@@ -200,17 +196,14 @@ export function useBookingStore() {
         }));
       });
 
-    // Enviar notificaciones
     if (targetSlot) {
       const time = targetSlot.time;
       const formattedDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
       
-      // 1. Notificación al Profesor
       const profTitle = "¡Nueva Clase Agendada! 🎸";
       const profBody = `${studentName} ha reservado una clase de ${instrument} para el ${formattedDate} en el horario de ${time}. Zona: ${zone || 'No especificada'}.`;
       addNotification(teacherId, profTitle, profBody, 'booking');
 
-      // 2. Notificación al Admin (si hay IDs proporcionados)
       const adminTitle = "Nueva Reserva en la Academia 🏢";
       const adminBody = `${studentName} reservó con Prof. ${teacherName || 'Docente'} para ${instrument} el ${formattedDate} (${time}) en ${zone || 'Miraflores'}.`;
       
@@ -229,7 +222,7 @@ export function useBookingStore() {
       id: 'group-' + Math.random().toString(36).substring(2, 9),
       time, isAvailable: false, isBooked: true, isGroup: true,
       students: studentList, teachers: teacherList, instrument, type, status: 'pending',
-      zone: type === 'virtual' ? 'Virtual' : 'Centro' // Default zone for group classes
+      zone: type === 'virtual' ? 'Virtual' : 'Sede' 
     };
 
     const slots = existing ? [...existing.slots, newSlot] : [newSlot];

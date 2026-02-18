@@ -24,7 +24,8 @@
           }
         },
         "fcmToken": { "type": "string", "description": "Token para notificaciones push (FCM)." },
-        "canManageLibrary": { "type": "boolean", "description": "Si el profesor tiene permiso para crear/editar materiales." }
+        "canManageLibrary": { "type": "boolean", "description": "Si el profesor tiene permiso para crear/editar materiales." },
+        "currentZone": { "type": "string", "description": "Ubicación actual del profesor para cálculo de márgenes." }
       },
       "required": ["id", "name", "email", "role"]
     },
@@ -121,7 +122,8 @@
         "showMarket": { "type": "boolean" },
         "enableMarket": { "type": "boolean" },
         "showPostulations": { "type": "boolean" },
-        "enablePostulations": { "type": "boolean" }
+        "enablePostulations": { "type": "boolean" },
+        "zones": { "type": "array", "items": { "type": "string" }, "description": "Lista de zonas geográficas configurables por el admin." }
       }
     }
   },

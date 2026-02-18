@@ -8,10 +8,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 import { useSettingsStore } from '@/lib/settings-store';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
-import { Image as ImageIcon, Upload, RefreshCw, Save, ShieldCheck, Moon, Sun, MessageCircle, Phone, LayoutGrid, Mic2, Gift, ShoppingBag, ClipboardList, Eye, Power } from 'lucide-react';
+import { 
+  Image as ImageIcon, 
+  Upload, 
+  RefreshCw, 
+  Save, 
+  ShieldCheck, 
+  Moon, 
+  Sun, 
+  MessageCircle, 
+  Phone, 
+  LayoutGrid, 
+  Mic2, 
+  Gift, 
+  ShoppingBag, 
+  ClipboardList, 
+  Eye, 
+  Power,
+  MapPin,
+  Plus,
+  X
+} from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -35,6 +56,10 @@ export default function SettingsPage() {
   const [enableMark, setEnableMarket] = useState(settings.enableMarket);
   const [showPost, setShowPost] = useState(settings.showPostulations);
   const [enablePost, setEnablePost] = useState(settings.enablePostulations);
+
+  // Dynamic Zones State
+  const [localZones, setLocalZones] = useState<string[]>(settings.zones || []);
+  const [newZoneName, setNewZoneName] = useState('');
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -60,6 +85,7 @@ export default function SettingsPage() {
     setEnableMarket(settings.enableMarket);
     setShowPost(settings.showPostulations);
     setEnablePost(settings.enablePostulations);
+    setLocalZones(settings.zones || []);
   }, [settings]);
 
   const handleSave = () => {
@@ -74,12 +100,29 @@ export default function SettingsPage() {
       showMarket: showMark,
       enableMarket: enableMark,
       showPostulations: showPost,
-      enablePostulations: enablePost
+      enablePostulations: enablePost,
+      zones: localZones
     });
     toast({
       title: "Configuración Guardada ✨",
       description: "Los cambios se han aplicado correctamente en todo el sistema.",
     });
+  };
+
+  const addZone = () => {
+    const trimmed = newZoneName.trim();
+    if (trimmed && !localZones.includes(trimmed)) {
+      setLocalZones([...localZones, trimmed]);
+      setNewZoneName('');
+    }
+  };
+
+  const removeZone = (zone: string) => {
+    if (zone === 'Virtual') {
+      toast({ variant: "destructive", title: "Acción bloqueada", description: "La zona Virtual es obligatoria para las clases online." });
+      return;
+    }
+    setLocalZones(localZones.filter(z => z !== zone));
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,6 +156,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-8">
+          {/* IDENTIDAD VISUAL */}
           <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
@@ -182,6 +226,62 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
+          {/* ZONAS GEOGRÁFICAS */}
+          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
+            <CardHeader className="bg-primary/5 p-8 border-b">
+              <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
+                <MapPin className="w-8 h-8 text-accent" />
+                Zonas de Cobertura
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <div className="bg-accent/5 p-4 rounded-2xl border border-accent/10 mb-2">
+                <p className="text-sm text-muted-foreground font-medium">
+                  Define las zonas donde la academia ofrece clases a domicilio. La zona <span className="font-black text-accent">Virtual</span> es esencial para las clases online y no puede ser eliminada.
+                </p>
+              </div>
+              
+              <div className="flex gap-2">
+                <Input 
+                  value={newZoneName}
+                  onChange={(e) => setNewZoneName(e.target.value)}
+                  placeholder="Nombre de la zona (ej: San Borja)"
+                  className="h-14 rounded-2xl border-2 font-bold px-6 focus:border-accent bg-card text-foreground"
+                  onKeyDown={(e) => e.key === 'Enter' && addZone()}
+                />
+                <Button onClick={addZone} className="bg-accent text-white h-14 px-8 rounded-2xl font-black shadow-lg shadow-accent/20 hover:scale-105 transition-all">
+                  <Plus className="w-5 h-5 mr-2" /> Agregar
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-4">
+                {localZones.map((zone) => (
+                  <Badge 
+                    key={zone} 
+                    variant="secondary" 
+                    className="h-12 pl-5 pr-3 rounded-2xl border-2 border-primary/10 bg-primary/5 text-foreground font-bold flex items-center gap-3 shadow-sm hover:border-accent/30 transition-all group"
+                  >
+                    <span className="text-sm">{zone}</span>
+                    {zone !== 'Virtual' ? (
+                      <button 
+                        onClick={() => removeZone(zone)}
+                        className="bg-white dark:bg-slate-800 p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors shadow-sm"
+                        title="Eliminar zona"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    ) : (
+                      <div className="p-1.5 rounded-lg opacity-30">
+                        <Save className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* GESTIÓN DE MÓDULOS */}
           <Card className="rounded-[2.5rem] border-2 border-accent/20 shadow-md bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-accent/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
@@ -238,6 +338,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
+          {/* CANALES DE COMUNICACIÓN */}
           <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">

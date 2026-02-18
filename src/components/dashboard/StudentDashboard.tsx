@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -42,10 +43,11 @@ import {
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useBookingStore, ACADEMIC_ZONES } from '@/lib/booking-store';
+import { useBookingStore } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useResourceStore } from '@/lib/resource-store';
+import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
@@ -119,12 +121,13 @@ const getTimePeriod = (timeStr: string) => {
 
 export default function StudentDashboard() {
   const { user, getTeachers, allUsers } = useAuth();
+  const { settings } = useSettingsStore();
   const [isMounted, setIsMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<string>('Guitarra');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedZone, setSelectedZone] = useState<string>('Miraflores');
+  const [selectedZone, setSelectedZone] = useState<string>('');
   const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio'>('domicilio');
   const [todayStr, setTodayStr] = useState<string>('');
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
@@ -146,6 +149,15 @@ export default function StudentDashboard() {
     setCurrentTime(now);
     setSelectedDate(now);
   }, []);
+
+  const activeZones = useMemo(() => settings.zones || FALLBACK_ZONES, [settings]);
+
+  useEffect(() => {
+    if (activeZones.length > 0 && !selectedZone) {
+      const firstNonVirtual = activeZones.find(z => z !== 'Virtual') || activeZones[0];
+      setSelectedZone(firstNonVirtual);
+    }
+  }, [activeZones, selectedZone]);
 
   const teachers = useMemo(() => getTeachers(), [getTeachers]);
   const adminIds = useMemo(() => allUsers.filter(u => u.role === 'admin').map(u => u.id), [allUsers]);
@@ -197,7 +209,6 @@ export default function StudentDashboard() {
   };
 
   const getSlotTravelMarginError = (slot: any) => {
-    // No travel margin for virtual modality
     if (selectedModality === 'virtual' || slot.type === 'virtual') return null;
 
     const teacher = teachers.find(t => t.id === selectedTeacherId);
@@ -206,7 +217,6 @@ export default function StudentDashboard() {
     const slotIndex = availability.slots.findIndex(s => s.id === slot.id);
     if (slotIndex === -1) return null;
 
-    // 1. Check Previous Slot
     if (slotIndex > 0) {
       const prev = availability.slots[slotIndex - 1];
       if (prev.isBooked && prev.zone && prev.zone !== selectedZone && prev.zone !== 'Virtual') {
@@ -214,7 +224,6 @@ export default function StudentDashboard() {
       }
     }
 
-    // 2. Check Next Slot
     if (slotIndex < availability.slots.length - 1) {
       const next = availability.slots[slotIndex + 1];
       if (next.isBooked && next.zone && next.zone !== selectedZone && next.zone !== 'Virtual') {
@@ -222,7 +231,6 @@ export default function StudentDashboard() {
       }
     }
 
-    // 3. Check Against Teacher Current Location (if within 1 hour)
     const startTimeStr = slot.time.split(' - ')[0];
     const [h, m] = startTimeStr.split(':').map(Number);
     const slotStartTime = new Date(selectedDate);
@@ -244,10 +252,9 @@ export default function StudentDashboard() {
     return availability.slots.filter(s => {
       if (!s.isAvailable || s.isBooked) return false;
 
-      // Filter by modality
       if (selectedModality === 'virtual' && s.type !== 'virtual') return false;
       if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
-      if (selectedModality === 'sede') return false; // Sede disabled
+      if (selectedModality === 'sede') return false; 
       
       const startTimeStr = s.time.split(' - ')[0];
       const [h, m] = startTimeStr.split(':').map(Number);
@@ -388,7 +395,6 @@ export default function StudentDashboard() {
     const targetSlot = freeSlots.find(s => s.id === selectedSlotId);
     if (!targetSlot) return;
 
-    // Conflict checks
     if (hasConflict(targetSlot.time)) {
       toast({
         variant: "destructive",
@@ -409,7 +415,7 @@ export default function StudentDashboard() {
     }
 
     const teacher = teachers.find(t => t.id === selectedTeacherId);
-    const finalZone = selectedModality === 'virtual' ? 'Virtual' : selectedZone;
+    const finalZone = selectedModality === 'virtual' ? 'Virtual' : (selectedZone || activeZones[0]);
     
     await bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name, adminIds, finalZone);
     
@@ -530,7 +536,7 @@ export default function StudentDashboard() {
                             <SelectValue placeholder="¿En qué zona estás?" />
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl">
-                            {ACADEMIC_ZONES.filter(z => z !== 'Virtual').map(zone => (
+                            {activeZones.filter(z => z !== 'Virtual').map(zone => (
                               <SelectItem key={zone} value={zone} className="font-bold py-3">
                                 <div className="flex items-center gap-2">
                                   <MapPinIcon className="w-4 h-4 text-accent" />
@@ -541,7 +547,7 @@ export default function StudentDashboard() {
                           </SelectContent>
                         </Select>
                         <p className="text-[10px] font-bold text-muted-foreground italic px-2 mt-1">
-                          * Se aplica 1 hora de margen de traslado si el profesor viene de otra zona.
+                          * Si el profesor está en otra zona, se aplicará 1 hora de margen para su traslado.
                         </p>
                       </div>
                     )}

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -29,7 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { useBookingStore, TimeSlot, ACADEMIC_ZONES, INITIAL_SLOTS } from '@/lib/booking-store';
+import { useBookingStore, TimeSlot, INITIAL_SLOTS } from '@/lib/booking-store';
+import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -93,6 +95,7 @@ const getTimePeriod = (timeStr: string) => {
 
 export default function SchedulePage() {
   const { user, allUsers, loading } = useAuth();
+  const { settings } = useSettingsStore();
   const [isMounted, setIsMounted] = useState(false);
   const [date, setDate] = useState<Date>(new Date());
   const [todayStr, setTodayStr] = useState<string>('');
@@ -104,16 +107,9 @@ export default function SchedulePage() {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
-  const [selectedZone, setSelectedZone] = useState<string>('Miraflores');
+  const [selectedZone, setSelectedZone] = useState<string>('');
   const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio'>('domicilio');
   
-  // Group class state
-  const [groupStudents, setGroupStudents] = useState<string[]>([]);
-  const [groupTeachers, setGroupTeachers] = useState<string[]>([]);
-  const [groupStartTime, setGroupStartTime] = useState("16:00");
-  const [groupInstrument, setGroupInstrument] = useState("Tormenta de Oro");
-  const [groupType, setGroupType] = useState<'virtual' | 'presencial'>('presencial');
-
   const { toast } = useToast();
   const { getDayAvailability, bookSlot, cancelBooking, availabilities, setSlotStatus, createGroupClass } = useBookingStore();
 
@@ -126,6 +122,15 @@ export default function SchedulePage() {
     setDate(now);
     setCurrentTime(now);
   }, []);
+
+  const activeZones = useMemo(() => settings.zones || FALLBACK_ZONES, [settings]);
+
+  useEffect(() => {
+    if (activeZones.length > 0 && !selectedZone) {
+      const firstNonVirtual = activeZones.find(z => z !== 'Virtual') || activeZones[0];
+      setSelectedZone(firstNonVirtual);
+    }
+  }, [activeZones, selectedZone]);
 
   const isTeacher = user?.role === 'teacher';
   const isAdmin = user?.role === 'admin';
@@ -150,12 +155,6 @@ export default function SchedulePage() {
   const teacherInstruments = useMemo(() => {
     return currentTeacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT];
   }, [currentTeacherProfile]);
-
-  useEffect(() => {
-    if (isBookingOpen && teacherInstruments.length > 0 && !bookingInstrument) {
-      setBookingInstrument(teacherInstruments[0]);
-    }
-  }, [isBookingOpen, teacherInstruments, bookingInstrument]);
 
   const dateStrKey = useMemo(() => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -197,7 +196,6 @@ export default function SchedulePage() {
     const slotIndex = allDaySlots.findIndex(s => s.id === slot.id);
     if (slotIndex === -1) return null;
 
-    // 1. Check Previous Slot
     if (slotIndex > 0) {
       const prev = allDaySlots[slotIndex - 1];
       if (prev.isBooked && prev.zone && prev.zone !== selectedZone && prev.zone !== 'Virtual') {
@@ -205,7 +203,6 @@ export default function SchedulePage() {
       }
     }
 
-    // 2. Check Next Slot
     if (slotIndex < allDaySlots.length - 1) {
       const next = allDaySlots[slotIndex + 1];
       if (next.isBooked && next.zone && next.zone !== selectedZone && next.zone !== 'Virtual') {
@@ -213,7 +210,6 @@ export default function SchedulePage() {
       }
     }
 
-    // 3. Check Against Teacher Current Location
     const startTimeStr = slot.time.split(' - ')[0];
     const [h, m] = startTimeStr.split(':').map(Number);
     const slotStartTime = new Date(date);
@@ -265,7 +261,6 @@ export default function SchedulePage() {
     return allDaySlots.filter(s => {
       if (!s.isAvailable || s.isBooked) return false;
 
-      // Filter by modality
       if (selectedModality === 'virtual' && s.type !== 'virtual') return false;
       if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
       if (selectedModality === 'sede') return false;
@@ -319,7 +314,6 @@ export default function SchedulePage() {
     const targetSlot = otherAvailableSlots.find(s => s.id === selectedSlotId);
     if (!targetSlot) return;
 
-    // Conflict check
     if (hasConflict(targetSlot.time)) {
       toast({
         variant: "destructive",
@@ -329,7 +323,6 @@ export default function SchedulePage() {
       return;
     }
 
-    // Travel Margin check
     const travelError = getSlotTravelMarginError(targetSlot);
     if (travelError) {
       toast({
@@ -342,74 +335,13 @@ export default function SchedulePage() {
 
     const instrument = bookingInstrument || user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
     const teacherName = currentTeacherProfile?.name || DEFAULT_TEACHER_NAME;
-    const finalZone = selectedModality === 'virtual' ? 'Virtual' : selectedZone;
+    const finalZone = selectedModality === 'virtual' ? 'Virtual' : (selectedZone || activeZones[0]);
     
     bookSlot(selectedTeacherId, date, selectedSlotId, user.name, user.id, instrument, teacherName, adminIds, finalZone);
     toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
     setIsBookingOpen(false);
     setSelectedSlotId(null);
     setBookingInstrument('');
-  };
-
-  const handleCreateGroupClass = () => {
-    if (groupStudents.length === 0 || !user) return;
-    
-    const selectedStudents = studentsList
-      .filter(s => groupStudents.includes(s.id))
-      .map(s => ({ id: s.id, name: s.name }));
-
-    const selectedTeachers = otherTeachersList
-      .filter(t => groupTeachers.includes(t.id))
-      .map(t => ({ id: t.id, name: t.name }));
-
-    const [h, m] = groupStartTime.split(':').map(Number);
-    const endMinutes = h * 60 + m + 90;
-    const endH = Math.floor(endMinutes / 60);
-    const endM = endMinutes % 60;
-    const timeRange = `${groupStartTime} - ${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
-
-    const hostId = isTeacher ? user.id : (selectedTeachers.length > 0 ? selectedTeachers[0].id : user.id);
-    const hostName = isTeacher ? user.name : (selectedTeachers.length > 0 ? selectedTeachers[0].name : user.name);
-    
-    const collaborators = selectedTeachers.filter(t => t.id !== hostId);
-
-    createGroupClass(hostId, date, timeRange, selectedStudents, groupInstrument, groupType, collaborators);
-    
-    toast({ 
-      title: "Clase Grupal Agendada 🎓", 
-      description: `Se ha creado una sesión especial para ${selectedStudents.length} alumnos.` 
-    });
-    
-    setIsGroupDialogOpen(false);
-    setGroupStudents([]);
-    setGroupTeachers([]);
-  };
-
-  const handleCancel = (slotId: string, customTeacherId?: string) => {
-    const tId = customTeacherId || selectedTeacherId;
-    if (!tId) return;
-    cancelBooking(tId, date, slotId);
-    toast({ title: "Clase Cancelada 🗑️", description: "La reserva ha sido eliminada." });
-  };
-
-  const handleToggleStatus = (slot: any, customTeacherId?: string) => {
-    const tId = customTeacherId || selectedTeacherId;
-    if (!tId) return;
-
-    const newStatus = slot.status === 'completed' ? 'pending' : 'completed';
-    setSlotStatus(tId, dateStrKey, slot.id, newStatus);
-
-    if (newStatus === 'completed') {
-      toast({
-        title: "Logro Validado ✅",
-        description: `Se han sumado los puntos correspondientes al progreso del alumno.`,
-      });
-    } else {
-      toast({
-        title: "Estado Actualizado",
-        description: "La clase ha vuelto a estado pendiente (puntos actualizados).",
-      });
-    }
   };
 
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -876,7 +808,7 @@ export default function SchedulePage() {
                             <SelectValue placeholder="Seleccionar zona" />
                           </SelectTrigger>
                           <SelectContent className="rounded-2xl border-2">
-                            {ACADEMIC_ZONES.filter(z => z !== 'Virtual').map(z => (
+                            {activeZones.filter(z => z !== 'Virtual').map(z => (
                               <SelectItem key={z} value={z} className="font-bold py-3">
                                 {z}
                               </SelectItem>

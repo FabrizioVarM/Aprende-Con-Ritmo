@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -24,10 +25,11 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/hooks/use-toast"
-import { useBookingStore, TimeSlot, ACADEMIC_ZONES } from '@/lib/booking-store';
+import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useSkillsStore } from '@/lib/skills-store';
 import { useCompletionStore } from '@/lib/completion-store';
+import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer, MapPin as MapPinIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -80,6 +82,7 @@ export default function TeacherDashboard() {
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
   const { user, allUsers, updateUser } = useAuth();
   const { completions } = useCompletionStore();
+  const { settings } = useSettingsStore();
 
   const teacherId = user?.id || ''; 
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
@@ -92,6 +95,8 @@ export default function TeacherDashboard() {
     setTodayTimestamp(startOfToday.getTime());
     setSelectedDate(now);
   }, []);
+
+  const activeZones = useMemo(() => settings.zones || FALLBACK_ZONES, [settings]);
 
   useEffect(() => {
     if (isOpen && teacherId) {
@@ -301,12 +306,12 @@ export default function TeacherDashboard() {
           {/* Selector de Zona Actual para el Profesor */}
           <div className="flex items-center gap-2 bg-card border-2 border-primary/20 rounded-xl px-3 h-12 w-full sm:w-64">
             <MapPinIcon className="w-4 h-4 text-accent shrink-0" />
-            <Select value={user?.currentZone || ACADEMIC_ZONES[0]} onValueChange={handleUpdateZone}>
+            <Select value={user?.currentZone || activeZones[0]} onValueChange={handleUpdateZone}>
               <SelectTrigger className="border-none bg-transparent focus:ring-0 font-bold h-full p-0">
                 <SelectValue placeholder="Zona actual" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                {ACADEMIC_ZONES.map(zone => (
+                {activeZones.map(zone => (
                   <SelectItem key={zone} value={zone} className="font-bold">{zone}</SelectItem>
                 ))}
               </SelectContent>
@@ -460,7 +465,6 @@ export default function TeacherDashboard() {
         </div>
       </div>
 
-      {/* Tarjetas de estadísticas con bordes definidos */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <Card className="rounded-2xl border-2 border-blue-600 dark:border-blue-400 shadow-sm bg-blue-50/50 dark:bg-blue-900/30 p-3 sm:p-4">
           <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">Mis Alumnos Activos</p>
