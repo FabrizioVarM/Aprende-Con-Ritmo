@@ -254,14 +254,14 @@ export default function AboutPage() {
           </DialogHeader>
           
           <Tabs defaultValue="hero" className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <TabsList className="bg-muted/50 p-1 mx-8 mt-4 rounded-xl">
+            <TabsList className="bg-muted/50 p-1 mx-8 mt-4 rounded-xl shrink-0">
               <TabsTrigger value="hero" className="rounded-lg font-black text-[10px] uppercase">Portada</TabsTrigger>
               <TabsTrigger value="values" className="rounded-lg font-black text-[10px] uppercase">Valores</TabsTrigger>
               <TabsTrigger value="guide" className="rounded-lg font-black text-[10px] uppercase">Guía</TabsTrigger>
               <TabsTrigger value="footer" className="rounded-lg font-black text-[10px] uppercase">Cierre</TabsTrigger>
             </TabsList>
 
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 min-h-0">
               <div className="p-8">
                 <TabsContent value="hero" className="space-y-6 m-0 outline-none">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
