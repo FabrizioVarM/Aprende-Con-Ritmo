@@ -380,7 +380,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     ) : (
                       <AvatarImage src={`https://picsum.photos/seed/${user.avatarSeed || user.id}/100`} style={avatarStyle} />
                     )}
-                    <AvatarFallback className="bg-primary">{user.name[0]}</AvatarFallback>
+                    <AvatarFallback className="bg-primary">{user.name ? user.name[0] : 'U'}</AvatarFallback>
                   </Avatar>
                 </div>
               </DialogTrigger>
@@ -391,14 +391,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </DialogHeader>
                 <AvatarPreviewContent 
                   src={user.photoUrl ? getDirectImageUrl(user.photoUrl) : `https://picsum.photos/seed/${user.avatarSeed || user.id}/600`}
-                  name={user.name}
+                  name={user.name || 'Usuario'}
                   subtitle="Mi Identidad Musical"
                   onSave={handleSaveTransform}
                 />
               </DialogContent>
             </Dialog>
             <div className="flex flex-col overflow-hidden min-w-0">
-              <span className="text-sm font-bold truncate dark:text-slate-200">{user.name}</span>
+              <span className="text-sm font-bold truncate dark:text-slate-200">{user.name || 'Cargando...'}</span>
               <span className="text-xs text-muted-foreground capitalize truncate">
                 {user.role === 'student' ? 'Estudiante' : user.role === 'teacher' ? 'Profesor' : 'Administrador'}
               </span>
