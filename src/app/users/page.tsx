@@ -58,14 +58,10 @@ import {
   TabsContent, 
   TabsList, 
   TabsTrigger 
-} from '@/tabs';
+} from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useAuth, User, UserRole } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
-
-const INSTRUMENTS_LIST = [
-  'Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'
-];
 
 /**
  * Formatea una fecha ISO a una cadena de tiempo relativo.
