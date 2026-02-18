@@ -27,6 +27,14 @@ export interface AppSettings {
   heroSubtitle?: string;
   heroBadge?: string;
   newsSectionTitle?: string;
+  // Textos de Módulos en Inicio
+  moduleMarketTitle?: string;
+  moduleMarketDesc?: string;
+  moduleProductionTitle?: string;
+  moduleProductionDesc?: string;
+  moduleRewardsTitle?: string;
+  moduleRewardsDesc?: string;
+  moduleFooterInfo?: string;
 }
 
 export const FALLBACK_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
@@ -47,7 +55,14 @@ const DEFAULT_SETTINGS: AppSettings = {
   heroTitle: 'Tu aventura musical continúa aquí 🎼',
   heroSubtitle: 'Explora las últimas noticias, eventos y actualizaciones de Aprende con Ritmo.',
   heroBadge: 'Novedades de la Academia',
-  newsSectionTitle: 'Lo Último en Ritmo'
+  newsSectionTitle: 'Lo Último en Ritmo',
+  moduleMarketTitle: 'RitmoMarket',
+  moduleMarketDesc: 'Tienda de accesorios',
+  moduleProductionTitle: 'Producción',
+  moduleProductionDesc: 'Graba tus clases en HD',
+  moduleRewardsTitle: 'Recompensas',
+  moduleRewardsDesc: 'Canjea tus puntos',
+  moduleFooterInfo: 'Administración trabaja en pasarelas de pago y sistemas de recompensas.'
 };
 
 export function useSettingsStore() {

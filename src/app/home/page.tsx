@@ -33,7 +33,8 @@ import {
   Save,
   Image as ImageIcon,
   Images,
-  Trash
+  Trash,
+  LayoutGrid
 } from 'lucide-react';
 import {
   Dialog,
@@ -46,6 +47,7 @@ import {
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
@@ -63,7 +65,14 @@ export default function HomePage() {
     title: '', 
     subtitle: '', 
     badge: '',
-    newsTitle: ''
+    newsTitle: '',
+    marketTitle: '',
+    marketDesc: '',
+    prodTitle: '',
+    prodDesc: '',
+    rewTitle: '',
+    rewDesc: '',
+    footerInfo: ''
   });
 
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
@@ -90,7 +99,14 @@ export default function HomePage() {
       title: settings.heroTitle || '',
       subtitle: settings.heroSubtitle || '',
       badge: settings.heroBadge || '',
-      newsTitle: settings.newsSectionTitle || 'Lo Último en Ritmo'
+      newsTitle: settings.newsSectionTitle || 'Lo Último en Ritmo',
+      marketTitle: settings.moduleMarketTitle || 'RitmoMarket',
+      marketDesc: settings.moduleMarketDesc || 'Tienda de accesorios',
+      prodTitle: settings.moduleProductionTitle || 'Producción',
+      prodDesc: settings.moduleProductionDesc || 'Graba tus clases en HD',
+      rewTitle: settings.moduleRewardsTitle || 'Recompensas',
+      rewDesc: settings.moduleRewardsDesc || 'Canjea tus puntos',
+      footerInfo: settings.moduleFooterInfo || 'Administración trabaja en pasarelas de pago y sistemas de recompensas.'
     });
     setIsHeroEditing(true);
   };
@@ -100,7 +116,14 @@ export default function HomePage() {
       heroTitle: tempHero.title,
       heroSubtitle: tempHero.subtitle,
       heroBadge: tempHero.badge,
-      newsSectionTitle: tempHero.newsTitle
+      newsSectionTitle: tempHero.newsTitle,
+      moduleMarketTitle: tempHero.marketTitle,
+      moduleMarketDesc: tempHero.marketDesc,
+      moduleProductionTitle: tempHero.prodTitle,
+      moduleProductionDesc: tempHero.prodDesc,
+      moduleRewardsTitle: tempHero.rewTitle,
+      moduleRewardsDesc: tempHero.rewDesc,
+      moduleFooterInfo: tempHero.footerInfo
     });
     setIsHeroEditing(false);
     toast({ title: "Contenidos Actualizados ✨", description: "Los cambios han sido guardados." });
@@ -327,9 +350,19 @@ export default function HomePage() {
           </div>
 
           <div className="lg:col-span-4 space-y-6">
-            <div className="flex items-center gap-2 px-2">
+            <div className="flex items-center gap-2 px-2 group/community">
               <div className="w-1.5 h-6 bg-blue-500 rounded-full" />
               <h2 className="text-xl md:text-2xl font-black text-foreground">Comunidad</h2>
+              {isAdmin && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-6 w-6 rounded-full opacity-0 group-hover/community:opacity-100 transition-opacity"
+                  onClick={handleEditHero}
+                >
+                  <Edit2 className="w-3 h-3 text-blue-500" />
+                </Button>
+              )}
             </div>
 
             {/* Coming Soon Features */}
@@ -346,9 +379,9 @@ export default function HomePage() {
               
               <div className="space-y-3">
                 {[
-                  { label: 'RitmoMarket', desc: 'Tienda de accesorios', icon: ShoppingBag },
-                  { label: 'Producción', desc: 'Graba tus clases en HD', icon: Mic2 },
-                  { label: 'Recompensas', desc: 'Canjea tus puntos', icon: Gift }
+                  { label: settings.moduleMarketTitle || 'RitmoMarket', desc: settings.moduleMarketDesc || 'Tienda de accesorios', icon: ShoppingBag },
+                  { label: settings.moduleProductionTitle || 'Producción', desc: settings.moduleProductionDesc || 'Graba tus clases en HD', icon: Mic2 },
+                  { label: settings.moduleRewardsTitle || 'Recompensas', desc: settings.moduleRewardsDesc || 'Canjea tus puntos', icon: Gift }
                 ].map((f, i) => (
                   <div key={i} className="flex gap-3 p-3 rounded-xl bg-white/50 dark:bg-black/20 border border-blue-200/50 dark:border-blue-900/30 group">
                     <div className="p-2 bg-white rounded-lg text-blue-500 shrink-0 shadow-sm group-hover:scale-110 transition-transform">
@@ -366,7 +399,7 @@ export default function HomePage() {
                 <div className="flex items-start gap-2">
                   <Info className="w-3.5 h-3.5 text-blue-600 mt-0.5 shrink-0" />
                   <p className="text-[9px] font-bold text-blue-800/70 dark:text-blue-300/70 leading-relaxed italic">
-                    Administración trabaja en pasarelas de pago y sistemas de recompensas.
+                    {settings.moduleFooterInfo || 'Administración trabaja en pasarelas de pago y sistemas de recompensas.'}
                   </p>
                 </div>
               </div>
@@ -487,52 +520,143 @@ export default function HomePage() {
 
       {/* Admin: Modal de Edición de Textos de Inicio */}
       <Dialog open={isHeroEditing} onOpenChange={setIsHeroEditing}>
-        <DialogContent className="rounded-[2.5rem] max-w-xl border-none shadow-2xl p-0 overflow-hidden">
-          <DialogHeader className="bg-accent/10 p-8 border-b space-y-2">
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+          <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <Edit2 className="w-6 h-6 text-accent" />
-              Editar Textos de Inicio
+              Editar Contenidos de Inicio
             </DialogTitle>
-            <DialogDescription className="font-medium text-muted-foreground">Modifica los mensajes principales que ven todos los usuarios.</DialogDescription>
+            <DialogDescription className="font-medium text-muted-foreground">Modifica los mensajes principales y los módulos de comunidad.</DialogDescription>
           </DialogHeader>
-          <div className="p-8 space-y-6 bg-card">
-            <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Etiqueta de Portada (Badge)</Label>
-              <Input 
-                value={tempHero.badge} 
-                onChange={(e) => setTempHero(prev => ({...prev, badge: e.target.value}))}
-                className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
-              />
+          <ScrollArea className="flex-1 overflow-y-auto">
+            <div className="p-8 space-y-8 bg-card">
+              <div className="space-y-6 border-b border-primary/10 pb-6">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-accent" />
+                  <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Portada Principal (Hero)</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Etiqueta (Badge)</Label>
+                    <Input 
+                      value={tempHero.badge} 
+                      onChange={(e) => setTempHero(prev => ({...prev, badge: e.target.value}))}
+                      className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título de Noticias</Label>
+                    <Input 
+                      value={tempHero.newsTitle} 
+                      onChange={(e) => setTempHero(prev => ({...prev, newsTitle: e.target.value}))}
+                      className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título Principal</Label>
+                  <Input 
+                    value={tempHero.title} 
+                    onChange={(e) => setTempHero(prev => ({...prev, title: e.target.value}))}
+                    className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Subtítulo / Descripción</Label>
+                  <Textarea 
+                    value={tempHero.subtitle} 
+                    onChange={(e) => setTempHero(prev => ({...prev, subtitle: e.target.value}))}
+                    className="min-h-[80px] rounded-xl border-2 font-bold p-4 focus:border-accent bg-card text-foreground"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-blue-500" />
+                  <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Gestión de Módulos Próximos</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4 p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-blue-600 flex items-center gap-2">
+                      <ShoppingBag className="w-3 h-3" /> Módulo Market
+                    </Label>
+                    <div className="space-y-2">
+                      <Input 
+                        value={tempHero.marketTitle} 
+                        onChange={(e) => setTempHero(prev => ({...prev, marketTitle: e.target.value}))}
+                        className="h-10 rounded-lg border-2 font-bold text-xs"
+                        placeholder="Título Market"
+                      />
+                      <Input 
+                        value={tempHero.marketDesc} 
+                        onChange={(e) => setTempHero(prev => ({...prev, marketDesc: e.target.value}))}
+                        className="h-10 rounded-lg border-2 font-bold text-xs"
+                        placeholder="Descripción corta"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-blue-600 flex items-center gap-2">
+                      <Mic2 className="w-3 h-3" /> Módulo Producción
+                    </Label>
+                    <div className="space-y-2">
+                      <Input 
+                        value={tempHero.prodTitle} 
+                        onChange={(e) => setTempHero(prev => ({...prev, prodTitle: e.target.value}))}
+                        className="h-10 rounded-lg border-2 font-bold text-xs"
+                        placeholder="Título Producción"
+                      />
+                      <Input 
+                        value={tempHero.prodDesc} 
+                        onChange={(e) => setTempHero(prev => ({...prev, prodDesc: e.target.value}))}
+                        className="h-10 rounded-lg border-2 font-bold text-xs"
+                        placeholder="Descripción corta"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-blue-600 flex items-center gap-2">
+                      <Gift className="w-3 h-3" /> Módulo Recompensas
+                    </Label>
+                    <div className="space-y-2">
+                      <Input 
+                        value={tempHero.rewTitle} 
+                        onChange={(e) => setTempHero(prev => ({...prev, rewTitle: e.target.value}))}
+                        className="h-10 rounded-lg border-2 font-bold text-xs"
+                        placeholder="Título Recompensas"
+                      />
+                      <Input 
+                        value={tempHero.rewDesc} 
+                        onChange={(e) => setTempHero(prev => ({...prev, rewDesc: e.target.value}))}
+                        className="h-10 rounded-lg border-2 font-bold text-xs"
+                        placeholder="Descripción corta"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 p-4 rounded-2xl bg-blue-50 border border-blue-100">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-blue-700 flex items-center gap-2">
+                      <Info className="w-3 h-3" /> Info de Administración
+                    </Label>
+                    <Textarea 
+                      value={tempHero.footerInfo} 
+                      onChange={(e) => setTempHero(prev => ({...prev, footerInfo: e.target.value}))}
+                      className="min-h-[80px] rounded-lg border-2 font-bold text-xs bg-white"
+                      placeholder="Mensaje sobre el estado del desarrollo..."
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título Principal</Label>
-              <Input 
-                value={tempHero.title} 
-                onChange={(e) => setTempHero(prev => ({...prev, title: e.target.value}))}
-                className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Subtítulo / Descripción</Label>
-              <Textarea 
-                value={tempHero.subtitle} 
-                onChange={(e) => setTempHero(prev => ({...prev, subtitle: e.target.value}))}
-                className="min-h-[80px] rounded-xl border-2 font-bold p-4 focus:border-accent bg-card text-foreground"
-              />
-            </div>
-            <div className="space-y-2 pt-2 border-t border-primary/10">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título Sección de Noticias</Label>
-              <Input 
-                value={tempHero.newsTitle} 
-                onChange={(e) => setTempHero(prev => ({...prev, newsTitle: e.target.value}))}
-                className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
-              />
-            </div>
-          </div>
-          <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3">
+          </ScrollArea>
+          <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3 shrink-0">
             <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground" onClick={() => setIsHeroEditing(false)}>Cancelar</Button>
             <Button className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20" onClick={handleSaveHero}>
-              <Save className="w-4 h-4 mr-2" /> Guardar Cambios
+              <Save className="w-4 h-4 mr-2" /> Guardar Todos los Cambios
             </Button>
           </DialogFooter>
         </DialogContent>
