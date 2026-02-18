@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useEffect, useMemo } from 'react';
@@ -57,6 +56,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { NotificationListener } from '@/components/NotificationListener';
 import Image from 'next/image';
 import { AvatarPreviewContent } from '@/components/AvatarPreviewContent';
+import { getDirectImageUrl } from '@/lib/utils/images';
 
 interface NavItem {
   label: string;
@@ -152,7 +152,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <div className="relative w-10 h-10 overflow-hidden rounded-xl shadow-md border-2 border-accent shrink-0">
               <Image 
-                src={settings.appLogoUrl} 
+                src={getDirectImageUrl(settings.appLogoUrl)} 
                 alt="Logo" 
                 fill 
                 className="object-cover"
@@ -346,7 +346,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <Check className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-black text-foreground leading-tight">Asistencia en la Plataforma</h4>
+                    <h4 className="font-black text-foreground Gabriel leading-tight">Asistencia en la Plataforma</h4>
                     <p className="text-xs text-muted-foreground font-bold italic">Reporte de errores o ayuda técnica con tu perfil.</p>
                   </div>
                 </div>
@@ -376,7 +376,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="cursor-zoom-in hover:scale-110 transition-transform shrink-0">
                   <Avatar className="w-10 h-10 border-2 border-primary">
                     {user.photoUrl ? (
-                      <AvatarImage src={user.photoUrl} className="object-cover" style={avatarStyle} />
+                      <AvatarImage src={getDirectImageUrl(user.photoUrl)} className="object-cover" style={avatarStyle} />
                     ) : (
                       <AvatarImage src={`https://picsum.photos/seed/${user.avatarSeed || user.id}/100`} style={avatarStyle} />
                     )}
@@ -390,7 +390,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <DialogDescription>Previsualización y ajuste de tu imagen de perfil personal.</DialogDescription>
                 </DialogHeader>
                 <AvatarPreviewContent 
-                  src={user.photoUrl || `https://picsum.photos/seed/${user.avatarSeed || user.id}/600`}
+                  src={user.photoUrl ? getDirectImageUrl(user.photoUrl) : `https://picsum.photos/seed/${user.avatarSeed || user.id}/600`}
                   name={user.name}
                   subtitle="Mi Identidad Musical"
                   onSave={handleSaveTransform}
@@ -447,7 +447,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <div className="relative w-8 h-8 overflow-hidden rounded-lg border-2 border-accent">
               <Image 
-                src={settings.appLogoUrl} 
+                src={getDirectImageUrl(settings.appLogoUrl)} 
                 alt="Logo" 
                 fill 
                 className="object-cover"

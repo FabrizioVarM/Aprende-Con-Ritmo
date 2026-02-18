@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -54,6 +53,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getDirectImageUrl } from '@/lib/utils/images';
 
 const ICON_OPTIONS = [
   { id: 'Zap', icon: Zap },
@@ -67,23 +67,6 @@ const ICON_OPTIONS = [
   { id: 'Target', icon: Target },
   { id: 'Flame', icon: Flame },
 ];
-
-/**
- * Helper para transformar enlaces de Google Drive en enlaces de acceso directo directo.
- */
-const getDirectImageUrl = (url: string) => {
-  if (!url) return url;
-  if (url.includes('drive.google.com')) {
-    let id = '';
-    if (url.includes('/file/d/')) {
-      id = url.split('/d/')[1]?.split('/')[0];
-    } else if (url.includes('id=')) {
-      id = url.split('id=')[1]?.split('&')[0];
-    }
-    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
-  }
-  return url;
-};
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
@@ -963,7 +946,7 @@ export default function HomePage() {
             </div>
           </div>
           <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3 shrink-0">
-            <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
+            <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground" onClick={() => setIsArticleModalOpen(false)}>Cancelar</Button>
             <Button className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20" onClick={handleSaveArticle}>
               {editingArticle ? 'Guardar Cambios' : 'Publicar Ahora'}
             </Button>

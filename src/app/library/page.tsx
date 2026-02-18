@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -35,27 +34,11 @@ import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 import { AvatarPreviewContent } from '@/components/AvatarPreviewContent';
+import { getDirectImageUrl } from '@/lib/utils/images';
 
 const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'];
 const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
 const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
-
-/**
- * Helper para transformar enlaces de Google Drive en enlaces de acceso directo directo.
- */
-const getDirectImageUrl = (url: string) => {
-  if (!url) return url;
-  if (url.includes('drive.google.com')) {
-    let id = '';
-    if (url.includes('/file/d/')) {
-      id = url.split('/d/')[1]?.split('/')[0];
-    } else if (url.includes('id=')) {
-      id = url.split('id=')[1]?.split('&')[0];
-    }
-    if (id) return `https://lh3.googleusercontent.com/d/${id}`;
-  }
-  return url;
-};
 
 export default function LibraryPage() {
   const { user, allUsers, loading } = useAuth();
@@ -392,7 +375,6 @@ export default function LibraryPage() {
               rawImgUrl = res.img.imageUrl;
             }
             
-            // Transformar URL si es de Drive para asegurar visibilidad directa
             const imgUrl = getDirectImageUrl(rawImgUrl);
             const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
             
@@ -596,7 +578,7 @@ export default function LibraryPage() {
                           "rounded-2xl border-2 h-12 gap-2 font-black px-2 sm:px-4 text-[10px] sm:text-xs transition-all overflow-hidden",
                           (isLockedForStudent || isDownloadLinkShort) && "opacity-40 grayscale pointer-events-none"
                         )}
-                        onClick={() => !(isLockedForStudent || isDownloadLinkShort) && window.open(res.downloadUrl, '_blank')}
+                        onClick={() => !(isLockedForStudent || isDownloadLinkShort) && window.open(getDirectImageUrl(res.downloadUrl), '_blank')}
                         disabled={isLockedForStudent || isDownloadLinkShort}
                       >
                         <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> <span className="truncate">Descargar</span>
@@ -608,7 +590,7 @@ export default function LibraryPage() {
                           "flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20 transition-all px-2 sm:px-4 text-[10px] sm:text-xs overflow-hidden",
                           (isLockedForStudent || isInteractLinkShort) && "opacity-40 grayscale pointer-events-none"
                         )}
-                        onClick={() => !(isLockedForStudent || isInteractLinkShort) && window.open(res.interactUrl, '_blank')}
+                        onClick={() => !(isLockedForStudent || isInteractLinkShort) && window.open(getDirectImageUrl(res.interactUrl), '_blank')}
                         disabled={isLockedForStudent || isInteractLinkShort}
                       >
                         <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> <span className="truncate">Interactúa!</span>

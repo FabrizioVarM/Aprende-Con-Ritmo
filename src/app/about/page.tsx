@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -47,6 +46,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getDirectImageUrl } from '@/lib/utils/images';
 
 const ICON_MAP: Record<string, any> = {
   Home,
@@ -244,7 +244,7 @@ export default function AboutPage() {
 
       {/* Admin: Modal de Edición de Sobre Nosotros */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="rounded-[2.5rem] max-w-3xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[90vh] max-h-[90vh]">
+        <DialogContent className="rounded-[2.5rem] max-w-3xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[95vh] max-h-[95vh]">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <Edit2 className="w-6 h-6 text-accent" />

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
@@ -35,6 +34,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { getDirectImageUrl } from '@/lib/utils/images';
 
 export default function SettingsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -170,7 +170,7 @@ export default function SettingsPage() {
                   <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Previsualización del Logo</Label>
                   <div className="relative w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-accent shadow-2xl mx-auto bg-white group">
                     <Image 
-                      src={logoUrl} 
+                      src={getDirectImageUrl(logoUrl)} 
                       alt="Logo Preview" 
                       fill 
                       className="object-cover"
