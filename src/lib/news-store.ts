@@ -22,6 +22,7 @@ export interface NewsArticle {
   content: string;
   fullContent?: string;
   image: string;
+  extraImages?: string[];
   date: string;
   type: 'news' | 'event' | 'update';
   createdAt?: string;

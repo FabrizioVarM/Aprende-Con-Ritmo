@@ -31,7 +31,9 @@ import {
   Edit2,
   Trash2,
   Save,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Images,
+  Trash
 } from 'lucide-react';
 import {
   Dialog,
@@ -72,6 +74,7 @@ export default function HomePage() {
     content: '',
     fullContent: '',
     image: '',
+    extraImages: [],
     type: 'news',
     date: ''
   });
@@ -111,6 +114,7 @@ export default function HomePage() {
       content: '',
       fullContent: '',
       image: 'https://picsum.photos/seed/' + Math.random().toString(36).substring(7) + '/800/400',
+      extraImages: [],
       type: 'news',
       date: 'Hoy'
     });
@@ -120,7 +124,10 @@ export default function HomePage() {
   const openEditArticle = (article: NewsArticle, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingArticle(article);
-    setArticleArticleForm(article);
+    setArticleArticleForm({
+      ...article,
+      extraImages: article.extraImages || []
+    });
     setIsArticleModalOpen(true);
   };
 
@@ -146,6 +153,24 @@ export default function HomePage() {
     setIsArticleModalOpen(false);
   };
 
+  const handleAddExtraImage = () => {
+    setArticleArticleForm(prev => ({
+      ...prev,
+      extraImages: [...(prev.extraImages || []), '']
+    }));
+  };
+
+  const handleUpdateExtraImage = (index: number, value: string) => {
+    const newImages = [...(articleForm.extraImages || [])];
+    newImages[index] = value;
+    setArticleArticleForm(prev => ({ ...prev, extraImages: newImages }));
+  };
+
+  const handleRemoveExtraImage = (index: number) => {
+    const newImages = (articleForm.extraImages || []).filter((_, i) => i !== index);
+    setArticleArticleForm(prev => ({ ...prev, extraImages: newImages }));
+  };
+
   if (!isMounted || authLoading || !user) return null;
 
   return (
@@ -167,22 +192,22 @@ export default function HomePage() {
             <Badge className="bg-white/20 hover:bg-white/30 text-white border-none px-3 py-1 backdrop-blur-md font-black text-[10px] uppercase tracking-widest gap-2">
               <Sparkles className="w-3 h-3" /> {settings.heroBadge}
             </Badge>
-            <h1 className="text-3xl md:text-5xl font-black font-headline tracking-tight leading-tight">
+            <h1 className="text-2xl md:text-4xl font-black font-headline tracking-tight leading-tight">
               {settings.heroTitle}
             </h1>
-            <p className="text-white/80 text-sm md:text-lg font-medium leading-relaxed max-w-md">
+            <p className="text-white/80 text-xs md:text-base font-medium leading-relaxed max-w-md">
               {settings.heroSubtitle}
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
               <Button 
-                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-xl h-10 md:h-14 px-8 font-black text-sm md:text-base shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all hover:scale-105 active:scale-95 border-2 border-white group" 
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/90 rounded-xl h-10 md:h-12 px-6 font-black text-xs md:text-sm shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all hover:scale-105 active:scale-95 border-2 border-white group" 
                 onClick={() => router.push('/schedule')}
               >
-                <Music className="w-5 h-5 mr-2 animate-bounce group-hover:animate-spin" /> ¡Reserva tu Clase Ahora!
+                <Music className="w-4 h-4 mr-2 animate-bounce group-hover:animate-spin" /> ¡Reserva tu Clase Ahora!
               </Button>
               <Button 
                 variant="outline"
-                className="border-white/30 bg-white/10 hover:bg-white/20 text-white rounded-xl h-10 md:h-14 px-6 font-black text-xs md:text-sm backdrop-blur-sm transition-transform active:scale-95 border-2"
+                className="border-white/30 bg-white/10 hover:bg-white/20 text-white rounded-xl h-10 md:h-12 px-6 font-black text-xs md:text-sm backdrop-blur-sm transition-transform active:scale-95 border-2"
               >
                 Sobre Nosotros
               </Button>
@@ -191,7 +216,7 @@ export default function HomePage() {
           
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 right-0 hidden lg:block opacity-10 transform translate-x-10 translate-y-10">
-            <Music size={300} className="text-white" />
+            <Music size={200} className="text-white" />
           </div>
         </section>
 
@@ -418,6 +443,28 @@ export default function HomePage() {
                   </p>
                 </div>
 
+                {/* Galería de Imágenes Complementarias en el Detalle */}
+                {selectedNews.extraImages && selectedNews.extraImages.length > 0 && (
+                  <div className="space-y-4 pt-4">
+                    <div className="flex items-center gap-2">
+                      <Images className="w-4 h-4 text-accent" />
+                      <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Galería del Evento</h4>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {selectedNews.extraImages.map((img, i) => (
+                        <div key={i} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-primary/10 shadow-sm group/img">
+                          <Image 
+                            src={img} 
+                            alt={`Imagen ${i + 1}`} 
+                            fill 
+                            className="object-cover transition-transform duration-500 group-hover/img:scale-110"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center justify-between pt-6 border-t border-primary/10">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent">
@@ -550,7 +597,7 @@ export default function HomePage() {
 
             <div className="space-y-2">
               <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                <ImageIcon className="w-3 h-3" /> URL de la Imagen
+                <ImageIcon className="w-3 h-3" /> URL de la Imagen de Portada
               </Label>
               <Input 
                 value={articleForm.image} 
@@ -560,7 +607,51 @@ export default function HomePage() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4 border-t border-primary/10 pt-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                  <Images className="w-3 h-3" /> Galería de Imágenes Complementarias
+                </Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 rounded-lg border-2 text-[10px] font-black uppercase px-3"
+                  onClick={handleAddExtraImage}
+                >
+                  <Plus className="w-3 h-3 mr-1" /> Añadir Cuadro
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                {articleForm.extraImages?.map((url, index) => (
+                  <div key={index} className="flex gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <Input 
+                      value={url} 
+                      onChange={(e) => handleUpdateExtraImage(index, e.target.value)}
+                      className="h-10 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground text-xs"
+                      placeholder={`URL Imagen ${index + 1}`}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl"
+                      onClick={() => handleRemoveExtraImage(index)}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                {(!articleForm.extraImages || articleForm.extraImages.length === 0) && (
+                  <p className="text-[10px] text-muted-foreground font-medium italic text-center py-2">
+                    No hay imágenes complementarias añadidas aún.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t border-primary/10 pt-4">
               <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Descripción Corta (Muro)</Label>
               <Textarea 
                 value={articleForm.content} 
