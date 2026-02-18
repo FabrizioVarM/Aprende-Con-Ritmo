@@ -22,6 +22,10 @@ export interface AppSettings {
   enablePostulations: boolean;
   // Zonas configurables
   zones: string[];
+  // Campos de texto para el inicio
+  heroTitle?: string;
+  heroSubtitle?: string;
+  heroBadge?: string;
 }
 
 export const FALLBACK_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
@@ -38,7 +42,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   enableMarket: false,
   showPostulations: true,
   enablePostulations: false,
-  zones: FALLBACK_ZONES
+  zones: FALLBACK_ZONES,
+  heroTitle: 'Tu aventura musical continúa aquí 🎼',
+  heroSubtitle: 'Explora las últimas noticias, eventos y actualizaciones de Aprende con Ritmo.',
+  heroBadge: 'Novedades de la Academia'
 };
 
 export function useSettingsStore() {
@@ -65,6 +72,8 @@ export function useSettingsStore() {
         const updatedSettings = { ...DEFAULT_SETTINGS, ...data };
         setSettings(updatedSettings);
         localStorage.setItem('ritmo_app_settings_v3', JSON.stringify(updatedSettings));
+      } else {
+        setSettings(DEFAULT_SETTINGS);
       }
       setLoading(false);
     }, (error) => {
