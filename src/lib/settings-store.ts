@@ -36,6 +36,7 @@ export interface AppSettings {
   moduleRewardsTitle?: string;
   moduleRewardsDesc?: string;
   moduleFooterInfo?: string;
+  moduleSectionIcon?: string;
 }
 
 export const FALLBACK_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
@@ -68,7 +69,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   moduleProductionDesc: 'Graba tus clases en HD',
   moduleRewardsTitle: 'Recompensas',
   moduleRewardsDesc: 'Canjea tus puntos',
-  moduleFooterInfo: 'Administración trabaja en pasarelas de pago y sistemas de recompensas.'
+  moduleFooterInfo: 'Administración trabaja en pasarelas de pago y sistemas de recompensas.',
+  moduleSectionIcon: 'Zap'
 };
 
 export function useSettingsStore() {

@@ -145,7 +145,16 @@
         "enableMarket": { "type": "boolean" },
         "showPostulations": { "type": "boolean" },
         "enablePostulations": { "type": "boolean" },
-        "zones": { "type": "array", "items": { "type": "string" }, "description": "Lista de zonas geográficas configurables por el admin." }
+        "zones": { "type": "array", "items": { "type": "string" }, "description": "Lista de zonas geográficas configurables por el admin." },
+        "newsSectionTitle": { "type": "string" },
+        "moduleMarketTitle": { "type": "string" },
+        "moduleMarketDesc": { "type": "string" },
+        "moduleProductionTitle": { "type": "string" },
+        "moduleProductionDesc": { "type": "string" },
+        "moduleRewardsTitle": { "type": "string" },
+        "moduleRewardsDesc": { "type": "string" },
+        "moduleFooterInfo": { "type": "string" },
+        "moduleSectionIcon": { "type": "string" }
       }
     }
   },

@@ -34,7 +34,13 @@ import {
   Image as ImageIcon,
   Images,
   Trash,
-  LayoutGrid
+  LayoutGrid,
+  Star,
+  Rocket,
+  Bell,
+  Heart,
+  Target,
+  Flame
 } from 'lucide-react';
 import {
   Dialog,
@@ -48,6 +54,19 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+const ICON_OPTIONS = [
+  { id: 'Zap', icon: Zap },
+  { id: 'Sparkles', icon: Sparkles },
+  { id: 'Star', icon: Star },
+  { id: 'LayoutGrid', icon: LayoutGrid },
+  { id: 'Rocket', icon: Rocket },
+  { id: 'Music', icon: Music },
+  { id: 'Bell', icon: Bell },
+  { id: 'Heart', icon: Heart },
+  { id: 'Target', icon: Target },
+  { id: 'Flame', icon: Flame },
+];
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
@@ -91,7 +110,8 @@ export default function HomePage() {
     rewTitle: '',
     rewDesc: '',
     footerInfo: '',
-    heroImages: [] as string[]
+    heroImages: [] as string[],
+    moduleSectionIcon: 'Zap'
   });
 
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
@@ -120,7 +140,8 @@ export default function HomePage() {
       rewTitle: settings.moduleRewardsTitle || 'Recompensas',
       rewDesc: settings.moduleRewardsDesc || 'Canjea tus puntos',
       footerInfo: settings.moduleFooterInfo || 'Administración trabaja en pasarelas de pago y sistemas de recompensas.',
-      heroImages: settings.heroImages || []
+      heroImages: settings.heroImages || [],
+      moduleSectionIcon: settings.moduleSectionIcon || 'Zap'
     });
     setIsHeroEditing(true);
   };
@@ -138,7 +159,8 @@ export default function HomePage() {
       moduleRewardsTitle: tempHero.rewTitle,
       moduleRewardsDesc: tempHero.rewDesc,
       moduleFooterInfo: tempHero.footerInfo,
-      heroImages: tempHero.heroImages
+      heroImages: tempHero.heroImages,
+      moduleSectionIcon: tempHero.moduleSectionIcon
     });
     setIsHeroEditing(false);
     toast({ title: "Contenidos Actualizados ✨", description: "Los cambios han sido guardados." });
@@ -228,6 +250,8 @@ export default function HomePage() {
   };
 
   if (!isMounted || authLoading || !user) return null;
+
+  const ModuleSectionIcon = ICON_OPTIONS.find(o => o.id === settings.moduleSectionIcon)?.icon || Zap;
 
   return (
     <AppLayout>
@@ -425,7 +449,7 @@ export default function HomePage() {
             <Card className="rounded-[1.5rem] border-none shadow-lg bg-blue-50 dark:bg-blue-950/20 p-6 space-y-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-500/20">
-                  <Zap className="w-5 h-5" />
+                  <ModuleSectionIcon className="w-5 h-5" />
                 </div>
                 <div>
                   <h4 className="font-black text-base text-blue-900 dark:text-blue-100 leading-tight">Nuevos Módulos</h4>
@@ -671,9 +695,29 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-6">
-                <div className="flex items-center gap-2">
-                  <LayoutGrid className="w-4 h-4 text-blue-500" />
-                  <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Gestión de Módulos Próximos</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <LayoutGrid className="w-4 h-4 text-blue-500" />
+                    <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Gestión de Módulos Próximos</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Icono de Sección</Label>
+                    <Select value={tempHero.moduleSectionIcon} onValueChange={(val) => setTempHero(prev => ({...prev, moduleSectionIcon: val}))}>
+                      <SelectTrigger className="h-10 w-32 rounded-xl border-2 font-bold">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {ICON_OPTIONS.map(opt => (
+                          <SelectItem key={opt.id} value={opt.id} className="font-bold">
+                            <div className="flex items-center gap-2">
+                              <opt.icon className="w-3.5 h-3.5 text-accent" />
+                              <span className="text-[10px] uppercase">{opt.id}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
