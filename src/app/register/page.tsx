@@ -122,33 +122,44 @@ export default function RegisterPage() {
     const paragraphs = text.split('\n\n');
     
     return paragraphs.map((para, i) => {
-      // Identificar si es un encabezado de sección (ej: "1. Titulo")
-      const isHeader = /^\d+\./.test(para.trim());
+      // Dividir por la primera línea para separar el título del cuerpo si existe
+      const lines = para.split('\n');
+      const firstLine = lines[0].trim();
+      const restLines = lines.slice(1).join('\n').trim();
+
+      // Identificar si la primera línea es un encabezado de sección (ej: "1. Titulo", "1- Titulo")
+      const isHeader = /^(\d+[\.\-\)]\s*.*)/.test(firstLine);
       
-      // Procesar negritas **texto**
-      const parts = para.split(/(\*\*.*?\*\*)/g);
-      const content = parts.map((part, j) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={j} className="text-accent font-black drop-shadow-sm">{part.slice(2, -2)}</strong>;
-        }
-        return part;
-      });
+      const processText = (t: string) => {
+        const parts = t.split(/(\*\*.*?\*\*)/g);
+        return parts.map((part, j) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={j} className="text-accent font-black drop-shadow-sm">{part.slice(2, -2)}</strong>;
+          }
+          return part;
+        });
+      };
 
       if (isHeader) {
         return (
-          <div key={i} className="mb-6 mt-10 first:mt-0 animate-in fade-in slide-in-from-left-4 duration-500">
+          <div key={i} className="mb-8 mt-10 first:mt-0 animate-in fade-in slide-in-from-left-4 duration-500">
             <h4 className="text-xl font-black text-foreground flex items-center gap-3">
               <div className="w-2 h-8 bg-accent rounded-full shadow-[0_0_10px_rgba(255,139,122,0.4)]" />
-              {content}
+              {processText(firstLine)}
             </h4>
-            <div className="h-0.5 w-full bg-primary/10 mt-2 rounded-full" />
+            <div className="h-0.5 w-full bg-primary/10 mt-2 mb-4 rounded-full" />
+            {restLines && (
+              <p className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed whitespace-pre-wrap px-1">
+                {processText(restLines)}
+              </p>
+            )}
           </div>
         );
       }
 
       return (
         <p key={i} className="mb-5 text-sm md:text-base text-muted-foreground font-medium leading-relaxed whitespace-pre-wrap px-1">
-          {content}
+          {processText(para)}
         </p>
       );
     });
