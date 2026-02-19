@@ -46,6 +46,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
@@ -250,7 +251,7 @@ export default function RegisterPage() {
                     >
                       Acepto los Términos de Uso y la Política de Privacidad de la academia.
                     </label>
-                    <Dialog>
+                    <Dialog open={isTermsModalOpen} onOpenChange={setIsTermsModalOpen}>
                       <DialogTrigger asChild>
                         <button type="button" className="text-[10px] text-accent font-black uppercase tracking-widest flex items-center gap-1 hover:underline text-left">
                           <ExternalLink className="w-3 h-3 shrink-0" /> Leer términos detallados y sanciones
@@ -276,6 +277,7 @@ export default function RegisterPage() {
                             className="w-full bg-accent text-white rounded-xl h-12 font-black shadow-lg"
                             onClick={() => {
                               setAcceptedTerms(true);
+                              setIsTermsModalOpen(false);
                             }}
                           >
                             <FileText className="w-4 h-4 mr-2" /> Entiendo y Acepto las Condiciones
