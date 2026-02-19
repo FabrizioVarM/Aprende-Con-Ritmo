@@ -17,7 +17,6 @@ import {
   DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog";
-import { ScrollArea } from '@/components/ui/scroll-area';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSettingsStore } from '@/lib/settings-store';
@@ -264,7 +263,8 @@ export default function RegisterPage() {
                           </DialogTitle>
                           <DialogDescription className="font-medium text-muted-foreground">Normas de convivencia y uso de la plataforma Aprende con Ritmo.</DialogDescription>
                         </DialogHeader>
-                        <ScrollArea className="flex-1 p-8 bg-card">
+                        
+                        <div className="flex-1 p-8 bg-card overflow-y-auto min-h-0">
                           <div className="space-y-8 text-sm font-medium text-foreground leading-relaxed">
                             
                             <section className="space-y-3">
@@ -358,7 +358,8 @@ export default function RegisterPage() {
                               Al pulsar "Entiendo y Acepto", usted confirma que ha leído, comprendido y acepta someterse a estas condiciones en su totalidad, reconociendo la autoridad de la academia para velar por el correcto cumplimiento de las mismas.
                             </div>
                           </div>
-                        </ScrollArea>
+                        </div>
+
                         <DialogFooter className="p-6 bg-muted/30 border-t shrink-0">
                           <Button 
                             className="w-full bg-accent text-white rounded-xl h-12 font-black shadow-lg"
