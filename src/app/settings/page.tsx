@@ -33,7 +33,8 @@ import {
   MapPin,
   Plus,
   X,
-  Scale
+  Scale,
+  Sparkles
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -296,10 +297,24 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-6">
-              <div className="bg-accent/5 p-4 rounded-2xl border border-accent/10 mb-2">
-                <p className="text-sm text-muted-foreground font-medium">
-                  Edita los términos y condiciones que los alumnos deben aceptar al registrarse. Estos cambios se reflejarán instantáneamente en el formulario de creación de cuenta.
+              <div className="bg-accent/5 p-5 rounded-2xl border-2 border-accent/20 mb-2 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-accent" />
+                  <p className="text-sm font-black text-foreground">Editor de Diseño Dinámico</p>
+                </div>
+                <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                  Ahora puedes dar estilo a tus términos legales. Los cambios se verán reflejados con diseño en el registro.
                 </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-primary/10">
+                    <span className="text-[10px] font-black uppercase text-accent block mb-1">Negritas</span>
+                    <p className="text-[10px] font-bold text-muted-foreground italic">Usa **texto** para resaltar palabras clave en color acento.</p>
+                  </div>
+                  <div className="bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-primary/10">
+                    <span className="text-[10px] font-black uppercase text-accent block mb-1">Secciones</span>
+                    <p className="text-[10px] font-bold text-muted-foreground italic">Empieza una línea con "X." (ej: 1. Título) para crear un encabezado destacado.</p>
+                  </div>
+                </div>
               </div>
               <div className="space-y-3">
                 <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cuerpo de los Términos y Condiciones</Label>

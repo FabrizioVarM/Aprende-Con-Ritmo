@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Mail, Lock, User, Music, Music2, Music3, Music4, Loader2, ShieldCheck, ExternalLink, FileText, Scale, AlertTriangle, Copyright } from 'lucide-react';
+import { Mail, Lock, User, Music, Music2, Music3, Music4, Loader2, ShieldCheck, ExternalLink, FileText, Scale, AlertTriangle, Copyright, Info } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -114,6 +114,46 @@ export default function RegisterPage() {
     }
   };
 
+  // Función para procesar y dar diseño al texto de términos
+  const renderFormattedTerms = (text?: string) => {
+    if (!text) return <p className="italic text-muted-foreground">Cargando términos...</p>;
+    
+    // Dividir por párrafos (doble salto de línea)
+    const paragraphs = text.split('\n\n');
+    
+    return paragraphs.map((para, i) => {
+      // Identificar si es un encabezado de sección (ej: "1. Titulo")
+      const isHeader = /^\d+\./.test(para.trim());
+      
+      // Procesar negritas **texto**
+      const parts = para.split(/(\*\*.*?\*\*)/g);
+      const content = parts.map((part, j) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={j} className="text-accent font-black drop-shadow-sm">{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+
+      if (isHeader) {
+        return (
+          <div key={i} className="mb-6 mt-10 first:mt-0 animate-in fade-in slide-in-from-left-4 duration-500">
+            <h4 className="text-xl font-black text-foreground flex items-center gap-3">
+              <div className="w-2 h-8 bg-accent rounded-full shadow-[0_0_10px_rgba(255,139,122,0.4)]" />
+              {content}
+            </h4>
+            <div className="h-0.5 w-full bg-primary/10 mt-2 rounded-full" />
+          </div>
+        );
+      }
+
+      return (
+        <p key={i} className="mb-5 text-sm md:text-base text-muted-foreground font-medium leading-relaxed whitespace-pre-wrap px-1">
+          {content}
+        </p>
+      );
+    });
+  };
+
   const icons = [Music, Music2, Music3, Music4];
 
   return (
@@ -195,10 +235,10 @@ export default function RegisterPage() {
                 <Label htmlFor="name" className="text-foreground">Nombre Completo</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input 
+                  <input 
                     id="name" 
                     placeholder="Juan Pérez" 
-                    className="pl-10 rounded-xl bg-background text-foreground border-border" 
+                    className="flex h-12 w-full rounded-xl border-2 border-border bg-background px-10 py-2 text-sm font-bold text-foreground focus:border-accent outline-none transition-all" 
                     required 
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -209,11 +249,11 @@ export default function RegisterPage() {
                 <Label htmlFor="email" className="text-foreground">Correo Electrónico</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input 
+                  <input 
                     id="email" 
                     type="email" 
                     placeholder="nombre@ejemplo.com" 
-                    className="pl-10 rounded-xl bg-background text-foreground border-border" 
+                    className="flex h-12 w-full rounded-xl border-2 border-border bg-background px-10 py-2 text-sm font-bold text-foreground focus:border-accent outline-none transition-all" 
                     required 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -224,11 +264,11 @@ export default function RegisterPage() {
                 <Label htmlFor="password" className="text-foreground">Contraseña</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                  <Input 
+                  <input 
                     id="password" 
                     type="password" 
                     placeholder="••••••••" 
-                    className="pl-10 rounded-xl bg-background text-foreground border-border" 
+                    className="flex h-12 w-full rounded-xl border-2 border-border bg-background px-10 py-2 text-sm font-bold text-foreground focus:border-accent outline-none transition-all" 
                     required 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -257,7 +297,7 @@ export default function RegisterPage() {
                           <ExternalLink className="w-3 h-3 shrink-0" /> Leer términos detallados y sanciones
                         </button>
                       </DialogTrigger>
-                      <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[85vh]">
+                      <DialogContent className="rounded-[2.5rem] max-w-3xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[85vh]">
                         <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
                           <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
                             <ShieldCheck className="w-8 h-8 text-accent" />
@@ -266,21 +306,21 @@ export default function RegisterPage() {
                           <DialogDescription className="font-medium text-muted-foreground">Normas de convivencia y uso de la plataforma Aprende con Ritmo.</DialogDescription>
                         </DialogHeader>
                         
-                        <div className="flex-1 p-8 bg-card overflow-y-auto min-h-0">
-                          <div className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">
-                            {settings.termsContent || "Cargando términos..."}
+                        <div className="flex-1 p-8 bg-card overflow-y-auto min-h-0 custom-scrollbar">
+                          <div className="prose prose-sm max-w-none">
+                            {renderFormattedTerms(settings.termsContent)}
                           </div>
                         </div>
 
                         <DialogFooter className="p-6 bg-muted/30 border-t shrink-0">
                           <Button 
-                            className="w-full bg-accent text-white rounded-xl h-12 font-black shadow-lg"
+                            className="w-full bg-accent text-white rounded-xl h-14 font-black shadow-lg shadow-accent/20 hover:scale-105 transition-all"
                             onClick={() => {
                               setAcceptedTerms(true);
                               setIsTermsModalOpen(false);
                             }}
                           >
-                            <FileText className="w-4 h-4 mr-2" /> Entiendo y Acepto las Condiciones
+                            <FileText className="w-5 h-5 mr-2" /> Entiendo y Acepto las Condiciones
                           </Button>
                         </DialogFooter>
                       </DialogContent>
