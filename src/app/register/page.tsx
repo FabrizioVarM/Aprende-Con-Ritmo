@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Mail, Lock, User, Music, Music2, Music3, Music4, Loader2, ShieldCheck, ExternalLink, FileText } from 'lucide-react';
+import { Mail, Lock, User, Music, Music2, Music3, Music4, Loader2, ShieldCheck, ExternalLink, FileText, Scale, AlertTriangle, Copyright } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ import { useSettingsStore } from '@/lib/settings-store';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 interface DecorativeNote {
   id: number;
@@ -251,61 +252,110 @@ export default function RegisterPage() {
                     </label>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <button type="button" className="text-[10px] text-accent font-black uppercase tracking-widest flex items-center gap-1 hover:underline">
-                          <ExternalLink className="w-3 h-3" /> Leer términos detallados
+                        <button type="button" className="text-[10px] text-accent font-black uppercase tracking-widest flex items-center gap-1 hover:underline text-left">
+                          <ExternalLink className="w-3 h-3 shrink-0" /> Leer términos detallados y sanciones
                         </button>
                       </DialogTrigger>
                       <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[85vh]">
                         <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
                           <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
                             <ShieldCheck className="w-8 h-8 text-accent" />
-                            Términos y Condiciones
+                            Términos, Condiciones y Políticas
                           </DialogTitle>
-                          <DialogDescription className="font-medium text-muted-foreground">Políticas de uso de la plataforma Aprende con Ritmo.</DialogDescription>
+                          <DialogDescription className="font-medium text-muted-foreground">Normas de convivencia y uso de la plataforma Aprende con Ritmo.</DialogDescription>
                         </DialogHeader>
                         <ScrollArea className="flex-1 p-8 bg-card">
-                          <div className="space-y-6 text-sm font-medium text-foreground leading-relaxed">
+                          <div className="space-y-8 text-sm font-medium text-foreground leading-relaxed">
+                            
                             <section className="space-y-3">
-                              <h3 className="font-black text-accent uppercase tracking-widest text-xs">1. Identidad y Propósito</h3>
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
+                                  <Music className="w-3.5 h-3.5 text-accent" />
+                                </div>
+                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">1. Identidad y Propósito</h3>
+                              </div>
                               <p>
                                 La plataforma <strong>Aprende con Ritmo</strong> es una herramienta de gestión académica musical diseñada para facilitar la interacción entre alumnos, profesores y administración. El registro implica el uso de datos personales para fines exclusivamente educativos y de coordinación institucional.
                               </p>
                             </section>
 
                             <section className="space-y-3">
-                              <h3 className="font-black text-accent uppercase tracking-widest text-xs">2. Usuarios y Menores de Edad</h3>
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
+                                  <User className="w-3.5 h-3.5 text-accent" />
+                                </div>
+                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">2. Usuarios y Menores de Edad</h3>
+                              </div>
                               <p>
                                 En caso de que el estudiante sea menor de edad, el registro y la operación de la aplicación deben ser realizados por el padre, madre o tutor legal, quien asume la responsabilidad total de la cuenta y la veracidad de la información proporcionada.
                               </p>
                             </section>
 
                             <section className="space-y-3">
-                              <h3 className="font-black text-accent uppercase tracking-widest text-xs">3. Tratamiento de Datos</h3>
-                              <p>Al registrarse, usted autoriza la recopilación y almacenamiento de:</p>
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
+                                  <Copyright className="w-3.5 h-3.5 text-accent" />
+                                </div>
+                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">3. Propiedad Intelectual y Material Didáctico</h3>
+                              </div>
+                              <p>
+                                Todo el material proporcionado en la Biblioteca (partituras, videos, audios, textos) es propiedad intelectual de la academia o cuenta con las licencias correspondientes para uso educativo.
+                              </p>
+                              <div className="p-4 bg-orange-50 dark:bg-orange-950/20 border-l-4 border-orange-500 rounded-r-xl italic font-bold text-orange-800 dark:text-orange-200">
+                                Queda estrictamente <strong>PROHIBIDA</strong> la descarga, reproducción, distribución, venta o uso de cualquier material didáctico fuera de la plataforma con fines de lucro sin la autorización expresa y por escrito de la dirección de Aprende con Ritmo.
+                              </div>
+                            </section>
+
+                            <section className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
+                                  <Scale className="w-3.5 h-3.5 text-accent" />
+                                </div>
+                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">4. Código de Conducta y Uso Correcto</h3>
+                              </div>
+                              <p>El usuario se compromete a:</p>
                               <ul className="list-disc pl-5 space-y-2 font-bold text-muted-foreground italic">
-                                <li>Nombres, correos electrónicos y números de teléfono.</li>
-                                <li>Instrumentos de interés y niveles de progreso técnico.</li>
-                                <li>Fotografías de perfil y evidencias de aprendizaje (si se suben).</li>
-                                <li>Historial de asistencia y calificaciones.</li>
+                                <li>Proporcionar información veraz y mantenerla actualizada.</li>
+                                <li>Mantener un trato respetuoso y profesional con los docentes y personal administrativo.</li>
+                                <li>Utilizar la agenda de clases de forma responsable, respetando los tiempos de los profesores.</li>
+                                <li>No intentar vulnerar la seguridad de la plataforma ni acceder a perfiles ajenos.</li>
                               </ul>
                             </section>
 
                             <section className="space-y-3">
-                              <h3 className="font-black text-accent uppercase tracking-widest text-xs">4. Responsabilidades Académicas</h3>
-                              <p>
-                                La plataforma facilita el agendamiento de clases, pero no garantiza la disponibilidad absoluta de horarios, la cual está sujeta a la capacidad operativa de los docentes. La cancelación de clases debe realizarse con la anticipación establecida por las políticas internas de la academia.
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
+                                  <AlertTriangle className="w-3.5 h-3.5 text-accent" />
+                                </div>
+                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">5. Incumplimiento y Sanciones</h3>
+                              </div>
+                              <p>El incumplimiento de cualquiera de estos términos podrá resultar en:</p>
+                              <ul className="list-decimal pl-5 space-y-2 font-bold text-muted-foreground italic">
+                                <li>Amonestaciones verbales o escritas enviadas al perfil del alumno.</li>
+                                <li>Suspensión temporal del acceso a la plataforma y materiales.</li>
+                                <li><strong>Expulsión Definitiva</strong> de la academia y eliminación permanente de la cuenta sin derecho a reembolso en caso de faltas graves a la moral o mal uso de la propiedad intelectual.</li>
+                                <li>Acciones legales pertinentes en caso de lucro indebido con materiales de la academia.</li>
+                              </ul>
                             </section>
 
                             <section className="space-y-3">
-                              <h3 className="font-black text-accent uppercase tracking-widest text-xs">5. Deslinde de Responsabilidad</h3>
-                              <p>
-                                La academia no se hace responsable por fallos técnicos externos, interrupciones de red o pérdida de datos debido a mal uso de las credenciales de acceso. Asimismo, la conducta de profesores y alumnos fuera de la interacción estrictamente gestionada por la plataforma se rige por el reglamento disciplinario general de la institución.
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
+                                  <FileText className="w-3.5 h-3.5 text-accent" />
+                                </div>
+                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">6. Tratamiento de Datos</h3>
+                              </div>
+                              <p>Al registrarse, usted autoriza la recopilación y almacenamiento de:</p>
+                              <ul className="list-disc pl-5 space-y-2 font-bold text-muted-foreground italic">
+                                <li>Nombres, correos electrónicos y números de teléfono.</li>
+                                <li>Instrumentos de interés y niveles de progreso técnico.</li>
+                                <li>Fotografías de perfil y evidencias de aprendizaje.</li>
+                                <li>Historial de asistencia y calificaciones.</li>
+                              </ul>
                             </section>
 
                             <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 italic text-[11px] text-muted-foreground">
-                              Al pulsar "Acepto", usted confirma que ha leído, comprendido y acepta someterse a estas condiciones en su totalidad.
+                              Al pulsar "Entiendo y Acepto", usted confirma que ha leído, comprendido y acepta someterse a estas condiciones en su totalidad, reconociendo la autoridad de la academia para velar por el correcto cumplimiento de las mismas.
                             </div>
                           </div>
                         </ScrollArea>
@@ -314,7 +364,6 @@ export default function RegisterPage() {
                             className="w-full bg-accent text-white rounded-xl h-12 font-black shadow-lg"
                             onClick={() => {
                               setAcceptedTerms(true);
-                              // Close dialog is handled by shadcn internally or via state
                             }}
                           >
                             <FileText className="w-4 h-4 mr-2" /> Entiendo y Acepto las Condiciones
@@ -347,5 +396,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-
-const cn = (...classes: any[]) => classes.filter(Boolean).join(' ');
