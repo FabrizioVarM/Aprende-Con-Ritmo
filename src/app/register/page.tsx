@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -265,98 +266,8 @@ export default function RegisterPage() {
                         </DialogHeader>
                         
                         <div className="flex-1 p-8 bg-card overflow-y-auto min-h-0">
-                          <div className="space-y-8 text-sm font-medium text-foreground leading-relaxed">
-                            
-                            <section className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
-                                  <Music className="w-3.5 h-3.5 text-accent" />
-                                </div>
-                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">1. Identidad y Propósito</h3>
-                              </div>
-                              <p>
-                                La plataforma <strong>Aprende con Ritmo</strong> es una herramienta de gestión académica musical diseñada para facilitar la interacción entre alumnos, profesores y administración. El registro implica el uso de datos personales para fines exclusivamente educativos y de coordinación institucional.
-                              </p>
-                            </section>
-
-                            <section className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
-                                  <User className="w-3.5 h-3.5 text-accent" />
-                                </div>
-                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">2. Usuarios y Menores de Edad</h3>
-                              </div>
-                              <p>
-                                En caso de que el estudiante sea menor de edad, el registro y la operación de la aplicación deben ser realizados por el padre, madre o tutor legal, quien asume la responsabilidad total de la cuenta y la veracidad de la información proporcionada.
-                              </p>
-                            </section>
-
-                            <section className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
-                                  <Copyright className="w-3.5 h-3.5 text-accent" />
-                                </div>
-                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">3. Propiedad Intelectual y Material Didáctico</h3>
-                              </div>
-                              <p>
-                                Todo el material proporcionado en la Biblioteca (partituras, videos, audios, textos) es propiedad intelectual de la academia o cuenta con las licencias correspondientes para uso educativo.
-                              </p>
-                              <div className="p-4 bg-orange-50 dark:bg-orange-950/20 border-l-4 border-orange-500 rounded-r-xl italic font-bold text-orange-800 dark:text-orange-200">
-                                Queda estrictamente <strong>PROHIBIDA</strong> la descarga, reproducción, distribución, venta o uso de cualquier material didáctico fuera de la plataforma con fines de lucro sin la autorización expresa y por escrito de la dirección de Aprende con Ritmo.
-                              </div>
-                            </section>
-
-                            <section className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
-                                  <Scale className="w-3.5 h-3.5 text-accent" />
-                                </div>
-                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">4. Código de Conducta y Uso Correcto</h3>
-                              </div>
-                              <p>El usuario se compromete a:</p>
-                              <ul className="list-disc pl-5 space-y-2 font-bold text-muted-foreground italic">
-                                <li>Proporcionar información veraz y mantenerla actualizada.</li>
-                                <li>Mantener un trato respetuoso y profesional con los docentes y personal administrativo.</li>
-                                <li>Utilizar la agenda de clases de forma responsable, respetando los tiempos de los profesores.</li>
-                                <li>No intentar vulnerar la seguridad de la plataforma ni acceder a perfiles ajenos.</li>
-                              </ul>
-                            </section>
-
-                            <section className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
-                                  <AlertTriangle className="w-3.5 h-3.5 text-accent" />
-                                </div>
-                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">5. Incumplimiento y Sanciones</h3>
-                              </div>
-                              <p>El incumplimiento de cualquiera de estos términos podrá resultar en:</p>
-                              <ul className="list-decimal pl-5 space-y-2 font-bold text-muted-foreground italic">
-                                <li>Amonestaciones verbales o escritas enviadas al perfil del alumno.</li>
-                                <li>Suspensión temporal del acceso a la plataforma y materiales.</li>
-                                <li><strong>Expulsión Definitiva</strong> de la academia y eliminación permanente de la cuenta sin derecho a reembolso en caso de faltas graves a la moral o mal uso de la propiedad intelectual.</li>
-                                <li>Acciones legales pertinentes en caso de lucro indebido con materiales de la academia.</li>
-                              </ul>
-                            </section>
-
-                            <section className="space-y-3">
-                              <div className="flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-lg bg-accent/10 flex items-center justify-center">
-                                  <FileText className="w-3.5 h-3.5 text-accent" />
-                                </div>
-                                <h3 className="font-black text-accent uppercase tracking-widest text-xs">6. Tratamiento de Datos</h3>
-                              </div>
-                              <p>Al registrarse, usted autoriza la recopilación y almacenamiento de:</p>
-                              <ul className="list-disc pl-5 space-y-2 font-bold text-muted-foreground italic">
-                                <li>Nombres, correos electrónicos y números de teléfono.</li>
-                                <li>Instrumentos de interés y niveles de progreso técnico.</li>
-                                <li>Fotografías de perfil y evidencias de aprendizaje.</li>
-                                <li>Historial de asistencia y calificaciones.</li>
-                              </ul>
-                            </section>
-
-                            <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 italic text-[11px] text-muted-foreground">
-                              Al pulsar "Entiendo y Acepto", usted confirma que ha leído, comprendido y acepta someterse a estas condiciones en su totalidad, reconociendo la autoridad de la academia para velar por el correcto cumplimiento de las mismas.
-                            </div>
+                          <div className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">
+                            {settings.termsContent || "Cargando términos..."}
                           </div>
                         </div>
 

@@ -57,6 +57,8 @@ export interface AppSettings {
   aboutGuideItems?: GuideItem[];
   aboutFooterTitle?: string;
   aboutFooterSubtitle?: string;
+  // Términos y Condiciones
+  termsContent?: string;
 }
 
 export const FALLBACK_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
@@ -113,7 +115,8 @@ const DEFAULT_SETTINGS: AppSettings = {
     { icon: 'ClipboardList', title: 'Postulaciones', desc: 'Próximamente. Inscríbete a festivales y audiciones especiales.' }
   ],
   aboutFooterTitle: '¿Listo para empezar?',
-  aboutFooterSubtitle: 'Tu viaje musical es único. Utiliza cada una de estas herramientas para sacar el mayor provecho a tus clases.'
+  aboutFooterSubtitle: 'Tu viaje musical es único. Utiliza cada una de estas herramientas para sacar el mayor provecho a tus clases.',
+  termsContent: `1. Identidad y Propósito\nLa plataforma Aprende con Ritmo es una herramienta de gestión académica musical diseñada para facilitar la interacción entre alumnos, profesores y administración. El registro implica el uso de datos personales para fines exclusivamente educativos y de coordinación institucional.\n\n2. Usuarios y Menores de Edad\nEn caso de que el estudiante sea menor de edad, el registro y la operación de la aplicación deben ser realizados por el padre, madre o tutor legal, quien asume la responsabilidad total de la cuenta y la veracidad de la información proporcionada.\n\n3. Propiedad Intelectual y Material Didáctico\nTodo el material proporcionado en la Biblioteca (partituras, videos, audios, textos) es propiedad intelectual de la academia o cuenta con las licencias correspondientes para uso educativo.\n\nQueda estrictamente PROHIBIDA la descarga, reproducción, distribución, venta o uso de cualquier material didáctico fuera de la plataforma con fines de lucro sin la autorización expresa y por escrito de la dirección de Aprende con Ritmo.\n\n4. Código de Conducta y Uso Correcto\nEl usuario se compromete a:\n- Proporcionar información veraz y mantenerla actualizada.\n- Mantener un trato respetuoso y profesional con los docentes y personal administrativo.\n- Utilizar la agenda de clases de forma responsable, respetando los tiempos de los profesores.\n- No intentar vulnerar la seguridad de la plataforma ni acceder a perfiles ajenos.\n\n5. Incumplimiento y Sanciones\nEl incumplimiento de cualquiera de estos términos podrá resultar en:\n- Amonestaciones verbales o escritas enviadas al perfil del alumno.\n- Suspensión temporal del acceso a la plataforma y materiales.\n- Expulsión Definitiva de la academia y eliminación permanente de la cuenta sin derecho a reembolso en caso de faltas graves a la moral o mal uso de la propiedad intelectual.\n- Acciones legales pertinentes en caso de lucro indebido con materiales de la academia.\n\n6. Tratamiento de Datos\nAl registrarse, usted autoriza la recopilación y almacenamiento de:\n- Nombres, correos electrónicos y números de teléfono.\n- Instrumentos de interés y niveles de progreso técnico.\n- Fotografías de perfil y evidencias de aprendizaje.\n- Historial de asistencia y calificaciones.`
 };
 
 export function useSettingsStore() {

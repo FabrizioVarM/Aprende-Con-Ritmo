@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
@@ -8,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { useSettingsStore } from '@/lib/settings-store';
 import { useAuth } from '@/lib/auth-store';
 import { useToast } from '@/hooks/use-toast';
@@ -30,7 +32,8 @@ import {
   Power,
   MapPin,
   Plus,
-  X
+  X,
+  Scale
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -46,6 +49,7 @@ export default function SettingsPage() {
   const [logoUrl, setLogoUrl] = useState(settings.appLogoUrl);
   const [darkMode, setDarkMode] = useState(settings.darkMode);
   const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
+  const [termsContent, setTermsContent] = useState(settings.termsContent || '');
   
   // Local states for feature visibility and usage
   const [showProd, setShowProd] = useState(settings.showProduction);
@@ -86,6 +90,7 @@ export default function SettingsPage() {
     setShowPost(settings.showPostulations);
     setEnablePost(settings.enablePostulations);
     setLocalZones(settings.zones || []);
+    setTermsContent(settings.termsContent || '');
   }, [settings]);
 
   const handleSave = () => {
@@ -101,7 +106,8 @@ export default function SettingsPage() {
       enableMarket: enableMark,
       showPostulations: showPost,
       enablePostulations: enablePost,
-      zones: localZones
+      zones: localZones,
+      termsContent: termsContent
     });
     toast({
       title: "Configuración Guardada ✨",
@@ -277,6 +283,32 @@ export default function SettingsPage() {
                     )}
                   </Badge>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* POLÍTICAS Y TÉRMINOS */}
+          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
+            <CardHeader className="bg-primary/5 p-8 border-b">
+              <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
+                <Scale className="w-8 h-8 text-accent" />
+                Políticas y Aspectos Legales
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-8 space-y-6">
+              <div className="bg-accent/5 p-4 rounded-2xl border border-accent/10 mb-2">
+                <p className="text-sm text-muted-foreground font-medium">
+                  Edita los términos y condiciones que los alumnos deben aceptar al registrarse. Estos cambios se reflejarán instantáneamente en el formulario de creación de cuenta.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cuerpo de los Términos y Condiciones</Label>
+                <Textarea 
+                  value={termsContent}
+                  onChange={(e) => setTermsContent(e.target.value)}
+                  className="min-h-[400px] rounded-2xl border-2 font-bold p-6 focus:border-accent text-foreground bg-card text-sm leading-relaxed"
+                  placeholder="Escribe aquí los términos legales..."
+                />
               </div>
             </CardContent>
           </Card>
