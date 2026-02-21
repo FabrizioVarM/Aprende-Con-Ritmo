@@ -620,6 +620,10 @@ export default function LibraryPage() {
         <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
           {viewingResource && (
             <>
+              <DialogHeader className="sr-only">
+                <DialogTitle>{viewingResource.title}</DialogTitle>
+                <DialogDescription>Detalles técnicos y objetivos pedagógicos del material de {viewingResource.category}.</DialogDescription>
+              </DialogHeader>
               <div className="relative aspect-video w-full shrink-0">
                 <Image 
                   src={getDirectImageUrl(typeof viewingResource.img === 'string' ? viewingResource.img : viewingResource.img?.imageUrl || FALLBACK_IMAGE)} 
