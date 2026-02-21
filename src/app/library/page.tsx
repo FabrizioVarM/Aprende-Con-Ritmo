@@ -261,10 +261,10 @@ export default function LibraryPage() {
    * Helper para asegurar que la URL pasada a next/image sea válida.
    */
   const getSafeImageUrl = (url: string | undefined | null, fallback = FALLBACK_IMAGE) => {
-    if (!url || url === '#' || url.trim() === '' || url === 'aa') return fallback;
+    if (!url || url === '#' || url.trim().length < 5) return fallback;
     const direct = getDirectImageUrl(url);
     // Verificar si es una URL absoluta o relativa válida para NextJS
-    if (direct.startsWith('http') || direct.startsWith('/') || direct.startsWith('data:')) {
+    if (direct.startsWith('http') || direct.startsWith('/')) {
       return direct;
     }
     return fallback;
@@ -619,29 +619,29 @@ export default function LibraryPage() {
                     )}
                   </div>
 
-                  {!isLockedForStudent && (
-                    <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
-                      {res.downloadUrl && res.downloadUrl !== '#' && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 border-primary/20 hover:bg-accent/5 hover:border-accent/30 transition-all"
-                          onClick={() => window.open(getDriveDownloadUrl(res.downloadUrl), '_blank')}
-                        >
-                          <Download className="w-3 h-3" /> Descargar
-                        </Button>
-                      )}
-                      {res.interactUrl && res.interactUrl !== '#' && (
-                        <Button 
-                          size="sm" 
-                          className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 bg-accent text-white shadow-sm hover:scale-105 transition-all"
-                          onClick={() => window.open(res.interactUrl, '_blank')}
-                        >
-                          <Play className="w-3 h-3" /> Interactuar
-                        </Button>
-                      )}
-                    </div>
-                  )}
+                  <div className={cn("flex gap-2 pt-2", isLockedForStudent && "opacity-40 grayscale pointer-events-none")} onClick={(e) => e.stopPropagation()}>
+                    {res.downloadUrl && res.downloadUrl !== '#' && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 border-primary/20 hover:bg-accent/5 hover:border-accent/30 transition-all"
+                        onClick={() => !isLockedForStudent && window.open(getDriveDownloadUrl(res.downloadUrl), '_blank')}
+                        disabled={isLockedForStudent}
+                      >
+                        <Download className="w-3 h-3" /> Descargar
+                      </Button>
+                    )}
+                    {res.interactUrl && res.interactUrl !== '#' && (
+                      <Button 
+                        size="sm" 
+                        className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 bg-accent text-white shadow-sm hover:scale-105 transition-all"
+                        onClick={() => !isLockedForStudent && window.open(res.interactUrl, '_blank')}
+                        disabled={isLockedForStudent}
+                      >
+                        <Play className="w-3 h-3" /> Interactuar
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );
