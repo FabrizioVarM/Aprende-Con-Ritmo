@@ -339,6 +339,20 @@ export default function AdminDashboard() {
     });
   }, [selectedDate]);
 
+  const bookedHoursCountMap = useMemo(() => {
+    if (!editingTeacherId) return {};
+    const counts: Record<string, number> = {};
+    weekDays.forEach(d => {
+      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const dayData = availabilities.find(a => a.teacherId === editingTeacherId && a.date === dStr);
+      if (dayData) {
+        const bookedCount = dayData.slots.filter(s => s.isBooked).length;
+        if (bookedCount > 0) counts[dStr] = bookedCount;
+      }
+    });
+    return counts;
+  }, [weekDays, availabilities, editingTeacherId]);
+
   const isSelectedDatePast = useMemo(() => {
     const dateAtStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
     return todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
@@ -476,7 +490,7 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   
-                  <div className="flex flex-wrap items-center gap-6 sm:gap-10 w-full sm:w-auto">
+                  <div className="flex flex-wrap items-center gap-6 sm:gap-10 w-full sm:auto">
                     <div className="text-right">
                       <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">Esta Semana</p>
                       <div className="flex items-center justify-end gap-2">
@@ -598,6 +612,8 @@ export default function AdminDashboard() {
                 <div className="grid grid-cols-7 gap-2">
                   {weekDays.map((d, i) => {
                     const isSelected = d.toDateString() === selectedDate.toDateString();
+                    const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                    const bookedCount = bookedHoursCountMap[dStr];
                     const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
                     const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
 
@@ -618,6 +634,15 @@ export default function AdminDashboard() {
                           {d.toLocaleDateString('es-ES', { weekday: 'short' })}
                         </span>
                         <span className={cn("text-base font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
+                        
+                        {bookedCount > 0 && (
+                          <Badge className={cn(
+                            "absolute -top-2 -right-2 h-5 min-w-[1.25rem] px-1 rounded-full text-white border-2 border-white text-[10px] flex items-center justify-center font-black shadow-sm",
+                            isSelected ? "bg-white text-accent border-accent" : "bg-accent"
+                          )}>
+                            {bookedCount}
+                          </Badge>
+                        )}
                       </button>
                     );
                   })}
@@ -695,7 +720,7 @@ export default function AdminDashboard() {
           </div>
 
           <div className="p-6 bg-muted/30 border-t flex gap-3">
-            <Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)} className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
+            <Button variant="outline" onClick={() => setEditingTeacherId(null)} className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
             <Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-12 font-black gap-2">Guardar Cambios</Button>
           </div>
         </DialogContent>

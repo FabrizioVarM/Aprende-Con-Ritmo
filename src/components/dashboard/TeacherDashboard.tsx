@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/dialog"
 import {
   Select,
   SelectContent,
@@ -302,6 +302,20 @@ export default function TeacherDashboard() {
     });
   }, [selectedDate]);
 
+  const bookedHoursCountMap = useMemo(() => {
+    if (!teacherId) return {};
+    const counts: Record<string, number> = {};
+    weekDays.forEach(d => {
+      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const dayData = availabilities.find(a => a.teacherId === teacherId && a.date === dStr);
+      if (dayData) {
+        const bookedCount = dayData.slots.filter(s => s.isBooked).length;
+        if (bookedCount > 0) counts[dStr] = bookedCount;
+      }
+    });
+    return counts;
+  }, [weekDays, availabilities, teacherId]);
+
   const totalWeeklyEnabledHours = useMemo(() => {
     if (!teacherId) return 0;
     let total = 0;
@@ -396,6 +410,8 @@ export default function TeacherDashboard() {
                     <div className="grid grid-cols-7 gap-2">
                       {weekDays.map((d, i) => {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
+                        const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                        const bookedCount = bookedHoursCountMap[dStr];
                         const isToday = d.toDateString() === todayStr;
                         const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
                         const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
@@ -418,6 +434,15 @@ export default function TeacherDashboard() {
                               {d.toLocaleDateString('es-ES', { weekday: 'short' })}
                             </span>
                             <span className={cn("text-base font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
+                            
+                            {bookedCount > 0 && (
+                              <Badge className={cn(
+                                "absolute -top-2 -right-2 h-5 min-w-[1.25rem] px-1 rounded-full text-white border-2 border-white text-[10px] flex items-center justify-center font-black shadow-sm",
+                                isSelected ? "bg-white text-accent border-accent" : "bg-accent"
+                              )}>
+                                {bookedCount}
+                              </Badge>
+                            )}
                           </button>
                         );
                       })}
