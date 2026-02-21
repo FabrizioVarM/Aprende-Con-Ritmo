@@ -5,7 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, ChevronDown, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check, MousePointerClick, MapPin as MapPinIcon, AlertTriangle, Building2, Home } from 'lucide-react';
+import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, ChevronDown, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check, MousePointerClick, MapPin as MapPinIcon, AlertTriangle, Building2, Home, LayoutGrid } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -111,7 +111,7 @@ export default function SchedulePage() {
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedZone, setSelectedZone] = useState<string>('');
-  const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio'>('domicilio');
+  const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio' | 'cualquiera'>('domicilio');
   
   // Group Class States
   const [groupStudents, setGroupStudents] = useState<string[]>([]);
@@ -367,7 +367,9 @@ export default function SchedulePage() {
 
     const instrument = bookingInstrument || user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
     const teacherName = currentTeacherProfile?.name || DEFAULT_TEACHER_NAME;
-    const finalZone = selectedModality === 'virtual' ? 'Virtual' : (selectedZone || activeZones[0]);
+    const finalZone = (selectedModality === 'virtual' || (selectedModality === 'cualquiera' && targetSlot.type === 'virtual')) 
+      ? 'Virtual' 
+      : (selectedZone || activeZones[0]);
     
     bookSlot(selectedTeacherId, date, selectedSlotId, user.name, user.id, instrument, teacherName, adminIds, finalZone);
     toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
@@ -528,7 +530,7 @@ export default function SchedulePage() {
                       )}
                     </div>
                     <div className="text-lg font-black text-foreground flex items-center gap-2">
-                      <GraduationCap className="w-5 h-5" />
+                      < GraduationCap className="w-5 h-5" />
                       {slot.isGroup ? (
                         <span className="truncate">Participantes: {slot.students?.map((s: any) => s.name).join(', ')}</span>
                       ) : (
@@ -877,6 +879,12 @@ export default function SchedulePage() {
                               <span>Virtual (Online)</span>
                             </div>
                           </SelectItem>
+                          <SelectItem value="cualquiera" className="font-bold py-3">
+                            <div className="flex items-center gap-2">
+                              <LayoutGrid className="w-4 h-4 text-muted-foreground" />
+                              <span>Cualquiera</span>
+                            </div>
+                          </SelectItem>
                           <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
                             <div className="flex items-center gap-2">
                               <Building2 className="w-4 h-4 text-muted-foreground" />
@@ -887,7 +895,7 @@ export default function SchedulePage() {
                       </Select>
                     </div>
 
-                    {selectedModality === 'domicilio' && (
+                    {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') && (
                       <div className="space-y-3 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1 duration-300">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
                           <MapPinIcon className="w-3 h-3" /> 3. Zona de la Clase
@@ -908,7 +916,7 @@ export default function SchedulePage() {
                     )}
 
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
-                      {selectedModality === 'domicilio' ? '4.' : '3.'} Selecciona un Horario Disponible
+                      {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '4.' : '3.'} Selecciona un Horario Disponible
                     </Label>
                     
                     {otherAvailableSlots.length > 0 ? (
@@ -994,7 +1002,7 @@ export default function SchedulePage() {
                               {isSelected && (
                                 <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
                                   <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                                    <Music className="w-3 h-3" /> {selectedModality === 'domicilio' ? '5.' : '4.'} ¿Qué instrumento tocarás?
+                                    <Music className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '5.' : '4.'} ¿Qué instrumento tocarás?
                                   </Label>
                                   <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
                                     <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -31,7 +30,8 @@ import {
   MapPin as MapPinIcon,
   AlertTriangle,
   Building2,
-  Home
+  Home,
+  LayoutGrid
 } from 'lucide-react';
 import {
   Dialog,
@@ -128,7 +128,7 @@ export default function StudentDashboard() {
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedZone, setSelectedZone] = useState<string>('');
-  const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio'>('domicilio');
+  const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio' | 'cualquiera'>('domicilio');
   const [todayStr, setTodayStr] = useState<string>('');
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
@@ -272,7 +272,7 @@ export default function StudentDashboard() {
 
       if (selectedModality === 'virtual' && s.type !== 'virtual') return false;
       if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
-      if (selectedModality === 'sede') return false; 
+      if (selectedModality === 'sede' && s.type !== 'presencial') return false; 
       
       const startTimeStr = s.time.split(' - ')[0];
       const [h, m] = startTimeStr.split(':').map(Number);
@@ -433,7 +433,9 @@ export default function StudentDashboard() {
     }
 
     const teacher = teachers.find(t => t.id === selectedTeacherId);
-    const finalZone = selectedModality === 'virtual' ? 'Virtual' : (selectedZone || activeZones[0]);
+    const finalZone = (selectedModality === 'virtual' || (selectedModality === 'cualquiera' && targetSlot.type === 'virtual')) 
+      ? 'Virtual' 
+      : (selectedZone || activeZones[0]);
     
     await bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name, adminIds, finalZone);
     
@@ -475,8 +477,10 @@ export default function StudentDashboard() {
       if (dayData) {
         const hasFree = dayData.slots.some(s => {
           if (!s.isAvailable || s.isBooked) return false;
+          
           if (selectedModality === 'virtual' && s.type !== 'virtual') return false;
           if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
+          if (selectedModality === 'sede' && s.type !== 'presencial') return false;
           
           if (isToday) {
             const startTimeStr = s.time.split(' - ')[0];
@@ -573,6 +577,12 @@ export default function StudentDashboard() {
                                 <span>Virtual</span>
                               </div>
                             </SelectItem>
+                            <SelectItem value="cualquiera" className="font-bold py-3">
+                              <div className="flex items-center gap-2">
+                                <LayoutGrid className="w-4 h-4 text-muted-foreground" />
+                                <span>Cualquiera</span>
+                              </div>
+                            </SelectItem>
                             <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
                               <div className="flex items-center gap-2">
                                 <Building2 className="w-4 h-4 text-muted-foreground" />
@@ -584,7 +594,7 @@ export default function StudentDashboard() {
                       </div>
                     </div>
 
-                    {selectedModality === 'domicilio' && (
+                    {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
                         <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Zona de la Clase</label>
                         <Select value={selectedZone} onValueChange={handleZoneChange}>
@@ -610,7 +620,7 @@ export default function StudentDashboard() {
 
                     <div className="space-y-3">
                       <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                        {selectedModality === 'domicilio' ? '4.' : '3.'} Elige tu Profesor
+                        {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '4.' : '3.'} Elige tu Profesor
                       </label>
                       <div className="grid grid-cols-1 gap-2">
                         {filteredTeachers.length > 0 ? filteredTeachers.map(t => (
@@ -649,7 +659,7 @@ export default function StudentDashboard() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                        {selectedModality === 'domicilio' ? '5.' : '4.'} Selecciona el Día
+                        {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '5.' : '4.'} Selecciona el Día
                       </label>
                       <div className="flex gap-1">
                         <Button 
@@ -729,7 +739,7 @@ export default function StudentDashboard() {
 
                 <div className="space-y-6">
                   <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                    HORARIOS {selectedModality === 'virtual' ? 'VIRTUALES' : 'PRESENCIALES'} DISPONIBLES
+                    HORARIOS DISPONIBLES
                   </label>
                   <div className="grid grid-cols-1 gap-2">
                     {freeSlots.length > 0 ? (
