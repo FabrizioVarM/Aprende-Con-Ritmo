@@ -421,7 +421,11 @@ export default function LibraryPage() {
                     : "border-primary/40 hover:border-accent/40",
                   isLockedForStudent && "opacity-70 grayscale-[0.3]"
                 )}
-                onClick={() => setViewingResource(res)}
+                onClick={() => {
+                  // CRITICAL: Los materiales deshabilitados no pueden ser abiertos por alumnos
+                  if (isLockedForStudent) return;
+                  setViewingResource(res);
+                }}
               >
                 <div className="relative aspect-video overflow-hidden bg-muted">
                   <Image 
@@ -474,7 +478,7 @@ export default function LibraryPage() {
                       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
                         <Lock className="w-8 h-8 text-white mx-auto mb-2" />
                         <p className="text-white text-[10px] font-black uppercase tracking-widest leading-tight">
-                          Completa materiales anteriores para desbloquear
+                          Material Deshabilitado por la Academia
                         </p>
                       </div>
                     </div>
@@ -647,7 +651,7 @@ export default function LibraryPage() {
                 <DialogTitle>{viewingResource.title}</DialogTitle>
                 <DialogDescription>Detalles técnicos y objetivos pedagógicos del material de {viewingResource.category}.</DialogDescription>
               </DialogHeader>
-              <div className="relative h-32 md:h-48 w-full shrink-0">
+              <div className="relative h-32 md:h-40 w-full shrink-0">
                 <Image 
                   src={getDirectImageUrl(typeof viewingResource.img === 'string' ? viewingResource.img : viewingResource.img?.imageUrl || FALLBACK_IMAGE)} 
                   alt={viewingResource.title} 
@@ -665,7 +669,7 @@ export default function LibraryPage() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto min-h-0 bg-card">
+              <div className="flex-1 overflow-y-auto min-h-0 bg-card custom-scrollbar">
                 <div className="p-6 space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
@@ -705,7 +709,7 @@ export default function LibraryPage() {
                         <Target className="w-3.5 h-3.5" /> Objetivo Académico
                       </h4>
                       <p className="text-sm font-bold text-blue-900 dark:text-blue-100 leading-relaxed italic whitespace-pre-wrap">
-                        "{viewingResource.objective}"
+                        {viewingResource.objective}
                       </p>
                     </div>
                   )}
@@ -728,7 +732,7 @@ export default function LibraryPage() {
                     <div className="space-y-1">
                       <h4 className="text-xs font-black text-foreground uppercase tracking-widest">Indicación para Completar</h4>
                       <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
-                        Para validar este material y sumar puntos, deberás realizar el examen con tu profesor durante tu clase presencial o virtual.
+                        Para que este material sea validado como Completado y sume puntos a tu progreso, deberás realizar el examen correspondiente con tu profesor durante tu clase presencial o virtual.
                       </p>
                     </div>
                   </div>
@@ -783,7 +787,7 @@ export default function LibraryPage() {
               Configura cada aspecto del nuevo material. Por defecto será privado y bloqueado.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto min-h-0 bg-card">
+          <div className="flex-1 overflow-y-auto min-h-0 bg-card custom-scrollbar">
             <div className="p-8 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -929,7 +933,7 @@ export default function LibraryPage() {
 
       {/* DIÁLOGO: EDITAR RECURSO EXISTENTE */}
       <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
-        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
           <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
               <Edit2 className="w-6 h-6 text-accent" />
@@ -939,7 +943,7 @@ export default function LibraryPage() {
               Modifica los detalles técnicos y descriptivos del material.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto min-h-0 bg-card">
+          <div className="flex-1 overflow-y-auto min-h-0 bg-card custom-scrollbar">
             <div className="p-8 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
