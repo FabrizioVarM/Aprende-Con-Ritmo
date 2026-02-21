@@ -1194,7 +1194,7 @@ export default function SchedulePage() {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => navigateDay('prev')}
-                  className="h-14 w-14 rounded-2xl hover:bg-accent/10 text-accent transition-all border-2 border-accent/10"
+                  className="h-14 w-14 rounded-2xl hover:bg-accent/10 text-accent transition-all border-2 border-accent/40"
                   title="Día anterior"
                 >
                   <ChevronLeft className="w-8 h-8" strokeWidth={3} />
@@ -1204,7 +1204,7 @@ export default function SchedulePage() {
                   variant="ghost" 
                   size="icon" 
                   onClick={() => navigateDay('next')}
-                  className="h-14 w-14 rounded-2xl hover:bg-accent/10 text-accent transition-all border-2 border-accent/10"
+                  className="h-14 w-14 rounded-2xl hover:bg-accent/10 text-accent transition-all border-2 border-accent/40"
                   title="Siguiente día"
                 >
                   <ChevronRight className="w-8 h-8" strokeWidth={3} />
