@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -458,6 +459,42 @@ export default function StudentDashboard() {
     });
   }, [selectedDate]);
 
+  // Mapa de disponibilidad para el calendario visual (puntos verdes)
+  const daysWithAvailability = useMemo(() => {
+    if (!selectedTeacherId || !currentTime) return new Set<string>();
+    const availableDates = new Set<string>();
+
+    weekDays.forEach(d => {
+      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const isToday = d.toDateString() === currentTime.toDateString();
+      const dateStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      
+      if (dateStart < todayTimestamp && !isToday) return;
+
+      const dayData = availabilities.find(a => a.teacherId === selectedTeacherId && a.date === dStr);
+      if (dayData) {
+        const hasFree = dayData.slots.some(s => {
+          if (!s.isAvailable || s.isBooked) return false;
+          if (selectedModality === 'virtual' && s.type !== 'virtual') return false;
+          if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
+          
+          if (isToday) {
+            const startTimeStr = s.time.split(' - ')[0];
+            const [h, m] = startTimeStr.split(':').map(Number);
+            const slotStartTime = new Date(d);
+            slotStartTime.setHours(h, m, 0, 0);
+            return currentTime.getTime() < slotStartTime.getTime();
+          }
+          return true;
+        });
+        
+        if (hasFree) availableDates.add(dStr);
+      }
+    });
+
+    return availableDates;
+  }, [weekDays, availabilities, selectedTeacherId, selectedModality, currentTime, todayTimestamp]);
+
   if (!isMounted) return null;
 
   const topInstConfig = INSTRUMENT_CONFIG[topInstrument] || INSTRUMENT_CONFIG['Default'];
@@ -647,6 +684,8 @@ export default function StudentDashboard() {
                         const isToday = d.toDateString() === todayStr;
                         const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
                         const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
+                        const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                        const hasAvailability = daysWithAvailability.has(dStr);
 
                         return (
                           <button
@@ -664,6 +703,15 @@ export default function StudentDashboard() {
                           >
                             <span className={cn("text-[8px] font-black uppercase", isSelected ? "text-white" : "text-muted-foreground")}>{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
                             <span className={cn("text-lg font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
+                            
+                            {/* Punto verde de disponibilidad */}
+                            {hasAvailability && (
+                              <div className={cn(
+                                "absolute bottom-1.5 w-1 h-1 rounded-full shadow-sm",
+                                isSelected ? "bg-white" : "bg-emerald-500 animate-pulse"
+                              )} />
+                            )}
+
                             {isToday && (
                               <span className={cn(
                                 "text-[7px] font-black uppercase absolute -bottom-1",
@@ -746,7 +794,7 @@ export default function StudentDashboard() {
                                         slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500")
                                     )}>
                                         {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                                        {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                                        {slot.type === 'virtual' ? 'Online' : (slot.zone || 'Presencial')}
                                     </span>
                                   )}
                               </div>
@@ -810,7 +858,7 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="text-xl sm:text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">
-              {nextLesson ? nextLesson.time.split(' ')[0] : 'Aún no hay 😴'}
+              {nextLesson ? nextLesson.time.split(' ')[0] : 'aún no hay 😴'}
             </div>
             <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-0.5">
               {nextLesson 
