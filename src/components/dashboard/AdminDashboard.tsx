@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo, useState, useEffect } from 'react';
@@ -58,6 +59,16 @@ export default function AdminDashboard() {
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
+  
+  // Estado para rastrear cambios en múltiples días antes de guardar
+  const [stagedSlots, setStagedSlots] = useState<Record<string, TimeSlot[]>>({});
+
+  const selectedDateKey = useMemo(() => {
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const d = String(selectedDate.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, [selectedDate]);
 
   useEffect(() => {
     const now = new Date();
@@ -65,10 +76,22 @@ export default function AdminDashboard() {
     setTodayTimestamp(startOfToday.getTime());
   }, []);
 
+  // Limpiar cambios temporales al cerrar el diálogo
+  useEffect(() => {
+    if (!isScheduleDialogOpen) {
+      setStagedSlots({});
+    }
+  }, [isScheduleDialogOpen]);
+
   useEffect(() => {
     if (isScheduleDialogOpen && editingTeacherId) {
-      const data = getDayAvailability(editingTeacherId, selectedDate);
-      setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
+      // Cargar desde cambios temporales si existen, sino desde la base de datos
+      if (stagedSlots[selectedDateKey]) {
+        setLocalSlots(JSON.parse(JSON.stringify(stagedSlots[selectedDateKey])));
+      } else {
+        const data = getDayAvailability(editingTeacherId, selectedDate);
+        setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
+      }
     }
   }, [selectedDate, isScheduleDialogOpen, getDayAvailability, editingTeacherId]);
 
@@ -231,6 +254,7 @@ export default function AdminDashboard() {
     if (!newSlots[index].isBooked) {
       newSlots[index].isAvailable = !newSlots[index].isAvailable;
       setLocalSlots(newSlots);
+      setStagedSlots(prev => ({ ...prev, [selectedDateKey]: newSlots }));
     }
   };
 
@@ -239,6 +263,7 @@ export default function AdminDashboard() {
     if (!newSlots[index].isBooked) {
       newSlots[index].type = newSlots[index].type === 'virtual' ? 'presencial' : 'virtual';
       setLocalSlots(newSlots);
+      setStagedSlots(prev => ({ ...prev, [selectedDateKey]: newSlots }));
     }
   };
 
@@ -246,6 +271,7 @@ export default function AdminDashboard() {
     const newSlots = [...localSlots];
     newSlots[index].time = newTime;
     setLocalSlots(newSlots);
+    setStagedSlots(prev => ({ ...prev, [selectedDateKey]: newSlots }));
   };
 
   const addSlot = () => {
@@ -257,7 +283,9 @@ export default function AdminDashboard() {
       type: 'presencial',
       status: 'pending'
     };
-    setLocalSlots([...localSlots, newSlot]);
+    const updated = [...localSlots, newSlot];
+    setLocalSlots(updated);
+    setStagedSlots(prev => ({ ...prev, [selectedDateKey]: updated }));
   };
 
   const removeSlot = (index: number) => {
@@ -271,19 +299,31 @@ export default function AdminDashboard() {
     }
     const newSlots = localSlots.filter((_, i) => i !== index);
     setLocalSlots(newSlots);
+    setStagedSlots(prev => ({ ...prev, [selectedDateKey]: newSlots }));
   };
 
   const clearAllSlots = () => {
     const bookedSlots = localSlots.filter(s => s.isBooked);
     setLocalSlots(bookedSlots);
+    setStagedSlots(prev => ({ ...prev, [selectedDateKey]: bookedSlots }));
     toast({ title: "Día Limpiado 🧹", description: "Se han eliminado los horarios no reservados." });
   };
 
   const handleSaveAvailability = () => {
     if (editingTeacherId) {
-      updateAvailability(editingTeacherId, selectedDate, localSlots);
-      toast({ title: "Disponibilidad Guardada ✅", description: "Horarios actualizados para el docente." });
+      // Consolidar cambios actuales
+      const finalToSave = { ...stagedSlots, [selectedDateKey]: localSlots };
+      
+      // Guardar todos los días modificados en lote
+      Object.entries(finalToSave).forEach(([dateStr, slots]) => {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        updateAvailability(editingTeacherId, dateObj, slots);
+      });
+
+      toast({ title: "Disponibilidad Guardada ✅", description: "Se han actualizado los horarios para todos los días modificados." });
       setIsScheduleDialogOpen(false);
+      setStagedSlots({});
     }
   };
 

@@ -86,6 +86,16 @@ export default function TeacherDashboard() {
 
   const teacherId = user?.id || ''; 
   const [localSlots, setLocalSlots] = useState<TimeSlot[]>([]);
+  
+  // Estado para rastrear cambios en múltiples días antes de guardar
+  const [stagedSlots, setStagedSlots] = useState<Record<string, TimeSlot[]>>({});
+
+  const selectedDateKey = useMemo(() => {
+    const y = selectedDate.getFullYear();
+    const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+    const d = String(selectedDate.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, [selectedDate]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -98,10 +108,22 @@ export default function TeacherDashboard() {
 
   const activeZones = useMemo(() => settings.zones || FALLBACK_ZONES, [settings]);
 
+  // Limpiar cambios temporales al cerrar el diálogo
+  useEffect(() => {
+    if (!isOpen) {
+      setStagedSlots({});
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen && teacherId) {
-      const data = getDayAvailability(teacherId, selectedDate);
-      setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
+      // Cargar desde cambios temporales si existen, sino desde la base de datos
+      if (stagedSlots[selectedDateKey]) {
+        setLocalSlots(JSON.parse(JSON.stringify(stagedSlots[selectedDateKey])));
+      } else {
+        const data = getDayAvailability(teacherId, selectedDate);
+        setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
+      }
     }
   }, [selectedDate, isOpen, getDayAvailability, teacherId]);
 
@@ -118,6 +140,7 @@ export default function TeacherDashboard() {
     if (!newSlots[index].isBooked) {
       newSlots[index].isAvailable = !newSlots[index].isAvailable;
       setLocalSlots(newSlots);
+      setStagedSlots(prev => ({ ...prev, [selectedDateKey]: newSlots }));
     }
   };
 
@@ -126,6 +149,7 @@ export default function TeacherDashboard() {
     if (!newSlots[index].isBooked) {
       newSlots[index].type = newSlots[index].type === 'virtual' ? 'presencial' : 'virtual';
       setLocalSlots(newSlots);
+      setStagedSlots(prev => ({ ...prev, [selectedDateKey]: newSlots }));
     }
   };
 
@@ -133,6 +157,7 @@ export default function TeacherDashboard() {
     const newSlots = [...localSlots];
     newSlots[index].time = newTime;
     setLocalSlots(newSlots);
+    setStagedSlots(prev => ({ ...prev, [selectedDateKey]: newSlots }));
   };
 
   const addSlot = () => {
@@ -144,7 +169,9 @@ export default function TeacherDashboard() {
       type: 'presencial',
       status: 'pending'
     };
-    setLocalSlots([...localSlots, newSlot]);
+    const updated = [...localSlots, newSlot];
+    setLocalSlots(updated);
+    setStagedSlots(prev => ({ ...prev, [selectedDateKey]: updated }));
   };
 
   const removeSlot = (index: number) => {
@@ -158,19 +185,30 @@ export default function TeacherDashboard() {
     }
     const newSlots = localSlots.filter((_, i) => i !== index);
     setLocalSlots(newSlots);
+    setStagedSlots(prev => ({ ...prev, [selectedDateKey]: newSlots }));
   };
 
   const clearAllSlots = () => {
     const bookedSlots = localSlots.filter(s => s.isBooked);
     setLocalSlots(bookedSlots);
+    setStagedSlots(prev => ({ ...prev, [selectedDateKey]: bookedSlots }));
     toast({ title: "Día Limpiado 🧹", description: "Se han eliminado los horarios no reservados." });
   };
 
   const handleSaveAvailability = () => {
     if (teacherId) {
-      updateAvailability(teacherId, selectedDate, localSlots);
-      toast({ title: "Disponibilidad Guardada ✅", description: "Horarios actualizados." });
+      // Consolidar cambios actuales antes de guardar todo el lote
+      const finalToSave = { ...stagedSlots, [selectedDateKey]: localSlots };
+      
+      Object.entries(finalToSave).forEach(([dateStr, slots]) => {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        updateAvailability(teacherId, dateObj, slots);
+      });
+
+      toast({ title: "Disponibilidad Guardada ✅", description: "Se han actualizado los horarios para todos los días modificados." });
       setIsOpen(false);
+      setStagedSlots({});
     }
   };
 
@@ -470,8 +508,8 @@ export default function TeacherDashboard() {
           <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-300">Mis Alumnos Activos</p>
           <div className="text-2xl sm:text-3xl font-black text-blue-900 dark:text-blue-100 mt-1">{trackedStudents.length}</div>
         </Card>
-        <Card className="rounded-2xl border-2 border-emerald-600 dark:border-emerald-400 shadow-sm bg-emerald-50/50 dark:bg-emerald-900/30 p-3 sm:p-4">
-          <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300 leading-tight">Horas Semanales Habilitadas</p>
+        <Card className="rounded-2xl border-2 border-emerald-600 dark:border-emerald-400 shadow-sm bg-emerald-50/50 dark:bg-blue-900/30 p-3 sm:p-4">
+          <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-blue-300 leading-tight">Horas Semanales Habilitadas</p>
           <div className="text-2xl sm:text-3xl font-black text-emerald-900 dark:text-emerald-100 mt-1">{totalWeeklyEnabledHours.toFixed(1)} h</div>
         </Card>
         <Card className="rounded-2xl border-2 border-accent/80 shadow-sm bg-accent/5 dark:bg-accent/10 p-3 sm:p-4">
