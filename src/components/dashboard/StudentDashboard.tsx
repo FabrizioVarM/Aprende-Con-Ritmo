@@ -544,7 +544,7 @@ export default function StudentDashboard() {
                           <SelectContent className="rounded-2xl">
                             {activeZones.filter(z => z !== 'Virtual').map(zone => (
                               <SelectItem key={zone} value={zone} className="font-bold py-3">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-3">
                                   <MapPinIcon className="w-4 h-4 text-accent" />
                                   <span>{zone}</span>
                                 </div>
@@ -796,13 +796,13 @@ export default function StudentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-2xl sm:text-3xl font-black text-emerald-900 dark:text-emerald-300 leading-tight truncate">
-              {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin fecha'}
+            <div className="text-xl sm:text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">
+              {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin clase programada 💤'}
             </div>
             <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-0.5">
               {nextLesson 
                 ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con ${nextLesson.teacherName}` 
-                : '¡Agenda una clase!'}
+                : '¡Despierta y reserva una sesión! 😴'}
             </p>
           </CardContent>
         </Card>
