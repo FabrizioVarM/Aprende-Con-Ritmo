@@ -60,7 +60,7 @@ import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 import { AvatarPreviewContent } from '@/components/AvatarPreviewContent';
-import { getDirectImageUrl } from '@/lib/utils/images';
+import { getDirectImageUrl, getDriveDownloadUrl } from '@/lib/utils/images';
 
 const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'];
 const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
@@ -422,7 +422,6 @@ export default function LibraryPage() {
                   isLockedForStudent && "opacity-70 grayscale-[0.3]"
                 )}
                 onClick={() => {
-                  // CRITICAL: Los materiales deshabilitados no pueden ser abiertos por alumnos
                   if (isLockedForStudent) return;
                   setViewingResource(res);
                 }}
@@ -604,7 +603,6 @@ export default function LibraryPage() {
                     )}
                   </div>
 
-                  {/* Botones de acceso rápido en el exterior de la tarjeta */}
                   {!isLockedForStudent && (
                     <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                       {res.downloadUrl && res.downloadUrl !== '#' && (
@@ -612,7 +610,7 @@ export default function LibraryPage() {
                           variant="outline" 
                           size="sm" 
                           className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 border-primary/20 hover:bg-accent/5 hover:border-accent/30 transition-all"
-                          onClick={() => window.open(getDirectImageUrl(res.downloadUrl), '_blank')}
+                          onClick={() => window.open(getDriveDownloadUrl(res.downloadUrl), '_blank')}
                         >
                           <Download className="w-3 h-3" /> Descargar
                         </Button>
@@ -621,7 +619,7 @@ export default function LibraryPage() {
                         <Button 
                           size="sm" 
                           className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 bg-accent text-white shadow-sm hover:scale-105 transition-all"
-                          onClick={() => window.open(getDirectImageUrl(res.interactUrl), '_blank')}
+                          onClick={() => window.open(res.interactUrl, '_blank')}
                         >
                           <Play className="w-3 h-3" /> Interactuar
                         </Button>
@@ -743,7 +741,7 @@ export default function LibraryPage() {
                 {(viewingResource.downloadUrl && viewingResource.downloadUrl !== '#') && (
                   <Button 
                     className="flex-1 bg-white border-2 border-primary/10 text-foreground rounded-2xl h-12 font-black shadow-sm hover:bg-accent/5 hover:border-accent/30 transition-all gap-2"
-                    onClick={() => window.open(getDirectImageUrl(viewingResource.downloadUrl), '_blank')}
+                    onClick={() => window.open(getDriveDownloadUrl(viewingResource.downloadUrl), '_blank')}
                   >
                     <Download className="w-4 h-4" /> Descargar
                   </Button>
@@ -751,7 +749,7 @@ export default function LibraryPage() {
                 {(viewingResource.interactUrl && viewingResource.interactUrl !== '#') && (
                   <Button 
                     className="flex-1 bg-accent text-white rounded-2xl h-12 font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all gap-2"
-                    onClick={() => window.open(getDirectImageUrl(viewingResource.interactUrl), '_blank')}
+                    onClick={() => window.open(viewingResource.interactUrl, '_blank')}
                   >
                     <Play className="w-4 h-4" /> Interactuar
                   </Button>
