@@ -647,51 +647,51 @@ export default function LibraryPage() {
                 <DialogTitle>{viewingResource.title}</DialogTitle>
                 <DialogDescription>Detalles técnicos y objetivos pedagógicos del material de {viewingResource.category}.</DialogDescription>
               </DialogHeader>
-              <div className="relative aspect-video w-full shrink-0">
+              <div className="relative h-32 md:h-48 w-full shrink-0">
                 <Image 
                   src={getDirectImageUrl(typeof viewingResource.img === 'string' ? viewingResource.img : viewingResource.img?.imageUrl || FALLBACK_IMAGE)} 
                   alt={viewingResource.title} 
                   fill 
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-6 left-8 right-6">
-                  <Badge className="bg-accent text-white border-none px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest mb-3 shadow-lg">
+                <div className="absolute inset-0 bg-black/40" />
+                <div className="absolute inset-0 flex flex-col justify-center px-8">
+                  <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest mb-2 shadow-lg w-fit">
                     {viewingResource.category}
                   </Badge>
-                  <h2 className="text-3xl font-black text-white leading-tight drop-shadow-md font-headline">
+                  <h2 className="text-xl md:text-2xl font-black text-white leading-tight drop-shadow-md font-headline line-clamp-2">
                     {viewingResource.title}
                   </h2>
                 </div>
               </div>
 
               <div className="flex-1 overflow-y-auto min-h-0 bg-card">
-                <div className="p-8 space-y-8">
+                <div className="p-6 space-y-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
-                        <BookOpen className="w-5 h-5" />
+                    <div className="p-3 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
+                        <BookOpen className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Tipo</p>
-                        <p className="text-sm font-black text-foreground">{viewingResource.type}</p>
+                        <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Tipo</p>
+                        <p className="text-xs font-black text-foreground">{viewingResource.type}</p>
                       </div>
                     </div>
-                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
-                        <Timer className="w-5 h-5" />
+                    <div className="p-3 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
+                        <Timer className="w-4 h-4" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Extensión</p>
-                        <p className="text-sm font-black text-foreground">{viewingResource.length || '---'}</p>
+                        <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Extensión</p>
+                        <p className="text-xs font-black text-foreground">{viewingResource.length || '---'}</p>
                       </div>
                     </div>
                   </div>
 
                   {viewingResource.description && (
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-accent" /> Sobre este material
+                    <div className="space-y-2">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <FileText className="w-3 h-3 text-accent" /> Sobre este material
                       </h4>
                       <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">
                         {viewingResource.description}
@@ -700,9 +700,9 @@ export default function LibraryPage() {
                   )}
 
                   {viewingResource.objective && (
-                    <div className="p-6 rounded-[2rem] bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-100 dark:border-blue-900/20 space-y-3">
-                      <h4 className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                        <Target className="w-4 h-4" /> Objetivo Académico
+                    <div className="p-5 rounded-[1.5rem] bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-100 dark:border-blue-900/20 space-y-2">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                        <Target className="w-3.5 h-3.5" /> Objetivo Académico
                       </h4>
                       <p className="text-sm font-bold text-blue-900 dark:text-blue-100 leading-relaxed italic whitespace-pre-wrap">
                         "{viewingResource.objective}"
@@ -711,9 +711,9 @@ export default function LibraryPage() {
                   )}
 
                   {viewingResource.tip && (
-                    <div className="p-6 rounded-[2rem] bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-100 dark:border-orange-900/30 space-y-3">
-                      <h4 className="text-xs font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" /> Tip del Profesor
+                    <div className="p-5 rounded-[1.5rem] bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-100 dark:border-orange-900/30 space-y-2">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2">
+                        <Sparkles className="w-3.5 h-3.5" /> Tip del Profesor
                       </h4>
                       <p className="text-sm font-bold text-orange-900 dark:text-orange-100 leading-relaxed whitespace-pre-wrap">
                         {viewingResource.tip}
@@ -721,40 +721,40 @@ export default function LibraryPage() {
                     </div>
                   )}
 
-                  <div className="p-6 rounded-[2.5rem] bg-accent/5 border-2 border-dashed border-accent/20 flex gap-4 items-start">
-                    <div className="w-12 h-12 rounded-2xl bg-accent text-white flex items-center justify-center shrink-0 shadow-lg shadow-accent/20">
-                      <GraduationCap className="w-6 h-6" />
+                  <div className="p-5 rounded-[2rem] bg-accent/5 border-2 border-dashed border-accent/20 flex gap-4 items-start">
+                    <div className="w-10 h-10 rounded-2xl bg-accent text-white flex items-center justify-center shrink-0 shadow-lg shadow-accent/20">
+                      <GraduationCap className="w-5 h-5" />
                     </div>
                     <div className="space-y-1">
-                      <h4 className="text-sm font-black text-foreground">Indicación para Completar</h4>
-                      <p className="text-xs font-medium text-muted-foreground leading-relaxed">
-                        Para que este material sea validado como <b>Completado</b> y sume puntos a tu progreso, deberás realizar el examen correspondiente con tu profesor durante tu clase presencial o virtual.
+                      <h4 className="text-xs font-black text-foreground uppercase tracking-widest">Indicación para Completar</h4>
+                      <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                        Para validar este material y sumar puntos, deberás realizar el examen con tu profesor durante tu clase presencial o virtual.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <DialogFooter className="p-8 bg-muted/30 border-t flex flex-col sm:flex-row gap-3 shrink-0">
+              <DialogFooter className="p-6 bg-muted/30 border-t flex flex-col sm:flex-row gap-3 shrink-0">
                 {(viewingResource.downloadUrl && viewingResource.downloadUrl !== '#') && (
                   <Button 
-                    className="flex-1 bg-white border-2 border-primary/10 text-foreground rounded-2xl h-14 font-black shadow-sm hover:bg-accent/5 hover:border-accent/30 transition-all gap-2"
+                    className="flex-1 bg-white border-2 border-primary/10 text-foreground rounded-2xl h-12 font-black shadow-sm hover:bg-accent/5 hover:border-accent/30 transition-all gap-2"
                     onClick={() => window.open(getDirectImageUrl(viewingResource.downloadUrl), '_blank')}
                   >
-                    <Download className="w-5 h-5" /> Descargar Guía
+                    <Download className="w-4 h-4" /> Descargar Guía
                   </Button>
                 )}
                 {(viewingResource.interactUrl && viewingResource.interactUrl !== '#') && (
                   <Button 
-                    className="flex-1 bg-accent text-white rounded-2xl h-14 font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all gap-2"
+                    className="flex-1 bg-accent text-white rounded-2xl h-12 font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all gap-2"
                     onClick={() => window.open(getDirectImageUrl(viewingResource.interactUrl), '_blank')}
                   >
-                    <Play className="w-5 h-5" /> ¡Interactúa Ahora!
+                    <Play className="w-4 h-4" /> ¡Interactúa Ahora!
                   </Button>
                 )}
                 <Button 
                   variant="outline" 
-                  className="rounded-2xl h-14 font-black sm:w-32"
+                  className="rounded-2xl h-12 font-black sm:w-32"
                   onClick={() => setViewingResource(null)}
                 >
                   Cerrar
