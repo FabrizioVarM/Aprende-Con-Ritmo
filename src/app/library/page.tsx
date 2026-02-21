@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -417,7 +416,7 @@ export default function LibraryPage() {
               <Card 
                 key={res.id} 
                 className={cn(
-                  "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300 cursor-pointer",
+                  "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col",
                   isStaff && !res.isVisibleGlobally && !res.assignedStudentIds?.includes(selectedStudentId) 
                     ? "border-dashed border-primary/20 opacity-80" 
                     : "border-primary/40 hover:border-accent/40",
@@ -485,7 +484,7 @@ export default function LibraryPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[3rem] line-clamp-2 text-foreground font-headline">{res.title}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 flex-1">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-widest">
                       <BookOpen className="w-3.5 h-3.5 text-accent" />
@@ -601,6 +600,31 @@ export default function LibraryPage() {
                       </div>
                     )}
                   </div>
+
+                  {/* Botones de acceso rápido en el exterior de la tarjeta */}
+                  {!isLockedForStudent && (
+                    <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+                      {res.downloadUrl && res.downloadUrl !== '#' && (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 border-primary/20 hover:bg-accent/5 hover:border-accent/30 transition-all"
+                          onClick={() => window.open(getDirectImageUrl(res.downloadUrl), '_blank')}
+                        >
+                          <Download className="w-3 h-3" /> Guía
+                        </Button>
+                      )}
+                      {res.interactUrl && res.interactUrl !== '#' && (
+                        <Button 
+                          size="sm" 
+                          className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 bg-accent text-white shadow-sm hover:scale-105 transition-all"
+                          onClick={() => window.open(getDirectImageUrl(res.interactUrl), '_blank')}
+                        >
+                          <Play className="w-3 h-3" /> Play
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
