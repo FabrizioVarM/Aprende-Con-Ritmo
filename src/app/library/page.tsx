@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -25,7 +26,33 @@ import {
 } from "@/components/ui/collapsible"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Search, BookOpen, Download, Play, CheckCircle2, AlertCircle, ShieldCheck, Check, Users, Edit2, Link as LinkIcon, Image as ImageIcon, FileText, Timer, FileType, Eye, EyeOff, Globe, UserCheck, ChevronDown, Lock, Unlock, Plus } from 'lucide-react';
+import { 
+  Search, 
+  BookOpen, 
+  Download, 
+  Play, 
+  CheckCircle2, 
+  AlertCircle, 
+  ShieldCheck, 
+  Check, 
+  Edit2, 
+  Link as LinkIcon, 
+  Image as ImageIcon, 
+  FileText, 
+  Timer, 
+  FileType, 
+  Eye, 
+  EyeOff, 
+  Globe, 
+  ChevronDown, 
+  Lock, 
+  Unlock, 
+  Plus,
+  Target,
+  Sparkles,
+  Info,
+  GraduationCap
+} from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth-store';
@@ -35,6 +62,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 import { AvatarPreviewContent } from '@/components/AvatarPreviewContent';
 import { getDirectImageUrl } from '@/lib/utils/images';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'];
 const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
@@ -61,6 +89,7 @@ export default function LibraryPage() {
   const [isInitialFilterSet, setIsInitialFilterSet] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(''); 
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
+  const [viewingResource, setViewingResource] = useState<Resource | null>(null);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tempDescription, setTempDescription] = useState(libraryDescription);
 
@@ -75,6 +104,9 @@ export default function LibraryPage() {
     category: 'Guitarra',
     type: 'PDF',
     length: '',
+    description: '',
+    objective: '',
+    tip: '',
     img: { imageUrl: '', imageHint: 'music' },
     downloadUrl: '#',
     interactUrl: '#',
@@ -203,6 +235,9 @@ export default function LibraryPage() {
       category: 'Guitarra',
       type: 'PDF',
       length: '',
+      description: '',
+      objective: '',
+      tip: '',
       img: { imageUrl: '', imageHint: 'music' },
       downloadUrl: '#',
       interactUrl: '#',
@@ -275,11 +310,11 @@ export default function LibraryPage() {
                     <div className="cursor-zoom-in hover:scale-110 transition-transform relative group">
                       <Avatar className="w-12 h-12 border-2 border-accent shadow-md shrink-0">
                         {selectedStudent.photoUrl ? (
-                          <AvatarImage src={selectedStudent.photoUrl} className="object-cover" style={selectedStudent.photoTransform ? { transform: `translate(${selectedStudent.photoTransform.x}px, ${selectedStudent.photoTransform.y}px) scale(${selectedStudent.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
+                          <AvatarImage src={getDirectImageUrl(selectedStudent.photoUrl)} className="object-cover" style={selectedStudent.photoTransform ? { transform: `translate(${selectedStudent.photoTransform.x}px, ${selectedStudent.photoTransform.y}px) scale(${selectedStudent.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                         ) : (
                           <AvatarImage src={`https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/200`} style={selectedStudent.photoTransform ? { transform: `translate(${selectedStudent.photoTransform.x}px, ${selectedStudent.photoTransform.y}px) scale(${selectedStudent.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                         )}
-                        <AvatarFallback className="text-sm font-black">{selectedStudent.name[0]}</AvatarFallback>
+                        <AvatarFallback className="text-sm font-black">{selectedStudent.name ? selectedStudent.name[0] : 'U'}</AvatarFallback>
                       </Avatar>
                       <div className="absolute inset-0 bg-black/20 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                         <Search className="w-4 h-4 text-white" />
@@ -292,8 +327,8 @@ export default function LibraryPage() {
                       <DialogDescription>Vista detallada del perfil del alumno bajo evaluación actual.</DialogDescription>
                     </DialogHeader>
                     <AvatarPreviewContent 
-                      src={selectedStudent.photoUrl || `https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/600`}
-                      name={selectedStudent.name}
+                      src={selectedStudent.photoUrl ? getDirectImageUrl(selectedStudent.photoUrl) : `https://picsum.photos/seed/${selectedStudent.avatarSeed || selectedStudent.id}/600`}
+                      name={selectedStudent.name || 'Alumno'}
                       subtitle="Estudiante bajo evaluación"
                     />
                   </DialogContent>
@@ -311,11 +346,11 @@ export default function LibraryPage() {
                         <div className="flex items-center gap-3">
                           <Avatar className="w-10 h-10 border-2 border-primary/10 shrink-0 shadow-sm">
                             {student.photoUrl ? (
-                              <AvatarImage src={student.photoUrl} className="object-cover" style={student.photoTransform ? { transform: `translate(${student.photoTransform.x}px, ${student.photoTransform.y}px) scale(${student.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
+                              <AvatarImage src={getDirectImageUrl(student.photoUrl)} className="object-cover" style={student.photoTransform ? { transform: `translate(${student.photoTransform.x}px, ${student.photoTransform.y}px) scale(${student.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                             ) : (
                               <AvatarImage src={`https://picsum.photos/seed/${student.avatarSeed || student.id}/100`} style={student.photoTransform ? { transform: `translate(${student.photoTransform.x}px, ${student.photoTransform.y}px) scale(${student.photoTransform.scale})`, transition: 'transform 0.2s ease-out' } : {}} />
                             )}
-                            <AvatarFallback className="text-xs font-black">{student.name[0]}</AvatarFallback>
+                            <AvatarFallback className="text-xs font-black">{student.name ? student.name[0] : 'U'}</AvatarFallback>
                           </Avatar>
                           <span className="truncate">{student.name}</span>
                         </div>
@@ -378,22 +413,18 @@ export default function LibraryPage() {
             const imgUrl = getDirectImageUrl(rawImgUrl);
             const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
             
-            // Check if buttons should be shown at all
-            const canShowDownload = res.downloadUrl && res.downloadUrl !== '#';
-            const canShowInteract = res.interactUrl && res.interactUrl !== '#';
-
-            // Check if links are short (less than 4 chars) to dim buttons
-            const isDownloadLinkShort = (res.downloadUrl?.length || 0) < 4;
-            const isInteractLinkShort = (res.interactUrl?.length || 0) < 4;
-
             return (
-              <Card key={res.id} className={cn(
-                "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300",
-                isStaff && !res.isVisibleGlobally && !res.assignedStudentIds?.includes(selectedStudentId) 
-                  ? "border-dashed border-primary/20 opacity-80" 
-                  : "border-primary/40 hover:border-accent/40",
-                isLockedForStudent && "opacity-70 grayscale-[0.3]"
-              )}>
+              <Card 
+                key={res.id} 
+                className={cn(
+                  "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300 cursor-pointer",
+                  isStaff && !res.isVisibleGlobally && !res.assignedStudentIds?.includes(selectedStudentId) 
+                    ? "border-dashed border-primary/20 opacity-80" 
+                    : "border-primary/40 hover:border-accent/40",
+                  isLockedForStudent && "opacity-70 grayscale-[0.3]"
+                )}
+                onClick={() => setViewingResource(res)}
+              >
                 <div className="relative aspect-video overflow-hidden bg-muted">
                   <Image 
                     src={imgUrl} 
@@ -431,7 +462,10 @@ export default function LibraryPage() {
                         size="icon" 
                         variant="secondary" 
                         className="rounded-full w-10 h-10 shadow-lg bg-white/90 dark:bg-slate-900/90 hover:bg-accent hover:text-white transition-all"
-                        onClick={() => setEditingResource(res)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingResource(res);
+                        }}
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -466,68 +500,70 @@ export default function LibraryPage() {
                   </div>
 
                   {isStaff && (
-                    <Collapsible className="pb-2">
-                      <CollapsibleTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="w-full justify-between h-9 rounded-xl bg-accent/5 hover:bg-accent/10 border border-accent/10 mb-2 px-3 group"
-                        >
-                          <div className="flex items-center gap-2">
-                            <Eye className="w-3.5 h-3.5 text-accent" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-accent">Editar Visibilidad</span>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <Collapsible className="pb-2">
+                        <CollapsibleTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="w-full justify-between h-9 rounded-xl bg-accent/5 hover:bg-accent/10 border border-accent/10 mb-2 px-3 group"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Eye className="w-3.5 h-3.5 text-accent" />
+                              <span className="text-[9px] font-black uppercase tracking-widest text-accent">Editar Visibilidad</span>
+                            </div>
+                            <ChevronDown className="w-3.5 h-3.5 text-accent transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className={cn(
+                              "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
+                              isVisibleForTarget ? "bg-blue-50 border-blue-100 dark:bg-blue-900/10" : "bg-muted/30 border-primary/5",
+                              res.isVisibleGlobally && "opacity-40 grayscale-[0.5]"
+                            )}>
+                              <div className="flex items-center gap-1.5">
+                                <Eye className={cn("w-3 h-3", isVisibleForTarget ? "text-blue-600" : "text-muted-foreground")} />
+                                <span className="text-[8px] font-black uppercase text-muted-foreground">Alumno</span>
+                              </div>
+                              <Switch 
+                                checked={isVisibleForTarget} 
+                                onCheckedChange={() => toggleStudentVisibility(res.id, selectedStudentId)}
+                                className="scale-75 data-[state=checked]:bg-blue-500"
+                              />
+                            </div>
+                            <div className={cn(
+                              "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
+                              res.isVisibleGlobally ? "bg-purple-50 border-purple-100 dark:bg-purple-900/10" : "bg-muted/30 border-primary/5"
+                            )}>
+                              <div className="flex items-center gap-1.5">
+                                <Globe className={cn("w-3 h-3", res.isVisibleGlobally ? "text-purple-600" : "text-muted-foreground")} />
+                                <span className="text-[8px] font-black uppercase text-muted-foreground">Global</span>
+                              </div>
+                              <Switch 
+                                checked={res.isVisibleGlobally || false} 
+                                onCheckedChange={() => toggleGlobalVisibility(res.id)}
+                                className="scale-75 data-[state=checked]:bg-purple-500"
+                              />
+                            </div>
                           </div>
-                          <ChevronDown className="w-3.5 h-3.5 text-accent transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                        <div className="grid grid-cols-2 gap-2">
                           <div className={cn(
-                            "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
-                            isVisibleForTarget ? "bg-blue-50 border-blue-100 dark:bg-blue-900/10" : "bg-muted/30 border-primary/5",
-                            res.isVisibleGlobally && "opacity-40 grayscale-[0.5]"
+                            "p-3 rounded-2xl border flex items-center justify-between transition-all duration-300",
+                            isEnabled ? "bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10" : "bg-orange-50 border-orange-100 dark:bg-orange-900/10"
                           )}>
-                            <div className="flex items-center gap-1.5">
-                              <Eye className={cn("w-3 h-3", isVisibleForTarget ? "text-blue-600" : "text-muted-foreground")} />
-                              <span className="text-[8px] font-black uppercase text-muted-foreground">Alumno</span>
+                            <div className="flex items-center gap-2">
+                              {isEnabled ? <Unlock className="w-3.5 h-3.5 text-emerald-600" /> : <Lock className="w-3.5 h-3.5 text-orange-600" />}
+                              <span className="text-[9px] font-black uppercase text-muted-foreground">Habilitar Acceso</span>
                             </div>
                             <Switch 
-                              checked={isVisibleForTarget} 
-                              onCheckedChange={() => toggleStudentVisibility(res.id, selectedStudentId)}
-                              className="scale-75 data-[state=checked]:bg-blue-500"
+                              checked={isEnabled} 
+                              onCheckedChange={() => toggleEnabledStatus(res.id)}
+                              className="scale-75 data-[state=checked]:bg-emerald-500"
                             />
                           </div>
-                          <div className={cn(
-                            "p-3 rounded-2xl border flex flex-col gap-1 items-center text-center transition-all duration-300",
-                            res.isVisibleGlobally ? "bg-purple-50 border-purple-100 dark:bg-purple-900/10" : "bg-muted/30 border-primary/5"
-                          )}>
-                            <div className="flex items-center gap-1.5">
-                              <Globe className={cn("w-3 h-3", res.isVisibleGlobally ? "text-purple-600" : "text-muted-foreground")} />
-                              <span className="text-[8px] font-black uppercase text-muted-foreground">Global</span>
-                            </div>
-                            <Switch 
-                              checked={res.isVisibleGlobally || false} 
-                              onCheckedChange={() => toggleGlobalVisibility(res.id)}
-                              className="scale-75 data-[state=checked]:bg-purple-500"
-                            />
-                          </div>
-                        </div>
-                        <div className={cn(
-                          "p-3 rounded-2xl border flex items-center justify-between transition-all duration-300",
-                          isEnabled ? "bg-emerald-50 border-emerald-100 dark:bg-emerald-900/10" : "bg-orange-50 border-orange-100 dark:bg-orange-900/10"
-                        )}>
-                          <div className="flex items-center gap-2">
-                            {isEnabled ? <Unlock className="w-3.5 h-3.5 text-emerald-600" /> : <Lock className="w-3.5 h-3.5 text-orange-600" />}
-                            <span className="text-[9px] font-black uppercase text-muted-foreground">Habilitar Acceso</span>
-                          </div>
-                          <Switch 
-                            checked={isEnabled} 
-                            onCheckedChange={() => toggleEnabledStatus(res.id)}
-                            className="scale-75 data-[state=checked]:bg-emerald-500"
-                          />
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </div>
                   )}
 
                   <div className={cn(
@@ -555,7 +591,7 @@ export default function LibraryPage() {
                     </div>
 
                     {isStaff && (
-                      <div className="flex items-center gap-1.5 bg-card/50 px-2 py-0.5 rounded-lg border border-primary/5">
+                      <div className="flex items-center gap-1.5 bg-card/50 px-2 py-0.5 rounded-lg border border-primary/5" onClick={(e) => e.stopPropagation()}>
                         <span className="text-[7px] font-black uppercase text-muted-foreground">Validar</span>
                         <Switch 
                           checked={isCompleted} 
@@ -566,38 +602,6 @@ export default function LibraryPage() {
                     )}
                   </div>
                 </CardContent>
-                {(canShowDownload || canShowInteract) && (
-                  <CardFooter className="flex gap-3 pt-2">
-                    {canShowDownload && (
-                      <Button 
-                        variant={canShowInteract ? "outline" : "default"}
-                        className={cn(
-                          "flex-1",
-                          !canShowInteract && "bg-accent hover:bg-accent/90 text-white shadow-lg shadow-accent/20 border-accent",
-                          canShowInteract && "border-primary/10 hover:border-accent hover:bg-accent/5 text-foreground",
-                          "rounded-2xl border-2 h-12 gap-2 font-black px-2 sm:px-4 text-[10px] sm:text-xs transition-all overflow-hidden",
-                          (isLockedForStudent || isDownloadLinkShort) && "opacity-40 grayscale pointer-events-none"
-                        )}
-                        onClick={() => !(isLockedForStudent || isDownloadLinkShort) && window.open(getDirectImageUrl(res.downloadUrl), '_blank')}
-                        disabled={isLockedForStudent || isDownloadLinkShort}
-                      >
-                        <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> <span className="truncate">Descargar</span>
-                      </Button>
-                    )}
-                    {canShowInteract && (
-                      <Button 
-                        className={cn(
-                          "flex-1 bg-accent hover:bg-accent/90 text-white rounded-2xl gap-2 font-black h-12 shadow-lg shadow-accent/20 transition-all px-2 sm:px-4 text-[10px] sm:text-xs overflow-hidden",
-                          (isLockedForStudent || isInteractLinkShort) && "opacity-40 grayscale pointer-events-none"
-                        )}
-                        onClick={() => !(isLockedForStudent || isInteractLinkShort) && window.open(getDirectImageUrl(res.interactUrl), '_blank')}
-                        disabled={isLockedForStudent || isInteractLinkShort}
-                      >
-                        <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" /> <span className="truncate">Interactúa!</span>
-                      </Button>
-                    )}
-                  </CardFooter>
-                )}
               </Card>
             );
           }) : (
@@ -611,6 +615,129 @@ export default function LibraryPage() {
         </div>
       </div>
 
+      {/* DIÁLOGO: VISTA DE DETALLES DEL MATERIAL */}
+      <Dialog open={!!viewingResource} onOpenChange={(open) => !open && setViewingResource(null)}>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+          {viewingResource && (
+            <>
+              <div className="relative aspect-video w-full shrink-0">
+                <Image 
+                  src={getDirectImageUrl(typeof viewingResource.img === 'string' ? viewingResource.img : viewingResource.img?.imageUrl || FALLBACK_IMAGE)} 
+                  alt={viewingResource.title} 
+                  fill 
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-6 left-8 right-6">
+                  <Badge className="bg-accent text-white border-none px-4 py-1.5 rounded-full font-black text-[10px] uppercase tracking-widest mb-3 shadow-lg">
+                    {viewingResource.category}
+                  </Badge>
+                  <h2 className="text-3xl font-black text-white leading-tight drop-shadow-md font-headline">
+                    {viewingResource.title}
+                  </h2>
+                </div>
+              </div>
+
+              <ScrollArea className="flex-1">
+                <div className="p-8 space-y-8 bg-card">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
+                        <BookOpen className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Tipo</p>
+                        <p className="text-sm font-black text-foreground">{viewingResource.type}</p>
+                      </div>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
+                        <Timer className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Extensión</p>
+                        <p className="text-sm font-black text-foreground">{viewingResource.length || '---'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {viewingResource.description && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-accent" /> Sobre este material
+                      </h4>
+                      <p className="text-sm font-medium text-foreground leading-relaxed">
+                        {viewingResource.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {viewingResource.objective && (
+                    <div className="p-6 rounded-[2rem] bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-100 dark:border-blue-900/20 space-y-3">
+                      <h4 className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                        <Target className="w-4 h-4" /> Objetivo Académico
+                      </h4>
+                      <p className="text-sm font-bold text-blue-900 dark:text-blue-100 leading-relaxed italic">
+                        "{viewingResource.objective}"
+                      </p>
+                    </div>
+                  )}
+
+                  {viewingResource.tip && (
+                    <div className="p-6 rounded-[2rem] bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-100 dark:border-orange-900/30 space-y-3">
+                      <h4 className="text-xs font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4" /> Tip del Profesor
+                      </h4>
+                      <p className="text-sm font-bold text-orange-900 dark:text-orange-100 leading-relaxed">
+                        {viewingResource.tip}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="p-6 rounded-[2.5rem] bg-accent/5 border-2 border-dashed border-accent/20 flex gap-4 items-start">
+                    <div className="w-12 h-12 rounded-2xl bg-accent text-white flex items-center justify-center shrink-0 shadow-lg shadow-accent/20">
+                      <GraduationCap className="w-6 h-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-black text-foreground">Indicación para Completar</h4>
+                      <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                        Para que este material sea validado como <b>Completado</b> y sume puntos a tu progreso, deberás realizar el examen correspondiente con tu profesor durante tu clase presencial o virtual.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+
+              <DialogFooter className="p-8 bg-muted/30 border-t flex flex-col sm:flex-row gap-3 shrink-0">
+                {(viewingResource.downloadUrl && viewingResource.downloadUrl !== '#') && (
+                  <Button 
+                    className="flex-1 bg-white border-2 border-primary/10 text-foreground rounded-2xl h-14 font-black shadow-sm hover:bg-accent/5 hover:border-accent/30 transition-all gap-2"
+                    onClick={() => window.open(getDirectImageUrl(viewingResource.downloadUrl), '_blank')}
+                  >
+                    <Download className="w-5 h-5" /> Descargar Guía
+                  </Button>
+                )}
+                {(viewingResource.interactUrl && viewingResource.interactUrl !== '#') && (
+                  <Button 
+                    className="flex-1 bg-accent text-white rounded-2xl h-14 font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all gap-2"
+                    onClick={() => window.open(getDirectImageUrl(viewingResource.interactUrl), '_blank')}
+                  >
+                    <Play className="w-5 h-5" /> ¡Interactúa Ahora!
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  className="rounded-2xl h-14 font-black sm:w-32"
+                  onClick={() => setViewingResource(null)}
+                >
+                  Cerrar
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* DIÁLOGO: AGREGAR NUEVO RECURSO */}
       <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
         setIsCreateDialogOpen(open);
@@ -619,7 +746,7 @@ export default function LibraryPage() {
           setEnableInteractInForm(true);
         }
       }}>
-        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden">
+        <DialogContent className="rounded-[2.5rem] max-w-3xl border-none shadow-2xl p-0 overflow-hidden">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
               <Plus className="w-8 h-8 text-accent" />
@@ -697,6 +824,37 @@ export default function LibraryPage() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Descripción Detallada</Label>
+                <Textarea 
+                  value={newResource.description} 
+                  onChange={(e) => setNewResource(prev => ({...prev, description: e.target.value}))}
+                  className="min-h-[100px] rounded-xl border-2 font-bold"
+                  placeholder="Explica de qué trata este material..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Objetivo Académico</Label>
+                  <Textarea 
+                    value={newResource.objective} 
+                    onChange={(e) => setNewResource(prev => ({...prev, objective: e.target.value}))}
+                    className="min-h-[80px] rounded-xl border-2 font-bold"
+                    placeholder="¿Qué aprenderá el alumno?"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tip del Profesor</Label>
+                  <Textarea 
+                    value={newResource.tip} 
+                    onChange={(e) => setNewResource(prev => ({...prev, tip: e.target.value}))}
+                    className="min-h-[80px] rounded-xl border-2 font-bold"
+                    placeholder="Un consejo práctico..."
+                  />
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-primary/10">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -742,7 +900,7 @@ export default function LibraryPage() {
 
       {/* DIÁLOGO: EDITAR RECURSO EXISTENTE */}
       <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
-        <DialogContent className="rounded-[2.5rem] max-w-xl border-none shadow-2xl p-0 overflow-hidden">
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden">
           <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
               <Edit2 className="w-6 h-6 text-accent" />
@@ -825,6 +983,34 @@ export default function LibraryPage() {
                     })}
                     className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
                     placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Descripción Detallada</Label>
+                <Textarea 
+                  value={editingResource?.description || ''} 
+                  onChange={(e) => setEditingResource(prev => prev ? {...prev, description: e.target.value} : null)}
+                  className="min-h-[100px] rounded-xl border-2 font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Objetivo Académico</Label>
+                  <Textarea 
+                    value={editingResource?.objective || ''} 
+                    onChange={(e) => setEditingResource(prev => prev ? {...prev, objective: e.target.value} : null)}
+                    className="min-h-[80px] rounded-xl border-2 font-bold"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tip del Profesor</Label>
+                  <Textarea 
+                    value={editingResource?.tip || ''} 
+                    onChange={(e) => setEditingResource(prev => prev ? {...prev, tip: e.target.value} : null)}
+                    className="min-h-[80px] rounded-xl border-2 font-bold"
                   />
                 </div>
               </div>
