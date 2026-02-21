@@ -321,7 +321,7 @@ export default function SchedulePage() {
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) return 'Resumen del día';
-    if (diffDays < 0) return `Resumen de hace ${Math.abs(diffDays)} ${Math.abs(diffDays) === 1 ? 'día' : 'días'}`;
+    if (diffDays < 0) return `Resumen de hace ${Math.abs(diffDays)} ${Math.abs(diffDays) === -1 ? 'día' : 'días'}`;
     return `Resumen dentro de ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
   }, [date, todayTimestamp]);
 
@@ -374,7 +374,6 @@ export default function SchedulePage() {
       return { id, name: t?.name || 'Profesor' };
     });
 
-    // Duración fija de 90 min como dice el diálogo
     const [h, m] = groupStartTime.split(':').map(Number);
     const startDate = new Date();
     startDate.setHours(h, m, 0, 0);
@@ -1190,7 +1189,6 @@ export default function SchedulePage() {
                 </div>
               </div>
 
-              {/* Navigation Arrows for Days */}
               <div className="flex items-center gap-2 relative z-10 bg-white/50 dark:bg-black/20 p-2 rounded-2xl border-2 border-primary/10 backdrop-blur-sm">
                 <Button 
                   variant="ghost" 
@@ -1338,6 +1336,6 @@ export default function SchedulePage() {
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
