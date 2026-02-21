@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -104,7 +103,7 @@ export default function SchedulePage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
   
-  // Collapsible states - Changed to start as closed (false)
+  // Collapsible states
   const [isWeekSelectorOpen, setIsWeekSelectorOpen] = useState(false);
   const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(false);
 
@@ -136,11 +135,23 @@ export default function SchedulePage() {
   const activeZones = useMemo(() => settings.zones || FALLBACK_ZONES, [settings]);
 
   useEffect(() => {
-    if (activeZones.length > 0 && !selectedZone) {
+    if (!isMounted) return;
+    
+    // Recuperar la última zona guardada en localStorage
+    const savedZone = localStorage.getItem('ritmo_last_selected_zone');
+    
+    if (savedZone && activeZones.includes(savedZone)) {
+      setSelectedZone(savedZone);
+    } else if (activeZones.length > 0 && !selectedZone) {
       const firstNonVirtual = activeZones.find(z => z !== 'Virtual') || activeZones[0];
       setSelectedZone(firstNonVirtual);
     }
-  }, [activeZones, selectedZone]);
+  }, [activeZones, selectedZone, isMounted]);
+
+  const handleZoneChange = (zone: string) => {
+    setSelectedZone(zone);
+    localStorage.setItem('ritmo_last_selected_zone', zone);
+  };
 
   const isTeacher = user?.role === 'teacher';
   const isAdmin = user?.role === 'admin';
@@ -881,7 +892,7 @@ export default function SchedulePage() {
                         <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
                           <MapPinIcon className="w-3 h-3" /> 3. Zona de la Clase
                         </Label>
-                        <Select value={selectedZone} onValueChange={setSelectedZone}>
+                        <Select value={selectedZone} onValueChange={handleZoneChange}>
                           <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
                             <SelectValue placeholder="Seleccionar zona" />
                           </SelectTrigger>

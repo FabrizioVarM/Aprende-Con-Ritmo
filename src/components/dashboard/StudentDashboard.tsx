@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -159,11 +158,23 @@ export default function StudentDashboard() {
   const activeZones = useMemo(() => settings.zones || FALLBACK_ZONES, [settings]);
 
   useEffect(() => {
-    if (activeZones.length > 0 && !selectedZone) {
+    if (!isMounted) return;
+    
+    // Recuperar la última zona guardada en localStorage
+    const savedZone = localStorage.getItem('ritmo_last_selected_zone');
+    
+    if (savedZone && activeZones.includes(savedZone)) {
+      setSelectedZone(savedZone);
+    } else if (activeZones.length > 0 && !selectedZone) {
       const firstNonVirtual = activeZones.find(z => z !== 'Virtual') || activeZones[0];
       setSelectedZone(firstNonVirtual);
     }
-  }, [activeZones, selectedZone]);
+  }, [activeZones, selectedZone, isMounted]);
+
+  const handleZoneChange = (zone: string) => {
+    setSelectedZone(zone);
+    localStorage.setItem('ritmo_last_selected_zone', zone);
+  };
 
   const teachers = useMemo(() => getTeachers(), [getTeachers]);
   const adminIds = useMemo(() => allUsers.filter(u => u.role === 'admin').map(u => u.id), [allUsers]);
@@ -539,7 +550,7 @@ export default function StudentDashboard() {
                     {selectedModality === 'domicilio' && (
                       <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
                         <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Zona de la Clase</label>
-                        <Select value={selectedZone} onValueChange={setSelectedZone}>
+                        <Select value={selectedZone} onValueChange={handleZoneChange}>
                           <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-card text-foreground">
                             <SelectValue placeholder="¿En qué zona estás?" />
                           </SelectTrigger>
