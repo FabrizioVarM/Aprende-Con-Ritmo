@@ -419,6 +419,12 @@ export default function SchedulePage() {
     setDate(newDate);
   };
 
+  const navigateDay = (direction: 'prev' | 'next') => {
+    const newDate = new Date(date);
+    newDate.setDate(date.getDate() + (direction === 'next' ? 1 : -1));
+    setDate(newDate);
+  };
+
   const handleGoToToday = () => {
     const now = new Date();
     setDate(now);
@@ -1160,20 +1166,46 @@ export default function SchedulePage() {
           </div>
 
           <div className="lg:col-span-8 space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-card p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-accent/30 shadow-xl shadow-accent/5 relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 bg-card p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-accent/30 shadow-xl shadow-accent/5 relative overflow-hidden">
               <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
-              <div className="bg-accent text-white p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] shadow-xl shadow-accent/20 shrink-0 w-fit">
-                <Clock className="w-6 h-6 sm:w-10 sm:h-10" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-black text-accent uppercase tracking-[0.2em] mb-1">{dayLabel}</p>
-                <h3 className="text-3xl sm:text-5xl font-black text-foreground capitalize leading-tight tracking-tight">
-                  {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                </h3>
-                <div className="flex items-center gap-2 text-muted-foreground font-bold text-sm">
-                  <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                  Visualizando agenda para {date.getFullYear()}
+              
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+                <div className="bg-accent text-white p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] shadow-xl shadow-accent/20 shrink-0 w-fit">
+                  <Clock className="w-6 h-6 sm:w-10 sm:h-10" />
                 </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-black text-accent uppercase tracking-[0.2em] mb-1">{dayLabel}</p>
+                  <h3 className="text-3xl sm:text-5xl font-black text-foreground capitalize leading-tight tracking-tight">
+                    {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                  </h3>
+                  <div className="flex items-center gap-2 text-muted-foreground font-bold text-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                    Visualizando agenda para {date.getFullYear()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Arrows for Days */}
+              <div className="flex items-center gap-2 relative z-10 bg-white/50 dark:bg-black/20 p-2 rounded-2xl border-2 border-primary/10 backdrop-blur-sm">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => navigateDay('prev')}
+                  className="h-12 w-12 rounded-xl hover:bg-accent/10 text-accent transition-all"
+                  title="Día anterior"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </Button>
+                <div className="h-8 w-px bg-primary/10 mx-1" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => navigateDay('next')}
+                  className="h-12 w-12 rounded-xl hover:bg-accent/10 text-accent transition-all"
+                  title="Siguiente día"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </Button>
               </div>
             </div>
             
