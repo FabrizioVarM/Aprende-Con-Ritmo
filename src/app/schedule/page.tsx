@@ -1189,25 +1189,25 @@ export default function SchedulePage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 relative z-10 bg-white/50 dark:bg-black/20 p-2 rounded-2xl border-2 border-primary/10 backdrop-blur-sm">
+              <div className="flex items-center gap-3 relative z-10 bg-white/60 dark:bg-black/40 p-2.5 rounded-[1.5rem] border-2 border-primary/20 backdrop-blur-md shadow-inner">
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => navigateDay('prev')}
-                  className="h-12 w-12 rounded-xl hover:bg-accent/10 text-accent transition-all"
+                  className="h-14 w-14 rounded-2xl hover:bg-accent/10 text-accent transition-all border-2 border-accent/10"
                   title="Día anterior"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <ChevronLeft className="w-8 h-8" strokeWidth={3} />
                 </Button>
-                <div className="h-8 w-px bg-primary/10 mx-1" />
+                <div className="h-10 w-0.5 bg-primary/20 mx-1 rounded-full" />
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => navigateDay('next')}
-                  className="h-12 w-12 rounded-xl hover:bg-accent/10 text-accent transition-all"
+                  className="h-14 w-14 rounded-2xl hover:bg-accent/10 text-accent transition-all border-2 border-accent/10"
                   title="Siguiente día"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="w-8 h-8" strokeWidth={3} />
                 </Button>
               </div>
             </div>
