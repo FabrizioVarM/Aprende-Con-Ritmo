@@ -610,7 +610,7 @@ export default function LibraryPage() {
                           className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 border-primary/20 hover:bg-accent/5 hover:border-accent/30 transition-all"
                           onClick={() => window.open(getDirectImageUrl(res.downloadUrl), '_blank')}
                         >
-                          <Download className="w-3 h-3" /> Guía
+                          <Download className="w-3 h-3" /> Descargar
                         </Button>
                       )}
                       {res.interactUrl && res.interactUrl !== '#' && (
@@ -619,7 +619,7 @@ export default function LibraryPage() {
                           className="flex-1 h-8 rounded-lg text-[9px] font-black uppercase gap-1 bg-accent text-white shadow-sm hover:scale-105 transition-all"
                           onClick={() => window.open(getDirectImageUrl(res.interactUrl), '_blank')}
                         >
-                          <Play className="w-3 h-3" /> Play
+                          <Play className="w-3 h-3" /> Interactuar
                         </Button>
                       )}
                     </div>
@@ -741,7 +741,7 @@ export default function LibraryPage() {
                     className="flex-1 bg-white border-2 border-primary/10 text-foreground rounded-2xl h-12 font-black shadow-sm hover:bg-accent/5 hover:border-accent/30 transition-all gap-2"
                     onClick={() => window.open(getDirectImageUrl(viewingResource.downloadUrl), '_blank')}
                   >
-                    <Download className="w-4 h-4" /> Descargar Guía
+                    <Download className="w-4 h-4" /> Descargar
                   </Button>
                 )}
                 {(viewingResource.interactUrl && viewingResource.interactUrl !== '#') && (
@@ -749,7 +749,7 @@ export default function LibraryPage() {
                     className="flex-1 bg-accent text-white rounded-2xl h-12 font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all gap-2"
                     onClick={() => window.open(getDirectImageUrl(viewingResource.interactUrl), '_blank')}
                   >
-                    <Play className="w-4 h-4" /> ¡Interactúa Ahora!
+                    <Play className="w-4 h-4" /> Interactuar
                   </Button>
                 )}
                 <Button 
