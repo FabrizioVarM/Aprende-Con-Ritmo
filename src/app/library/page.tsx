@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -257,13 +256,9 @@ export default function LibraryPage() {
     setIsEditingDescription(false);
   };
 
-  /**
-   * Helper para asegurar que la URL pasada a next/image sea válida.
-   */
   const getSafeImageUrl = (url: string | undefined | null, fallback = FALLBACK_IMAGE) => {
     if (!url || url === '#' || url.trim().length < 5) return fallback;
     const direct = getDirectImageUrl(url);
-    // Verificar si es una URL absoluta o relativa válida para NextJS
     if (direct.startsWith('http') || direct.startsWith('/')) {
       return direct;
     }
@@ -493,7 +488,7 @@ export default function LibraryPage() {
                       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
                         <Lock className="w-8 h-8 text-white mx-auto mb-2" />
                         <p className="text-white text-[10px] font-black uppercase tracking-widest leading-tight">
-                          Material Deshabilitado por la Academia
+                          Completa materiales anteriores para desbloquear este material
                         </p>
                       </div>
                     </div>
@@ -619,7 +614,7 @@ export default function LibraryPage() {
                     )}
                   </div>
 
-                  <div className={cn("flex gap-2 pt-2", isLockedForStudent && "opacity-40 grayscale pointer-events-none")} onClick={(e) => e.stopPropagation()}>
+                  <div className={cn("flex gap-2 pt-2", isLockedForStudent && "opacity-40 grayscale")} onClick={(e) => e.stopPropagation()}>
                     {res.downloadUrl && res.downloadUrl !== '#' && (
                       <Button 
                         variant="outline" 
@@ -777,7 +772,7 @@ export default function LibraryPage() {
                 </div>
               </div>
 
-              <DialogFooter className="p-6 bg-muted/30 border-t flex flex-col sm:flex-row gap-3 shrink-0">
+              <div className="p-6 bg-muted/30 border-t flex flex-col sm:flex-row gap-3 shrink-0">
                 {(viewingResource.downloadUrl && viewingResource.downloadUrl !== '#') && (
                   <Button 
                     className="flex-1 bg-white border-2 border-primary/10 text-foreground rounded-2xl h-12 font-black shadow-sm hover:bg-accent/5 hover:border-accent/30 transition-all gap-2"
@@ -801,7 +796,7 @@ export default function LibraryPage() {
                 >
                   Cerrar
                 </Button>
-              </DialogFooter>
+              </div>
             </>
           )}
         </DialogContent>
