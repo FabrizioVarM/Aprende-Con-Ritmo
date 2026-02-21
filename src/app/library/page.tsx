@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -753,7 +754,7 @@ export default function LibraryPage() {
                         <ImageIcon className="w-3.5 h-3.5 text-accent" /> Vista Previa del Material
                       </h4>
                       <div 
-                        className="relative aspect-[3/4] w-32 rounded-xl overflow-hidden border-2 border-primary/10 shadow-sm cursor-zoom-in hover:scale-105 transition-transform group"
+                        className="relative aspect-[3/4] w-48 rounded-xl overflow-hidden border-2 border-primary/10 shadow-sm cursor-zoom-in hover:scale-105 transition-transform group"
                         onClick={() => setPreviewImage(getSafeImageUrl(viewingResource.downloadUrl))}
                       >
                         <Image 
