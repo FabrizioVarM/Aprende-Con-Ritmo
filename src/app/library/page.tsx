@@ -257,6 +257,19 @@ export default function LibraryPage() {
     setIsEditingDescription(false);
   };
 
+  /**
+   * Helper para asegurar que la URL pasada a next/image sea válida.
+   */
+  const getSafeImageUrl = (url: string | undefined | null, fallback = FALLBACK_IMAGE) => {
+    if (!url || url === '#' || url.trim() === '' || url === 'aa') return fallback;
+    const direct = getDirectImageUrl(url);
+    // Verificar si es una URL absoluta o relativa válida para NextJS
+    if (direct.startsWith('http') || direct.startsWith('/') || direct.startsWith('data:')) {
+      return direct;
+    }
+    return fallback;
+  };
+
   if (!isMounted || loading || !user) return null;
 
   return (
@@ -411,7 +424,7 @@ export default function LibraryPage() {
               rawImgUrl = res.img.imageUrl;
             }
             
-            const imgUrl = getDirectImageUrl(rawImgUrl);
+            const imgUrl = getSafeImageUrl(rawImgUrl);
             const imgHint = (typeof res.img === 'object' && res.img !== null) ? res.img.imageHint : "music resource";
             
             return (
@@ -654,7 +667,7 @@ export default function LibraryPage() {
               </DialogHeader>
               <div className="relative h-32 md:h-40 w-full shrink-0">
                 <Image 
-                  src={getDirectImageUrl(typeof viewingResource.img === 'string' ? viewingResource.img : viewingResource.img?.imageUrl || FALLBACK_IMAGE)} 
+                  src={getSafeImageUrl(typeof viewingResource.img === 'string' ? viewingResource.img : viewingResource.img?.imageUrl)} 
                   alt={viewingResource.title} 
                   fill 
                   className="object-cover"
@@ -746,10 +759,10 @@ export default function LibraryPage() {
                       </h4>
                       <div 
                         className="relative aspect-[3/4] w-32 rounded-xl overflow-hidden border-2 border-primary/10 shadow-sm cursor-zoom-in hover:scale-105 transition-transform group"
-                        onClick={() => setPreviewImage(getDirectImageUrl(viewingResource.downloadUrl))}
+                        onClick={() => setPreviewImage(getSafeImageUrl(viewingResource.downloadUrl))}
                       >
                         <Image 
-                          src={getDirectImageUrl(viewingResource.downloadUrl)} 
+                          src={getSafeImageUrl(viewingResource.downloadUrl)} 
                           alt="Vista previa de partitura" 
                           fill 
                           className="object-cover"
@@ -804,21 +817,19 @@ export default function LibraryPage() {
           <div className="relative w-full h-[90vh] flex items-center justify-center">
             {previewImage && (
               <Image 
-                src={previewImage} 
+                src={getSafeImageUrl(previewImage)} 
                 alt="Partitura completa" 
                 fill 
                 className="object-contain"
                 priority
               />
             )}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="absolute top-4 right-4 bg-black/40 text-white rounded-full hover:bg-black/60 z-50 h-10 w-10"
+            <button 
+              className="absolute top-4 right-4 bg-black/40 text-white rounded-full p-2 hover:bg-black/60 z-50 transition-colors"
               onClick={() => setPreviewImage(null)}
             >
               <X className="w-6 h-6" />
-            </Button>
+            </button>
           </div>
         </DialogContent>
       </Dialog>
