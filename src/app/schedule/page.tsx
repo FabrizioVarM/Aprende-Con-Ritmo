@@ -136,10 +136,7 @@ export default function SchedulePage() {
 
   useEffect(() => {
     if (!isMounted) return;
-    
-    // Recuperar la última zona guardada en localStorage
     const savedZone = localStorage.getItem('ritmo_last_selected_zone');
-    
     if (savedZone && activeZones.includes(savedZone)) {
       setSelectedZone(savedZone);
     } else if (activeZones.length > 0 && !selectedZone) {
@@ -819,6 +816,9 @@ export default function SchedulePage() {
                   if (!open) {
                     setSelectedSlotId(null);
                     setBookingInstrument('');
+                  } else {
+                    // Forzar fecha a hoy para reserva rápida
+                    setDate(new Date());
                   }
                 }}
               >
@@ -829,13 +829,18 @@ export default function SchedulePage() {
                 </DialogTrigger>
                 <DialogContent className="rounded-[2.5rem] max-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                   <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
-                    <DialogTitle className="text-2xl font-black text-foreground">Agendar Sesión 🎵</DialogTitle>
+                    <div className="flex items-center gap-3">
+                      <DialogTitle className="text-2xl font-black text-foreground">Reserva para Hoy ⚡</DialogTitle>
+                      <Badge className="bg-accent text-white rounded-full px-3 py-0.5 text-[10px] font-black animate-pulse uppercase tracking-widest border-none">
+                        Solo Hoy
+                      </Badge>
+                    </div>
                     <DialogDescription className="space-y-1">
                       <span className="block text-base text-foreground/70 font-medium">
-                        {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                        {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                       </span>
                       <span className="block text-xs font-bold text-accent italic">
-                        Configure su sesión personalizada.
+                        Atención: Este acceso es exclusivo para agendar clases en horarios disponibles para el día de hoy.
                       </span>
                     </DialogDescription>
                   </DialogHeader>
