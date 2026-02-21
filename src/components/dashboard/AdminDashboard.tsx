@@ -662,25 +662,27 @@ export default function AdminDashboard() {
                         </span>
                         <span className={cn("text-base font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
                         
-                        {/* Indicador de clases disponibles (Verde) */}
-                        {availCount > 0 && (
-                          <Badge className={cn(
-                            "absolute -top-2 -left-2 h-5 min-w-[1.25rem] px-1 rounded-full text-white border-2 border-white text-[10px] flex items-center justify-center font-black shadow-sm bg-emerald-500",
-                            isSelected && "border-emerald-200"
-                          )}>
-                            {availCount}
-                          </Badge>
-                        )}
+                        <div className="flex gap-1 mt-1">
+                          {/* Indicador de clases disponibles (Verde) */}
+                          {availCount > 0 && (
+                            <div className={cn(
+                              "h-4 min-w-[1rem] px-1 rounded-full text-white text-[8px] flex items-center justify-center font-black shadow-sm bg-emerald-500",
+                              isSelected && "ring-1 ring-emerald-200"
+                            )}>
+                              {availCount}
+                            </div>
+                          )}
 
-                        {/* Indicador de clases reservadas (Coral) */}
-                        {bookedCount > 0 && (
-                          <Badge className={cn(
-                            "absolute -top-2 -right-2 h-5 min-w-[1.25rem] px-1 rounded-full text-white border-2 border-white text-[10px] flex items-center justify-center font-black shadow-sm",
-                            isSelected ? "bg-white text-accent border-accent" : "bg-accent"
-                          )}>
-                            {bookedCount}
-                          </Badge>
-                        )}
+                          {/* Indicador de clases reservadas (Coral) */}
+                          {bookedCount > 0 && (
+                            <div className={cn(
+                              "h-4 min-w-[1rem] px-1 rounded-full text-[8px] flex items-center justify-center font-black shadow-sm",
+                              isSelected ? "bg-white text-accent" : "bg-accent text-white"
+                            )}>
+                              {bookedCount}
+                            </div>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
