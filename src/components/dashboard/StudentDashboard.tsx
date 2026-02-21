@@ -480,58 +480,60 @@ export default function StudentDashboard() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Instrumento</label>
-                      <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-card text-foreground">
-                          <SelectValue placeholder="¿Qué quieres practicar?" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl">
-                          {availableInstruments.map(inst => {
-                            const config = INSTRUMENT_CONFIG[inst] || INSTRUMENT_CONFIG['Default'];
-                            const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
-                            return (
-                              <SelectItem key={inst} value={inst} className="font-bold py-3">
-                                <div className="flex items-center gap-3">
-                                  <div className={cn("w-10 h-10 flex items-center justify-center text-xl rounded-xl border shadow-sm", config.bg, config.border)}>
-                                    {emoji}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Instrumento</label>
+                        <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+                          <SelectTrigger className="rounded-2xl h-14 text-base font-bold border-2 bg-card text-foreground px-3">
+                            <SelectValue placeholder="Instrumento" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl">
+                            {availableInstruments.map(inst => {
+                              const config = INSTRUMENT_CONFIG[inst] || INSTRUMENT_CONFIG['Default'];
+                              const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
+                              return (
+                                <SelectItem key={inst} value={inst} className="font-bold py-3">
+                                  <div className="flex items-center gap-2">
+                                    <div className={cn("w-8 h-8 flex items-center justify-center text-base rounded-lg border shadow-sm", config.bg, config.border)}>
+                                      {emoji}
+                                    </div>
+                                    <span>{inst}</span>
                                   </div>
-                                  <span>{inst}</span>
-                                </div>
-                              </SelectItem>
-                            );
-                          })}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                    <div className="space-y-2">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Modalidad de la Clase</label>
-                      <Select value={selectedModality} onValueChange={(val: any) => setSelectedModality(val)}>
-                        <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-card text-foreground">
-                          <SelectValue placeholder="Seleccionar modalidad" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl">
-                          <SelectItem value="domicilio" className="font-bold py-3">
-                            <div className="flex items-center gap-2">
-                              <Home className="w-4 h-4 text-accent" />
-                              <span>A domicilio</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="virtual" className="font-bold py-3">
-                            <div className="flex items-center gap-2">
-                              <Video className="w-4 h-4 text-blue-500" />
-                              <span>Virtual (Online)</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
-                            <div className="flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-muted-foreground" />
-                              <span>En Sede (Próximamente)</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Modalidad</label>
+                        <Select value={selectedModality} onValueChange={(val: any) => setSelectedModality(val)}>
+                          <SelectTrigger className="rounded-2xl h-14 text-base font-bold border-2 bg-card text-foreground px-3">
+                            <SelectValue placeholder="Modalidad" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-2xl">
+                            <SelectItem value="domicilio" className="font-bold py-3">
+                              <div className="flex items-center gap-2">
+                                <Home className="w-4 h-4 text-accent" />
+                                <span>A domicilio</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="virtual" className="font-bold py-3">
+                              <div className="flex items-center gap-2">
+                                <Video className="w-4 h-4 text-blue-500" />
+                                <span>Virtual</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
+                              <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-muted-foreground" />
+                                <span>En Sede</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
                     {selectedModality === 'domicilio' && (
