@@ -1175,8 +1175,13 @@ export default function SchedulePage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs font-black text-accent uppercase tracking-[0.2em] mb-1">{dayLabel}</p>
-                  <h3 className="text-3xl sm:text-5xl font-black text-foreground capitalize leading-tight tracking-tight">
+                  <h3 className="text-3xl sm:text-5xl font-black text-foreground capitalize leading-tight tracking-tight flex items-center flex-wrap gap-3">
                     {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    {date.toDateString() === todayStr && (
+                      <Badge className="bg-accent text-white rounded-full px-4 py-1.5 text-xs sm:text-sm font-black shadow-lg shadow-accent/20 animate-in zoom-in duration-300">
+                        HOY
+                      </Badge>
+                    )}
                   </h3>
                   <div className="flex items-center gap-2 text-muted-foreground font-bold text-sm">
                     <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
@@ -1333,6 +1338,6 @@ export default function SchedulePage() {
           </div>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }
