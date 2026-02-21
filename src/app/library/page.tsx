@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -50,7 +51,8 @@ import {
   Target,
   Sparkles,
   Info,
-  GraduationCap
+  GraduationCap,
+  X
 } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -90,6 +92,7 @@ export default function LibraryPage() {
   const [viewingResource, setViewingResource] = useState<Resource | null>(null);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tempDescription, setTempDescription] = useState(libraryDescription);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Helper local states for UI toggles in forms
   const [enableDownloadInForm, setEnableDownloadInForm] = useState(true);
@@ -734,6 +737,30 @@ export default function LibraryPage() {
                       </p>
                     </div>
                   </div>
+
+                  {/* PREVISUALIZACIÓN DE PARTITURA */}
+                  {viewingResource.downloadUrl && viewingResource.downloadUrl !== '#' && (
+                    <div className="space-y-3 pt-4 border-t border-primary/10">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <ImageIcon className="w-3.5 h-3.5 text-accent" /> Vista Previa del Material
+                      </h4>
+                      <div 
+                        className="relative aspect-[3/4] w-32 rounded-xl overflow-hidden border-2 border-primary/10 shadow-sm cursor-zoom-in hover:scale-105 transition-transform group"
+                        onClick={() => setPreviewImage(getDirectImageUrl(viewingResource.downloadUrl))}
+                      >
+                        <Image 
+                          src={getDirectImageUrl(viewingResource.downloadUrl)} 
+                          alt="Vista previa de partitura" 
+                          fill 
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <Search className="w-5 h-5 text-white" />
+                        </div>
+                      </div>
+                      <p className="text-[9px] font-bold text-muted-foreground italic">Haz clic para ampliar la partitura.</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -764,6 +791,35 @@ export default function LibraryPage() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* DIÁLOGO: VISTA PREVIA A TAMAÑO COMPLETO */}
+      <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+        <DialogContent className="max-w-4xl p-0 border-none bg-transparent shadow-none">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Vista Completa de Partitura</DialogTitle>
+            <DialogDescription>Imagen de la partitura en tamaño completo.</DialogDescription>
+          </DialogHeader>
+          <div className="relative w-full h-[90vh] flex items-center justify-center">
+            {previewImage && (
+              <Image 
+                src={previewImage} 
+                alt="Partitura completa" 
+                fill 
+                className="object-contain"
+                priority
+              />
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-4 right-4 bg-black/40 text-white rounded-full hover:bg-black/60 z-50 h-10 w-10"
+              onClick={() => setPreviewImage(null)}
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
