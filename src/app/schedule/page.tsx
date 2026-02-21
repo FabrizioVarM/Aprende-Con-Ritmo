@@ -104,9 +104,9 @@ export default function SchedulePage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
   
-  // Collapsible states
-  const [isWeekSelectorOpen, setIsWeekSelectorOpen] = useState(true);
-  const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(true);
+  // Collapsible states - Changed to start as closed (false)
+  const [isWeekSelectorOpen, setIsWeekSelectorOpen] = useState(false);
+  const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(false);
 
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
@@ -1037,7 +1037,7 @@ export default function SchedulePage() {
             </div>
 
             <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
-              <Collapsible open={isWeekSelectorOpen} onOpenChange={setIsWeekSelectorOpen}>
+              <Collapsible open={isWeekSelectorOpen} onOpenChange={isWeekSelectorOpen => setIsWeekSelectorOpen(isWeekSelectorOpen)}>
                 <CardHeader className="bg-primary/5 p-6 border-b space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
@@ -1091,7 +1091,7 @@ export default function SchedulePage() {
               </Collapsible>
 
               <CardContent className="p-4">
-                <Collapsible open={isDaySelectorOpen} onOpenChange={setIsDaySelectorOpen} className="space-y-3">
+                <Collapsible open={isDaySelectorOpen} onOpenChange={isDaySelectorOpen => setIsDaySelectorOpen(isDaySelectorOpen)} className="space-y-3">
                   <div className="flex items-center justify-between px-2">
                     <div className="space-y-0.5">
                       <p className="text-[9px] font-black uppercase tracking-widest text-accent">Paso 2</p>
