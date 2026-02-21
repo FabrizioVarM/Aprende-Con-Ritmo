@@ -1149,7 +1149,7 @@ export default function SchedulePage() {
           </div>
 
           <div className="lg:col-span-8 space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-accent/5 p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-accent/20 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-white dark:bg-card p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-accent/30 shadow-xl shadow-accent/5 relative overflow-hidden">
               <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
               <div className="bg-accent text-white p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] shadow-xl shadow-accent/20 shrink-0 w-fit">
                 <Clock className="w-6 h-6 sm:w-10 sm:h-10" />
@@ -1168,10 +1168,10 @@ export default function SchedulePage() {
             
             <div className="space-y-10">
               {isAdmin ? (
-                <section className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-6 h-6 text-accent" />
-                    <h2 className="text-xl font-black text-foreground">Todas las Reservas de la Academia 🌟</h2>
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 px-2">
+                    <div className="w-2 h-8 bg-accent rounded-full" />
+                    <h2 className="text-2xl font-black text-foreground tracking-tight">Todas las Reservas de la Academia 🌟</h2>
                   </div>
                   <div className="grid grid-cols-1 gap-4">
                     {allBookings.length > 0 ? (
@@ -1185,7 +1185,7 @@ export default function SchedulePage() {
                         />
                       ))
                     ) : (
-                      <div className="py-20 text-center bg-primary/5 rounded-[2rem] border-2 border-dashed border-primary/10">
+                      <div className="py-20 text-center bg-muted/30 rounded-[2.5rem] border-2 border-dashed border-muted-foreground/20">
                         <CalendarIcon className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
                         <p className="text-muted-foreground font-bold italic">No hay clases reservadas para este día en toda la academia.</p>
                       </div>
@@ -1194,32 +1194,32 @@ export default function SchedulePage() {
                 </section>
               ) : isTeacher ? (
                 <>
-                  <section className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-6 bg-accent rounded-full" />
-                      <h2 className="text-xl font-black text-foreground">Próximas Clases Pendientes ⏳</h2>
+                  <section className="space-y-6">
+                    <div className="flex items-center gap-3 px-2">
+                      <div className="w-2 h-8 bg-accent rounded-full" />
+                      <h2 className="text-2xl font-black text-foreground tracking-tight">Próximas Clases Pendientes ⏳</h2>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {teacherPendingClasses.length > 0 ? (
                         teacherPendingClasses.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} isStaffView={true} />)
                       ) : (
-                        <div className="py-8 text-center bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/10">
+                        <div className="py-12 text-center bg-muted/30 rounded-[2.5rem] border-2 border-dashed border-muted-foreground/20">
                           <p className="text-sm font-bold text-muted-foreground">No hay clases pendientes para el resto del día.</p>
                         </div>
                       )}
                     </div>
                   </section>
 
-                  <section className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
-                      <h2 className="text-xl font-black text-foreground">Clases para Validar/Pasadas 👩‍🎓</h2>
+                  <section className="space-y-6">
+                    <div className="flex items-center gap-3 px-2">
+                      <div className="w-2 h-8 bg-emerald-500 rounded-full" />
+                      <h2 className="text-2xl font-black text-foreground tracking-tight">Clases para Validar/Pasadas 👩‍🎓</h2>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {teacherPastClasses.length > 0 ? (
                         teacherPastClasses.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} isStaffView={true} />)
                       ) : (
-                        <div className="py-8 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted">
+                        <div className="py-12 text-center bg-muted/30 rounded-[2.5rem] border-2 border-dashed border-muted-foreground/20">
                           <p className="text-sm font-bold text-muted-foreground">No hay clases pasadas para validar hoy.</p>
                         </div>
                       )}
@@ -1228,10 +1228,10 @@ export default function SchedulePage() {
                 </>
               ) : (
                 <>
-                  <section className="space-y-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-6 bg-accent rounded-full" />
-                      <h2 className="text-xl font-black text-foreground">Mis Clases Confirmadas 🌟</h2>
+                  <section className="space-y-6">
+                    <div className="flex items-center gap-3 px-2">
+                      <div className="w-2 h-8 bg-accent rounded-full" />
+                      <h2 className="text-2xl font-black text-foreground tracking-tight">Mis Clases Confirmadas 🌟</h2>
                     </div>
                     <div className="grid grid-cols-1 gap-4">
                       {mySlots.length > 0 ? (
@@ -1244,18 +1244,18 @@ export default function SchedulePage() {
                           />
                         ))
                       ) : (
-                        <div className="py-8 text-center bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/10">
+                        <div className="py-12 text-center bg-muted/30 rounded-[2.5rem] border-2 border-dashed border-muted-foreground/20">
                           <p className="text-sm font-bold text-muted-foreground">No tienes clases reservadas para este día.</p>
                         </div>
                       )}
                     </div>
                   </section>
 
-                  <section className="space-y-4">
+                  <section className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-6 bg-primary rounded-full" />
-                        <h2 className="text-xl font-black text-foreground">Horarios Disponibles 🎸</h2>
+                      <div className="flex items-center gap-3 px-2">
+                        <div className="w-2 h-8 bg-primary rounded-full" />
+                        <h2 className="text-2xl font-black text-foreground tracking-tight">Horarios Disponibles 🎸</h2>
                       </div>
                       
                       <Card className="rounded-2xl border-2 border-accent/20 p-1 pl-3 flex items-center gap-3 bg-card shadow-sm h-12 shrink-0">
@@ -1277,7 +1277,7 @@ export default function SchedulePage() {
                       {otherAvailableSlots.length > 0 ? (
                         otherAvailableSlots.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} />)
                       ) : (
-                        <div className="py-8 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-muted space-y-2">
+                        <div className="py-12 text-center bg-muted/30 rounded-[2.5rem] border-2 border-dashed border-muted-foreground/20 space-y-2">
                           <p className="text-sm font-bold text-muted-foreground">No hay más horarios disponibles para esta modalidad con {currentTeacherProfile?.name || 'el profesor'}.</p>
                           <p className="text-xs font-bold text-muted-foreground/60 italic">Te sugerimos cambiar de modalidad o elegir otro docente.</p>
                         </div>
