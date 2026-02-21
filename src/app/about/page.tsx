@@ -47,6 +47,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getDirectImageUrl } from '@/lib/utils/images';
+import { useRouter } from 'next/navigation';
 
 const ICON_MAP: Record<string, any> = {
   Home,
@@ -73,6 +74,7 @@ export default function AboutPage() {
   const { user } = useAuth();
   const { settings, updateSettings } = useSettingsStore();
   const { toast } = useToast();
+  const router = useRouter();
   const isAdmin = user?.role === 'admin';
 
   const [isEditing, setIsEditing] = useState(false);
@@ -235,10 +237,18 @@ export default function AboutPage() {
 
         {/* Footer Info */}
         <section className="bg-accent text-white rounded-[3rem] p-10 text-center space-y-6 shadow-xl shadow-accent/20">
-          <h2 className="text-3xl font-black">{settings.aboutFooterTitle}</h2>
-          <p className="text-white/80 font-medium max-w-xl mx-auto leading-relaxed">
-            {settings.aboutFooterSubtitle}
-          </p>
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black">{settings.aboutFooterTitle}</h2>
+            <p className="text-white/80 font-medium max-w-xl mx-auto leading-relaxed">
+              {settings.aboutFooterSubtitle}
+            </p>
+          </div>
+          <Button 
+            className="bg-white text-accent hover:bg-white/90 rounded-2xl h-14 px-10 font-black text-lg shadow-xl hover:scale-105 transition-all"
+            onClick={() => router.push('/dashboard')}
+          >
+            ¡Vamos! <Rocket className="ml-2 w-5 h-5" />
+          </Button>
         </section>
       </div>
 
