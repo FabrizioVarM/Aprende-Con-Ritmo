@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { useBookingStore, TimeSlot, INITIAL_SLOTS } from '@/lib/booking-store';
+import { useBookingStore, TimeSlot } from '@/lib/booking-store';
 import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
@@ -103,7 +103,11 @@ export default function SchedulePage() {
   const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
-  const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(false);
+  
+  // Collapsible states
+  const [isWeekSelectorOpen, setIsWeekSelectorOpen] = useState(true);
+  const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(true);
+
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
@@ -1033,42 +1037,59 @@ export default function SchedulePage() {
             </div>
 
             <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
-              <CardHeader className="bg-primary/5 p-6 border-b space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-accent flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                      Paso 1
-                    </p>
-                    <CardTitle className="text-base font-black text-foreground">Elige la semana</CardTitle>
+              <Collapsible open={isWeekSelectorOpen} onOpenChange={setIsWeekSelectorOpen}>
+                <CardHeader className="bg-primary/5 p-6 border-b space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-accent flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                        Paso 1
+                      </p>
+                      <CardTitle className="text-base font-black text-foreground">Elige la semana</CardTitle>
+                    </div>
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                        <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isWeekSelectorOpen ? "rotate-180" : "")} />
+                      </Button>
+                    </CollapsibleTrigger>
                   </div>
-                  <div className="flex items-center bg-card rounded-2xl border-2 border-primary/10 p-1 shadow-sm">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => navigateWeek('prev')} 
-                      className="h-10 w-10 rounded-xl hover:bg-accent/10 text-foreground transition-all"
-                      title="Semana anterior"
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </Button>
-                    <div className="h-6 w-px bg-primary/10 mx-1" />
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => navigateWeek('next')} 
-                      className="h-10 w-10 rounded-xl hover:bg-accent/10 text-foreground transition-all"
-                      title="Siguiente semana"
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="bg-accent/10 border-2 border-accent/20 rounded-2xl p-3 text-center">
-                  <p className="text-sm font-black text-accent">{weekRangeStr}</p>
-                </div>
-                <p className="text-[10px] text-muted-foreground font-bold italic text-center">Navegación empezando desde la semana actual.</p>
-              </CardHeader>
+                  
+                  <CollapsibleContent className="space-y-4 pt-2 animate-in fade-in-0 zoom-in-95 duration-300">
+                    <div className="flex items-center bg-card rounded-2xl border-2 border-primary/10 p-1 shadow-sm">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => navigateWeek('prev')} 
+                        className="h-10 w-10 rounded-xl hover:bg-accent/10 text-foreground transition-all"
+                        title="Semana anterior"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </Button>
+                      <div className="h-6 w-px bg-primary/10 mx-1" />
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => navigateWeek('next')} 
+                        className="h-10 w-10 rounded-xl hover:bg-accent/10 text-foreground transition-all"
+                        title="Siguiente semana"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </Button>
+                    </div>
+                    <div className="bg-accent/10 border-2 border-accent/20 rounded-2xl p-3 text-center">
+                      <p className="text-sm font-black text-accent">{weekRangeStr}</p>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-bold italic text-center">Navegación empezando desde la semana actual.</p>
+                  </CollapsibleContent>
+                  
+                  {!isWeekSelectorOpen && (
+                    <div className="bg-accent/5 rounded-xl p-2 text-center border border-dashed border-accent/20 cursor-pointer" onClick={() => setIsWeekSelectorOpen(true)}>
+                       <p className="text-[10px] font-black text-accent uppercase tracking-widest">{weekRangeStr}</p>
+                    </div>
+                  )}
+                </CardHeader>
+              </Collapsible>
+
               <CardContent className="p-4">
                 <Collapsible open={isDaySelectorOpen} onOpenChange={setIsDaySelectorOpen} className="space-y-3">
                   <div className="flex items-center justify-between px-2">
