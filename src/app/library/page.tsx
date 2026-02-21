@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -62,7 +61,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 import { AvatarPreviewContent } from '@/components/AvatarPreviewContent';
 import { getDirectImageUrl } from '@/lib/utils/images';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'];
 const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
@@ -667,8 +665,8 @@ export default function LibraryPage() {
                 </div>
               </div>
 
-              <ScrollArea className="flex-1">
-                <div className="p-8 space-y-8 bg-card">
+              <div className="flex-1 overflow-y-auto min-h-0 bg-card">
+                <div className="p-8 space-y-8">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
@@ -735,7 +733,7 @@ export default function LibraryPage() {
                     </div>
                   </div>
                 </div>
-              </ScrollArea>
+              </div>
 
               <DialogFooter className="p-8 bg-muted/30 border-t flex flex-col sm:flex-row gap-3 shrink-0">
                 {(viewingResource.downloadUrl && viewingResource.downloadUrl !== '#') && (
@@ -775,7 +773,7 @@ export default function LibraryPage() {
           setEnableInteractInForm(true);
         }
       }}>
-        <DialogContent className="rounded-[2.5rem] max-w-3xl border-none shadow-2xl p-0 overflow-hidden">
+        <DialogContent className="rounded-[2.5rem] max-w-3xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
               <Plus className="w-8 h-8 text-accent" />
@@ -785,137 +783,139 @@ export default function LibraryPage() {
               Configura cada aspecto del nuevo material. Por defecto será privado y bloqueado.
             </DialogDescription>
           </DialogHeader>
-          <div className="p-8 space-y-6 bg-card overflow-y-auto max-h-[60vh]">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
-                <Input 
-                  value={newResource.title} 
-                  onChange={(e) => setNewResource(prev => ({...prev, title: e.target.value}))}
-                  className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                  placeholder="Ej: Acordes de Jazz Vol 1"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+          <div className="flex-1 overflow-y-auto min-h-0 bg-card">
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
-                  <Select 
-                    value={newResource.category} 
-                    onValueChange={(val) => setNewResource(prev => ({...prev, category: val}))}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
-                      <SelectValue placeholder="Categoría" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {ALL_CATEGORIES.filter(c => c !== 'Todos').map(cat => (
-                        <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tipo de Contenido</Label>
-                  <Select 
-                    value={newResource.type} 
-                    onValueChange={(val) => setNewResource(prev => ({...prev, type: val}))}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
-                      <SelectValue placeholder="Tipo" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {CONTENT_TYPES.map(type => (
-                        <SelectItem key={type} value={type} className="font-bold">{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Duración / Extensión</Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
                   <Input 
-                    value={newResource.length} 
-                    onChange={(e) => setNewResource(prev => ({...prev, length: e.target.value}))}
+                    value={newResource.title} 
+                    onChange={(e) => setNewResource(prev => ({...prev, title: e.target.value}))}
                     className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                    placeholder="Ej: 15 min o 12 págs"
+                    placeholder="Ej: Acordes de Jazz Vol 1"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">URL Imagen Portada</Label>
-                  <Input 
-                    value={newResource.img?.imageUrl} 
-                    onChange={(e) => setNewResource(prev => ({...prev, img: { imageUrl: e.target.value, imageHint: 'music' }}))}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Descripción Detallada</Label>
-                <Textarea 
-                  value={newResource.description} 
-                  onChange={(e) => setNewResource(prev => ({...prev, description: e.target.value}))}
-                  className="min-h-[100px] rounded-xl border-2 font-bold"
-                  placeholder="Explica de qué trata este material..."
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Objetivo Académico</Label>
-                  <Textarea 
-                    value={newResource.objective} 
-                    onChange={(e) => setNewResource(prev => ({...prev, objective: e.target.value}))}
-                    className="min-h-[80px] rounded-xl border-2 font-bold"
-                    placeholder="¿Qué aprenderá el alumno?"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tip del Profesor</Label>
-                  <Textarea 
-                    value={newResource.tip} 
-                    onChange={(e) => setNewResource(prev => ({...prev, tip: e.target.value}))}
-                    className="min-h-[80px] rounded-xl border-2 font-bold"
-                    placeholder="Un consejo práctico..."
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-primary/10">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Botón de Descarga</Label>
-                    <Switch checked={enableDownloadInForm} onCheckedChange={setEnableDownloadInForm} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
+                    <Select 
+                      value={newResource.category} 
+                      onValueChange={(val) => setNewResource(prev => ({...prev, category: val}))}
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
+                        <SelectValue placeholder="Categoría" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {ALL_CATEGORIES.filter(c => c !== 'Todos').map(cat => (
+                          <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {enableDownloadInForm && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                      <Input 
-                        value={newResource.downloadUrl === '#' ? '' : newResource.downloadUrl} 
-                        onChange={(e) => setNewResource(prev => ({...prev, downloadUrl: e.target.value}))}
-                        className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
-                        placeholder="Enlace de descarga"
-                      />
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Botón de Interacción</Label>
-                    <Switch checked={enableInteractInForm} onCheckedChange={setEnableInteractInForm} />
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tipo de Contenido</Label>
+                    <Select 
+                      value={newResource.type} 
+                      onValueChange={(val) => setNewResource(prev => ({...prev, type: val}))}
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {CONTENT_TYPES.map(type => (
+                          <SelectItem key={type} value={type} className="font-bold">{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {enableInteractInForm && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                      <Input 
-                        value={newResource.interactUrl === '#' ? '' : newResource.interactUrl} 
-                        onChange={(e) => setNewResource(prev => ({...prev, interactUrl: e.target.value}))}
-                        className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
-                        placeholder="Enlace de interacción"
-                      />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Duración / Extensión</Label>
+                    <Input 
+                      value={newResource.length} 
+                      onChange={(e) => setNewResource(prev => ({...prev, length: e.target.value}))}
+                      className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                      placeholder="Ej: 15 min o 12 págs"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">URL Imagen Portada</Label>
+                    <Input 
+                      value={newResource.img?.imageUrl} 
+                      onChange={(e) => setNewResource(prev => ({...prev, img: { imageUrl: e.target.value, imageHint: 'music' }}))}
+                      className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Descripción Detallada</Label>
+                  <Textarea 
+                    value={newResource.description} 
+                    onChange={(e) => setNewResource(prev => ({...prev, description: e.target.value}))}
+                    className="min-h-[100px] rounded-xl border-2 font-bold"
+                    placeholder="Explica de qué trata este material..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Objetivo Académico</Label>
+                    <Textarea 
+                      value={newResource.objective} 
+                      onChange={(e) => setNewResource(prev => ({...prev, objective: e.target.value}))}
+                      className="min-h-[80px] rounded-xl border-2 font-bold"
+                      placeholder="¿Qué aprenderá el alumno?"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tip del Profesor</Label>
+                    <Textarea 
+                      value={newResource.tip} 
+                      onChange={(e) => setNewResource(prev => ({...prev, tip: e.target.value}))}
+                      className="min-h-[80px] rounded-xl border-2 font-bold"
+                      placeholder="Un consejo práctico..."
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-primary/10">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Botón de Descarga</Label>
+                      <Switch checked={enableDownloadInForm} onCheckedChange={setEnableDownloadInForm} />
                     </div>
-                  )}
+                    {enableDownloadInForm && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <Input 
+                          value={newResource.downloadUrl === '#' ? '' : newResource.downloadUrl} 
+                          onChange={(e) => setNewResource(prev => ({...prev, downloadUrl: e.target.value}))}
+                          className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
+                          placeholder="Enlace de descarga"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Botón de Interacción</Label>
+                      <Switch checked={enableInteractInForm} onCheckedChange={setEnableInteractInForm} />
+                    </div>
+                    {enableInteractInForm && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <Input 
+                          value={newResource.interactUrl === '#' ? '' : newResource.interactUrl} 
+                          onChange={(e) => setNewResource(prev => ({...prev, interactUrl: e.target.value}))}
+                          className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
+                          placeholder="Enlace de interacción"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -929,7 +929,7 @@ export default function LibraryPage() {
 
       {/* DIÁLOGO: EDITAR RECURSO EXISTENTE */}
       <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
-        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden">
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
           <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
               <Edit2 className="w-6 h-6 text-accent" />
@@ -939,147 +939,149 @@ export default function LibraryPage() {
               Modifica los detalles técnicos y descriptivos del material.
             </DialogDescription>
           </DialogHeader>
-          <div className="p-8 space-y-6 bg-card overflow-y-auto max-h-[60vh]">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
-                <Input 
-                  value={editingResource?.title || ''} 
-                  onChange={(e) => setEditingResource(prev => prev ? {...prev, title: e.target.value} : null)}
-                  className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+          <div className="flex-1 overflow-y-auto min-h-0 bg-card">
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
-                  <Select 
-                    value={editingResource?.category || ''} 
-                    onValueChange={(val) => setEditingResource(prev => prev ? {...prev, category: val} : null)}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
-                      <SelectValue placeholder="Categoría" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {ALL_CATEGORIES.filter(c => c !== 'Todos').map(cat => (
-                        <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <FileType className="w-3 h-3" /> Tipo de Contenido
-                  </Label>
-                  <Select 
-                    value={editingResource?.type || ''} 
-                    onValueChange={(val) => setEditingResource(prev => prev ? {...prev, type: val} : null)}
-                  >
-                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
-                      <SelectValue placeholder="Tipo" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {CONTENT_TYPES.map(type => (
-                        <SelectItem key={type} value={type} className="font-bold">{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Timer className="w-3 h-3" /> Duración / Extensión
-                  </Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
                   <Input 
-                    value={editingResource?.length || ''} 
-                    onChange={(e) => setEditingResource(prev => prev ? {...prev, length: e.target.value} : null)}
+                    value={editingResource?.title || ''} 
+                    onChange={(e) => setEditingResource(prev => prev ? {...prev, title: e.target.value} : null)}
                     className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                    placeholder="Ej: 15 min o 12 págs"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <ImageIcon className="w-3 h-3" /> URL Imagen
-                  </Label>
-                  <Input 
-                    value={typeof editingResource?.img === 'string' ? editingResource.img : editingResource?.img?.imageUrl || ''} 
-                    onChange={(e) => setEditingResource(prev => {
-                      if (!prev) return null;
-                      if (typeof prev.img === 'string') return {...prev, img: e.target.value};
-                      return {...prev, img: {...(prev.img || { imageHint: 'music' }), imageUrl: e.target.value}};
-                    })}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Descripción Detallada</Label>
-                <Textarea 
-                  value={editingResource?.description || ''} 
-                  onChange={(e) => setEditingResource(prev => prev ? {...prev, description: e.target.value} : null)}
-                  className="min-h-[100px] rounded-xl border-2 font-bold"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Objetivo Académico</Label>
-                  <Textarea 
-                    value={editingResource?.objective || ''} 
-                    onChange={(e) => setEditingResource(prev => prev ? {...prev, objective: e.target.value} : null)}
-                    className="min-h-[80px] rounded-xl border-2 font-bold"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tip del Profesor</Label>
-                  <Textarea 
-                    value={editingResource?.tip || ''} 
-                    onChange={(e) => setEditingResource(prev => prev ? {...prev, tip: e.target.value} : null)}
-                    className="min-h-[80px] rounded-xl border-2 font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-primary/10">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Download className="w-3 h-3" /> Botón Descarga
-                    </Label>
-                    <Switch checked={enableDownloadInForm} onCheckedChange={setEnableDownloadInForm} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
+                    <Select 
+                      value={editingResource?.category || ''} 
+                      onValueChange={(val) => setEditingResource(prev => prev ? {...prev, category: val} : null)}
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
+                        <SelectValue placeholder="Categoría" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {ALL_CATEGORIES.filter(c => c !== 'Todos').map(cat => (
+                          <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {enableDownloadInForm && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                      <Input 
-                        value={editingResource?.downloadUrl === '#' ? '' : editingResource?.downloadUrl || ''} 
-                        onChange={(e) => setEditingResource(prev => prev ? {...prev, downloadUrl: e.target.value} : null)}
-                        className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
-                        placeholder="https://..."
-                      />
-                    </div>
-                  )}
-                </div>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="space-y-2">
                     <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <LinkIcon className="w-3 h-3" /> Botón Interacción
+                      <FileType className="w-3 h-3" /> Tipo de Contenido
                     </Label>
-                    <Switch checked={enableInteractInForm} onCheckedChange={setEnableInteractInForm} />
+                    <Select 
+                      value={editingResource?.type || ''} 
+                      onValueChange={(val) => setEditingResource(prev => prev ? {...prev, type: val} : null)}
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
+                        <SelectValue placeholder="Tipo" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {CONTENT_TYPES.map(type => (
+                          <SelectItem key={type} value={type} className="font-bold">{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  {enableInteractInForm && (
-                    <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                      <Input 
-                        value={editingResource?.interactUrl === '#' ? '' : editingResource?.interactUrl || ''} 
-                        onChange={(e) => setEditingResource(prev => prev ? {...prev, interactUrl: e.target.value} : null)}
-                        className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
-                        placeholder="https://..."
-                      />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <Timer className="w-3 h-3" /> Duración / Extensión
+                    </Label>
+                    <Input 
+                      value={editingResource?.length || ''} 
+                      onChange={(e) => setEditingResource(prev => prev ? {...prev, length: e.target.value} : null)}
+                      className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                      placeholder="Ej: 15 min o 12 págs"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <ImageIcon className="w-3 h-3" /> URL Imagen
+                    </Label>
+                    <Input 
+                      value={typeof editingResource?.img === 'string' ? editingResource.img : editingResource?.img?.imageUrl || ''} 
+                      onChange={(e) => setEditingResource(prev => {
+                        if (!prev) return null;
+                        if (typeof prev.img === 'string') return {...prev, img: e.target.value};
+                        return {...prev, img: {...(prev.img || { imageHint: 'music' }), imageUrl: e.target.value}};
+                      })}
+                      className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Descripción Detallada</Label>
+                  <Textarea 
+                    value={editingResource?.description || ''} 
+                    onChange={(e) => setEditingResource(prev => prev ? {...prev, description: e.target.value} : null)}
+                    className="min-h-[100px] rounded-xl border-2 font-bold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Objetivo Académico</Label>
+                    <Textarea 
+                      value={editingResource?.objective || ''} 
+                      onChange={(e) => setEditingResource(prev => prev ? {...prev, objective: e.target.value} : null)}
+                      className="min-h-[80px] rounded-xl border-2 font-bold"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tip del Profesor</Label>
+                    <Textarea 
+                      value={editingResource?.tip || ''} 
+                      onChange={(e) => setEditingResource(prev => prev ? {...prev, tip: e.target.value} : null)}
+                      className="min-h-[80px] rounded-xl border-2 font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-primary/10">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <Download className="w-3 h-3" /> Botón Descarga
+                      </Label>
+                      <Switch checked={enableDownloadInForm} onCheckedChange={setEnableDownloadInForm} />
                     </div>
-                  )}
+                    {enableDownloadInForm && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <Input 
+                          value={editingResource?.downloadUrl === '#' ? '' : editingResource?.downloadUrl || ''} 
+                          onChange={(e) => setEditingResource(prev => prev ? {...prev, downloadUrl: e.target.value} : null)}
+                          className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <LinkIcon className="w-3 h-3" /> Botón Interacción
+                      </Label>
+                      <Switch checked={enableInteractInForm} onCheckedChange={setEnableInteractInForm} />
+                    </div>
+                    {enableInteractInForm && (
+                      <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <Input 
+                          value={editingResource?.interactUrl === '#' ? '' : editingResource?.interactUrl || ''} 
+                          onChange={(e) => setEditingResource(prev => prev ? {...prev, interactUrl: e.target.value} : null)}
+                          className="h-10 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent text-xs"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
