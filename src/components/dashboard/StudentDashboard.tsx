@@ -797,7 +797,7 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent className="p-0">
             <div className="text-xl sm:text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">
-              {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin clase programada 💤'}
+              {nextLesson ? nextLesson.time.split(' ')[0] : 'Aún no hay 😴'}
             </div>
             <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-0.5">
               {nextLesson 
