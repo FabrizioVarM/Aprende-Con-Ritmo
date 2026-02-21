@@ -314,6 +314,17 @@ export default function SchedulePage() {
     mySlots.filter(s => isPastSlot(s.time)),
   [mySlots, date, currentTime]);
 
+  const dayLabel = useMemo(() => {
+    if (!todayTimestamp) return 'Resumen del día';
+    const selectedStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    const diffTime = selectedStart - todayTimestamp;
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Resumen del día';
+    if (diffDays < 0) return `Resumen de hace ${Math.abs(diffDays)} ${Math.abs(diffDays) === 1 ? 'día' : 'días'}`;
+    return `Resumen dentro de ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
+  }, [date, todayTimestamp]);
+
   const handleBook = () => {
     if (!selectedSlotId || !date || !user || !selectedTeacherId) return;
     
@@ -1149,13 +1160,13 @@ export default function SchedulePage() {
           </div>
 
           <div className="lg:col-span-8 space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-white dark:bg-card p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-accent/30 shadow-xl shadow-accent/5 relative overflow-hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 bg-card p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-accent/30 shadow-xl shadow-accent/5 relative overflow-hidden">
               <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
               <div className="bg-accent text-white p-3 sm:p-5 rounded-2xl sm:rounded-[2rem] shadow-xl shadow-accent/20 shrink-0 w-fit">
                 <Clock className="w-6 h-6 sm:w-10 sm:h-10" />
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-black text-accent uppercase tracking-[0.2em] mb-1">Resumen del día</p>
+                <p className="text-xs font-black text-accent uppercase tracking-[0.2em] mb-1">{dayLabel}</p>
                 <h3 className="text-3xl sm:text-5xl font-black text-foreground capitalize leading-tight tracking-tight">
                   {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                 </h3>
