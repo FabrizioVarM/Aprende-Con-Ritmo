@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -694,7 +695,7 @@ export default function LibraryPage() {
                       <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                         <FileText className="w-4 h-4 text-accent" /> Sobre este material
                       </h4>
-                      <p className="text-sm font-medium text-foreground leading-relaxed">
+                      <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">
                         {viewingResource.description}
                       </p>
                     </div>
@@ -705,7 +706,7 @@ export default function LibraryPage() {
                       <h4 className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 flex items-center gap-2">
                         <Target className="w-4 h-4" /> Objetivo Académico
                       </h4>
-                      <p className="text-sm font-bold text-blue-900 dark:text-blue-100 leading-relaxed italic">
+                      <p className="text-sm font-bold text-blue-900 dark:text-blue-100 leading-relaxed italic whitespace-pre-wrap">
                         "{viewingResource.objective}"
                       </p>
                     </div>
@@ -716,7 +717,7 @@ export default function LibraryPage() {
                       <h4 className="text-xs font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2">
                         <Sparkles className="w-4 h-4" /> Tip del Profesor
                       </h4>
-                      <p className="text-sm font-bold text-orange-900 dark:text-orange-100 leading-relaxed">
+                      <p className="text-sm font-bold text-orange-900 dark:text-orange-100 leading-relaxed whitespace-pre-wrap">
                         {viewingResource.tip}
                       </p>
                     </div>

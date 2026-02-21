@@ -26,14 +26,14 @@ export interface Resource {
 export const INITIAL_RESOURCES: Resource[] = [
   { 
     id: 1, 
-    title: 'Básicos de Acordes de Guitarra', 
+    title: 'Nivel 1 - Acordes Básicos 1 - Acordes Mayores', 
     category: 'Guitarra', 
     type: 'PDF', 
     img: { imageUrl: "https://picsum.photos/seed/guitar1/600/400", imageHint: "guitar music" }, 
     length: '12 págs',
-    description: 'Una guía exhaustiva para principiantes que cubre los acordes mayores y menores más utilizados en la música popular. Incluye diagramas de posición y ejercicios de cambio rápido.',
-    objective: 'Dominar las 8 posiciones básicas de acordes para poder acompañar cualquier canción sencilla.',
-    tip: 'Mantén el pulgar detrás del mástil para mayor palanca y asegúrate de que solo las yemas de tus dedos toquen las cuerdas.',
+    description: 'Hola! Éste es el primer material de guitarra con el que aprenderás a familiarizarte con la biblioteca y el resto de materiales. Hay varios materiales de nivel 1, pero debes completarlos en un orden específico.\n\nAcordes básicos 1 - Acordes mayores, es un material en donde encontrarás una TABLATURA de guitarra, que usarás para guiarte y tocar los acordes mayores clásicos de la guitarra. puedes practicar tú mismo, con el profesor, o hasta interactuar dándole al botón INTERACTUA.',
+    objective: '1. Entrenar tu lectura de tablaturas.\n2. Conocer los símbolos de cada acorde.\n3. Mejorar tu velocidad en los dedos a la hora de presionar cada cuerda en el traste correcto, según lo que indique el acorde.',
+    tip: '* Cuando practiques solo, primero lee las posiciones que te indica la tablatura en cada acorde, y luego memorizalo. después usas el metrónomo para tocarlos en secuencia, hasta que puedas tocar todos los acordes.\n\n*El modo interactivo solo necesita que le des al botón de reproducir, trata de leer primero como se hace el acorde, memorizarlo, y luego recién le das reproducir. Si al principio es muy rápido para ti, puedes disminuir la velocidad.',
     downloadUrl: '#', 
     interactUrl: '#', 
     isVisibleGlobally: true, 
