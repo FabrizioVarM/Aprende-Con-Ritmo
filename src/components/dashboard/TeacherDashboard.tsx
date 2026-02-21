@@ -125,7 +125,7 @@ export default function TeacherDashboard() {
         setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
       }
     }
-  }, [selectedDate, isOpen, getDayAvailability, teacherId]);
+  }, [selectedDate, isOpen, getDayAvailability, teacherId, stagedSlots]);
 
   const handleUpdateZone = (zone: string) => {
     updateUser({ currentZone: zone });
@@ -307,14 +307,40 @@ export default function TeacherDashboard() {
     const counts: Record<string, number> = {};
     weekDays.forEach(d => {
       const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const dayData = availabilities.find(a => a.teacherId === teacherId && a.date === dStr);
-      if (dayData) {
-        const bookedCount = dayData.slots.filter(s => s.isBooked).length;
-        if (bookedCount > 0) counts[dStr] = bookedCount;
+      
+      let slots: TimeSlot[] = [];
+      if (stagedSlots[dStr]) {
+        slots = stagedSlots[dStr];
+      } else {
+        const dayData = availabilities.find(a => a.teacherId === teacherId && a.date === dStr);
+        slots = dayData?.slots || [];
       }
+
+      const bookedCount = slots.filter(s => s.isBooked).length;
+      if (bookedCount > 0) counts[dStr] = bookedCount;
     });
     return counts;
-  }, [weekDays, availabilities, teacherId]);
+  }, [weekDays, availabilities, teacherId, stagedSlots]);
+
+  const availableSlotsCountMap = useMemo(() => {
+    if (!teacherId) return {};
+    const counts: Record<string, number> = {};
+    weekDays.forEach(d => {
+      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      
+      let slots: TimeSlot[] = [];
+      if (stagedSlots[dStr]) {
+        slots = stagedSlots[dStr];
+      } else {
+        const dayData = availabilities.find(a => a.teacherId === teacherId && a.date === dStr);
+        slots = dayData?.slots || [];
+      }
+
+      const count = slots.filter(s => s.isAvailable && !s.isBooked).length;
+      if (count > 0) counts[dStr] = count;
+    });
+    return counts;
+  }, [weekDays, availabilities, teacherId, stagedSlots]);
 
   const totalWeeklyEnabledHours = useMemo(() => {
     if (!teacherId) return 0;
@@ -412,6 +438,7 @@ export default function TeacherDashboard() {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
                         const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                         const bookedCount = bookedHoursCountMap[dStr];
+                        const availCount = availableSlotsCountMap[dStr];
                         const isToday = d.toDateString() === todayStr;
                         const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
                         const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
@@ -435,6 +462,17 @@ export default function TeacherDashboard() {
                             </span>
                             <span className={cn("text-base font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
                             
+                            {/* Indicador de clases disponibles (Verde) */}
+                            {availCount > 0 && (
+                              <Badge className={cn(
+                                "absolute -top-2 -left-2 h-5 min-w-[1.25rem] px-1 rounded-full text-white border-2 border-white text-[10px] flex items-center justify-center font-black shadow-sm bg-emerald-500",
+                                isSelected && "border-emerald-200"
+                              )}>
+                                {availCount}
+                              </Badge>
+                            )}
+
+                            {/* Indicador de clases reservadas (Coral) */}
                             {bookedCount > 0 && (
                               <Badge className={cn(
                                 "absolute -top-2 -right-2 h-5 min-w-[1.25rem] px-1 rounded-full text-white border-2 border-white text-[10px] flex items-center justify-center font-black shadow-sm",

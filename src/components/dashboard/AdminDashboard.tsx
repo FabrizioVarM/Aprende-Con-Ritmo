@@ -93,7 +93,7 @@ export default function AdminDashboard() {
         setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
       }
     }
-  }, [selectedDate, isScheduleDialogOpen, getDayAvailability, editingTeacherId]);
+  }, [selectedDate, isScheduleDialogOpen, getDayAvailability, editingTeacherId, stagedSlots]);
 
   const teachers = useMemo(() => getTeachers(), [getTeachers]);
   const studentsCount = useMemo(() => allUsers.filter(u => u.role === 'student').length, [allUsers]);
@@ -344,14 +344,40 @@ export default function AdminDashboard() {
     const counts: Record<string, number> = {};
     weekDays.forEach(d => {
       const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const dayData = availabilities.find(a => a.teacherId === editingTeacherId && a.date === dStr);
-      if (dayData) {
-        const bookedCount = dayData.slots.filter(s => s.isBooked).length;
-        if (bookedCount > 0) counts[dStr] = bookedCount;
+      
+      let slots: TimeSlot[] = [];
+      if (stagedSlots[dStr]) {
+        slots = stagedSlots[dStr];
+      } else {
+        const dayData = availabilities.find(a => a.teacherId === editingTeacherId && a.date === dStr);
+        slots = dayData?.slots || [];
       }
+
+      const bookedCount = slots.filter(s => s.isBooked).length;
+      if (bookedCount > 0) counts[dStr] = bookedCount;
     });
     return counts;
-  }, [weekDays, availabilities, editingTeacherId]);
+  }, [weekDays, availabilities, editingTeacherId, stagedSlots]);
+
+  const availableSlotsCountMap = useMemo(() => {
+    if (!editingTeacherId) return {};
+    const counts: Record<string, number> = {};
+    weekDays.forEach(d => {
+      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      
+      let slots: TimeSlot[] = [];
+      if (stagedSlots[dStr]) {
+        slots = stagedSlots[dStr];
+      } else {
+        const dayData = availabilities.find(a => a.teacherId === editingTeacherId && a.date === dStr);
+        slots = dayData?.slots || [];
+      }
+
+      const count = slots.filter(s => s.isAvailable && !s.isBooked).length;
+      if (count > 0) counts[dStr] = count;
+    });
+    return counts;
+  }, [weekDays, availabilities, editingTeacherId, stagedSlots]);
 
   const isSelectedDatePast = useMemo(() => {
     const dateAtStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
@@ -614,6 +640,7 @@ export default function AdminDashboard() {
                     const isSelected = d.toDateString() === selectedDate.toDateString();
                     const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                     const bookedCount = bookedHoursCountMap[dStr];
+                    const availCount = availableSlotsCountMap[dStr];
                     const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
                     const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
 
@@ -635,6 +662,17 @@ export default function AdminDashboard() {
                         </span>
                         <span className={cn("text-base font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
                         
+                        {/* Indicador de clases disponibles (Verde) */}
+                        {availCount > 0 && (
+                          <Badge className={cn(
+                            "absolute -top-2 -left-2 h-5 min-w-[1.25rem] px-1 rounded-full text-white border-2 border-white text-[10px] flex items-center justify-center font-black shadow-sm bg-emerald-500",
+                            isSelected && "border-emerald-200"
+                          )}>
+                            {availCount}
+                          </Badge>
+                        )}
+
+                        {/* Indicador de clases reservadas (Coral) */}
                         {bookedCount > 0 && (
                           <Badge className={cn(
                             "absolute -top-2 -right-2 h-5 min-w-[1.25rem] px-1 rounded-full text-white border-2 border-white text-[10px] flex items-center justify-center font-black shadow-sm",
@@ -720,8 +758,8 @@ export default function AdminDashboard() {
           </div>
 
           <div className="p-6 bg-muted/30 border-t flex gap-3">
-            <Button variant="outline" onClick={() => setEditingTeacherId(null)} className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
-            <Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-12 font-black gap-2">Guardar Cambios</Button>
+            <Button variant="outline" onClick={() => setEditingTeacherId(null)} className="rounded-xl flex-1 h-14 font-black text-foreground">Cancelar</Button>
+            <Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-14 font-black gap-2">Guardar Cambios</Button>
           </div>
         </DialogContent>
       </Dialog>
