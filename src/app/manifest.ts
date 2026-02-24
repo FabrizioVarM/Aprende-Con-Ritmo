@@ -1,4 +1,3 @@
-
 import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
@@ -12,6 +11,9 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#ffffff',
     theme_color: '#FF8B7A',
     categories: ['education', 'music', 'productivity'],
+    id: 'com.ritmo.app',
+    dir: 'ltr',
+    lang: 'es',
     icons: [
       {
         src: '/icon',
