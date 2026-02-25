@@ -54,6 +54,7 @@ import {
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { getDirectImageUrl } from '@/lib/utils/images';
+import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
   const { user, allUsers, loading: authLoading } = useAuth();
