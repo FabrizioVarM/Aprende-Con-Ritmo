@@ -18,7 +18,7 @@ import { useNewsStore } from '@/lib/news-store';
 import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  Image as ImageIcon, 
+  ImageIcon, 
   Upload, 
   RefreshCw, 
   Save, 
@@ -43,7 +43,8 @@ import {
   Zap,
   Database,
   Info,
-  AlertCircle
+  AlertCircle,
+  Users
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
