@@ -16,6 +16,9 @@ import { useAuth } from '@/lib/auth-store';
 import { useBookingStore } from '@/lib/booking-store';
 import { useNewsStore } from '@/lib/news-store';
 import { useResourceStore } from '@/lib/resource-store';
+import { useCompletionStore } from '@/lib/completion-store';
+import { useMilestonesStore } from '@/lib/milestones-store';
+import { useSkillsStore } from '@/lib/skills-store';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ImageIcon, 
@@ -49,7 +52,11 @@ import {
   MousePointerClick,
   Network,
   CalendarDays,
-  FileText
+  FileText,
+  CheckCircle2,
+  Trophy,
+  TrendingUp,
+  Star
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -62,6 +69,9 @@ export default function SettingsPage() {
   const { availabilities } = useBookingStore();
   const { articles } = useNewsStore();
   const { resources } = useResourceStore();
+  const { completions } = useCompletionStore();
+  const { milestones } = useMilestonesStore();
+  const { skills } = useSkillsStore();
   const { toast } = useToast();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,13 +123,16 @@ export default function SettingsPage() {
     setTermsContent(settings.termsContent || '');
   }, [settings]);
 
-  // Cálculos de cuotas de Firebase (Spark Plan) - Expandido y detallado
+  // Cálculos de cuotas de Firebase (Spark Plan) - Detalle exhaustivo de almacenamiento
   const quotaStats = useMemo(() => {
     const counts = {
       users: allUsers.length,
       news: articles.length,
       resources: resources.length,
       schedule: availabilities.length,
+      completions: completions.length,
+      milestones: milestones.length,
+      skills: skills.length,
     };
 
     const totalDocs = Object.values(counts).reduce((a, b) => a + b, 0);
@@ -155,7 +168,7 @@ export default function SettingsPage() {
         connections: CONCURRENT_CONNECTIONS
       }
     };
-  }, [allUsers, articles, resources, availabilities]);
+  }, [allUsers, articles, resources, availabilities, completions, milestones, skills]);
 
   const handleSave = () => {
     updateSettings({ 
@@ -283,6 +296,43 @@ export default function SettingsPage() {
                     <span className="text-accent">Consumo: {quotaStats.docs.percent.toFixed(3)}%</span>
                     <span className="text-muted-foreground italic">Total: {quotaStats.docs.current.toLocaleString()} documentos</span>
                   </div>
+
+                  {/* DESGLOSE DE QUÉ SE ESTÁ ALMACENANDO */}
+                  <div className="mt-4 p-4 rounded-xl bg-muted/20 border border-dashed border-primary/10 animate-in fade-in slide-in-from-top-1 duration-500">
+                    <h5 className="text-[9px] font-black uppercase text-muted-foreground mb-3 flex items-center gap-2">
+                      <Info className="w-2.5 h-2.5" /> Entidades Almacenadas en Firestore:
+                    </h5>
+                    <div className="grid grid-cols-1 gap-y-1.5 text-[10px] font-bold text-muted-foreground">
+                      <div className="flex justify-between border-b border-primary/5 pb-1">
+                        <span>Perfiles Académicos (Alumnos/Docentes):</span> 
+                        <span className="text-foreground">{quotaStats.counts.users}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-primary/5 pb-1">
+                        <span>Habilitaciones y Citas de Agenda:</span> 
+                        <span className="text-foreground">{quotaStats.counts.schedule}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-primary/5 pb-1">
+                        <span>Validaciones de Material (Completados):</span> 
+                        <span className="text-foreground">{quotaStats.counts.completions}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-primary/5 pb-1">
+                        <span>Niveles de Habilidad Técnica:</span> 
+                        <span className="text-foreground">{quotaStats.counts.skills}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-primary/5 pb-1">
+                        <span>Registro de Hitos y Medallas:</span> 
+                        <span className="text-foreground">{quotaStats.counts.milestones}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-primary/5 pb-1">
+                        <span>Catálogo de Recursos Didácticos:</span> 
+                        <span className="text-foreground">{quotaStats.counts.resources}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Publicaciones de Cartelera:</span> 
+                        <span className="text-foreground">{quotaStats.counts.news}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -298,6 +348,9 @@ export default function SettingsPage() {
                     { label: 'Noticias', count: quotaStats.counts.news, icon: FileText, color: 'text-orange-500 bg-orange-50 dark:bg-orange-900/20' },
                     { label: 'Recursos', count: quotaStats.counts.resources, icon: Database, color: 'text-accent bg-accent/5 dark:bg-accent/10' },
                     { label: 'Agenda', count: quotaStats.counts.schedule, icon: CalendarDays, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' },
+                    { label: 'Validaciones', count: quotaStats.counts.completions, icon: CheckCircle2, color: 'text-purple-500 bg-purple-50 dark:bg-purple-900/20' },
+                    { label: 'Hitos', count: quotaStats.counts.milestones, icon: Trophy, color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-950/20' },
+                    { label: 'Habilidades', count: quotaStats.counts.skills, icon: TrendingUp, color: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-900/20' },
                   ].map((item, i) => (
                     <div key={i} className={cn("p-4 rounded-2xl border-2 border-primary/5 flex flex-col gap-2 shadow-sm transition-all hover:scale-105", item.color)}>
                       <item.icon className="w-4 h-4" />
