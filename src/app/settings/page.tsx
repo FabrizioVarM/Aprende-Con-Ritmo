@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,12 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import { useSettingsStore } from '@/lib/settings-store';
 import { useAuth } from '@/lib/auth-store';
+import { useBookingStore } from '@/lib/booking-store';
+import { useNewsStore } from '@/lib/news-store';
+import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Image as ImageIcon, 
@@ -34,15 +38,23 @@ import {
   Plus,
   X,
   Scale,
-  Sparkles
+  Sparkles,
+  Activity,
+  Zap,
+  Database,
+  Info,
+  AlertCircle
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { getDirectImageUrl } from '@/lib/utils/images';
 
 export default function SettingsPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, allUsers, loading: authLoading } = useAuth();
   const { settings, updateSettings } = useSettingsStore();
+  const { availabilities } = useBookingStore();
+  const { articles } = useNewsStore();
+  const { resources } = useResourceStore();
   const { toast } = useToast();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +105,44 @@ export default function SettingsPage() {
     setLocalZones(settings.zones || []);
     setTermsContent(settings.termsContent || '');
   }, [settings]);
+
+  // Cálculos de cuotas de Firebase (Spark Plan)
+  const quotaStats = useMemo(() => {
+    const totalUsers = allUsers.length;
+    const totalNews = articles.length;
+    const totalResources = resources.length;
+    const totalAvailabilities = availabilities.length;
+    
+    // Estimación de documentos totales (aproximado)
+    const totalDocs = totalUsers + totalNews + totalResources + totalAvailabilities;
+    
+    // Límites de Firebase Spark (Gratis)
+    const AUTH_LIMIT = 50000; // Usuarios activos mensuales
+    const FIRESTORE_STORAGE_LIMIT_MB = 1024; // 1 GiB
+    const DAILY_READS_LIMIT = 50000;
+    const DAILY_WRITES_LIMIT = 20000;
+
+    // Estimación de peso (muy conservador: 2KB por doc)
+    const estimatedSizeMB = (totalDocs * 2) / 1024;
+
+    return {
+      users: {
+        current: totalUsers,
+        limit: AUTH_LIMIT,
+        percent: Math.min((totalUsers / AUTH_LIMIT) * 100, 100)
+      },
+      docs: {
+        current: totalDocs,
+        estimatedMB: estimatedSizeMB.toFixed(2),
+        limitMB: FIRESTORE_STORAGE_LIMIT_MB,
+        percent: Math.min((estimatedSizeMB / FIRESTORE_STORAGE_LIMIT_MB) * 100, 100)
+      },
+      daily: {
+        reads: DAILY_READS_LIMIT,
+        writes: DAILY_WRITES_LIMIT
+      }
+    };
+  }, [allUsers, articles, resources, availabilities]);
 
   const handleSave = () => {
     updateSettings({ 
@@ -163,6 +213,93 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-8">
+          {/* MONITOR DE CUOTAS FIREBASE */}
+          <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
+            <CardHeader className="bg-primary/10 p-8 border-b">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
+                  <Activity className="w-8 h-8 text-accent" />
+                  Estado del Plan Gratuito (Firebase Spark)
+                </CardTitle>
+                <Badge className="bg-emerald-500 text-white border-none px-4 py-1 rounded-full font-black text-[10px] uppercase tracking-widest">Activo</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-8 space-y-8">
+              <div className="bg-accent/5 p-5 rounded-2xl border-2 border-accent/10 mb-2 flex gap-4 items-start">
+                <Zap className="w-6 h-6 text-accent shrink-0 mt-1" />
+                <div className="space-y-1">
+                  <p className="text-sm font-black text-foreground">Monitoreo de Límites en Tiempo Real</p>
+                  <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                    Firebase ofrece un plan gratuito generoso. Vigila estos indicadores para evitar interrupciones antes de pasar al plan de pago por uso (Blaze).
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Autenticación */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <Users className="w-3 h-3" /> Autenticación
+                      </Label>
+                      <p className="text-lg font-black text-foreground">{quotaStats.users.current.toLocaleString()} <span className="text-xs text-muted-foreground font-medium">Usuarios</span></p>
+                    </div>
+                    <p className="text-[10px] font-black text-muted-foreground uppercase">Límite: {quotaStats.users.limit.toLocaleString()}</p>
+                  </div>
+                  <Progress value={quotaStats.users.percent} className="h-3 rounded-full bg-primary/10" />
+                  <p className="text-[9px] font-bold text-muted-foreground italic text-right">Consumido: {quotaStats.users.percent.toFixed(2)}% de la cuota mensual</p>
+                </div>
+
+                {/* Firestore Storage */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end">
+                    <div className="space-y-1">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <Database className="w-3 h-3" /> Almacenamiento DB
+                      </Label>
+                      <p className="text-lg font-black text-foreground">{quotaStats.docs.estimatedMB} <span className="text-xs text-muted-foreground font-medium">MB Est.</span></p>
+                    </div>
+                    <p className="text-[10px] font-black text-muted-foreground uppercase">Límite: 1,024 MB</p>
+                  </div>
+                  <Progress value={quotaStats.docs.percent} className="h-3 rounded-full bg-primary/10" />
+                  <p className="text-[9px] font-bold text-muted-foreground italic text-right">Ocupado: ~{quotaStats.docs.current.toLocaleString()} documentos totales</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 flex gap-4">
+                  <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm h-fit">
+                    <Eye className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-blue-700/70 dark:text-blue-400/70 tracking-widest">Lecturas Diarias</p>
+                    <p className="text-base font-black text-blue-900 dark:text-blue-100">Máximo 50,000</p>
+                    <p className="text-[9px] font-bold text-blue-600/60 mt-1 italic">Recomendado: Evitar refrescos innecesarios.</p>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 flex gap-4">
+                  <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm h-fit">
+                    <Plus className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-orange-700/70 dark:text-orange-400/70 tracking-widest">Escrituras Diarias</p>
+                    <p className="text-base font-black text-orange-900 dark:text-orange-100">Máximo 20,000</p>
+                    <p className="text-[9px] font-bold text-orange-600/60 mt-1 italic">Recomendado: Validar datos antes de guardar.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 bg-muted/30 p-3 rounded-xl border border-dashed border-primary/20">
+                <Info className="w-4 h-4 text-muted-foreground" />
+                <p className="text-[10px] font-bold text-muted-foreground italic">
+                  * Las estimaciones de peso se basan en el conteo actual de documentos en Firestore. El uso de Hosting y Storage de archivos se gestiona por separado en la consola.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* IDENTIDAD VISUAL */}
           <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
