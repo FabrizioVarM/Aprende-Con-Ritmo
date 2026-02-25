@@ -44,7 +44,12 @@ import {
   Database,
   Info,
   AlertCircle,
-  Users
+  Users,
+  HardDrive,
+  MousePointerClick,
+  Network,
+  CalendarDays,
+  FileText
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -107,40 +112,46 @@ export default function SettingsPage() {
     setTermsContent(settings.termsContent || '');
   }, [settings]);
 
-  // Cálculos de cuotas de Firebase (Spark Plan)
+  // Cálculos de cuotas de Firebase (Spark Plan) - Expandido y detallado
   const quotaStats = useMemo(() => {
-    const totalUsers = allUsers.length;
-    const totalNews = articles.length;
-    const totalResources = resources.length;
-    const totalAvailabilities = availabilities.length;
-    
-    // Estimación de documentos totales (aproximado)
-    const totalDocs = totalUsers + totalNews + totalResources + totalAvailabilities;
+    const counts = {
+      users: allUsers.length,
+      news: articles.length,
+      resources: resources.length,
+      schedule: availabilities.length,
+    };
+
+    const totalDocs = Object.values(counts).reduce((a, b) => a + b, 0);
     
     // Límites de Firebase Spark (Gratis)
     const AUTH_LIMIT = 50000; // Usuarios activos mensuales
     const FIRESTORE_STORAGE_LIMIT_MB = 1024; // 1 GiB
     const DAILY_READS_LIMIT = 50000;
     const DAILY_WRITES_LIMIT = 20000;
+    const DAILY_DELETES_LIMIT = 20000;
+    const CONCURRENT_CONNECTIONS = 100;
 
-    // Estimación de peso (muy conservador: 2KB por doc)
-    const estimatedSizeMB = (totalDocs * 2) / 1024;
+    // Estimación de peso (promedio de 2.5KB por doc para incluir overhead de índices)
+    const estimatedSizeMB = (totalDocs * 2.5) / 1024;
 
     return {
+      counts,
       users: {
-        current: totalUsers,
+        current: counts.users,
         limit: AUTH_LIMIT,
-        percent: Math.min((totalUsers / AUTH_LIMIT) * 100, 100)
+        percent: Math.min((counts.users / AUTH_LIMIT) * 100, 100)
       },
       docs: {
         current: totalDocs,
-        estimatedMB: estimatedSizeMB.toFixed(2),
+        estimatedMB: estimatedSizeMB.toFixed(3),
         limitMB: FIRESTORE_STORAGE_LIMIT_MB,
         percent: Math.min((estimatedSizeMB / FIRESTORE_STORAGE_LIMIT_MB) * 100, 100)
       },
-      daily: {
+      limits: {
         reads: DAILY_READS_LIMIT,
-        writes: DAILY_WRITES_LIMIT
+        writes: DAILY_WRITES_LIMIT,
+        deletes: DAILY_DELETES_LIMIT,
+        connections: CONCURRENT_CONNECTIONS
       }
     };
   }, [allUsers, articles, resources, availabilities]);
@@ -214,88 +225,173 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-8">
-          {/* MONITOR DE CUOTAS FIREBASE */}
+          {/* MONITOR DE CUOTAS FIREBASE DETALLADO */}
           <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/10 p-8 border-b">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
-                  <Activity className="w-8 h-8 text-accent" />
-                  Estado del Plan Gratuito (Firebase Spark)
-                </CardTitle>
-                <Badge className="bg-emerald-500 text-white border-none px-4 py-1 rounded-full font-black text-[10px] uppercase tracking-widest">Activo</Badge>
+                <div className="space-y-1">
+                  <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
+                    <Activity className="w-8 h-8 text-accent" />
+                    Estado del Plan Gratuito (Spark)
+                  </CardTitle>
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Guía de consumo y límites en tiempo real</p>
+                </div>
+                <Badge className="bg-emerald-500 text-white border-none px-4 py-1 rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg shadow-emerald-500/20 animate-pulse">Monitor Activo</Badge>
               </div>
             </CardHeader>
-            <CardContent className="p-8 space-y-8">
-              <div className="bg-accent/5 p-5 rounded-2xl border-2 border-accent/10 mb-2 flex gap-4 items-start">
-                <Zap className="w-6 h-6 text-accent shrink-0 mt-1" />
-                <div className="space-y-1">
-                  <p className="text-sm font-black text-foreground">Monitoreo de Límites en Tiempo Real</p>
-                  <p className="text-xs text-muted-foreground font-medium leading-relaxed">
-                    Firebase ofrece un plan gratuito generoso. Vigila estos indicadores para evitar interrupciones antes de pasar al plan de pago por uso (Blaze).
-                  </p>
-                </div>
-              </div>
-
+            <CardContent className="p-8 space-y-10">
+              {/* Resumen Principal */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Autenticación */}
+                {/* Autenticación Detallada */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-end">
                     <div className="space-y-1">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <Users className="w-3 h-3" /> Autenticación
+                        <Users className="w-3 h-3 text-blue-500" /> Cuentas de Usuario
                       </Label>
-                      <p className="text-lg font-black text-foreground">{quotaStats.users.current.toLocaleString()} <span className="text-xs text-muted-foreground font-medium">Usuarios</span></p>
+                      <p className="text-2xl font-black text-foreground">{quotaStats.users.current.toLocaleString()}</p>
                     </div>
-                    <p className="text-[10px] font-black text-muted-foreground uppercase">Límite: {quotaStats.users.limit.toLocaleString()}</p>
+                    <div className="text-right">
+                      <p className="text-[9px] font-black text-muted-foreground uppercase">Límite Mensual</p>
+                      <p className="text-xs font-black text-foreground">{quotaStats.users.limit.toLocaleString()}</p>
+                    </div>
                   </div>
                   <Progress value={quotaStats.users.percent} className="h-3 rounded-full bg-primary/10" />
-                  <p className="text-[9px] font-bold text-muted-foreground italic text-right">Consumido: {quotaStats.users.percent.toFixed(2)}% de la cuota mensual</p>
+                  <div className="flex justify-between items-center text-[10px] font-bold">
+                    <span className="text-blue-600 dark:text-blue-400">Uso: {quotaStats.users.percent.toFixed(3)}%</span>
+                    <span className="text-muted-foreground italic">Restante: {(quotaStats.users.limit - quotaStats.users.current).toLocaleString()} slots</span>
+                  </div>
                 </div>
 
-                {/* Firestore Storage */}
+                {/* Almacenamiento DB Detallado */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-end">
                     <div className="space-y-1">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <Database className="w-3 h-3" /> Almacenamiento DB
+                        <Database className="w-3 h-3 text-accent" /> Almacenamiento de Datos
                       </Label>
-                      <p className="text-lg font-black text-foreground">{quotaStats.docs.estimatedMB} <span className="text-xs text-muted-foreground font-medium">MB Est.</span></p>
+                      <p className="text-2xl font-black text-foreground">{quotaStats.docs.estimatedMB} <span className="text-xs text-muted-foreground font-medium uppercase">MB Est.</span></p>
                     </div>
-                    <p className="text-[10px] font-black text-muted-foreground uppercase">Límite: 1,024 MB</p>
+                    <div className="text-right">
+                      <p className="text-[9px] font-black text-muted-foreground uppercase">Capacidad Total</p>
+                      <p className="text-xs font-black text-foreground">1,024 MB</p>
+                    </div>
                   </div>
                   <Progress value={quotaStats.docs.percent} className="h-3 rounded-full bg-primary/10" />
-                  <p className="text-[9px] font-bold text-muted-foreground italic text-right">Ocupado: ~{quotaStats.docs.current.toLocaleString()} documentos totales</p>
+                  <div className="flex justify-between items-center text-[10px] font-bold">
+                    <span className="text-accent">Consumo: {quotaStats.docs.percent.toFixed(3)}%</span>
+                    <span className="text-muted-foreground italic">Total: {quotaStats.docs.current.toLocaleString()} documentos</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 flex gap-4">
-                  <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm h-fit">
-                    <Eye className="w-4 h-4 text-blue-600" />
+              {/* Desglose Técnico de Documentos */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-muted-foreground" />
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Distribución por Colecciones</h4>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {[
+                    { label: 'Usuarios', count: quotaStats.counts.users, icon: Users, color: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20' },
+                    { label: 'Noticias', count: quotaStats.counts.news, icon: FileText, color: 'text-orange-500 bg-orange-50 dark:bg-orange-900/20' },
+                    { label: 'Recursos', count: quotaStats.counts.resources, icon: Database, color: 'text-accent bg-accent/5 dark:bg-accent/10' },
+                    { label: 'Agenda', count: quotaStats.counts.schedule, icon: CalendarDays, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' },
+                  ].map((item, i) => (
+                    <div key={i} className={cn("p-4 rounded-2xl border-2 border-primary/5 flex flex-col gap-2 shadow-sm transition-all hover:scale-105", item.color)}>
+                      <item.icon className="w-4 h-4" />
+                      <div className="space-y-0.5">
+                        <p className="text-[8px] font-black uppercase tracking-widest opacity-70">{item.label}</p>
+                        <p className="text-lg font-black">{item.count.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Operaciones Diarias y Límites de Rendimiento */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4 p-6 rounded-[2rem] bg-muted/30 border border-primary/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MousePointerClick className="w-4 h-4 text-blue-600" />
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">Límites Diarios de Operación</h4>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase text-blue-700/70 dark:text-blue-400/70 tracking-widest">Lecturas Diarias</p>
-                    <p className="text-base font-black text-blue-900 dark:text-blue-100">Máximo 50,000</p>
-                    <p className="text-[9px] font-bold text-blue-600/60 mt-1 italic">Recomendado: Evitar refrescos innecesarios.</p>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center py-1 border-b border-primary/5">
+                      <span className="text-[10px] font-bold text-muted-foreground">Lecturas (Reads)</span>
+                      <span className="text-xs font-black text-blue-600">50,000 / día</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1 border-b border-primary/5">
+                      <span className="text-[10px] font-bold text-muted-foreground">Escrituras (Writes)</span>
+                      <span className="text-xs font-black text-orange-600">20,000 / día</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-[10px] font-bold text-muted-foreground">Borrados (Deletes)</span>
+                      <span className="text-xs font-black text-destructive">20,000 / día</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/30 flex gap-4">
-                  <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm h-fit">
-                    <Plus className="w-4 h-4 text-orange-600" />
+                <div className="space-y-4 p-6 rounded-[2rem] bg-accent/5 border border-accent/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Network className="w-4 h-4 text-accent" />
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-foreground">Capacidad de Rendimiento</h4>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase text-orange-700/70 dark:text-orange-400/70 tracking-widest">Escrituras Diarias</p>
-                    <p className="text-base font-black text-orange-900 dark:text-orange-100">Máximo 20,000</p>
-                    <p className="text-[9px] font-bold text-orange-600/60 mt-1 italic">Recomendado: Validar datos antes de guardar.</p>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center py-1 border-b border-accent/5">
+                      <span className="text-[10px] font-bold text-muted-foreground">Conexiones Simultáneas</span>
+                      <span className="text-xs font-black text-accent">100 dispositivos</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1 border-b border-accent/5">
+                      <span className="text-[10px] font-bold text-muted-foreground">Ancho de Banda (Egress)</span>
+                      <span className="text-xs font-black text-accent">10 GB / mes</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-[10px] font-bold text-muted-foreground">Storage de Archivos</span>
+                      <span className="text-xs font-black text-accent">5 GB (Imágenes/PDF)</span>
+                    </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Guía de Optimización Académica */}
+              <div className="p-6 rounded-[2rem] bg-blue-50 dark:bg-blue-900/10 border-2 border-blue-100 dark:border-blue-900/20 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-blue-600" />
+                  <h4 className="text-sm font-black text-blue-900 dark:text-blue-100">Guía de Mantenimiento Saludable ✨</h4>
+                </div>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <li className="flex gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />
+                    <p className="text-[10px] font-bold text-blue-800/70 dark:text-blue-300/70 leading-relaxed italic">
+                      <b>Uso de Imágenes:</b> Preferimos enlaces externos (Picsum/Drive) para el logo y recursos. Esto mantiene nuestro consumo de Hosting en 0% y evita el peso excesivo en la base de datos.
+                    </p>
+                  </li>
+                  <li className="flex gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />
+                    <p className="text-[10px] font-bold text-blue-800/70 dark:text-blue-300/70 leading-relaxed italic">
+                      <b>Escrituras Inteligentes:</b> Evitamos actualizar campos de "última conexión" cada segundo. La plataforma solo guarda cambios reales para no agotar la cuota diaria de escritura.
+                    </p>
+                  </li>
+                  <li className="flex gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />
+                    <p className="text-[10px] font-bold text-blue-800/70 dark:text-blue-300/70 leading-relaxed italic">
+                      <b>Lecturas en Tiempo Real:</b> El sistema usa suscripciones inteligentes. Si nadie está mirando una página, Firebase no cobra lecturas por esa sección.
+                    </p>
+                  </li>
+                  <li className="flex gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5" />
+                    <p className="text-[10px] font-bold text-blue-800/70 dark:text-blue-300/70 leading-relaxed italic">
+                      <b>Escalabilidad:</b> El plan Spark soporta hasta 50,000 usuarios. Es ideal para nuestra etapa actual. Al superar los 100 alumnos recurrentes diarios, recomendamos vigilar el consumo de ancho de banda.
+                    </p>
+                  </li>
+                </ul>
               </div>
 
               <div className="flex items-center gap-2 bg-muted/30 p-3 rounded-xl border border-dashed border-primary/20">
                 <Info className="w-4 h-4 text-muted-foreground" />
-                <p className="text-[10px] font-bold text-muted-foreground italic">
-                  * Las estimaciones de peso se basan en el conteo actual de documentos en Firestore. El uso de Hosting y Storage de archivos se gestiona por separado en la consola.
+                <p className="text-[9px] font-bold text-muted-foreground italic">
+                  * Este monitor es una herramienta de asistencia administrativa. Los valores de MB son estimaciones calculadas en el cliente para no generar costos extras de servidor. El monitor no afecta el rendimiento de la aplicación.
                 </p>
               </div>
             </CardContent>
