@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
@@ -523,6 +522,8 @@ export default function AdminDashboard() {
                       <Button size="sm" variant="ghost" onClick={handleCopyDay} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm"><Copy className="w-3 h-3 mr-1" /> Copiar</Button>
                       <Button size="sm" variant="ghost" onClick={handlePasteDay} disabled={!copyBuffer} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm disabled:opacity-30"><ClipboardPaste className="w-3 h-3 mr-1" /> Pegar</Button>
                     </div>
+
+                    <span className="text-[10px] font-black text-muted-foreground uppercase mx-1">o</span>
 
                     <div className="flex items-center gap-2 bg-accent/5 p-1 rounded-xl border border-accent/10 shadow-inner">
                       <Select 
