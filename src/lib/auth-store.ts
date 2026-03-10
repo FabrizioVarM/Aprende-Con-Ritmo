@@ -184,9 +184,11 @@ export function useAuth() {
     return newUser;
   }, [db]);
 
-  const adminDeleteUser = useCallback((userId: string) => {
+  const adminDeleteUser = useCallback(async (userId: string) => {
+    // Al borrar el documento de Firestore, el FirebaseProvider del usuario afectado
+    // detectará que profile.role no existe y lo expulsará al login.
     const docRef = doc(db, 'users', userId);
-    deleteDoc(docRef).catch((err) => {
+    await deleteDoc(docRef).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
         operation: 'delete'
