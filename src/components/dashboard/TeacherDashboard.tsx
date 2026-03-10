@@ -697,7 +697,7 @@ export default function TeacherDashboard() {
             <DialogTitle className="text-xl font-black flex items-center gap-3">
               <Save className="w-5 h-5 text-accent" />
               Guardar como Plantilla
-            </DialogTitle(
+            </DialogTitle>
             <DialogDescription className="font-bold text-muted-foreground">Elige un slot para guardar este horario.</DialogDescription>
           </DialogHeader>
           <div className="p-6 space-y-6">
