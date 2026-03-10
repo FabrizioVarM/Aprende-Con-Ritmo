@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter
 } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -52,6 +53,7 @@ import {
   Save
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AdminDashboard() {
   const { allUsers, getTeachers } = useAuth();
@@ -72,7 +74,10 @@ export default function AdminDashboard() {
 
   // Múltiples Plantillas
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [isSaveTemplateDialogOpen, setIsSaveTemplateDialogOpen] = useState(false);
   const [teacherTemplates, setTeacherTemplates] = useState<{name: string, slots: TimeSlot[]}[]>([]);
+  const [saveSlotIndex, setSaveSlotIndex] = useState<number>(0);
+  const [saveSlotName, setSaveSlotName] = useState<string>('');
 
   const selectedDateKey = useMemo(() => {
     const y = selectedDate.getFullYear();
@@ -214,7 +219,7 @@ export default function AdminDashboard() {
       const ts = new Date(c.date).getTime();
       list.push({ id: `res-${c.resourceId}-${c.studentId}`, type: 'resource', user: student?.name || 'Alumno', action: `Material "${res?.title}" completado`, timestamp: ts, timeLabel: new Date(ts).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), icon: BookOpen, color: 'text-accent', bg: 'bg-accent/5' });
     });
-    return list.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
+    return list.sort((a, b) => a.timestamp - a.timestamp).slice(0, 10);
   }, [availabilities, completions, resources, allUsers]);
 
   const handleManageTeacherSchedule = (teacherId: string) => {
@@ -237,7 +242,14 @@ export default function AdminDashboard() {
 
   const handleSaveTemplateByIndex = async (index: number, name: string) => {
     if (!editingTeacherId) return;
-    const cleanSlots = localSlots.map(s => ({ ...s, id: Math.random().toString(36).substring(2, 9), isBooked: false, bookedBy: null, studentId: null, status: 'pending' as const }));
+    const cleanSlots = localSlots.map(s => ({ 
+      ...s, 
+      id: Math.random().toString(36).substring(2, 9), 
+      isBooked: false, 
+      bookedBy: null, 
+      studentId: null, 
+      status: 'pending' as const 
+    }));
     
     const newTemplates = [...teacherTemplates];
     newTemplates[index] = { name: name || `Plantilla ${index + 1}`, slots: cleanSlots };
@@ -246,6 +258,17 @@ export default function AdminDashboard() {
     await setDoc(ref, { templates: newTemplates });
     setTeacherTemplates(newTemplates);
     toast({ title: "Plantilla Guardada ✨", description: `Se guardó "${newTemplates[index].name}".` });
+    setIsSaveTemplateDialogOpen(false);
+  };
+
+  const handleResetTemplate = async (index: number) => {
+    if (!editingTeacherId) return;
+    const newTemplates = [...teacherTemplates];
+    newTemplates[index] = { name: `Slot ${index + 1} (Vacío)`, slots: [] };
+    const ref = doc(db, 'settings', `templates_${editingTeacherId}`);
+    await setDoc(ref, { templates: newTemplates });
+    setTeacherTemplates(newTemplates);
+    toast({ title: "Plantilla Reiniciada 🧹" });
   };
 
   const handleLoadTemplateByIndex = (index: number) => {
@@ -258,7 +281,6 @@ export default function AdminDashboard() {
     setLocalSlots(refreshed);
     setStagedSlots(prev => ({ ...prev, [selectedDateKey]: refreshed }));
     toast({ title: "Plantilla Cargada 🚀", description: `Se aplicó "${template.name}".` });
-    setIsTemplateDialogOpen(false);
   };
 
   const handleLoadAcademyBase = () => {
@@ -494,23 +516,54 @@ export default function AdminDashboard() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <p className="text-base font-black text-foreground capitalize">{selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}</p>
                   
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-3">
                     {/* ACCIONES DE LOTE */}
-                    <div className="bg-primary/5 p-1 rounded-xl flex gap-1 mr-2 border border-primary/10">
+                    <div className="bg-primary/5 p-1 rounded-xl flex gap-1 border border-primary/10 shadow-inner">
                       <Button size="sm" variant="ghost" onClick={handleCopyDay} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm"><Copy className="w-3 h-3 mr-1" /> Copiar</Button>
                       <Button size="sm" variant="ghost" onClick={handlePasteDay} disabled={!copyBuffer} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm disabled:opacity-30"><ClipboardPaste className="w-3 h-3 mr-1" /> Pegar</Button>
                     </div>
 
-                    <div className="bg-accent/5 p-1 rounded-xl flex gap-1 border border-accent/10">
+                    <div className="flex items-center gap-2 bg-accent/5 p-1 rounded-xl border border-accent/10 shadow-inner">
+                      <Select onValueChange={(val) => {
+                        if (val === 'custom') return;
+                        handleLoadTemplateByIndex(parseInt(val));
+                      }}>
+                        <SelectTrigger className="h-8 w-44 text-[9px] font-black uppercase bg-transparent border-none shadow-none focus:ring-0">
+                          <SelectValue placeholder="Cargar Plantilla" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2 shadow-xl">
+                          {teacherTemplates.map((t, i) => (
+                            <SelectItem key={i} value={i.toString()} className="text-[10px] font-black py-2 cursor-pointer">
+                              <div className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded-full bg-accent text-white flex items-center justify-center text-[8px]">{i+1}</span>
+                                {t.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="custom" className="text-[10px] font-black border-t py-2 cursor-pointer text-muted-foreground">
+                            ✨ Horario Personalizado
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                       <Button 
-                        size="sm" 
                         variant="ghost" 
-                        onClick={() => setIsTemplateDialogOpen(true)} 
-                        className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-accent hover:bg-white dark:hover:bg-slate-800 shadow-sm"
+                        size="icon" 
+                        className="h-8 w-8 text-accent hover:bg-white dark:hover:bg-slate-800 rounded-lg shadow-sm"
+                        onClick={() => setIsTemplateDialogOpen(true)}
+                        title="Gestionar Plantillas"
                       >
-                        <Sparkles className="w-3 h-3 mr-1" /> Gestionar Mis 3 Plantillas
+                        <Settings className="w-4 h-4" />
                       </Button>
                     </div>
+
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="h-10 rounded-xl border-2 border-accent/30 text-[9px] font-black uppercase text-accent hover:bg-accent hover:text-white transition-all shadow-sm" 
+                      onClick={() => setIsSaveTemplateDialogOpen(true)}
+                    >
+                      <Save className="w-3.5 h-3.5 mr-1" /> Guardar como Plantilla
+                    </Button>
 
                     <Button size="sm" variant="outline" onClick={handleLoadAcademyBase} className="h-10 rounded-xl border-2 text-[9px] font-black uppercase text-foreground"><Building2 className="w-3.5 h-3.5 mr-1" /> Horarios Base</Button>
                     {!isSelectedDatePast && (
@@ -543,55 +596,130 @@ export default function AdminDashboard() {
         </DialogContent>
       </Dialog>
 
+      {/* DIÁLOGO DE GUARDAR PLANTILLA */}
+      <Dialog open={isSaveTemplateDialogOpen} onOpenChange={setIsSaveTemplateDialogOpen}>
+        <DialogContent className="rounded-[2.5rem] max-w-sm border-none shadow-2xl p-0 overflow-hidden bg-card">
+          <DialogHeader className="bg-accent/10 p-6 border-b">
+            <DialogTitle className="text-xl font-black flex items-center gap-3">
+              <Save className="w-5 h-5 text-accent" />
+              Guardar como Plantilla
+            </DialogTitle>
+            <DialogDescription className="font-bold text-muted-foreground">Elige un slot para guardar este horario.</DialogDescription>
+          </DialogHeader>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 gap-4">
+              {[0, 1, 2].map((i) => (
+                <div 
+                  key={i} 
+                  className={cn(
+                    "p-4 rounded-2xl border-2 transition-all cursor-pointer space-y-3",
+                    saveSlotIndex === i ? "bg-accent/5 border-accent shadow-md" : "border-primary/10 hover:border-accent/30"
+                  )}
+                  onClick={() => {
+                    setSaveSlotIndex(i);
+                    setSaveSlotName(teacherTemplates[i]?.name || '');
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black",
+                      saveSlotIndex === i ? "bg-accent text-white" : "bg-primary/10 text-muted-foreground"
+                    )}>{i + 1}</div>
+                    <span className="font-black text-sm text-foreground">Slot {i + 1}</span>
+                  </div>
+                  {saveSlotIndex === i && (
+                    <div className="animate-in fade-in zoom-in-95 duration-200">
+                      <Label className="text-[10px] font-black uppercase text-muted-foreground mb-1 block">Nombre de la Plantilla</Label>
+                      <Input 
+                        value={saveSlotName} 
+                        onChange={(e) => setSaveSlotName(e.target.value)}
+                        placeholder={`Ej: ${teacherTemplates[i]?.name || 'Mi Horario'}`}
+                        className="h-10 rounded-xl border-2 font-bold"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter className="p-6 bg-muted/30 border-t flex gap-3">
+            <Button variant="ghost" onClick={() => setIsSaveTemplateDialogOpen(false)} className="rounded-xl flex-1 font-black">Cancelar</Button>
+            <Button className="bg-accent text-white rounded-xl flex-1 font-black shadow-lg shadow-accent/20" onClick={() => handleSaveTemplateByIndex(saveSlotIndex, saveSlotName)}>
+              Confirmar Guardado
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* DIÁLOGO DE GESTIÓN DE PLANTILLAS */}
       <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
         <DialogContent className="rounded-[2.5rem] max-w-md border-none shadow-2xl p-0 overflow-hidden bg-card">
           <DialogHeader className="bg-accent/10 p-6 border-b">
-            <DialogTitle className="text-xl font-black flex items-center gap-3">
-              <Sparkles className="w-5 h-5 text-accent" />
-              Mis 3 Plantillas Maestras
-            </DialogTitle>
-            <DialogDescription className="font-bold text-muted-foreground">Personaliza tus horarios y cárgalos en segundos.</DialogDescription>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl font-black flex items-center gap-3">
+                <Sparkles className="w-5 h-5 text-accent" />
+                Mis 3 Plantillas Maestras
+              </DialogTitle>
+              <Settings className="w-5 h-5 text-accent/40 animate-spin-slow" />
+            </div>
+            <DialogDescription className="font-bold text-muted-foreground">Administra, renombra o reinicia tus slots de carga.</DialogDescription>
           </DialogHeader>
           <div className="p-6 space-y-6">
             {teacherTemplates.map((temp, i) => (
               <div key={i} className="p-4 rounded-2xl border-2 border-primary/10 bg-primary/5 space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-accent text-white text-[10px] font-black flex items-center justify-center shadow-sm">{i + 1}</div>
-                  <Input 
-                    value={temp.name} 
-                    onChange={(e) => {
-                      const newT = [...teacherTemplates];
-                      newT[i].name = e.target.value;
-                      setTeacherTemplates(newT);
-                    }}
-                    placeholder="Nombre de la plantilla..."
-                    className="h-9 font-black text-xs border-none bg-transparent focus-visible:ring-0 p-0"
-                  />
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 flex-1">
+                    <div className="w-6 h-6 rounded-full bg-accent text-white text-[10px] font-black flex items-center justify-center shadow-sm">{i + 1}</div>
+                    <Input 
+                      value={temp.name} 
+                      onChange={(e) => {
+                        const newT = [...teacherTemplates];
+                        newT[i].name = e.target.value;
+                        setTeacherTemplates(newT);
+                      }}
+                      placeholder="Nombre de la plantilla..."
+                      className="h-9 font-black text-xs border-none bg-transparent focus-visible:ring-0 p-0"
+                    />
+                  </div>
+                  <div className="flex gap-1">
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 text-muted-foreground hover:text-accent"
+                      onClick={() => handleSaveTemplateByIndex(i, temp.name)}
+                      title="Guardar nombre"
+                    >
+                      <Save className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleResetTemplate(i)}
+                      title="Reiniciar a 0"
+                    >
+                      <Eraser className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <Button 
                     size="sm" 
-                    variant="outline" 
-                    className="flex-1 rounded-xl h-9 text-[10px] font-black uppercase border-accent/20 text-accent hover:bg-accent/5"
-                    onClick={() => handleSaveTemplateByIndex(i, temp.name)}
-                  >
-                    <Save className="w-3 h-3 mr-1" /> Guardar actual
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="flex-1 rounded-xl h-9 text-[10px] font-black uppercase bg-accent text-white shadow-md"
-                    onClick={() => handleLoadTemplateByIndex(i)}
+                    className="flex-1 rounded-xl h-9 text-[10px] font-black uppercase bg-accent text-white shadow-md hover:scale-[1.02] transition-transform"
+                    onClick={() => {
+                      handleLoadTemplateByIndex(i);
+                      setIsTemplateDialogOpen(false);
+                    }}
                     disabled={!temp.slots || temp.slots.length === 0}
                   >
-                    <Sparkles className="w-3 h-3 mr-1" /> Cargar esta
+                    <Sparkles className="w-3 h-3 mr-1" /> Cargar en Agenda
                   </Button>
                 </div>
               </div>
             ))}
           </div>
           <div className="p-4 bg-muted/30 border-t flex justify-end">
-            <Button variant="ghost" onClick={() => setIsTemplateDialogOpen(false)} className="rounded-xl font-black text-xs">Cerrar</Button>
+            <Button variant="ghost" onClick={() => setIsTemplateDialogOpen(false)} className="rounded-xl font-black text-xs">Cerrar Administrador</Button>
           </div>
         </DialogContent>
       </Dialog>
