@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -32,7 +31,7 @@ import { useCompletionStore } from '@/lib/completion-store';
 import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer, MapPin as MapPinIcon, Copy, Paste, Sparkles } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer, MapPin as MapPinIcon, Copy, ClipboardPaste, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
@@ -460,7 +459,7 @@ export default function TeacherDashboard() {
                         {/* ACCIONES DE LOTE */}
                         <div className="bg-primary/5 p-1 rounded-xl flex gap-1 mr-2 border border-primary/10">
                           <Button size="sm" variant="ghost" onClick={handleCopyDay} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm"><Copy className="w-3 h-3 mr-1" /> Copiar</Button>
-                          <Button size="sm" variant="ghost" onClick={handlePasteDay} disabled={!copyBuffer} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm disabled:opacity-30"><Paste className="w-3 h-3 mr-1" /> Pegar</Button>
+                          <Button size="sm" variant="ghost" onClick={handlePasteDay} disabled={!copyBuffer} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm disabled:opacity-30"><ClipboardPaste className="w-3 h-3 mr-1" /> Pegar</Button>
                         </div>
 
                         <div className="bg-accent/5 p-1 rounded-xl flex gap-1 border border-accent/10">

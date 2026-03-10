@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo, useState, useEffect } from 'react';
@@ -47,7 +46,7 @@ import {
   MapPin,
   Building2,
   Copy,
-  Paste,
+  ClipboardPaste,
   Sparkles,
   Save
 } from 'lucide-react';
@@ -108,6 +107,19 @@ export default function AdminDashboard() {
     if (resources.length > 0) return;
     INITIAL_RESOURCES.forEach(res => addResource(res));
     toast({ title: "Biblioteca Inicializada 📚" });
+  };
+
+  const calculateDuration = (timeStr: string): number => {
+    try {
+      const [start, end] = timeStr.split(' - ');
+      const [h1, m1] = start.split(':').map(Number);
+      const [h2, m2] = end.split(':').map(Number);
+      const startMinutes = h1 * 60 + m1;
+      const endMinutes = h2 * 60 + m2;
+      return (endMinutes - startMinutes) / 60;
+    } catch (e) {
+      return 1;
+    }
   };
 
   const calculateTeacherStats = (teacherId: string) => {
@@ -458,7 +470,7 @@ export default function AdminDashboard() {
                     {/* ACCIONES DE LOTE */}
                     <div className="bg-primary/5 p-1 rounded-xl flex gap-1 mr-2 border border-primary/10">
                       <Button size="sm" variant="ghost" onClick={handleCopyDay} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm"><Copy className="w-3 h-3 mr-1" /> Copiar</Button>
-                      <Button size="sm" variant="ghost" onClick={handlePasteDay} disabled={!copyBuffer} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm disabled:opacity-30"><Paste className="w-3 h-3 mr-1" /> Pegar</Button>
+                      <Button size="sm" variant="ghost" onClick={handlePasteDay} disabled={!copyBuffer} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm disabled:opacity-30"><ClipboardPaste className="w-3 h-3 mr-1" /> Pegar</Button>
                     </div>
 
                     <div className="bg-accent/5 p-1 rounded-xl flex gap-1 border border-accent/10">
