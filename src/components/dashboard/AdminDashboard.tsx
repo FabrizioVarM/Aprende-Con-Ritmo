@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -69,6 +70,10 @@ export default function AdminDashboard() {
   const [stagedSlots, setStagedSlots] = useState<Record<string, TimeSlot[]>>({});
   const [copyBuffer, setCopyBuffer] = useState<TimeSlot[] | null>(null);
 
+  // Múltiples Plantillas
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
+  const [teacherTemplates, setTeacherTemplates] = useState<{name: string, slots: TimeSlot[]}[]>([]);
+
   const selectedDateKey = useMemo(() => {
     const y = selectedDate.getFullYear();
     const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
@@ -89,6 +94,26 @@ export default function AdminDashboard() {
     }
   }, [isScheduleDialogOpen]);
 
+  const fetchTemplates = useCallback(async (tid: string) => {
+    if (!tid) return;
+    const ref = doc(db, 'settings', `templates_${tid}`);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      const data = snap.data().templates || [];
+      const padded = [...data];
+      while (padded.length < 3) {
+        padded.push({ name: `Plantilla ${padded.length + 1}`, slots: [] });
+      }
+      setTeacherTemplates(padded);
+    } else {
+      setTeacherTemplates([
+        { name: "Turno Mañana", slots: [] },
+        { name: "Turno Tarde", slots: [] },
+        { name: "Horario Especial", slots: [] }
+      ]);
+    }
+  }, [db]);
+
   useEffect(() => {
     if (isScheduleDialogOpen && editingTeacherId) {
       if (stagedSlots[selectedDateKey]) {
@@ -97,8 +122,9 @@ export default function AdminDashboard() {
         const data = getDayAvailability(editingTeacherId, selectedDate);
         setLocalSlots(JSON.parse(JSON.stringify(data.slots)));
       }
+      fetchTemplates(editingTeacherId);
     }
-  }, [selectedDate, isScheduleDialogOpen, getDayAvailability, editingTeacherId, stagedSlots]);
+  }, [selectedDate, isScheduleDialogOpen, getDayAvailability, editingTeacherId, stagedSlots, fetchTemplates]);
 
   const teachers = useMemo(() => getTeachers(), [getTeachers]);
   const studentsCount = useMemo(() => allUsers.filter(u => u.role === 'student').length, [allUsers]);
@@ -196,7 +222,6 @@ export default function AdminDashboard() {
     setIsScheduleDialogOpen(true);
   };
 
-  // Lógica de Plantillas y Copiado para Admin
   const handleCopyDay = () => {
     setCopyBuffer(JSON.parse(JSON.stringify(localSlots)));
     toast({ title: "Configuración Copiada 📋" });
@@ -210,27 +235,30 @@ export default function AdminDashboard() {
     toast({ title: "Horario Pegado ✨" });
   };
 
-  const handleSaveAsTemplate = async () => {
+  const handleSaveTemplateByIndex = async (index: number, name: string) => {
     if (!editingTeacherId) return;
-    const templateRef = doc(db, 'settings', `template_${editingTeacherId}`);
     const cleanSlots = localSlots.map(s => ({ ...s, id: Math.random().toString(36).substring(2, 9), isBooked: false, bookedBy: null, studentId: null, status: 'pending' as const }));
-    await setDoc(templateRef, { slots: cleanSlots });
-    toast({ title: "Plantilla Guardada 💾", description: `Guardada para ${editingTeacherName}.` });
+    
+    const newTemplates = [...teacherTemplates];
+    newTemplates[index] = { name: name || `Plantilla ${index + 1}`, slots: cleanSlots };
+    
+    const ref = doc(db, 'settings', `templates_${editingTeacherId}`);
+    await setDoc(ref, { templates: newTemplates });
+    setTeacherTemplates(newTemplates);
+    toast({ title: "Plantilla Guardada ✨", description: `Se guardó "${newTemplates[index].name}".` });
   };
 
-  const handleLoadTemplate = async () => {
-    if (!editingTeacherId) return;
-    const templateRef = doc(db, 'settings', `template_${editingTeacherId}`);
-    const snap = await getDoc(templateRef);
-    if (snap.exists()) {
-      const templateSlots = snap.data().slots as TimeSlot[];
-      const refreshed = templateSlots.map(s => ({ ...s, id: Math.random().toString(36).substring(2, 9) }));
-      setLocalSlots(refreshed);
-      setStagedSlots(prev => ({ ...prev, [selectedDateKey]: refreshed }));
-      toast({ title: "Plantilla Cargada 🚀" });
-    } else {
-      toast({ variant: "destructive", title: "Sin Plantilla" });
+  const handleLoadTemplateByIndex = (index: number) => {
+    const template = teacherTemplates[index];
+    if (!template || !template.slots || template.slots.length === 0) {
+      toast({ variant: "destructive", title: "Plantilla Vacía", description: "Primero guarda un horario en esta posición." });
+      return;
     }
+    const refreshed = template.slots.map(s => ({ ...s, id: Math.random().toString(36).substring(2, 9) }));
+    setLocalSlots(refreshed);
+    setStagedSlots(prev => ({ ...prev, [selectedDateKey]: refreshed }));
+    toast({ title: "Plantilla Cargada 🚀", description: `Se aplicó "${template.name}".` });
+    setIsTemplateDialogOpen(false);
   };
 
   const handleLoadAcademyBase = () => {
@@ -474,8 +502,14 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="bg-accent/5 p-1 rounded-xl flex gap-1 border border-accent/10">
-                      <Button size="sm" variant="ghost" onClick={handleSaveAsTemplate} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-accent hover:bg-white dark:hover:bg-slate-800 shadow-sm"><Save className="w-3 h-3 mr-1" /> Guardar Plantilla</Button>
-                      <Button size="sm" variant="ghost" onClick={handleLoadTemplate} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-accent hover:bg-white dark:hover:bg-slate-800 shadow-sm"><Sparkles className="w-3 h-3 mr-1" /> Cargar Plantilla</Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => setIsTemplateDialogOpen(true)} 
+                        className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-accent hover:bg-white dark:hover:bg-slate-800 shadow-sm"
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" /> Gestionar Mis 3 Plantillas
+                      </Button>
                     </div>
 
                     <Button size="sm" variant="outline" onClick={handleLoadAcademyBase} className="h-10 rounded-xl border-2 text-[9px] font-black uppercase text-foreground"><Building2 className="w-3.5 h-3.5 mr-1" /> Horarios Base</Button>
@@ -505,7 +539,60 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="p-6 bg-muted/30 border-t flex gap-3"><Button variant="outline" onClick={() => setEditingTeacherId(null)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button><Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-14 font-black gap-2">Guardar Cambios</Button></div>
+          <div className="p-6 bg-muted/30 border-t flex gap-3"><Button variant="outline" onClick={() => setIsScheduleDialogOpen(false)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button><Button onClick={handleSaveAvailability} disabled={isSelectedDatePast} className="bg-accent text-white rounded-xl flex-1 h-14 font-black gap-2">Guardar Cambios</Button></div>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIÁLOGO DE GESTIÓN DE PLANTILLAS */}
+      <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
+        <DialogContent className="rounded-[2.5rem] max-w-md border-none shadow-2xl p-0 overflow-hidden bg-card">
+          <DialogHeader className="bg-accent/10 p-6 border-b">
+            <DialogTitle className="text-xl font-black flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-accent" />
+              Mis 3 Plantillas Maestras
+            </DialogTitle>
+            <DialogDescription className="font-bold text-muted-foreground">Personaliza tus horarios y cárgalos en segundos.</DialogDescription>
+          </DialogHeader>
+          <div className="p-6 space-y-6">
+            {teacherTemplates.map((temp, i) => (
+              <div key={i} className="p-4 rounded-2xl border-2 border-primary/10 bg-primary/5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-accent text-white text-[10px] font-black flex items-center justify-center shadow-sm">{i + 1}</div>
+                  <Input 
+                    value={temp.name} 
+                    onChange={(e) => {
+                      const newT = [...teacherTemplates];
+                      newT[i].name = e.target.value;
+                      setTeacherTemplates(newT);
+                    }}
+                    placeholder="Nombre de la plantilla..."
+                    className="h-9 font-black text-xs border-none bg-transparent focus-visible:ring-0 p-0"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="flex-1 rounded-xl h-9 text-[10px] font-black uppercase border-accent/20 text-accent hover:bg-accent/5"
+                    onClick={() => handleSaveTemplateByIndex(i, temp.name)}
+                  >
+                    <Save className="w-3 h-3 mr-1" /> Guardar actual
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="flex-1 rounded-xl h-9 text-[10px] font-black uppercase bg-accent text-white shadow-md"
+                    onClick={() => handleLoadTemplateByIndex(i)}
+                    disabled={!temp.slots || temp.slots.length === 0}
+                  >
+                    <Sparkles className="w-3 h-3 mr-1" /> Cargar esta
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="p-4 bg-muted/30 border-t flex justify-end">
+            <Button variant="ghost" onClick={() => setIsTemplateDialogOpen(false)} className="rounded-xl font-black text-xs">Cerrar</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
