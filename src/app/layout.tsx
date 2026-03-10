@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   title: 'Aprende con Ritmo',
   description: 'Plataforma de Gestión para Educación Musical',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icon',
+    apple: '/apple-icon',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
