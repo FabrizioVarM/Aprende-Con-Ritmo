@@ -431,8 +431,8 @@ export default function TeacherDashboard() {
                     <div className="flex justify-between items-center">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">1. Elige el día a configurar</Label>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => { const prev = new Date(selectedDate); prev.setDate(prev.getDate() - 7); setSelectedDate(prev); }} className="rounded-full h-8 w-8 text-foreground"><ChevronLeft className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={() => { const next = new Date(selectedDate); next.setDate(next.getDate() + 7); setSelectedDate(next); }} className="rounded-full h-8 w-8 text-foreground"><ChevronRight className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - (d.getDay() + 6) % 7 - 7); setSelectedDate(d); }} className="rounded-full h-8 w-8 text-foreground"><ChevronLeft className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7); setSelectedDate(d); }} className="rounded-full h-8 w-8 text-foreground"><ChevronRight className="w-4 h-4" /></Button>
                       </div>
                     </div>
                     

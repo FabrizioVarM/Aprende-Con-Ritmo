@@ -409,7 +409,7 @@ export default function AdminDashboard() {
         <Card className="rounded-[2rem] border-2 border-blue-200 shadow-sm bg-card"><CardContent className="pt-6"><div className="flex items-center gap-4"><div className="p-3 bg-blue-100 rounded-2xl"><Users className="w-6 h-6 text-blue-600" /></div><div><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Alumnos Totales</p><h3 className="text-2xl font-black text-foreground">{studentsCount.toLocaleString()}</h3></div></div></CardContent></Card>
         <Card className="rounded-[2rem] border-2 border-orange-200 shadow-sm bg-card"><CardContent className="pt-6"><div className="flex items-center gap-4"><div className="p-3 bg-orange-100 rounded-2xl"><Music className="w-6 h-6 text-orange-600" /></div><div><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Profesores Activos</p><h3 className="text-2xl font-black text-foreground">{teachers.length}</h3></div></div></CardContent></Card>
         <Card className="rounded-[2rem] border-2 border-green-200 shadow-sm bg-card"><CardContent className="pt-6"><div className="flex items-center gap-4"><div className="p-3 bg-green-100 rounded-2xl"><CheckCircle2 className="w-6 h-6 text-green-600" /></div><div><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Clases Completadas</p><h3 className="text-2xl font-black text-foreground">{globalStats.totalCount.toLocaleString()}</h3></div></div></CardContent></Card>
-        <Card className="rounded-[2rem] border-2 border-accent/20 shadow-sm bg-card"><CardContent className="pt-6"><div className="flex items-center gap-4"><div className="p-3 bg-accent/20 rounded-2xl"><History className="w-6 h-6 text-accent" /></div><div><p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Horas Ejercidas (Tot)</p><h3 className="text-2xl font-black text-foreground">{globalStats.totalHours.toFixed(1)} h</h3></div></div></CardContent></Card>
+        <Card className="rounded-[2rem] border-2 border-accent/20 shadow-sm bg-card"><CardContent className="pt-6"><div className="flex items-center gap-4"><div className="p-3 bg-accent/20 rounded-2xl"><History className="w-6 h-6 text-accent" /></div><div><p className="text-[10px] font-black uppercase tracking-widest text-accent/20">Horas Ejercidas (Tot)</p><h3 className="text-2xl font-black text-foreground">{globalStats.totalHours.toFixed(1)} h</h3></div></div></CardContent></Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -487,8 +487,8 @@ export default function AdminDashboard() {
                 <div className="flex justify-between items-center">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">1. Día</Label>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => { const prev = new Date(selectedDate); prev.setDate(prev.getDate() - 7); setSelectedDate(prev); }} className="rounded-full h-8 w-8 text-foreground"><ChevronLeft className="w-4 h-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => { const next = new Date(selectedDate); next.setDate(next.getDate() + 7); setSelectedDate(next); }} className="rounded-full h-8 w-8 text-foreground"><ChevronRight className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - (d.getDay() + 6) % 7 - 7); setSelectedDate(d); }} className="rounded-full h-8 w-8 text-foreground"><ChevronLeft className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => { const d = new Date(selectedDate); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7); setSelectedDate(d); }} className="rounded-full h-8 w-8 text-foreground"><ChevronRight className="w-4 h-4" /></Button>
                   </div>
                 </div>
                 <div className="grid grid-cols-7 gap-2">
@@ -602,7 +602,7 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* DIÁLOGO DE GUARDAR PLANTILLA */}
-      <Dialog open={isSaveTemplateDialogOpen} onOpenChange={isSaveTemplateDialogOpen}>
+      <Dialog open={isSaveTemplateDialogOpen} onOpenChange={setIsSaveTemplateDialogOpen}>
         <DialogContent className="rounded-[2.5rem] max-w-sm border-none shadow-2xl p-0 overflow-hidden bg-card">
           <DialogHeader className="bg-accent/10 p-6 border-b">
             <DialogTitle className="text-xl font-black flex items-center gap-3">
