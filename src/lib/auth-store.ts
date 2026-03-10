@@ -31,6 +31,8 @@ export interface User {
   phone?: string;
   fcmToken?: string;
   canManageLibrary?: boolean;
+  currentZone?: string; 
+  lastSeen?: string;
   photoTransform?: {
     scale: number;
     x: number;
@@ -64,15 +66,14 @@ export function useAuth() {
       provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
       
-      // Si es un usuario nuevo, asegurar que tenga un documento en Firestore
+      // Si es un usuario nuevo o un usuario que fue eliminado de Firestore pero existe en Auth
       if (result.user) {
         const userDocRef = doc(db, 'users', result.user.uid);
-        
-        // CRITICAL FIX: Verificar si el usuario ya existe antes de setear datos
-        // Esto evita que el rol de 'teacher' o 'admin' se revierta a 'student'
         const userSnap = await getDoc(userDocRef);
+        const existingData = userSnap.data();
         
-        if (!userSnap.exists()) {
+        // CRITICAL FIX: Si el perfil no existe o está incompleto (borrado de Firestore anteriormente)
+        if (!userSnap.exists() || !existingData?.role) {
           const newUser: User = {
             id: result.user.uid,
             name: result.user.displayName || 'Usuario Nuevo',

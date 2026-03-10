@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect, useRef } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, onSnapshot, collection, setDoc } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
@@ -88,6 +88,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
 
+  const hasUpdatedLastSeen = useRef(false);
+
   useEffect(() => {
     if (!auth || !firestore) return;
 
@@ -100,28 +102,44 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         // Limpiar escuchas anteriores si existen
         if (unsubscribeProfile) unsubscribeProfile();
         if (unsubscribeAllUsers) unsubscribeAllUsers();
+        hasUpdatedLastSeen.current = false;
 
         if (firebaseUser) {
           // Asegurar que el estado de carga esté activo mientras esperamos al perfil
           setUserAuthState(prev => ({ ...prev, user: firebaseUser, isUserLoading: true }));
-
-          // Actualizar marca de última conexión
-          const userRef = doc(firestore, 'users', firebaseUser.uid);
-          setDoc(userRef, { lastSeen: new Date().toISOString() }, { merge: true });
 
           // 1. Escucha en TIEMPO REAL del perfil del usuario logueado
           const profileRef = doc(firestore, 'users', firebaseUser.uid);
           unsubscribeProfile = onSnapshot(profileRef, (docSnap) => {
             if (docSnap.exists()) {
               const profileData = docSnap.data() as UserProfile;
-              const profileWithId = { ...profileData, id: docSnap.id };
               
-              setUserAuthState(prev => ({
-                ...prev,
-                user: firebaseUser,
-                profile: profileWithId,
-                isUserLoading: false
-              }));
+              // CRITICAL FIX: Solo procesar y considerar perfil si tiene los datos mínimos (como el rol)
+              // Esto evita que un documento "fantasma" (creado por un merge fallido o borrado incompleto) rompa la UI
+              if (profileData.role) {
+                const profileWithId = { ...profileData, id: docSnap.id };
+                
+                setUserAuthState(prev => ({
+                  ...prev,
+                  user: firebaseUser,
+                  profile: profileWithId,
+                  isUserLoading: false
+                }));
+
+                // Actualizar marca de última conexión solo una vez por sesión y solo si el perfil es válido
+                if (!hasUpdatedLastSeen.current) {
+                  setDoc(profileRef, { lastSeen: new Date().toISOString() }, { merge: true });
+                  hasUpdatedLastSeen.current = true;
+                }
+              } else {
+                // El documento existe pero no es un perfil completo (posible error de persistencia o borrado manual)
+                setUserAuthState(prev => ({
+                  ...prev,
+                  user: firebaseUser,
+                  profile: null,
+                  isUserLoading: false
+                }));
+              }
             } else {
               // Si el usuario existe en Auth pero no tiene perfil en Firestore todavía
               setUserAuthState(prev => ({
@@ -142,7 +160,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
             const users: UserProfile[] = [];
             snapshot.forEach(d => {
               const data = d.data() as UserProfile;
-              users.push({ ...data, id: d.id });
+              // Solo incluir usuarios con perfiles válidos (con rol)
+              if (data.role) {
+                users.push({ ...data, id: d.id });
+              }
             });
             setUserAuthState(prev => ({ ...prev, allUsers: users }));
           }, (err) => {

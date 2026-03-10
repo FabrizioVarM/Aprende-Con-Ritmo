@@ -59,7 +59,10 @@ export function useNotificationStore(userId?: string) {
       setNotifications(list.slice(0, 50));
       setUnreadCount(unread);
     }, (error) => {
-      console.error("Error loading notifications:", error);
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'notifications',
+        operation: 'list'
+      }));
     });
 
     return () => unsubscribe();

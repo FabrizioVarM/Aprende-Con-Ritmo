@@ -90,7 +90,7 @@ export function useBookingStore() {
   const addNotification = useCallback(async (recipientId: string, title: string, body: string, type: string) => {
     const notifId = Math.random().toString(36).substring(7);
     const docRef = doc(db, 'notifications', notifId);
-    await setDoc(docRef, {
+    const notifData = {
       id: notifId,
       recipientId,
       title,
@@ -98,6 +98,14 @@ export function useBookingStore() {
       createdAt: new Date().toISOString(),
       read: false,
       type
+    };
+
+    setDoc(docRef, notifData).catch(async (err) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'create',
+        requestResourceData: notifData
+      }));
     });
   }, [db]);
 
