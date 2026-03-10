@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -480,12 +481,15 @@ export default function TeacherDashboard() {
                         </div>
 
                         <div className="flex items-center gap-2 bg-accent/5 p-1 rounded-xl border border-accent/10 shadow-inner">
-                          <Select onValueChange={(val) => {
-                            if (val === 'custom') return;
-                            handleLoadTemplateByIndex(parseInt(val));
-                          }}>
+                          <Select 
+                            key={selectedDateKey}
+                            onValueChange={(val) => {
+                              if (val === 'custom') return;
+                              handleLoadTemplateByIndex(parseInt(val));
+                            }}
+                          >
                             <SelectTrigger className="h-8 w-44 text-[9px] font-black uppercase bg-transparent border-none shadow-none focus:ring-0">
-                              <SelectValue placeholder="Cargar Plantilla" />
+                              <SelectValue placeholder="Elegir una plantilla" />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl border-2 shadow-xl">
                               {teacherTemplates.map((t, i) => (
@@ -693,7 +697,7 @@ export default function TeacherDashboard() {
             <DialogTitle className="text-xl font-black flex items-center gap-3">
               <Save className="w-5 h-5 text-accent" />
               Guardar como Plantilla
-            </DialogTitle>
+            </DialogTitle(
             <DialogDescription className="font-bold text-muted-foreground">Elige un slot para guardar este horario.</DialogDescription>
           </DialogHeader>
           <div className="p-6 space-y-6">
@@ -743,7 +747,7 @@ export default function TeacherDashboard() {
 
       {/* DIÁLOGO DE GESTIÓN DE PLANTILLAS */}
       <Dialog open={isTemplateDialogOpen} onOpenChange={setIsTemplateDialogOpen}>
-        <DialogContent className="rounded-[2.5rem] max-w-md border-none shadow-2xl p-0 overflow-hidden bg-card">
+        <DialogContent className="rounded-[2.5rem] max-md border-none shadow-2xl p-0 overflow-hidden bg-card">
           <DialogHeader className="bg-accent/10 p-6 border-b">
             <div className="flex items-center justify-between">
               <DialogTitle className="text-xl font-black flex items-center gap-3">

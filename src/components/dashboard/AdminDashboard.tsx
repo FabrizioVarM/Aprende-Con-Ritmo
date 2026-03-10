@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
@@ -524,12 +525,15 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex items-center gap-2 bg-accent/5 p-1 rounded-xl border border-accent/10 shadow-inner">
-                      <Select onValueChange={(val) => {
-                        if (val === 'custom') return;
-                        handleLoadTemplateByIndex(parseInt(val));
-                      }}>
+                      <Select 
+                        key={selectedDateKey}
+                        onValueChange={(val) => {
+                          if (val === 'custom') return;
+                          handleLoadTemplateByIndex(parseInt(val));
+                        }}
+                      >
                         <SelectTrigger className="h-8 w-44 text-[9px] font-black uppercase bg-transparent border-none shadow-none focus:ring-0">
-                          <SelectValue placeholder="Cargar Plantilla" />
+                          <SelectValue placeholder="Elegir una plantilla" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-2 shadow-xl">
                           {teacherTemplates.map((t, i) => (
@@ -597,7 +601,7 @@ export default function AdminDashboard() {
       </Dialog>
 
       {/* DIÁLOGO DE GUARDAR PLANTILLA */}
-      <Dialog open={isSaveTemplateDialogOpen} onOpenChange={setIsSaveTemplateDialogOpen}>
+      <Dialog open={isSaveTemplateDialogOpen} onOpenChange={isSaveTemplateDialogOpen}>
         <DialogContent className="rounded-[2.5rem] max-w-sm border-none shadow-2xl p-0 overflow-hidden bg-card">
           <DialogHeader className="bg-accent/10 p-6 border-b">
             <DialogTitle className="text-xl font-black flex items-center gap-3">
