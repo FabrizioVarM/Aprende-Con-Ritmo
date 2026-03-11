@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { getDirectImageUrl } from '@/lib/utils/images';
+import { cn } from '@/lib/utils';
 
 interface DecorativeNote {
   id: number;
