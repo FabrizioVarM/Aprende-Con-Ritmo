@@ -38,6 +38,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -373,6 +374,9 @@ export default function SchedulePage() {
     setIsBookingOpen(false);
     setSelectedSlotId(null);
     setBookingInstrument('');
+
+    // Solicitar permisos de notificación después de la reserva exitosa
+    errorEmitter.emit('request-notification-permission', undefined);
   };
 
   const handleCreateGroupClass = () => {
@@ -429,6 +433,12 @@ export default function SchedulePage() {
   const navigateWeek = (direction: 'prev' | 'next') => {
     const newDate = new Date(date);
     newDate.setDate(date.getDate() + (direction === 'next' ? 7 : -7));
+    
+    // Auto-seleccionar el lunes de la nueva semana
+    const day = newDate.getDay();
+    const diff = newDate.getDate() - day + (day === 0 ? -6 : 1);
+    newDate.setDate(diff);
+    
     setDate(newDate);
   };
 
@@ -1370,7 +1380,7 @@ export default function SchedulePage() {
                       ) : (
                         <div className="py-12 text-center bg-muted/30 rounded-[2.5rem] border-2 border-dashed border-muted-foreground/20 space-y-2">
                           <p className="text-sm font-bold text-muted-foreground">No hay más horarios disponibles para esta modalidad con {currentTeacherProfile?.name || 'el profesor'}.</p>
-                          <p className="text-xs font-bold text-muted-foreground/60 italic">Te sugerimos cambiar de modalidad o elegir otro docente.</p>
+                          <p className="text-xs font-bold text-muted-foreground/60 italic">Te sugerimos cambiar de modalidad o elegir otro día en el calendario.</p>
                         </div>
                       )}
                     </div>

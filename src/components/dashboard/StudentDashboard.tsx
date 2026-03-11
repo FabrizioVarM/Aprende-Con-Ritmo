@@ -50,6 +50,7 @@ import { useResourceStore } from '@/lib/resource-store';
 import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { cn } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -446,6 +447,9 @@ export default function StudentDashboard() {
     
     setIsOpen(false);
     setSelectedSlotId(null);
+
+    // Solicitar permisos de notificación justo después de una reserva exitosa
+    errorEmitter.emit('request-notification-permission', undefined);
   };
 
   const weekDays = useMemo(() => {

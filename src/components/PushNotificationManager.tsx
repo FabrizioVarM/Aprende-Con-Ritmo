@@ -4,23 +4,24 @@ import { useEffect, useRef } from 'react';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 import { useFirebaseApp, useFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 /**
  * Este componente gestiona la solicitud de permisos de notificación
  * y registra el token FCM en el perfil del usuario en Firestore.
+ * Ahora se activa SOLO cuando se emite el evento 'request-notification-permission'.
  */
 export function PushNotificationManager() {
   const { profile, firestore: db } = useFirebase();
   const firebaseApp = useFirebaseApp();
-  const { toast } = useToast();
   const hasRequestedRef = useRef(false);
 
   useEffect(() => {
-    // Solo solicitar si el usuario está logueado y no lo hemos hecho en esta sesión
-    if (!profile?.id || !db || hasRequestedRef.current) return;
+    // Escuchar la petición de permisos (ej: después de una reserva)
+    const handleRequestPermission = async () => {
+      // Solo solicitar si el usuario está logueado y no lo hemos hecho en esta sesión
+      if (!profile?.id || !db || hasRequestedRef.current) return;
 
-    const setupNotifications = async () => {
       try {
         const messagingSupported = await isSupported();
         if (!messagingSupported) return;
@@ -31,11 +32,12 @@ export function PushNotificationManager() {
         const permission = await Notification.requestPermission();
         
         if (permission === 'granted') {
+          // Marcar como solicitado para no volver a preguntar en la misma sesión
+          hasRequestedRef.current = true;
+
           // Obtener el token del dispositivo
-          // Nota: El 'vapidKey' se obtiene de la consola de Firebase (Project Settings -> Cloud Messaging)
           const token = await getToken(messaging, {
-            // Reemplaza esto con tu VAPID Key pública de la consola de Firebase si es necesario
-            // vapidKey: 'TU_VAPID_KEY_AQUI'
+            // vapidKey: 'TU_VAPID_KEY_AQUI' // Recuerda poner tu llave aquí
           });
 
           if (token && token !== profile.fcmToken) {
@@ -47,12 +49,14 @@ export function PushNotificationManager() {
         }
       } catch (error) {
         console.error("Error configurando notificaciones push:", error);
-      } finally {
-        hasRequestedRef.current = true;
       }
     };
 
-    setupNotifications();
+    errorEmitter.on('request-notification-permission', handleRequestPermission);
+    
+    return () => {
+      errorEmitter.off('request-notification-permission', handleRequestPermission);
+    };
   }, [profile?.id, profile?.fcmToken, db, firebaseApp]);
 
   return null;
