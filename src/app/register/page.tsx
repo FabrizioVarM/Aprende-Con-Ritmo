@@ -288,12 +288,12 @@ export default function RegisterPage() {
               </div>
 
               <div className="pt-2">
-                <div className="flex items-start space-x-3 p-3 bg-primary/10 rounded-2xl border border-primary/20">
+                <div className="flex items-start space-x-3 p-3 bg-accent/5 rounded-2xl border border-accent/20">
                   <Checkbox 
                     id="terms" 
                     checked={acceptedTerms} 
                     onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
-                    className="mt-1"
+                    className="mt-1 border-accent/40 data-[state=checked]:bg-accent data-[state=checked]:border-accent"
                   />
                   <div className="grid gap-1.5 leading-none">
                     <label
@@ -357,6 +357,11 @@ export default function RegisterPage() {
             </CardFooter>
           </form>
         </Card>
+      </div>
+
+      {/* Versión de la Aplicación */}
+      <div className="absolute bottom-4 right-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pointer-events-none select-none">
+        v2.1.5
       </div>
     </div>
   );
