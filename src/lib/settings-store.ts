@@ -63,8 +63,11 @@ export interface AppSettings {
 
 export const FALLBACK_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
 
+// Placeholder estable que no cambia aleatoriamente (SVG de nota musical en color acento)
+const BRAND_PLACEHOLDER_LOGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF8B7A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5l12-2v13'%3E%3C/path%3E%3Ccircle cx='6' cy='18' r='3'%3E%3C/circle%3E%3Ccircle cx='18' cy='16' r='3'%3E%3C/circle%3E%3C/svg%3E";
+
 const DEFAULT_SETTINGS: AppSettings = {
-  appLogoUrl: 'https://picsum.photos/seed/ritmologo/200/200',
+  appLogoUrl: BRAND_PLACEHOLDER_LOGO,
   darkMode: false,
   whatsappNumber: '51999999999',
   showProduction: true,
@@ -114,6 +117,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     { icon: 'ShoppingBag', title: 'RitmoMarket', desc: 'Próximamente. Adquiere instrumentos y accesorios garantizados.' },
     { icon: 'ClipboardList', title: 'Postulaciones', desc: 'Próximamente. Inscríbete a festivales y audiciones especiales.' }
   ],
+  aboutGuideTitle: 'Guía de la Plataforma',
   aboutFooterTitle: '¿Listo para empezar?',
   aboutFooterSubtitle: 'Tu viaje musical es único. Utiliza cada una de estas herramientas para sacar el mayor provecho a tus clases.',
   termsContent: `1. Identidad y Propósito\nLa plataforma Aprende con Ritmo es una herramienta de gestión académica musical diseñada para facilitar la interacción entre alumnos, profesores y administración. El registro implica el uso de datos personales para fines exclusivamente educativos y de coordinación institucional.\n\n2. Usuarios y Menores de Edad\nEn caso de que el estudiante sea menor de edad, el registro y la operación de la aplicación deben ser realizados por el padre, madre o tutor legal, quien asume la responsabilidad total de la cuenta y la veracidad de la información proporcionada.\n\n3. Propiedad Intelectual y Material Didáctico\nTodo el material proporcionado en la Biblioteca (partituras, videos, audios, textos) es propiedad intelectual de la academia o cuenta con las licencias correspondientes para uso educativo.\n\nQueda estrictamente PROHIBIDA la descarga, reproducción, distribución, venta o uso de cualquier material didáctico fuera de la plataforma con fines de lucro sin la autorización expresa y por escrito de la dirección de Aprende con Ritmo.\n\n4. Código de Conducta y Uso Correcto\nEl usuario se compromete a:\n- Proporcionar información veraz y mantenerla actualizada.\n- Mantener un trato respetuoso y profesional con los docentes y personal administrativo.\n- Utilizar la agenda de clases de forma responsable, respetando los tiempos de los profesores.\n- No intentar vulnerar la seguridad de la plataforma ni acceder a perfiles ajenos.\n\n5. Incumplimiento y Sanciones\nEl incumplimiento de cualquiera de estos términos podrá resultar en:\n- Amonestaciones verbales o escritas enviadas al perfil del alumno.\n- Suspensión temporal del acceso a la plataforma y materiales.\n- Expulsión Definitiva de la academia y eliminación permanente de la cuenta sin derecho a reembolso en caso de faltas graves a la moral o mal uso de la propiedad intelectual.\n- Acciones legales pertinentes en caso de lucro indebido con materiales de la academia.\n\n6. Tratamiento de Datos\nAl registrarse, usted autoriza la recopilación y almacenamiento de:\n- Nombres, correos electrónicos y números de teléfono.\n- Instrumentos de interés y niveles de progreso técnico.\n- Fotografías de perfil y evidencias de aprendizaje.\n- Historial de asistencia y calificaciones.`

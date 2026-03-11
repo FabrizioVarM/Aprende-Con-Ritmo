@@ -8,6 +8,7 @@ import { ArrowRight, Music, Music2, Music3, Music4 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { getDirectImageUrl } from '@/lib/utils/images';
 
 interface DecorativeNote {
   id: number;
@@ -21,7 +22,7 @@ interface DecorativeNote {
 
 export default function Home() {
   const { user } = useAuth();
-  const { settings } = useSettingsStore();
+  const { settings, loading: settingsLoading } = useSettingsStore();
   const router = useRouter();
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
 
@@ -75,12 +76,12 @@ export default function Home() {
         <div className="flex justify-center">
           <div className="relative w-24 h-24 p-1 bg-white rounded-[2rem] shadow-2xl shadow-accent/20 animate-bounce overflow-hidden border-4 border-accent">
             <Image 
-              src={settings.appLogoUrl} 
+              src={getDirectImageUrl(settings.appLogoUrl)} 
               alt="Logo" 
               fill 
-              className="object-cover"
+              className={cn("object-cover transition-opacity duration-500", settingsLoading ? "opacity-0" : "opacity-100")}
               data-ai-hint="academy logo"
-              priority // Carga prioritaria para que el cambio sea instantáneo
+              priority 
             />
           </div>
         </div>

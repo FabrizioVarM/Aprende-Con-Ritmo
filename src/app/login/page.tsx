@@ -14,6 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Separator } from '@/components/ui/separator';
+import { getDirectImageUrl } from '@/lib/utils/images';
+import { cn } from '@/lib/utils';
 
 interface DecorativeNote {
   id: number;
@@ -31,7 +33,7 @@ export default function LoginPage() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const { user, login, loginWithGoogle, loading: authLoading } = useAuth();
-  const { settings } = useSettingsStore();
+  const { settings, loading: settingsLoading } = useSettingsStore();
   const router = useRouter();
   const { toast } = useToast();
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
@@ -112,10 +114,10 @@ export default function LoginPage() {
         <div className="flex flex-col items-center text-center">
           <div className="relative w-16 h-16 bg-white p-1 rounded-2xl shadow-lg mb-4 overflow-hidden border-2 border-accent">
             <Image 
-              src={settings.appLogoUrl} 
+              src={getDirectImageUrl(settings.appLogoUrl)} 
               alt="Logo" 
               fill 
-              className="object-cover"
+              className={cn("object-cover transition-opacity duration-500", settingsLoading ? "opacity-0" : "opacity-100")}
               data-ai-hint="academy logo"
               priority 
             />
