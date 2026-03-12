@@ -112,7 +112,8 @@ export default function HomePage() {
     rewDesc: '',
     footerInfo: '',
     heroImages: [] as string[],
-    moduleSectionIcon: 'Zap'
+    moduleSectionIcon: 'Zap',
+    adImageUrl: ''
   });
 
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
@@ -142,7 +143,8 @@ export default function HomePage() {
       rewDesc: settings.moduleRewardsDesc || 'Canjea tus puntos',
       footerInfo: settings.moduleFooterInfo || 'Administración trabaja en pasarelas de pago y sistemas de recompensas.',
       heroImages: settings.heroImages || [],
-      moduleSectionIcon: settings.moduleSectionIcon || 'Zap'
+      moduleSectionIcon: settings.moduleSectionIcon || 'Zap',
+      adImageUrl: settings.communityAdImageUrl || ''
     });
     setIsHeroEditing(true);
   };
@@ -161,7 +163,8 @@ export default function HomePage() {
       moduleRewardsDesc: tempHero.rewDesc,
       moduleFooterInfo: tempHero.footerInfo,
       heroImages: tempHero.heroImages,
-      moduleSectionIcon: tempHero.moduleSectionIcon
+      moduleSectionIcon: tempHero.moduleSectionIcon,
+      communityAdImageUrl: tempHero.adImageUrl
     });
     setIsHeroEditing(false);
     toast({ title: "Contenidos Actualizados ✨", description: "Los cambios han sido guardados." });
@@ -478,6 +481,30 @@ export default function HomePage() {
               )}
             </div>
 
+            {/* Publicidad elegible por el admin */}
+            {settings.communityAdImageUrl && (
+              <Card className="rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative aspect-[4/5]">
+                <Image 
+                  src={getDirectImageUrl(settings.communityAdImageUrl)} 
+                  alt="Publicidad Comunidad" 
+                  fill 
+                  className="object-cover transition-transform duration-700 group-hover/ad:scale-105"
+                  data-ai-hint="community advertisement"
+                />
+                {isAdmin && (
+                  <div className="absolute top-3 right-3 opacity-0 group-hover/ad:opacity-100 transition-opacity">
+                    <Button 
+                      size="icon" 
+                      className="bg-white/80 hover:bg-white text-accent rounded-xl shadow-lg h-8 w-8"
+                      onClick={handleEditHero}
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            )}
+
             {/* Coming Soon Features */}
             <Card className="rounded-[1.5rem] border-none shadow-lg bg-blue-50 dark:bg-blue-950/20 p-6 space-y-4">
               <div className="flex items-center gap-3">
@@ -758,6 +785,18 @@ export default function HomePage() {
                     </Select>
                   </div>
                 </div>
+
+                <div className="space-y-4 border-b border-primary/10 pb-6">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <ImageIcon className="w-3 h-3 text-accent" /> Imagen Publicitaria (Comunidad)
+                  </Label>
+                  <Input 
+                    value={tempHero.adImageUrl} 
+                    onChange={(e) => setTempHero(prev => ({...prev, adImageUrl: e.target.value}))}
+                    className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
+                    placeholder="URL de la imagen publicitaria vertical (aspecto 4:5 recomendado)"
+                  />
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4 p-4 rounded-2xl bg-primary/5 border border-primary/10">
@@ -821,15 +860,17 @@ export default function HomePage() {
                   </div>
 
                   <div className="space-y-4 p-4 rounded-2xl bg-blue-50 border border-blue-100">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-blue-700 flex items-center gap-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-blue-700 items-center gap-2">
                       <Info className="w-3 h-3" /> Info de Administración
                     </Label>
-                    <Textarea 
-                      value={tempHero.footerInfo} 
-                      onChange={(e) => setTempHero(prev => ({...prev, footerInfo: e.target.value}))}
-                      className="min-h-[80px] rounded-lg border-2 font-bold text-xs bg-white"
-                      placeholder="Mensaje sobre el estado del desarrollo..."
-                    />
+                    <div className="pt-1">
+                      <Textarea 
+                        value={tempHero.footerInfo} 
+                        onChange={(e) => setTempHero(prev => ({...prev, footerInfo: e.target.value}))}
+                        className="min-h-[80px] rounded-lg border-2 font-bold text-xs bg-white"
+                        placeholder="Mensaje sobre el estado del desarrollo..."
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
