@@ -9,7 +9,8 @@ import {
   setDoc, 
   deleteDoc, 
   query, 
-  orderBy 
+  orderBy,
+  updateDoc
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -73,7 +74,7 @@ export function useNewsStore() {
 
   const updateArticle = useCallback(async (id: string, updates: Partial<NewsArticle>) => {
     const docRef = doc(db, 'news', id);
-    return setDoc(docRef, updates, { merge: true }).catch((err) => {
+    return updateDoc(docRef, updates).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
         operation: 'update',
@@ -103,7 +104,8 @@ export function useNewsStore() {
       : [...currentLikes, userId];
 
     const docRef = doc(db, 'news', articleId);
-    return setDoc(docRef, { likes: newLikes }, { merge: true }).catch((err) => {
+    // Usamos updateDoc para actualizar específicamente el campo de likes
+    return updateDoc(docRef, { likes: newLikes }).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
         operation: 'update',
