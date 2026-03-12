@@ -44,7 +44,8 @@
         "extraImages": { "type": "array", "items": { "type": "string" }, "description": "URLs de imágenes adicionales para la galería." },
         "date": { "type": "string" },
         "type": { "type": "string", "enum": ["news", "event", "update"] },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "likes": { "type": "array", "items": { "type": "string" }, "description": "Lista de IDs de usuarios que dieron me gusta." }
       },
       "required": ["title", "content", "type"]
     },

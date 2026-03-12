@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -71,7 +72,7 @@ const ICON_OPTIONS = [
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
   const { settings, updateSettings } = useSettingsStore();
-  const { articles, addArticle, updateArticle, deleteArticle, loading: newsLoading } = useNewsStore();
+  const { articles, addArticle, updateArticle, deleteArticle, toggleLike, loading: newsLoading } = useNewsStore();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -194,7 +195,8 @@ export default function HomePage() {
       image: 'https://picsum.photos/seed/' + Math.random().toString(36).substring(7) + '/800/400',
       extraImages: [],
       type: 'news',
-      date: 'Hoy'
+      date: 'Hoy',
+      likes: []
     });
     setIsArticleModalOpen(true);
   };
@@ -369,64 +371,88 @@ export default function HomePage() {
                   <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                   <p className="text-muted-foreground font-bold italic">Cargando noticias...</p>
                 </div>
-              ) : articles.length > 0 ? articles.map((item) => (
-                <Card 
-                  key={item.id} 
-                  className="rounded-[1.5rem] md:rounded-[2rem] border-2 border-primary/20 shadow-sm hover:shadow-lg hover:border-accent/40 transition-all duration-500 group overflow-hidden bg-card cursor-pointer"
-                  onClick={() => setSelectedNews(item)}
-                >
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
-                    <div className="md:col-span-2 relative h-64 md:h-full min-h-[200px] overflow-hidden">
-                      <Image 
-                        src={getDirectImageUrl(item.image)} 
-                        alt={item.title} 
-                        fill 
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                        data-ai-hint="musical event"
-                      />
-                      <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-col gap-2">
-                        <Badge className="bg-white/95 text-accent rounded-full font-black px-2 py-0.5 shadow-sm border-none text-[10px]">
-                          {item.tag}
-                        </Badge>
+              ) : articles.length > 0 ? articles.map((item) => {
+                const isLiked = item.likes?.includes(user.id);
+                const likeCount = item.likes?.length || 0;
+
+                return (
+                  <Card 
+                    key={item.id} 
+                    className="rounded-[1.5rem] md:rounded-[2rem] border-2 border-primary/20 shadow-sm hover:shadow-lg hover:border-accent/40 transition-all duration-500 group overflow-hidden bg-card cursor-pointer"
+                    onClick={() => setSelectedNews(item)}
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
+                      <div className="md:col-span-2 relative h-64 md:h-full min-h-[200px] overflow-hidden">
+                        <Image 
+                          src={getDirectImageUrl(item.image)} 
+                          alt={item.title} 
+                          fill 
+                          className="object-cover transition-transform duration-700 group-hover:scale-110"
+                          data-ai-hint="musical event"
+                        />
+                        <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-col gap-2">
+                          <Badge className="bg-white/95 text-accent rounded-full font-black px-2 py-0.5 shadow-sm border-none text-[10px]">
+                            {item.tag}
+                          </Badge>
+                        </div>
+                        
+                        {isAdmin && (
+                          <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                              size="icon" 
+                              className="bg-white text-accent rounded-xl shadow-lg h-8 w-8 hover:bg-accent hover:text-white"
+                              onClick={(e) => openEditArticle(item, e)}
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              className="bg-white text-destructive rounded-xl shadow-lg h-8 w-8 hover:bg-destructive hover:text-white"
+                              onClick={(e) => handleDeleteArticle(item.id, e)}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      
-                      {isAdmin && (
-                        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="md:col-span-3 p-5 md:p-6 flex flex-col justify-center space-y-2 md:space-y-3">
+                        <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
+                          <Clock className="w-3 h-3 text-accent" />
+                          {item.date}
+                        </div>
+                        <h3 className="text-lg md:text-xl font-black text-foreground leading-tight group-hover:text-accent transition-colors">
+                          {item.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm font-medium leading-relaxed line-clamp-2">
+                          {item.content}
+                        </p>
+                        <div className="flex items-center justify-between pt-2">
                           <Button 
-                            size="icon" 
-                            className="bg-white text-accent rounded-xl shadow-lg h-8 w-8 hover:bg-accent hover:text-white"
-                            onClick={(e) => openEditArticle(item, e)}
+                            variant="ghost" 
+                            size="sm" 
+                            className={cn(
+                              "rounded-full gap-2 px-3 h-9 transition-all active:scale-95",
+                              isLiked ? "bg-rose-50 text-rose-600 hover:bg-rose-100" : "hover:bg-primary/10 text-muted-foreground"
+                            )}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleLike(item.id, user.id);
+                            }}
                           >
-                            <Edit2 className="w-3.5 h-3.5" />
+                            <Heart 
+                              className={cn("w-4 h-4 transition-transform", isLiked ? "fill-current scale-110" : "")} 
+                            />
+                            <span className="text-xs font-black">{likeCount}</span>
                           </Button>
-                          <Button 
-                            size="icon" 
-                            className="bg-white text-destructive rounded-xl shadow-lg h-8 w-8 hover:bg-destructive hover:text-white"
-                            onClick={(e) => handleDeleteArticle(item.id, e)}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
+                          <Button variant="outline" size="sm" className="w-fit rounded-lg border-2 font-black gap-2 hover:bg-accent hover:text-white transition-all text-xs">
+                            Leer más <ChevronRight className="w-4 h-4" />
                           </Button>
                         </div>
-                      )}
-                    </div>
-                    <div className="md:col-span-3 p-5 md:p-6 flex flex-col justify-center space-y-2 md:space-y-3">
-                      <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">
-                        <Clock className="w-3 h-3 text-accent" />
-                        {item.date}
                       </div>
-                      <h3 className="text-lg md:text-xl font-black text-foreground leading-tight group-hover:text-accent transition-colors">
-                        {item.title}
-                      </h3>
-                      <p className="text-muted-foreground text-sm font-medium leading-relaxed line-clamp-2">
-                        {item.content}
-                      </p>
-                      <Button variant="outline" size="sm" className="w-fit rounded-lg border-2 font-black gap-2 hover:bg-accent hover:text-white transition-all text-xs">
-                        Leer más <ChevronRight className="w-4 h-4" />
-                      </Button>
                     </div>
-                  </div>
-                </Card>
-              )) : (
+                  </Card>
+                );
+              }) : (
                 <div className="col-span-full py-20 text-center bg-primary/5 rounded-[3rem] border-4 border-dashed border-primary/10">
                   <Sparkles className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
                   <h3 className="text-xl font-black text-foreground">Sin noticias</h3>
@@ -542,9 +568,15 @@ export default function HomePage() {
               
               <div className="p-6 md:p-8 space-y-6 overflow-y-auto">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-[0.2em]">
-                    <Clock className="w-3.5 h-3.5" />
-                    Publicado: {selectedNews.date}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[10px] font-black text-accent uppercase tracking-[0.2em]">
+                      <Clock className="w-3.5 h-3.5" />
+                      Publicado: {selectedNews.date}
+                    </div>
+                    <div className="flex items-center gap-2 bg-rose-50 px-3 py-1 rounded-full text-rose-600 border border-rose-100">
+                      <Heart className="w-3.5 h-3.5 fill-current" />
+                      <span className="text-xs font-black">{selectedNews.likes?.length || 0}</span>
+                    </div>
                   </div>
                   <DialogHeader>
                     <DialogTitle className="text-2xl md:text-3xl font-black text-foreground leading-tight">

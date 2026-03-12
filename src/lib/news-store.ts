@@ -26,6 +26,7 @@ export interface NewsArticle {
   date: string;
   type: 'news' | 'event' | 'update';
   createdAt?: string;
+  likes?: string[];
 }
 
 export function useNewsStore() {
@@ -57,7 +58,8 @@ export function useNewsStore() {
     const data: NewsArticle = {
       ...article,
       id,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      likes: []
     };
 
     return setDoc(docRef, data).catch((err) => {
@@ -90,5 +92,25 @@ export function useNewsStore() {
     });
   }, [db]);
 
-  return { articles, loading, addArticle, updateArticle, deleteArticle };
+  const toggleLike = useCallback(async (articleId: string, userId: string) => {
+    const article = articles.find(a => a.id === articleId);
+    if (!article) return;
+
+    const currentLikes = article.likes || [];
+    const isLiked = currentLikes.includes(userId);
+    const newLikes = isLiked 
+      ? currentLikes.filter(id => id !== userId)
+      : [...currentLikes, userId];
+
+    const docRef = doc(db, 'news', articleId);
+    return setDoc(docRef, { likes: newLikes }, { merge: true }).catch((err) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: docRef.path,
+        operation: 'update',
+        requestResourceData: { likes: newLikes }
+      }));
+    });
+  }, [db, articles]);
+
+  return { articles, loading, addArticle, updateArticle, deleteArticle, toggleLike };
 }

@@ -40,7 +40,8 @@ service cloud.firestore {
 
     match /news/{newsId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow update: if isSignedIn(); // Permite a usuarios dar like
+      allow create, delete: if isAdmin();
     }
     
     match /availabilities/{availId} {
