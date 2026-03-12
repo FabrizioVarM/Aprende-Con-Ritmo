@@ -487,6 +487,27 @@ export default function SchedulePage() {
 
   const adminIds = useMemo(() => allUsers.filter(u => u.role === 'admin').map(u => u.id), [allUsers]);
 
+  // Mapa de estado de clases para indicadores de puntos en el calendario lateral (Solo Admin)
+  const adminDayStatusMap = useMemo(() => {
+    if (!isAdmin) return {};
+    const stats: Record<string, { hasPending: boolean, hasCompleted: boolean }> = {};
+    
+    availabilities.forEach(day => {
+      let pending = false;
+      let completed = false;
+      day.slots.forEach(slot => {
+        if (slot.isBooked) {
+          if (slot.status === 'completed') completed = true;
+          else pending = true; // status is undefined or 'pending'
+        }
+      });
+      if (pending || completed) {
+        stats[day.date] = { hasPending: pending, hasCompleted: completed };
+      }
+    });
+    return stats;
+  }, [availabilities, isAdmin]);
+
   if (!isMounted || loading || !user) return null;
 
   const SlotCard = ({ slot, isMine, isStaffView, customTeacherId }: { slot: any, isMine: boolean, isStaffView?: boolean, customTeacherId?: string }) => {
@@ -1153,6 +1174,9 @@ export default function SchedulePage() {
                       {weekDays.map((d, i) => {
                         const isSelected = d.toDateString() === date.toDateString();
                         const isToday = d.toDateString() === todayStr;
+                        const dKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                        const adminStatus = adminDayStatusMap[dKey];
+
                         return (
                           <button 
                             key={i} 
@@ -1180,6 +1204,24 @@ export default function SchedulePage() {
                                 <span className={cn("text-[10px] font-bold mt-1", isSelected ? "text-white/60" : "text-muted-foreground/60")}>
                                   {d.toLocaleDateString('es-ES', { month: 'short' })} • {d.getFullYear()}
                                 </span>
+                                
+                                {/* Indicadores de estado de clase para el Administrador */}
+                                {isAdmin && adminStatus && (
+                                  <div className="flex gap-1.5 mt-1.5 animate-in fade-in zoom-in duration-300">
+                                    {adminStatus.hasPending && (
+                                      <div className="flex items-center gap-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_5px_rgba(249,115,22,0.5)]" />
+                                        <span className={cn("text-[7px] font-black uppercase", isSelected ? "text-white/70" : "text-orange-600/70")}>Pendiente</span>
+                                      </div>
+                                    )}
+                                    {adminStatus.hasCompleted && (
+                                      <div className="flex items-center gap-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]" />
+                                        <span className={cn("text-[7px] font-black uppercase", isSelected ? "text-white/70" : "text-emerald-600/70")}>Ok</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -1391,6 +1433,61 @@ export default function SchedulePage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={isMDialogOpen} onOpenChange={setIsMDialogOpen}>
+        <DialogContent className="rounded-[2rem] max-md border-none shadow-2xl p-0 overflow-hidden">
+          <DialogHeader className="bg-primary/10 p-8 border-b">
+            <DialogTitle className="text-2xl font-black flex items-center gap-3">
+              <Trophy className="w-6 h-6 text-accent" />
+              {editingM ? 'Editar Hito' : 'Nuevo Hito'}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground font-medium">Define un logro para la carrera musical del alumno.</DialogDescription>
+          </DialogHeader>
+          <div className="p-8 space-y-6 bg-card">
+            <div className="space-y-2">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Hito</Label>
+              <Input 
+                value={mTitle} 
+                onChange={(e) => setMTitle(e.target.value)}
+                placeholder="Ej: Nivel 1 Completado"
+                className="h-12 rounded-xl border-2 font-bold focus:border-accent text-foreground bg-card"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Fecha (opcional)</Label>
+              <Input 
+                value={mDate} 
+                onChange={(e) => setMDate(e.target.value)}
+                placeholder="Ej: Oct 2023"
+                className="h-12 rounded-xl border-2 font-bold focus:border-accent text-foreground bg-card"
+              />
+            </div>
+            <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border-2 border-primary/10">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-black text-foreground">Estado del Hito</Label>
+                <p className="text-[10px] text-muted-foreground font-bold uppercase">¿Ya ha sido alcanzado?</p>
+              </div>
+              <Switch 
+                checked={mAchieved} 
+                onCheckedChange={setMAchieved}
+                className="data-[state=checked]:bg-emerald-500"
+              />
+            </div>
+          </div>
+          <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3">
+            <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground" onClick={() => setIsMDialogOpen(false)}>Cancelar</Button>
+            <Button className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20" onClick={handleSaveM}>Guardar Hito</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
+  );
+}
+
+export default function SchedulePage() {
+  return (
+    <Suspense fallback={null}>
+      <ProgressContent />
+    </Suspense>
   );
 }
