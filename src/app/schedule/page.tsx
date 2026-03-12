@@ -1,11 +1,38 @@
 "use client"
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Video, MapPin, Plus, Music, AlertCircle, Calendar as CalendarIcon, CheckCircle2, AlertCircle as AlertIcon, Trash2, ChevronLeft, ChevronRight, ChevronDown, Sunrise, Sun, Moon, User as UserIcon, ShieldCheck, GraduationCap, Users, Check, MousePointerClick, MapPin as MapPinIcon, AlertTriangle, Building2, Home, LayoutGrid } from 'lucide-react';
+import { 
+  Clock, 
+  Video, 
+  MapPin, 
+  Plus, 
+  Music, 
+  Calendar as CalendarIcon, 
+  CheckCircle2, 
+  AlertCircle as AlertIcon, 
+  Trash2, 
+  ChevronLeft, 
+  ChevronRight, 
+  ChevronDown, 
+  Sunrise, 
+  Sun, 
+  Moon, 
+  User as UserIcon, 
+  ShieldCheck, 
+  GraduationCap, 
+  Users, 
+  Check, 
+  MousePointerClick, 
+  MapPin as MapPinIcon, 
+  AlertTriangle, 
+  Building2, 
+  Home, 
+  LayoutGrid 
+} from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
   Dialog,
@@ -39,6 +66,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { errorEmitter } from '@/firebase/error-emitter';
+import { useSearchParams } from 'next/navigation';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -93,7 +121,7 @@ const getTimePeriod = (timeStr: string) => {
   };
 };
 
-export default function SchedulePage() {
+function ScheduleContent() {
   const { user, allUsers, loading } = useAuth();
   const { settings } = useSettingsStore();
   const [isMounted, setIsMounted] = useState(false);
@@ -1433,53 +1461,6 @@ export default function SchedulePage() {
           </div>
         </div>
       </div>
-
-      <Dialog open={isMDialogOpen} onOpenChange={setIsMDialogOpen}>
-        <DialogContent className="rounded-[2rem] max-md border-none shadow-2xl p-0 overflow-hidden">
-          <DialogHeader className="bg-primary/10 p-8 border-b">
-            <DialogTitle className="text-2xl font-black flex items-center gap-3">
-              <Trophy className="w-6 h-6 text-accent" />
-              {editingM ? 'Editar Hito' : 'Nuevo Hito'}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground font-medium">Define un logro para la carrera musical del alumno.</DialogDescription>
-          </DialogHeader>
-          <div className="p-8 space-y-6 bg-card">
-            <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Hito</Label>
-              <Input 
-                value={mTitle} 
-                onChange={(e) => setMTitle(e.target.value)}
-                placeholder="Ej: Nivel 1 Completado"
-                className="h-12 rounded-xl border-2 font-bold focus:border-accent text-foreground bg-card"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Fecha (opcional)</Label>
-              <Input 
-                value={mDate} 
-                onChange={(e) => setMDate(e.target.value)}
-                placeholder="Ej: Oct 2023"
-                className="h-12 rounded-xl border-2 font-bold focus:border-accent text-foreground bg-card"
-              />
-            </div>
-            <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border-2 border-primary/10">
-              <div className="space-y-0.5">
-                <Label className="text-sm font-black text-foreground">Estado del Hito</Label>
-                <p className="text-[10px] text-muted-foreground font-bold uppercase">¿Ya ha sido alcanzado?</p>
-              </div>
-              <Switch 
-                checked={mAchieved} 
-                onCheckedChange={setMAchieved}
-                className="data-[state=checked]:bg-emerald-500"
-              />
-            </div>
-          </div>
-          <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3">
-            <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground" onClick={() => setIsMDialogOpen(false)}>Cancelar</Button>
-            <Button className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20" onClick={handleSaveM}>Guardar Hito</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </AppLayout>
   );
 }
@@ -1487,7 +1468,7 @@ export default function SchedulePage() {
 export default function SchedulePage() {
   return (
     <Suspense fallback={null}>
-      <ProgressContent />
+      <ScheduleContent />
     </Suspense>
   );
 }
