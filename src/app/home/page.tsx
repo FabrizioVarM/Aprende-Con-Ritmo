@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/lib/auth-store';
-import { useSettingsStore } from '@/lib/settings-store';
+import { useSettingsStore, CommunityAd } from '@/lib/settings-store';
 import { useNewsStore, NewsArticle } from '@/lib/news-store';
 import { useRouter } from 'next/navigation';
 import { 
@@ -40,7 +40,9 @@ import {
   Bell,
   Heart,
   Target,
-  Flame
+  Flame,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import {
   Dialog,
@@ -50,6 +52,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -113,7 +116,7 @@ export default function HomePage() {
     footerInfo: '',
     heroImages: [] as string[],
     moduleSectionIcon: 'Zap',
-    adImageUrl: ''
+    communityAds: [] as CommunityAd[]
   });
 
   const [isArticleModalOpen, setIsArticleModalOpen] = useState(false);
@@ -144,7 +147,7 @@ export default function HomePage() {
       footerInfo: settings.moduleFooterInfo || 'Administración trabaja en pasarelas de pago y sistemas de recompensas.',
       heroImages: settings.heroImages || [],
       moduleSectionIcon: settings.moduleSectionIcon || 'Zap',
-      adImageUrl: settings.communityAdImageUrl || ''
+      communityAds: settings.communityAds || []
     });
     setIsHeroEditing(true);
   };
@@ -164,7 +167,7 @@ export default function HomePage() {
       moduleFooterInfo: tempHero.footerInfo,
       heroImages: tempHero.heroImages,
       moduleSectionIcon: tempHero.moduleSectionIcon,
-      communityAdImageUrl: tempHero.adImageUrl
+      communityAds: tempHero.communityAds
     });
     setIsHeroEditing(false);
     toast({ title: "Contenidos Actualizados ✨", description: "Los cambios han sido guardados." });
@@ -186,6 +189,25 @@ export default function HomePage() {
   const handleRemoveHeroImage = (index: number) => {
     const newImages = tempHero.heroImages.filter((_, i) => i !== index);
     setTempHero(prev => ({ ...prev, heroImages: newImages }));
+  };
+
+  // Gestión de Publicidades
+  const handleAddCommunityAd = () => {
+    setTempHero(prev => ({
+      ...prev,
+      communityAds: [...prev.communityAds, { imageUrl: '', isVisible: true }]
+    }));
+  };
+
+  const handleUpdateCommunityAd = (index: number, field: keyof CommunityAd, value: any) => {
+    const newAds = [...tempHero.communityAds];
+    newAds[index] = { ...newAds[index], [field]: value };
+    setTempHero(prev => ({ ...prev, communityAds: newAds }));
+  };
+
+  const handleRemoveCommunityAd = (index: number) => {
+    const newAds = tempHero.communityAds.filter((_, i) => i !== index);
+    setTempHero(prev => ({ ...prev, communityAds: newAds }));
   };
 
   const openCreateArticle = () => {
@@ -257,6 +279,7 @@ export default function HomePage() {
   if (!isMounted || authLoading || !user) return null;
 
   const ModuleSectionIcon = ICON_OPTIONS.find(o => o.id === settings.moduleSectionIcon)?.icon || Zap;
+  const visibleAds = settings.communityAds?.filter(ad => ad.isVisible) || [];
 
   return (
     <AppLayout>
@@ -481,29 +504,31 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Publicidad elegible por el admin */}
-            {settings.communityAdImageUrl && (
-              <Card className="rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative aspect-[16/6]">
-                <Image 
-                  src={getDirectImageUrl(settings.communityAdImageUrl)} 
-                  alt="Publicidad Comunidad" 
-                  fill 
-                  className="object-cover transition-transform duration-700 group-hover/ad:scale-105"
-                  data-ai-hint="community advertisement"
-                />
-                {isAdmin && (
-                  <div className="absolute top-3 right-3 opacity-0 group-hover/ad:opacity-100 transition-opacity">
-                    <Button 
-                      size="icon" 
-                      className="bg-white/80 hover:bg-white text-accent rounded-xl shadow-lg h-8 w-8"
-                      onClick={handleEditHero}
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                )}
-              </Card>
-            )}
+            {/* Espacio Publicitario Dinámico */}
+            <div className="space-y-4">
+              {visibleAds.map((ad, idx) => (
+                <Card key={idx} className="rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative aspect-[16/6]">
+                  <Image 
+                    src={getDirectImageUrl(ad.imageUrl)} 
+                    alt={`Publicidad ${idx + 1}`} 
+                    fill 
+                    className="object-cover transition-transform duration-700 group-hover/ad:scale-105"
+                    data-ai-hint="community advertisement"
+                  />
+                  {isAdmin && (
+                    <div className="absolute top-3 right-3 opacity-0 group-hover/ad:opacity-100 transition-opacity">
+                      <Button 
+                        size="icon" 
+                        className="bg-white/80 hover:bg-white text-accent rounded-xl shadow-lg h-8 w-8"
+                        onClick={handleEditHero}
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
 
             {/* Coming Soon Features */}
             <Card className="rounded-[1.5rem] border-none shadow-lg bg-blue-50 dark:bg-blue-950/20 p-6 space-y-4">
@@ -666,7 +691,7 @@ export default function HomePage() {
 
       {/* Admin: Modal de Edición de Textos de Inicio */}
       <Dialog open={isHeroEditing} onOpenChange={setIsHeroEditing}>
-        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+        <DialogContent className="rounded-[2.5rem] max-w-3xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[95vh] max-h-[95vh]">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black flex items-center gap-3">
               <Edit2 className="w-6 h-6 text-accent" />
@@ -751,11 +776,6 @@ export default function HomePage() {
                         </Button>
                       </div>
                     ))}
-                    {tempHero.heroImages.length === 0 && (
-                      <p className="text-[10px] text-muted-foreground font-medium italic text-center py-2">
-                        Sin imágenes de fondo. Se usará el color base.
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
@@ -764,7 +784,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <LayoutGrid className="w-4 h-4 text-blue-500" />
-                    <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Gestión de Módulos Próximos</h3>
+                    <h3 className="font-black text-sm uppercase tracking-widest text-foreground">Gestión de Comunidad y Módulos</h3>
                   </div>
                   <div className="flex items-center gap-3">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Icono de Sección</Label>
@@ -786,16 +806,62 @@ export default function HomePage() {
                   </div>
                 </div>
 
+                {/* Gestión de Publicidades */}
                 <div className="space-y-4 border-b border-primary/10 pb-6">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <ImageIcon className="w-3 h-3 text-accent" /> Imagen Publicitaria (Comunidad)
-                  </Label>
-                  <Input 
-                    value={tempHero.adImageUrl} 
-                    onChange={(e) => setTempHero(prev => ({...prev, adImageUrl: e.target.value}))}
-                    className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
-                    placeholder="URL de la imagen publicitaria horizontal (aspecto 16:6 recomendado)"
-                  />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <ImageIcon className="w-3 h-3 text-accent" /> Gestión de Publicidades (Banner 16:6)
+                    </Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-8 rounded-lg border-2 text-[10px] font-black uppercase px-3"
+                      onClick={handleAddCommunityAd}
+                    >
+                      <Plus className="w-3 h-3 mr-1" /> Nuevo Anuncio
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {tempHero.communityAds.map((ad, index) => (
+                      <div key={index} className="p-4 rounded-2xl bg-primary/5 border-2 border-primary/10 space-y-3 relative group/ad-item">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-black text-accent uppercase tracking-widest">Anuncio #{index + 1}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              {ad.isVisible ? <Eye className="w-3 h-3 text-blue-500" /> : <EyeOff className="w-3 h-3 text-muted-foreground" />}
+                              <Switch 
+                                checked={ad.isVisible} 
+                                onCheckedChange={(val) => handleUpdateCommunityAd(index, 'isVisible', val)}
+                                className="scale-75 data-[state=checked]:bg-blue-500"
+                              />
+                            </div>
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-destructive hover:bg-destructive/10 rounded-lg"
+                              onClick={() => handleRemoveCommunityAd(index)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <Input 
+                          value={ad.imageUrl} 
+                          onChange={(e) => handleUpdateCommunityAd(index, 'imageUrl', e.target.value)}
+                          className="h-10 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground text-xs"
+                          placeholder="URL de la imagen (aspecto 16:6 recomendado)"
+                        />
+                      </div>
+                    ))}
+                    {tempHero.communityAds.length === 0 && (
+                      <p className="text-[10px] text-muted-foreground font-medium italic text-center py-4 border-2 border-dashed rounded-2xl">
+                        No hay anuncios configurados. Pulsa "Nuevo Anuncio" para empezar.
+                      </p>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

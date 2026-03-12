@@ -18,6 +18,11 @@ export interface AboutValue {
   desc: string;
 }
 
+export interface CommunityAd {
+  imageUrl: string;
+  isVisible: boolean;
+}
+
 export interface AppSettings {
   appLogoUrl: string;
   darkMode: boolean;
@@ -39,8 +44,8 @@ export interface AppSettings {
   heroBadge?: string;
   heroImages?: string[];
   newsSectionTitle?: string;
-  // Imagen de publicidad en comunidad
-  communityAdImageUrl?: string;
+  // Gestión de Publicidad en comunidad
+  communityAds?: CommunityAd[];
   // Textos de Módulos en Inicio
   moduleMarketTitle?: string;
   moduleMarketDesc?: string;
@@ -90,7 +95,9 @@ const DEFAULT_SETTINGS: AppSettings = {
     'https://picsum.photos/seed/music3/1200/600'
   ],
   newsSectionTitle: 'Lo Último en Ritmo',
-  communityAdImageUrl: 'https://picsum.photos/seed/promo1/600/800',
+  communityAds: [
+    { imageUrl: 'https://picsum.photos/seed/promo1/1200/450', isVisible: true }
+  ],
   moduleMarketTitle: 'RitmoMarket',
   moduleMarketDesc: 'Tienda de accesorios',
   moduleProductionTitle: 'Producción',

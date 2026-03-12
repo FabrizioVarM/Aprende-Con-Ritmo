@@ -159,7 +159,17 @@
         "moduleRewardsTitle": { "type": "string" },
         "moduleRewardsDesc": { "type": "string" },
         "moduleFooterInfo": { "type": "string" },
-        "moduleSectionIcon": { "type": "string" }
+        "moduleSectionIcon": { "type": "string" },
+        "communityAds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "imageUrl": { "type": "string" },
+              "isVisible": { "type": "boolean" }
+            }
+          }
+        }
       }
     }
   },
