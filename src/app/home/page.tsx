@@ -483,7 +483,7 @@ export default function HomePage() {
 
             {/* Publicidad elegible por el admin */}
             {settings.communityAdImageUrl && (
-              <Card className="rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative aspect-[4/5]">
+              <Card className="rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative aspect-[16/6]">
                 <Image 
                   src={getDirectImageUrl(settings.communityAdImageUrl)} 
                   alt="Publicidad Comunidad" 
@@ -794,7 +794,7 @@ export default function HomePage() {
                     value={tempHero.adImageUrl} 
                     onChange={(e) => setTempHero(prev => ({...prev, adImageUrl: e.target.value}))}
                     className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground"
-                    placeholder="URL de la imagen publicitaria vertical (aspecto 4:5 recomendado)"
+                    placeholder="URL de la imagen publicitaria horizontal (aspecto 16:6 recomendado)"
                   />
                 </div>
                 
