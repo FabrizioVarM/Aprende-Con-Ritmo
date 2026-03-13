@@ -20,14 +20,13 @@ import { useCompletionStore } from '@/lib/completion-store';
 import { useMilestonesStore } from '@/lib/milestones-store';
 import { useSkillsStore } from '@/lib/skills-store';
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
 import { 
   ImageIcon, 
   Upload, 
   RefreshCw, 
   Save, 
   ShieldCheck, 
-  Moon, 
-  Sun, 
   MessageCircle, 
   Phone, 
   LayoutGrid, 
@@ -59,7 +58,9 @@ import {
   Star,
   ExternalLink,
   MessageSquareMore,
-  Settings
+  Settings,
+  Bell,
+  BellRing
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -76,7 +77,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function SettingsPage() {
-  const { user, allUsers, loading: authLoading } = useAuth();
+  const { user, allUsers, updateUser, loading: authLoading } = useAuth();
   const { settings, updateSettings } = useSettingsStore();
   const { availabilities } = useBookingStore();
   const { articles } = useNewsStore();
@@ -89,7 +90,6 @@ export default function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [logoUrl, setLogoUrl] = useState(settings.appLogoUrl);
-  const [darkMode, setDarkMode] = useState(settings.darkMode);
   const [whatsappNumber, setWhatsappNumber] = useState(settings.whatsappNumber);
   const [termsContent, setTermsContent] = useState(settings.termsContent || '');
   
@@ -107,6 +107,9 @@ export default function SettingsPage() {
   const [localZones, setLocalZones] = useState<string[]>(settings.zones || []);
   const [newZoneName, setNewZoneName] = useState('');
 
+  // Notification Preference State
+  const [notificationsEnabled, setNotificationsEnabled] = useState(!!user?.fcmToken);
+
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -121,7 +124,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setLogoUrl(settings.appLogoUrl);
-    setDarkMode(settings.darkMode);
     setWhatsappNumber(settings.whatsappNumber);
     setShowProd(settings.showProduction);
     setEnableProd(settings.enableProduction);
@@ -135,9 +137,13 @@ export default function SettingsPage() {
     setTermsContent(settings.termsContent || '');
   }, [settings]);
 
+  useEffect(() => {
+    setNotificationsEnabled(!!user?.fcmToken);
+  }, [user?.fcmToken]);
+
   const isAdmin = user?.role === 'admin';
 
-  // Cálculos de cuotas de Firebase (Spark Plan) - Detalle exhaustivo de almacenamiento
+  // Cálculos de cuotas de Firebase (Spark Plan)
   const quotaStats = useMemo(() => {
     if (!isAdmin) return null;
     const counts = {
@@ -155,10 +161,6 @@ export default function SettingsPage() {
     // Límites de Firebase Spark (Gratis)
     const AUTH_LIMIT = 50000; 
     const FIRESTORE_STORAGE_LIMIT_MB = 1024; 
-    const DAILY_READS_LIMIT = 50000;
-    const DAILY_WRITES_LIMIT = 20000;
-    const DAILY_DELETES_LIMIT = 20000;
-    const CONCURRENT_CONNECTIONS = 100;
 
     const estimatedSizeMB = (totalDocs * 2.5) / 1024;
 
@@ -174,12 +176,6 @@ export default function SettingsPage() {
         estimatedMB: estimatedSizeMB.toFixed(3),
         limitMB: FIRESTORE_STORAGE_LIMIT_MB,
         percent: Math.min((estimatedSizeMB / FIRESTORE_STORAGE_LIMIT_MB) * 100, 100)
-      },
-      limits: {
-        reads: DAILY_READS_LIMIT,
-        writes: DAILY_WRITES_LIMIT,
-        deletes: DAILY_DELETES_LIMIT,
-        connections: CONCURRENT_CONNECTIONS
       }
     };
   }, [allUsers, articles, resources, availabilities, completions, milestones, skills, isAdmin]);
@@ -187,7 +183,6 @@ export default function SettingsPage() {
   const handleSave = () => {
     updateSettings({ 
       appLogoUrl: logoUrl,
-      darkMode: darkMode,
       whatsappNumber: whatsappNumber,
       showProduction: showProd,
       enableProduction: enableProd,
@@ -206,6 +201,25 @@ export default function SettingsPage() {
     });
   };
 
+  const handleToggleNotifications = (val: boolean) => {
+    setNotificationsEnabled(val);
+    if (val) {
+      // Activar: Disparar el evento que escucha PushNotificationManager
+      errorEmitter.emit('request-notification-permission', undefined);
+      toast({
+        title: "Activando Notificaciones",
+        description: "Se solicitará permiso a tu navegador para enviarte alertas.",
+      });
+    } else {
+      // Desactivar: Quitar el token del perfil en Firestore
+      updateUser({ fcmToken: "" });
+      toast({
+        title: "Notificaciones Desactivadas",
+        description: "Ya no recibirás alertas en este dispositivo.",
+      });
+    }
+  };
+
   const addZone = () => {
     const trimmed = newZoneName.trim();
     if (trimmed && !localZones.includes(trimmed)) {
@@ -216,7 +230,7 @@ export default function SettingsPage() {
 
   const removeZone = (zone: string) => {
     if (zone === 'Virtual') {
-      toast({ variant: "destructive", title: "Acción bloqueada", description: "La zona Virtual es obligatoria para las clases online." });
+      toast({ variant: "destructive", title: "Acción bloqueada", description: "La zona Virtual es obligatoria." });
       return;
     }
     setLocalZones(localZones.filter(z => z !== zone));
@@ -228,7 +242,7 @@ export default function SettingsPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoUrl(reader.result as string);
-        toast({ description: "Imagen cargada correctamente. Recuerda guardar los cambios." });
+        toast({ description: "Imagen cargada correctamente." });
       };
       reader.readAsDataURL(file);
     }
@@ -250,7 +264,7 @@ export default function SettingsPage() {
             {isAdmin ? 'Configuración del Sistema' : 'Ajustes de la Aplicación'}
           </h1>
           <p className="text-muted-foreground mt-1 text-lg font-medium">
-            {isAdmin ? 'Personaliza la identidad y operatividad de la academia.' : 'Personaliza tu experiencia y consulta información de ayuda.'}
+            {isAdmin ? 'Personaliza la identidad y operatividad de la academia.' : 'Gestiona tus preferencias y consulta información de ayuda.'}
           </p>
         </div>
 
@@ -308,31 +322,49 @@ export default function SettingsPage() {
             </Card>
           )}
 
-          {/* PREFERENCIAS DE USUARIO (PARA TODOS) */}
+          {/* CONFIGURACIÓN DE NOTIFICACIONES */}
           <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
             <CardHeader className="bg-primary/5 p-8 border-b">
               <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
-                <Sparkles className="w-8 h-8 text-accent" />
-                Preferencias de Visualización
+                <BellRing className="w-8 h-8 text-accent" />
+                Notificaciones del Sistema
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-6">
               <div className="flex items-center justify-between p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm">
-                    {darkMode ? <Moon className="w-6 h-6 text-indigo-500" /> : <Sun className="w-6 h-6 text-orange-500" />}
+                    {notificationsEnabled ? <Bell className="w-6 h-6 text-accent animate-bounce" /> : <Bell className="w-6 h-6 text-muted-foreground" />}
                   </div>
                   <div>
-                    <h4 className="font-black text-lg text-foreground">Modo Oscuro</h4>
-                    <p className="text-xs text-muted-foreground font-medium">Alternar entre tema claro y oscuro.</p>
+                    <h4 className="font-black text-lg text-foreground">Recibir Avisos Directos</h4>
+                    <p className="text-xs text-muted-foreground font-medium max-w-xs">
+                      Activa esta opción para recibir recordatorios de clases y anuncios importantes en tu dispositivo.
+                    </p>
                   </div>
                 </div>
-                <Switch checked={darkMode} onCheckedChange={setDarkMode} className="scale-125" />
+                <Switch 
+                  checked={notificationsEnabled} 
+                  onCheckedChange={handleToggleNotifications} 
+                  className="scale-125 data-[state=checked]:bg-accent" 
+                />
               </div>
+              
+              {!notificationsEnabled && (
+                <div className="flex items-start gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                  <Info className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-orange-700">Importante:</p>
+                    <p className="text-[11px] font-medium text-orange-600 leading-relaxed">
+                      Si has bloqueado las notificaciones anteriormente en tu navegador, deberás habilitarlas también desde los ajustes del sitio (icono de candado en la barra de direcciones) para que esta opción funcione.
+                    </p>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {/* SOPORTE Y AYUDA (PARA ALUMNOS Y PROFESORES) */}
+          {/* SOPORTE Y AYUDA */}
           {!isAdmin && (
             <Card className="rounded-[2.5rem] border-2 border-emerald-200 dark:border-emerald-900/30 shadow-md bg-white dark:bg-card overflow-hidden">
               <CardHeader className="bg-emerald-50 dark:bg-emerald-900/10 p-8 border-b">
@@ -342,7 +374,7 @@ export default function SettingsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-6">
-                <p className="text-sm text-muted-foreground font-medium">¿Tienes dudas sobre tus clases o el uso de la plataforma? Nuestro equipo está listo para ayudarte.</p>
+                <p className="text-sm text-muted-foreground font-medium">¿Tienes dudas sobre tus clases o el uso de la plataforma?</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Button 
                     asChild 
@@ -411,7 +443,7 @@ export default function SettingsPage() {
             </Card>
           )}
 
-          {/* ZONAS Y MÓDULOS (ADMIN ONLY) */}
+          {/* ZONAS Y POLÍTICAS (ADMIN ONLY) */}
           {isAdmin && (
             <>
               <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
