@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -108,7 +107,7 @@ export default function SettingsPage() {
   const [newZoneName, setNewZoneName] = useState('');
 
   // Notification Preference State
-  const [notificationsEnabled, setNotificationsEnabled] = useState(!!user?.fcmToken);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -138,7 +137,11 @@ export default function SettingsPage() {
   }, [settings]);
 
   useEffect(() => {
-    setNotificationsEnabled(!!user?.fcmToken);
+    // Solo sincronizar con la base de datos si existe una diferencia real
+    // para evitar el parpadeo visual durante la carga del token.
+    if (user?.fcmToken !== undefined) {
+      setNotificationsEnabled(!!user.fcmToken);
+    }
   }, [user?.fcmToken]);
 
   const isAdmin = user?.role === 'admin';
@@ -204,15 +207,14 @@ export default function SettingsPage() {
 
   const handleToggleNotifications = (val: boolean) => {
     setNotificationsEnabled(val);
+    
     if (val) {
-      // Activar: Disparar el evento que escucha PushNotificationManager
       errorEmitter.emit('request-notification-permission', undefined);
       toast({
         title: "Activando Notificaciones",
         description: "Se solicitará permiso a tu navegador para enviarte alertas.",
       });
     } else {
-      // Desactivar: Quitar el token del perfil en Firestore
       updateUser({ fcmToken: "" });
       toast({
         title: "Notificaciones Desactivadas",
