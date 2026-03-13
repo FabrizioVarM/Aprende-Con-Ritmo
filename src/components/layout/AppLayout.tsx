@@ -107,7 +107,7 @@ const NAV_ITEMS: NavItem[] = [
     enableKey: 'enablePostulations'
   },
   { label: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
-  { label: 'Configuración', href: '/settings', icon: Settings, roles: ['admin'] },
+  { label: 'Configuración', href: '/settings', icon: Settings, roles: ['student', 'teacher', 'admin'] },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -158,6 +158,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 fill 
                 className="object-cover"
                 data-ai-hint="academy logo"
+                priority
               />
             </div>
             <span className="text-xl font-extrabold text-foreground font-headline tracking-tight leading-tight">
@@ -418,6 +419,21 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 pathname === '/profile' ? "text-accent" : "text-muted-foreground"
               )} />
               Mi Perfil
+            </span>
+          </Link>
+
+          <Link href="/settings">
+            <span className={cn(
+              "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group cursor-pointer",
+              pathname === '/settings' 
+                ? "bg-secondary dark:bg-accent/20 text-secondary-foreground dark:text-accent font-semibold shadow-sm" 
+                : "text-muted-foreground hover:bg-primary/30 dark:hover:bg-slate-800 hover:text-foreground"
+            )}>
+              <Settings className={cn(
+                "w-5 h-5",
+                pathname === '/settings' ? "text-accent" : "text-muted-foreground"
+              )} />
+              Configuración
             </span>
           </Link>
         </div>
