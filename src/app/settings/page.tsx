@@ -181,6 +181,7 @@ export default function SettingsPage() {
   }, [allUsers, articles, resources, availabilities, completions, milestones, skills, isAdmin]);
 
   const handleSave = () => {
+    if (!isAdmin) return;
     updateSettings({ 
       appLogoUrl: logoUrl,
       whatsappNumber: whatsappNumber,
@@ -197,7 +198,7 @@ export default function SettingsPage() {
     });
     toast({
       title: "Configuración Guardada ✨",
-      description: isAdmin ? "Los cambios globales se han aplicado." : "Tus preferencias han sido actualizadas.",
+      description: "Los cambios globales se han aplicado correctamente.",
     });
   };
 
@@ -482,19 +483,20 @@ export default function SettingsPage() {
                     <Textarea value={termsContent} onChange={(e) => setTermsContent(e.target.value)} className="min-h-[300px] rounded-2xl border-2 font-bold p-6 focus:border-accent text-foreground bg-card text-sm leading-relaxed" />
                   </div>
                 </CardContent>
-              </Card>
-            </>
+              </>
           )}
         </div>
 
-        <div className="flex justify-end pt-4">
-          <Button 
-            onClick={handleSave}
-            className="bg-accent text-white rounded-2xl h-16 px-12 text-lg font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all gap-3"
-          >
-            <Save className="w-6 h-6" /> Guardar Todos los Cambios
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="flex justify-end pt-4">
+            <Button 
+              onClick={handleSave}
+              className="bg-accent text-white rounded-2xl h-16 px-12 text-lg font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all gap-3"
+            >
+              <Save className="w-6 h-6" /> Guardar Todos los Cambios
+            </Button>
+          </div>
+        )}
       </div>
     </AppLayout>
   );
