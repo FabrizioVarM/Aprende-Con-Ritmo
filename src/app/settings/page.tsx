@@ -60,7 +60,8 @@ import {
   MessageSquareMore,
   Settings,
   Bell,
-  BellRing
+  BellRing,
+  Globe
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -140,7 +141,6 @@ export default function SettingsPage() {
 
   useEffect(() => {
     // Solo sincronizar con la base de datos si no ha habido una interacción manual reciente.
-    // Esto evita que el botón "salte" a su estado anterior mientras se genera el token.
     const now = Date.now();
     if (user?.fcmToken !== undefined && (now - lastManualToggleTime.current > 4000)) {
       setNotificationsEnabled(!!user.fcmToken);
@@ -225,6 +225,14 @@ export default function SettingsPage() {
         description: "Ya no recibirás alertas en este dispositivo.",
       });
     }
+  };
+
+  const handleOpenInBrowser = () => {
+    window.open(window.location.origin + window.location.pathname, '_blank');
+    toast({
+      title: "Abriendo Navegador",
+      description: "Se ha abierto la aplicación en una pestaña nueva para facilitar los permisos.",
+    });
   };
 
   const addZone = () => {
@@ -338,23 +346,43 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-8 space-y-6">
-              <div className="flex items-center justify-between p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm">
-                    {notificationsEnabled ? <Bell className="w-6 h-6 text-accent animate-bounce" /> : <Bell className="w-6 h-6 text-muted-foreground" />}
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center justify-between p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm">
+                      {notificationsEnabled ? <Bell className="w-6 h-6 text-accent animate-bounce" /> : <Bell className="w-6 h-6 text-muted-foreground" />}
+                    </div>
+                    <div>
+                      <h4 className="font-black text-lg text-foreground">Recibir Avisos Directos</h4>
+                      <p className="text-xs text-muted-foreground font-medium max-w-xs">
+                        Activa esta opción para recibir recordatorios de clases y anuncios importantes en tu dispositivo.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-black text-lg text-foreground">Recibir Avisos Directos</h4>
-                    <p className="text-xs text-muted-foreground font-medium max-w-xs">
-                      Activa esta opción para recibir recordatorios de clases y anuncios importantes en tu dispositivo.
+                  <Switch 
+                    checked={notificationsEnabled} 
+                    onCheckedChange={handleToggleNotifications} 
+                    className="scale-125 data-[state=checked]:bg-accent" 
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 p-6 bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/20">
+                  <div className="flex-1 space-y-1">
+                    <h4 className="font-black text-sm text-foreground flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-accent" /> ¿Problemas con las notificaciones?
+                    </h4>
+                    <p className="text-xs text-muted-foreground font-medium leading-relaxed">
+                      Si estás en un iPhone o usando la app instalada y no puedes activar los avisos, pulsa el botón para abrir la app en una pestaña normal del navegador.
                     </p>
                   </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={handleOpenInBrowser}
+                    className="rounded-xl border-2 font-black gap-2 hover:bg-accent hover:text-white transition-all h-12 shrink-0"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Abrir en Navegador
+                  </Button>
                 </div>
-                <Switch 
-                  checked={notificationsEnabled} 
-                  onCheckedChange={handleToggleNotifications} 
-                  className="scale-125 data-[state=checked]:bg-accent" 
-                />
               </div>
               
               {!notificationsEnabled && (
