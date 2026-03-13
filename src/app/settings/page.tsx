@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -107,7 +108,8 @@ export default function SettingsPage() {
   const [newZoneName, setNewZoneName] = useState('');
 
   // Notification Preference State
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(!!user?.fcmToken);
+  const lastManualToggleTime = useRef<number>(0);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -137,9 +139,10 @@ export default function SettingsPage() {
   }, [settings]);
 
   useEffect(() => {
-    // Solo sincronizar con la base de datos si existe una diferencia real
-    // para evitar el parpadeo visual durante la carga del token.
-    if (user?.fcmToken !== undefined) {
+    // Solo sincronizar con la base de datos si no ha habido una interacción manual reciente.
+    // Esto evita que el botón "salte" a su estado anterior mientras se genera el token.
+    const now = Date.now();
+    if (user?.fcmToken !== undefined && (now - lastManualToggleTime.current > 4000)) {
       setNotificationsEnabled(!!user.fcmToken);
     }
   }, [user?.fcmToken]);
@@ -206,6 +209,7 @@ export default function SettingsPage() {
   };
 
   const handleToggleNotifications = (val: boolean) => {
+    lastManualToggleTime.current = Date.now();
     setNotificationsEnabled(val);
     
     if (val) {
