@@ -58,7 +58,8 @@ import {
   TrendingUp,
   Star,
   ExternalLink,
-  MessageSquareMore
+  MessageSquareMore,
+  Settings
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -72,6 +73,7 @@ import {
   DialogTrigger,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function SettingsPage() {
   const { user, allUsers, loading: authLoading } = useAuth();
