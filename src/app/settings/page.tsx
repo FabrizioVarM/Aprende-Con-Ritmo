@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -447,40 +446,37 @@ export default function SettingsPage() {
 
           {/* IDENTIDAD VISUAL (ADMIN ONLY) */}
           {isAdmin && (
-            <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
-              <CardHeader className="bg-primary/5 p-8 border-b">
-                <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
-                  <ImageIcon className="w-8 h-8 text-accent" />
-                  Identidad Visual
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                <div className="flex flex-col md:flex-row gap-10 items-center">
-                  <div className="space-y-4 text-center shrink-0">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Logo de la Academia</Label>
-                    <div className="relative w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-accent shadow-2xl mx-auto bg-white group">
-                      <Image src={getDirectImageUrl(logoUrl)} alt="Logo Preview" fill className="object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-white rounded-xl text-accent"><Upload className="w-5 h-5" /></button>
-                        <button onClick={generateRandomLogo} className="p-2 bg-white rounded-xl text-secondary-foreground"><RefreshCw className="w-5 h-5" /></button>
+            <>
+              <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
+                <CardHeader className="bg-primary/5 p-8 border-b">
+                  <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
+                    <ImageIcon className="w-8 h-8 text-accent" />
+                    Identidad Visual
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-8 space-y-8">
+                  <div className="flex flex-col md:flex-row gap-10 items-center">
+                    <div className="space-y-4 text-center shrink-0">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Logo de la Academia</Label>
+                      <div className="relative w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-accent shadow-2xl mx-auto bg-white group">
+                        <Image src={getDirectImageUrl(logoUrl)} alt="Logo Preview" fill className="object-cover" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-white rounded-xl text-accent"><Upload className="w-5 h-5" /></button>
+                          <button onClick={generateRandomLogo} className="p-2 bg-white rounded-xl text-secondary-foreground"><RefreshCw className="w-5 h-5" /></button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex-1 space-y-6 w-full">
-                    <div className="space-y-3">
-                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">URL del Logotipo</Label>
-                      <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} className="h-14 rounded-2xl border-2 font-bold px-6 focus:border-accent bg-card text-foreground" />
+                    <div className="flex-1 space-y-6 w-full">
+                      <div className="space-y-3">
+                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">URL del Logotipo</Label>
+                        <Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} className="h-14 rounded-2xl border-2 font-bold px-6 focus:border-accent bg-card text-foreground" />
+                      </div>
+                      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
                     </div>
-                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
 
-          {/* ZONAS Y POLÍTICAS (ADMIN ONLY) */}
-          {isAdmin && (
-            <>
               <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
                 <CardHeader className="bg-primary/5 p-8 border-b">
                   <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
@@ -532,6 +528,13 @@ export default function SettingsPage() {
             </Button>
           </div>
         )}
+
+        {/* Versión de la Aplicación */}
+        <div className="pt-8 pb-4 text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pointer-events-none select-none">
+            v2.1.5
+          </p>
+        </div>
       </div>
     </AppLayout>
   );
