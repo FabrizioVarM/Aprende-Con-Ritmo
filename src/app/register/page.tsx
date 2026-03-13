@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -316,7 +317,7 @@ export default function RegisterPage() {
                           <DialogDescription className="font-medium text-muted-foreground">Normas de convivencia y uso de la plataforma Aprende con Ritmo.</DialogDescription>
                         </DialogHeader>
                         
-                        <div className="flex-1 p-8 bg-card overflow-y-auto min-h-0 custom-scrollbar">
+                        <div className="flex-1 p-8 bg-card overflow-y-auto min-0 custom-scrollbar">
                           <div className="prose prose-sm max-w-none">
                             {renderFormattedTerms(settings.termsContent)}
                           </div>
@@ -360,7 +361,7 @@ export default function RegisterPage() {
 
       {/* Versión de la Aplicación */}
       <div className="absolute bottom-4 right-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pointer-events-none select-none">
-        v2.1.9
+        v2.1.10
       </div>
     </div>
   );

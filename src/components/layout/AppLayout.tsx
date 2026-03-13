@@ -107,7 +107,6 @@ const NAV_ITEMS: NavItem[] = [
     enableKey: 'enablePostulations'
   },
   { label: 'Usuarios', href: '/users', icon: Users, roles: ['admin'] },
-  { label: 'Configuración', href: '/settings', icon: Settings, roles: ['student', 'teacher', 'admin'] },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

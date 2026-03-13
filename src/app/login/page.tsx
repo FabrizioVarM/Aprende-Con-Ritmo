@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -215,7 +216,7 @@ export default function LoginPage() {
 
       {/* Versión de la Aplicación */}
       <div className="absolute bottom-4 right-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pointer-events-none select-none">
-        v2.1.9
+        v2.1.10
       </div>
     </div>
   );
