@@ -51,12 +51,22 @@ export function useRewardsStore() {
       snapshot.forEach(doc => list.push({ ...doc.data() as RewardItem, id: doc.id }));
       setRewards(list);
       setLoading(false);
+    }, (error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'rewards',
+        operation: 'list'
+      }));
     });
 
     const unsubRedemptions = onSnapshot(collection(db, 'redemptions'), (snapshot) => {
       const list: RewardRedemption[] = [];
       snapshot.forEach(doc => list.push({ ...doc.data() as RewardRedemption, id: doc.id }));
       setRedemptions(list);
+    }, (error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'redemptions',
+        operation: 'list'
+      }));
     });
 
     return () => {
