@@ -30,6 +30,34 @@
       },
       "required": ["id", "name", "email", "role"]
     },
+    "RewardItem": {
+      "title": "RewardItem",
+      "type": "object",
+      "description": "Ítem disponible en la tienda de recompensas.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "pointsCost": { "type": "number" },
+        "image": { "type": "string" },
+        "stock": { "type": "number" },
+        "category": { "type": "string", "enum": ["Descuento", "Accesorio", "Digital", "Especial"] },
+        "isEnabled": { "type": "boolean" }
+      }
+    },
+    "RewardRedemption": {
+      "title": "RewardRedemption",
+      "type": "object",
+      "description": "Registro de un canje realizado por un alumno.",
+      "properties": {
+        "id": { "type": "string" },
+        "rewardId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "pointsSpent": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "delivered", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
     "NewsArticle": {
       "title": "NewsArticle",
       "type": "object",
@@ -128,49 +156,6 @@
         "isEnabled": { "type": "boolean", "description": "Si el material está habilitado para su uso." },
         "assignedStudentIds": { "type": "array", "items": { "type": "string" }, "description": "IDs de alumnos específicos que pueden ver este material si no es global." }
       }
-    },
-    "AppSetting": {
-      "title": "AppSetting",
-      "type": "object",
-      "description": "Configuración global de identidad y canales.",
-      "properties": {
-        "appLogoUrl": { "type": "string" },
-        "darkMode": { "type": "boolean" },
-        "whatsappNumber": { "type": "string" },
-        "description": { "type": "string" },
-        "heroTitle": { "type": "string" },
-        "heroSubtitle": { "type": "string" },
-        "heroBadge": { "type": "string" },
-        "heroImages": { "type": "array", "items": { "type": "string" }, "description": "URLs de imágenes para el carrusel de fondo del hero." },
-        "showProduction": { "type": "boolean" },
-        "enableProduction": { "type": "boolean" },
-        "showRewards": { "type": "boolean" },
-        "enableRewards": { "type": "boolean" },
-        "showMarket": { "type": "boolean" },
-        "enableMarket": { "type": "boolean" },
-        "showPostulations": { "type": "boolean" },
-        "enablePostulations": { "type": "boolean" },
-        "zones": { "type": "array", "items": { "type": "string" }, "description": "Lista de zonas geográficas configurables por el admin." },
-        "newsSectionTitle": { "type": "string" },
-        "moduleMarketTitle": { "type": "string" },
-        "moduleMarketDesc": { "type": "string" },
-        "moduleProductionTitle": { "type": "string" },
-        "moduleProductionDesc": { "type": "string" },
-        "moduleRewardsTitle": { "type": "string" },
-        "moduleRewardsDesc": { "type": "string" },
-        "moduleFooterInfo": { "type": "string" },
-        "moduleSectionIcon": { "type": "string" },
-        "communityAds": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "imageUrl": { "type": "string" },
-              "isVisible": { "type": "boolean" }
-            }
-          }
-        }
-      }
     }
   },
   "auth": {
@@ -209,9 +194,13 @@
       "schema": { "$ref": "#/backend/entities/MusicResource" },
       "description": "Catálogo de contenidos de la academia."
     },
-    "/settings/{docId}": {
-      "schema": { "$ref": "#/backend/entities/AppSetting" },
-      "description": "Ajustes de sistema y biblioteca."
+    "/rewards/{rewardId}": {
+      "schema": { "$ref": "#/backend/entities/RewardItem" },
+      "description": "Catálogo de premios disponibles."
+    },
+    "/redemptions/{redemptionId}": {
+      "schema": { "$ref": "#/backend/entities/RewardRedemption" },
+      "description": "Historial de canjes realizados."
     }
   }
 }
