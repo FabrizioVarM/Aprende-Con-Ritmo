@@ -40,7 +40,6 @@ service cloud.firestore {
 
     match /news/{newsId} {
       allow read: if isSignedIn();
-      // Permite a cualquier usuario autenticado dar like (actualizar el campo likes)
       allow update: if isSignedIn(); 
       allow create, delete: if isAdmin();
     }
@@ -87,8 +86,9 @@ service cloud.firestore {
     }
     
     match /redemptions/{redemptionId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
+      // Alumnos pueden ver sus propios canjes, Admins todos.
+      allow read: if isSignedIn() && (isAdmin() || resource.data.studentId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
   }

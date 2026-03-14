@@ -16,6 +16,7 @@ import {
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useAuth } from './auth-store';
 
 export interface RewardItem {
   id: string;
@@ -42,10 +43,14 @@ export function useRewardsStore() {
   const [redemptions, setRedemptions] = useState<RewardRedemption[]>([]);
   const [loading, setLoading] = useState(true);
   const db = useFirestore();
+  const { user } = useAuth();
 
   useEffect(() => {
-    if (!db) return;
+    if (!db || !user) return;
 
+    const isAdmin = user.role === 'admin';
+
+    // 1. Escuchar catálogo de premios (Visible para todos)
     const unsubRewards = onSnapshot(collection(db, 'rewards'), (snapshot) => {
       const list: RewardItem[] = [];
       snapshot.forEach(doc => list.push({ ...doc.data() as RewardItem, id: doc.id }));
@@ -58,7 +63,12 @@ export function useRewardsStore() {
       }));
     });
 
-    const unsubRedemptions = onSnapshot(collection(db, 'redemptions'), (snapshot) => {
+    // 2. Escuchar canjes (Filtrado si es alumno por seguridad y reglas de Firestore)
+    const redemptionsQuery = isAdmin 
+      ? collection(db, 'redemptions') 
+      : query(collection(db, 'redemptions'), where('studentId', '==', user.id));
+
+    const unsubRedemptions = onSnapshot(redemptionsQuery, (snapshot) => {
       const list: RewardRedemption[] = [];
       snapshot.forEach(doc => list.push({ ...doc.data() as RewardRedemption, id: doc.id }));
       setRedemptions(list);
@@ -73,9 +83,10 @@ export function useRewardsStore() {
       unsubRewards();
       unsubRedemptions();
     };
-  }, [db]);
+  }, [db, user]);
 
   const addReward = useCallback(async (reward: Omit<RewardItem, 'id'>) => {
+    if (!db) return;
     const id = Math.random().toString(36).substring(7);
     const docRef = doc(db, 'rewards', id);
     return setDoc(docRef, { ...reward, id }).catch(err => {
@@ -88,6 +99,7 @@ export function useRewardsStore() {
   }, [db]);
 
   const updateReward = useCallback(async (id: string, updates: Partial<RewardItem>) => {
+    if (!db) return;
     const docRef = doc(db, 'rewards', id);
     return updateDoc(docRef, updates).catch(err => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -99,6 +111,7 @@ export function useRewardsStore() {
   }, [db]);
 
   const redeemReward = useCallback(async (rewardId: string, studentId: string, points: number) => {
+    if (!db) return;
     const id = Math.random().toString(36).substring(7);
     const docRef = doc(db, 'redemptions', id);
     const redemption: RewardRedemption = {
@@ -120,6 +133,7 @@ export function useRewardsStore() {
   }, [db]);
 
   const updateRedemptionStatus = useCallback(async (id: string, status: RewardRedemption['status']) => {
+    if (!db) return;
     const docRef = doc(db, 'redemptions', id);
     return updateDoc(docRef, { status }).catch(err => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
