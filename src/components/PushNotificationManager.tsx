@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect } from 'react';
@@ -40,9 +39,20 @@ export function PushNotificationManager() {
         const permission = await Notification.requestPermission();
         
         if (permission === 'granted') {
-          // Obtener el token del dispositivo.
-          // Nota: En algunos entornos de producción, getToken podría requerir un vapidKey.
-          const token = await getToken(messaging).catch(err => {
+          // Registro explícito del Service Worker para asegurar funcionamiento en segundo plano
+          let registration;
+          try {
+            registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+          } catch (swError) {
+            console.error("Error registrando Service Worker:", swError);
+          }
+
+          // Obtener el token del dispositivo vinculándolo al Service Worker
+          const token = await getToken(messaging, {
+            serviceWorkerRegistration: registration,
+            // Si usas una VAPID key en la consola de Firebase, deberías ponerla aquí:
+            // vapidKey: 'TU_VAPID_KEY_AQUI'
+          }).catch(err => {
             console.error("Error al obtener token FCM:", err);
             return null;
           });
@@ -54,7 +64,7 @@ export function PushNotificationManager() {
             
             toast({
               title: "¡Notificaciones Activas! 🔔",
-              description: "Recibirás avisos sobre tus clases directamente."
+              description: "Recibirás avisos sobre tus clases incluso con la app cerrada."
             });
           } else {
             toast({
