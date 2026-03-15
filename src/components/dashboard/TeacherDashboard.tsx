@@ -32,7 +32,7 @@ import { useCompletionStore } from '@/lib/completion-store';
 import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
-import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer, MapPin as MapPinIcon, Copy, ClipboardPaste, Sparkles, Settings } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer, MapPin as MapPinIcon, Copy, ClipboardPaste, Sparkles, Settings, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
