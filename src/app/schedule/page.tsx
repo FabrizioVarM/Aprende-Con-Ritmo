@@ -1413,8 +1413,8 @@ function ScheduleContent() {
                         <h2 className="text-2xl font-black text-foreground tracking-tight">Clases para Validar/Pasadas 👩‍🎓</h2>
                       </div>
                       <CollapsibleTrigger asChild>
-                        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-emerald-100/50 hover:bg-emerald-100 border-2 border-emerald-200 shadow-md transition-all group">
-                          <ChevronDown className={cn("h-7 w-7 text-emerald-600 transition-transform duration-300", isTeacherPastOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
+                        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-accent/10 hover:bg-accent/20 border-2 border-accent/20 shadow-md transition-all group">
+                          <ChevronDown className={cn("h-7 w-7 text-accent transition-transform duration-300", isTeacherPastOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                         </Button>
                       </CollapsibleTrigger>
                     </div>
@@ -1472,7 +1472,7 @@ function ScheduleContent() {
                           <div className="w-2 h-8 bg-primary rounded-full" />
                           <h2 className="text-2xl font-black text-foreground tracking-tight">Horarios Disponibles para este día 🎸</h2>
                         </div>
-                        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 shadow-md transition-all">
+                        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-accent/10 hover:bg-accent/20 border-2 border-accent/20 shadow-md transition-all group">
                           <ChevronDown className={cn("h-7 w-7 text-accent transition-transform duration-300", isAvailableSlotsOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                         </Button>
                       </div>
