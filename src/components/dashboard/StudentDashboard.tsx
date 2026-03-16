@@ -51,6 +51,8 @@ import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { cn } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { errorEmitter } from '@/firebase/error-emitter';
+import Image from 'next/image';
+import { getDirectImageUrl } from '@/lib/utils/images';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -888,7 +890,7 @@ export default function StudentDashboard() {
               <Clock className="w-4 h-4 text-accent" />
               TOTAL RESERVAS PENDIENTES
             </CardTitle>
-          </CardHeader>
+          </Header>
           <CardContent className="p-0">
             <div className="text-3xl sm:text-4xl font-black text-orange-900 dark:text-orange-300">{myUpcomingLessons.length}</div>
             <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold mt-0.5">Clases programadas</p>
@@ -971,8 +973,13 @@ export default function StudentDashboard() {
                   onClick={() => router.push(`/library?resourceId=${resource.id}`)}
                 >
                   <div className="flex gap-3 sm:gap-4 items-center min-w-0">
-                    <div className="bg-white dark:bg-slate-800 p-2 sm:p-4 rounded-3xl shadow-md border border-primary/10 shrink-0">
-                      <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
+                    <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border border-primary/10 shrink-0 bg-muted">
+                      <Image 
+                        src={getDirectImageUrl(typeof resource.img === 'string' ? resource.img : resource.img?.imageUrl) || "https://picsum.photos/seed/fallback/200/200"} 
+                        alt={resource.title}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                     <div className="min-w-0">
                       <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate group-hover:text-accent transition-colors">{resource.title}</div>
