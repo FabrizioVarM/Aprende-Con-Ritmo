@@ -1429,19 +1429,22 @@ function ScheduleContent() {
                         <h2 className="text-2xl font-black text-foreground tracking-tight">Horarios Disponibles 🎸</h2>
                       </div>
                       
-                      <Card className="rounded-2xl border-2 border-accent/20 p-1 pl-3 flex items-center gap-3 bg-card shadow-sm h-12 shrink-0">
-                        <UserIcon className="w-4 h-4 text-accent shrink-0" />
-                        <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
-                          <SelectTrigger className="w-40 h-full border-none font-black text-[10px] uppercase tracking-widest text-foreground focus:ring-0">
-                            <SelectValue placeholder="Elegir Profesor" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl">
-                            {teachersList.map(t => (
-                              <SelectItem key={t.id} value={t.id} className="font-bold text-xs">{t.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </Card>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden sm:block">Ver horarios de:</span>
+                        <Card className="rounded-2xl border-2 border-accent/20 p-1 pl-3 flex items-center gap-3 bg-card shadow-sm h-12 shrink-0">
+                          <UserIcon className="w-4 h-4 text-accent shrink-0" />
+                          <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                            <SelectTrigger className="w-40 h-full border-none font-black text-[10px] uppercase tracking-widest text-foreground focus:ring-0">
+                              <SelectValue placeholder="Elegir Profesor" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              {teachersList.map(t => (
+                                <SelectItem key={t.id} value={t.id} className="font-bold text-xs">{t.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Card>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
