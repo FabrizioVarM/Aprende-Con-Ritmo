@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -46,6 +45,8 @@ import { useCurriculumStore, CurriculumPlan, CurriculumStep } from '@/lib/curric
 import { useResourceStore } from '@/lib/resource-store';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useRouter } from 'next/navigation';
 
 const INSTRUMENTS_LIST = ['Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'];
 
@@ -54,6 +55,7 @@ export default function CurriculumPage() {
   const { curriculums, saveCurriculum, deleteCurriculum, loading } = useCurriculumStore();
   const { resources } = useResourceStore();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [selectedInstrument, setSelectedInstrument] = useState<string>(INSTRUMENTS_LIST[0]);
   const [isEditing, setIsEditing] = useState(false);
@@ -321,7 +323,7 @@ export default function CurriculumPage() {
               <div className="space-y-6">
                 <div className="flex items-center justify-between border-b pb-4">
                   <h3 className="font-black text-lg text-foreground uppercase tracking-widest flex items-center gap-2">
-                    <LayoutList className="w-5 h-5 text-accent" /> Pasos del Esquema
+                    <LayoutGrid className="w-5 h-5 text-accent" /> Pasos del Esquema
                   </h3>
                   <Button size="sm" variant="outline" onClick={addStep} className="rounded-xl border-2 h-10 font-black uppercase text-[10px]">
                     <Plus className="w-4 h-4 mr-1" /> Añadir Paso
