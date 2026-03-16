@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -29,6 +30,7 @@ import {
   Edit2, 
   Trash2, 
   ChevronRight, 
+  ChevronLeft,
   Clock, 
   CheckCircle2, 
   Link as LinkIcon, 
@@ -39,7 +41,11 @@ import {
   ChevronDown,
   ChevronUp,
   LayoutList,
-  LayoutGrid
+  LayoutGrid,
+  Sparkles,
+  FileText,
+  Target,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import { useCurriculumStore, CurriculumPlan, CurriculumStep } from '@/lib/curriculum-store';
@@ -61,6 +67,9 @@ export default function CurriculumPage() {
   const [selectedInstrument, setSelectedInstrument] = useState<string>(INSTRUMENTS_LIST[0]);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isMeshOpen, setIsMeshOpen] = useState(false);
+  const [viewingStep, setViewingStep] = useState<CurriculumStep | null>(null);
+  const [currentStepIdx, setCurrentStepIdx] = useState(0);
   
   const [editPlan, setEditPlan] = useState<Partial<CurriculumPlan>>({
     instrument: INSTRUMENTS_LIST[0],
@@ -72,6 +81,24 @@ export default function CurriculumPage() {
   const currentPlan = useMemo(() => 
     curriculums.find(c => c.instrument === selectedInstrument), 
   [curriculums, selectedInstrument]);
+
+  // Manejo de la línea interactiva (máximo 4 puntos visibles)
+  const visibleSteps = useMemo(() => {
+    if (!currentPlan) return [];
+    // Ventana deslizante centrada en currentStepIdx
+    let start = Math.max(0, currentStepIdx - 1);
+    let end = Math.min(currentPlan.steps.length, start + 4);
+    
+    // Ajustar si estamos al final para siempre mostrar 4 si es posible
+    if (end - start < 4 && start > 0) {
+      start = Math.max(0, end - 4);
+    }
+    
+    return currentPlan.steps.slice(start, end).map((step, i) => ({
+      ...step,
+      originalIndex: start + i
+    }));
+  }, [currentPlan, currentStepIdx]);
 
   const openCreate = () => {
     setEditPlan({
@@ -142,20 +169,77 @@ export default function CurriculumPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <h1 className="text-4xl font-black text-foreground font-headline tracking-tight flex items-center gap-3">
-              <BookOpenCheck className="w-10 h-10 text-accent" />
-              Plan de Estudios Estandarizado 📚
-            </h1>
-            <p className="text-muted-foreground mt-1 text-lg font-medium">Esquema académico para guiar el aprendizaje de todos los alumnos.</p>
+      <div className="space-y-12">
+        {/* Presentación de la Sección */}
+        <section className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-accent to-accent/80 p-8 md:p-12 text-white shadow-2xl shadow-accent/20">
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-8 space-y-6">
+              <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full border border-white/30 backdrop-blur-md">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Guía Docente Maestra</span>
+              </div>
+              <h1 className="text-4xl md:text-6xl font-black font-headline tracking-tight leading-none">
+                Plan de Estudios <br /> <span className="text-secondary">Estandarizado</span>
+              </h1>
+              <p className="text-lg md:text-xl font-medium text-white/90 max-w-2xl leading-relaxed">
+                Bienvenido al núcleo académico de Aprende con Ritmo. Aquí encontrarás la ruta estructurada que garantiza que cada alumno, sin importar su profesor, reciba una formación técnica y musical de excelencia.
+              </p>
+              <div className="flex flex-wrap gap-4 pt-4">
+                <div className="flex items-center gap-3 bg-black/10 p-4 rounded-2xl border border-white/10">
+                  <CheckCircle2 className="w-6 h-6 text-secondary" />
+                  <p className="text-sm font-bold">Base Técnica Uniforme</p>
+                </div>
+                <div className="flex items-center gap-3 bg-black/10 p-4 rounded-2xl border border-white/10">
+                  <Target className="w-6 h-6 text-secondary" />
+                  <p className="text-sm font-bold">Objetivos Claros</p>
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-4 hidden lg:flex justify-center">
+              <BookOpenCheck className="w-48 h-48 text-white/20 animate-pulse" />
+            </div>
+          </div>
+        </section>
+
+        {/* Botones de Malla Curricular y Selector */}
+        <div className="flex flex-col lg:flex-row justify-between items-center gap-8 px-4">
+          <div className="flex flex-wrap justify-center lg:justify-start gap-3 flex-1">
+            {INSTRUMENTS_LIST.map(inst => (
+              <Button
+                key={inst}
+                variant="outline"
+                className={cn(
+                  "rounded-2xl h-14 px-6 font-black border-2 transition-all gap-2",
+                  selectedInstrument === inst 
+                    ? "bg-accent border-accent text-white shadow-lg scale-105" 
+                    : "border-primary/20 hover:border-accent/40 text-muted-foreground"
+                )}
+                onClick={() => {
+                  setSelectedInstrument(inst);
+                  setCurrentStepIdx(0);
+                }}
+              >
+                <LayoutList className="w-4 h-4" />
+                Malla de {inst}
+              </Button>
+            ))}
+            <Button 
+              className="rounded-2xl h-14 px-8 bg-white dark:bg-slate-800 border-2 border-accent text-accent font-black gap-2 hover:bg-accent hover:text-white transition-all shadow-md"
+              onClick={() => setIsMeshOpen(true)}
+            >
+              <FileText className="w-5 h-5" /> Ver Versión Escrita
+            </Button>
           </div>
 
-          <div className="flex gap-2 w-full md:w-auto">
-            <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-              <SelectTrigger className="h-14 rounded-2xl border-2 font-black bg-card shadow-sm w-full md:w-64">
-                <SelectValue placeholder="Instrumento" />
+          <div className="shrink-0 space-y-2">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">Filtrar para Línea Interactiva</Label>
+            <Select value={selectedInstrument} onValueChange={(v) => {
+              setSelectedInstrument(v);
+              setCurrentStepIdx(0);
+            }}>
+              <SelectTrigger className="h-14 rounded-2xl border-2 font-black bg-card shadow-sm w-full lg:w-64 focus:ring-accent">
+                <SelectValue placeholder="Elegir Instrumento" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl">
                 {INSTRUMENTS_LIST.map(inst => (
@@ -163,133 +247,250 @@ export default function CurriculumPage() {
                 ))}
               </SelectContent>
             </Select>
-            {isAdmin && currentPlan && (
-              <Button onClick={openEdit} size="icon" className="h-14 w-14 rounded-2xl bg-accent text-white shadow-lg shrink-0">
-                <Edit2 className="w-6 h-6" />
-              </Button>
-            )}
           </div>
         </div>
 
-        {loading ? (
-          <div className="py-20 text-center"><div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto" /></div>
-        ) : currentPlan ? (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-4 space-y-6">
-              <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-card overflow-hidden">
-                <CardHeader className="bg-primary/5 p-8 border-b">
-                  <div className="flex items-center justify-between">
-                    <Badge className="bg-accent text-white rounded-full font-black px-4 py-1 border-none shadow-sm uppercase text-[10px]">
-                      {selectedInstrument}
-                    </Badge>
-                    <span className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{currentPlan.steps.length} Pasos</span>
-                  </div>
-                  <CardTitle className="text-2xl font-black mt-4">Guía Académica</CardTitle>
-                </CardHeader>
-                <CardContent className="p-8">
-                  <p className="text-sm font-medium text-muted-foreground leading-relaxed italic">
-                    "{currentPlan.description}"
-                  </p>
-                  <div className="mt-8 p-6 bg-blue-50 dark:bg-blue-950/20 rounded-[2rem] border-2 border-blue-100 dark:border-blue-900/30 flex gap-4 items-start">
-                    <Info className="w-6 h-6 text-blue-600 shrink-0" />
-                    <p className="text-xs font-bold text-blue-800 dark:text-blue-300 leading-relaxed">
-                      Sigue este esquema con tus alumnos para asegurar una base técnica uniforme. La duración de cada paso es referencial.
-                    </p>
-                  </div>
-                </CardContent>
-                {isAdmin && (
-                  <CardFooter className="p-6 bg-muted/30 border-t flex gap-2">
-                    <Button variant="outline" className="flex-1 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 font-black h-12" onClick={() => setIsDeleting(true)}>
-                      <Trash2 className="w-4 h-4 mr-2" /> Eliminar Plan
-                    </Button>
-                  </CardFooter>
-                )}
-              </Card>
+        {/* Línea de Tiempo Interactiva */}
+        <section className="space-y-8 px-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-8 bg-accent rounded-full" />
+              <h2 className="text-2xl font-black text-foreground">Ruta de Aprendizaje Interactiva: {selectedInstrument}</h2>
             </div>
-
-            <div className="lg:col-span-8 space-y-6">
-              <div className="flex items-center gap-3 px-2">
-                <div className="w-2 h-8 bg-accent rounded-full" />
-                <h2 className="text-2xl font-black text-foreground">Ruta de Aprendizaje</h2>
+            {isAdmin && currentPlan && (
+              <div className="flex gap-2">
+                <Button onClick={openEdit} size="icon" className="h-12 w-12 rounded-xl bg-accent text-white shadow-lg">
+                  <Edit2 className="w-5 h-5" />
+                </Button>
+                <Button onClick={() => setIsDeleting(true)} size="icon" variant="outline" className="h-12 w-12 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10">
+                  <Trash2 className="w-5 h-5" />
+                </Button>
               </div>
+            )}
+          </div>
 
-              <div className="space-y-4">
-                {currentPlan.steps.map((step, idx) => {
-                  const resource = resources.find(r => r.id === step.resourceId);
+          {loading ? (
+            <div className="py-20 text-center"><div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto" /></div>
+          ) : currentPlan && currentPlan.steps.length > 0 ? (
+            <div className="relative pt-10 pb-20">
+              {/* Línea conectora de fondo */}
+              <div className="absolute top-1/2 left-0 w-full h-1 bg-muted -translate-y-1/2 z-0 rounded-full" />
+              <div 
+                className="absolute top-1/2 left-0 h-1 bg-accent -translate-y-1/2 z-0 rounded-full transition-all duration-700" 
+                style={{ width: `${(currentStepIdx / (currentPlan.steps.length - 1)) * 100}%` }}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
+                {visibleSteps.map((step, i) => {
+                  const isCompleted = step.originalIndex < currentStepIdx;
+                  const isCurrent = step.originalIndex === currentStepIdx;
+                  const isFuture = step.originalIndex > currentStepIdx;
+
                   return (
-                    <div key={idx} className="flex gap-6 group">
-                      <div className="flex flex-col items-center shrink-0">
-                        <div className="w-12 h-12 rounded-2xl bg-card border-2 border-accent/20 shadow-md flex items-center justify-center font-black text-accent text-xl relative z-10 group-hover:scale-110 transition-transform group-hover:bg-accent group-hover:text-white group-hover:border-accent">
-                          {idx + 1}
-                        </div>
-                        {idx < currentPlan.steps.length - 1 && <div className="w-1 flex-1 bg-accent/10 my-2 rounded-full" />}
+                    <div 
+                      key={i} 
+                      className={cn(
+                        "flex flex-col items-center text-center space-y-6 transition-all duration-500 cursor-pointer group",
+                        isCompleted && "opacity-40 scale-90 hover:opacity-100",
+                        isFuture && "opacity-60 grayscale-[0.5] hover:grayscale-0 hover:opacity-100"
+                      )}
+                      onClick={() => {
+                        setViewingStep(step);
+                        setCurrentStepIdx(step.originalIndex);
+                      }}
+                    >
+                      <div className={cn(
+                        "w-20 h-20 rounded-[2rem] flex items-center justify-center text-2xl font-black shadow-xl transition-all duration-500 group-hover:scale-110",
+                        isCurrent 
+                          ? "bg-accent text-white ring-8 ring-accent/20 scale-110" 
+                          : isCompleted 
+                            ? "bg-emerald-500 text-white" 
+                            : "bg-white dark:bg-slate-800 text-muted-foreground border-4 border-primary/10"
+                      )}>
+                        {isCompleted ? <CheckCircle2 className="w-10 h-10" /> : step.originalIndex + 1}
                       </div>
                       
-                      <Card className="flex-1 rounded-[2rem] border-2 border-primary/10 shadow-sm bg-card hover:border-accent/30 transition-all">
-                        <CardContent className="p-6 sm:p-8 space-y-4">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <h3 className="text-xl font-black text-foreground">{step.title}</h3>
-                            <div className="flex items-center gap-2 bg-primary/5 px-4 py-1.5 rounded-full border border-primary/10 shrink-0">
-                              <Clock className="w-3.5 h-3.5 text-accent" />
-                              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Duración: {step.durationClasses} {step.durationClasses === 1 ? 'Clase' : 'Clases'}</span>
-                            </div>
-                          </div>
-                          
-                          <p className="text-sm font-medium text-muted-foreground leading-relaxed">
-                            {step.explanation}
-                          </p>
-
-                          {resource && (
-                            <div className="pt-4 border-t border-primary/5">
-                              <Button 
-                                variant="ghost" 
-                                className="h-auto p-4 rounded-2xl bg-accent/5 border border-accent/10 hover:bg-accent/10 w-full justify-between group/res"
-                                onClick={() => router.push(`/library?resourceId=${resource.id}`)}
-                              >
-                                <div className="flex items-center gap-4">
-                                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-accent shadow-sm">
-                                    <LinkIcon className="w-5 h-5" />
-                                  </div>
-                                  <div className="text-left">
-                                    <p className="text-[9px] font-black uppercase text-accent tracking-widest">Recurso de Apoyo</p>
-                                    <p className="text-xs font-bold text-foreground truncate max-w-[200px]">{resource.title}</p>
-                                  </div>
-                                </div>
-                                <ChevronRight className="w-5 h-5 text-accent group-hover/res:translate-x-1 transition-transform" />
-                              </Button>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
+                      <div className="space-y-2">
+                        <h3 className={cn(
+                          "font-black text-lg leading-tight",
+                          isCurrent ? "text-accent" : "text-foreground"
+                        )}>
+                          {step.title}
+                        </h3>
+                        <Badge variant="secondary" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                          {step.durationClasses} {step.durationClasses === 1 ? 'Clase' : 'Clases'}
+                        </Badge>
+                      </div>
                     </div>
                   );
                 })}
               </div>
+
+              {/* Controles de Navegación del Timeline */}
+              <div className="flex justify-center gap-4 mt-12">
+                <Button 
+                  variant="outline" 
+                  disabled={currentStepIdx === 0}
+                  className="rounded-full w-14 h-14 border-2"
+                  onClick={() => setCurrentStepIdx(prev => Math.max(0, prev - 1))}
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  disabled={currentStepIdx === currentPlan.steps.length - 1}
+                  className="rounded-full w-14 h-14 border-2"
+                  onClick={() => setCurrentStepIdx(prev => Math.min(currentPlan.steps.length - 1, prev + 1))}
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </Button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="py-20 text-center bg-primary/5 rounded-[3rem] border-4 border-dashed border-primary/10 space-y-6">
-            <LayoutList className="w-20 h-20 text-muted-foreground/20 mx-auto" />
-            <div>
-              <h3 className="text-2xl font-black text-foreground">No hay plan para {selectedInstrument}</h3>
-              <p className="text-muted-foreground font-bold italic mt-2">Aún no se ha estandarizado la currícula para este instrumento.</p>
+          ) : (
+            <div className="py-20 text-center bg-primary/5 rounded-[3rem] border-4 border-dashed border-primary/10 space-y-6">
+              <LayoutList className="w-20 h-20 text-muted-foreground/20 mx-auto" />
+              <div>
+                <h3 className="text-2xl font-black text-foreground">No hay plan para {selectedInstrument}</h3>
+                <p className="text-muted-foreground font-bold italic mt-2">Aún no se ha estandarizado la currícula para este instrumento.</p>
+              </div>
+              {isAdmin && (
+                <Button onClick={openCreate} className="bg-accent text-white rounded-2xl h-14 px-10 font-black shadow-xl shadow-accent/20 gap-2">
+                  <Plus className="w-5 h-5" /> Crear Primer Plan
+                </Button>
+              )}
             </div>
-            {isAdmin && (
-              <Button onClick={openCreate} className="bg-accent text-white rounded-2xl h-14 px-10 font-black shadow-xl shadow-accent/20 gap-2">
-                <Plus className="w-5 h-5" /> Crear Primer Plan
-              </Button>
-            )}
-          </div>
-        )}
+          )}
+        </section>
       </div>
 
-      {/* Admin: Modal de Edición de Plan */}
+      {/* MODAL: DETALLES DEL PASO (INTERACTIVO) */}
+      <Dialog open={!!viewingStep} onOpenChange={(open) => !open && setViewingStep(null)}>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+          {viewingStep && (
+            <>
+              <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-accent text-white rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-none">
+                    Paso {currentPlan?.steps.findIndex(s => s.title === viewingStep.title)! + 1}
+                  </Badge>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> Duración: {viewingStep.durationClasses} Sesiones
+                  </span>
+                </div>
+                <DialogTitle className="text-3xl font-black text-foreground leading-tight">
+                  {viewingStep.title}
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-card">
+                <div className="space-y-4">
+                  <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Info className="w-4 h-4 text-accent" /> Guía para el Profesor
+                  </h4>
+                  <div className="p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10">
+                    <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap italic">
+                      "{viewingStep.explanation}"
+                    </p>
+                  </div>
+                </div>
+
+                {viewingStep.resourceId && (
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <LinkIcon className="w-4 h-4 text-accent" /> Material de Apoyo
+                    </h4>
+                    {resources.find(r => r.id === viewingStep.resourceId) ? (
+                      <Card className="rounded-[2rem] border-2 border-accent/20 bg-accent/5 hover:border-accent/40 transition-all cursor-pointer overflow-hidden group" onClick={() => router.push(`/library?resourceId=${viewingStep.resourceId}`)}>
+                        <div className="p-6 flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-accent shadow-md group-hover:scale-110 transition-transform">
+                              <BookOpenCheck className="w-8 h-8" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-black text-accent uppercase tracking-widest">Recurso Vinculado</p>
+                              <p className="text-lg font-black text-foreground">{resources.find(r => r.id === viewingStep.resourceId)?.title}</p>
+                            </div>
+                          </div>
+                          <ArrowRight className="w-6 h-6 text-accent group-hover:translate-x-2 transition-transform" />
+                        </div>
+                      </Card>
+                    ) : (
+                      <div className="p-4 bg-muted/20 rounded-2xl text-center italic text-xs text-muted-foreground">
+                        El recurso vinculado ya no existe en la biblioteca.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter className="p-6 bg-muted/30 border-t">
+                <Button className="w-full bg-accent text-white rounded-2xl h-14 font-black shadow-lg shadow-accent/20" onClick={() => setViewingStep(null)}>
+                  Entendido, ¡A clase!
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* MODAL: MALLA CURRICULAR (VERSIÓN ESCRITA) */}
+      <Dialog open={isMeshOpen} onOpenChange={setIsMeshOpen}>
+        <DialogContent className="rounded-[3rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[85vh]">
+          <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+            <DialogTitle className="text-3xl font-black text-foreground flex items-center gap-3">
+              <LayoutList className="w-8 h-8 text-accent" />
+              Malla Curricular: {selectedInstrument}
+            </DialogTitle>
+            <DialogDescription className="font-medium text-muted-foreground">Vista panorámica de todos los pasos académicos del instrumento.</DialogDescription>
+          </DialogHeader>
+          
+          <ScrollArea className="flex-1 bg-card">
+            <div className="p-8 space-y-6">
+              <div className="p-6 bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/20 mb-8">
+                <p className="text-sm font-bold text-accent italic leading-relaxed text-center">
+                  "{currentPlan?.description}"
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                {currentPlan?.steps.map((step, idx) => (
+                  <div key={idx} className="flex gap-6 items-start">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-black text-accent shrink-0 shadow-sm">
+                      {idx + 1}
+                    </div>
+                    <div className="flex-1 space-y-2 pb-6 border-b border-primary/5 last:border-0">
+                      <h4 className="font-black text-lg text-foreground">{step.title}</h4>
+                      <p className="text-xs font-medium text-muted-foreground leading-relaxed">{step.explanation}</p>
+                      <div className="flex gap-3 pt-2">
+                        <Badge variant="outline" className="rounded-lg text-[10px] font-black uppercase px-2 py-0.5 border-primary/20">
+                          {step.durationClasses} Clases
+                        </Badge>
+                        {step.resourceId && (
+                          <Badge variant="outline" className="rounded-lg text-[10px] font-black uppercase px-2 py-0.5 border-accent/20 text-accent">
+                            Recurso Enlazado
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </ScrollArea>
+
+          <DialogFooter className="p-6 bg-muted/30 border-t shrink-0">
+            <Button variant="outline" onClick={() => setIsMeshOpen(false)} className="w-full rounded-2xl h-12 font-black border-2">Cerrar Malla</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin: Modal de Configuración Global */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[90vh]">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
               <GraduationCap className="w-8 h-8 text-accent" />
-              Configurar Plan de Estudios
+              Configurar Plan Maestro
             </DialogTitle>
             <DialogDescription className="font-medium text-muted-foreground">Define la ruta académica paso a paso para {editPlan.instrument}.</DialogDescription>
           </DialogHeader>
@@ -380,11 +581,6 @@ export default function CurriculumPage() {
                       </CardContent>
                     </Card>
                   ))}
-                  {editPlan.steps?.length === 0 && (
-                    <div className="py-10 text-center bg-muted/20 rounded-3xl border-2 border-dashed">
-                      <p className="text-xs font-bold text-muted-foreground">No has añadido pasos todavía.</p>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
