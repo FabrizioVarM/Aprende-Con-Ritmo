@@ -24,7 +24,8 @@ import {
   Trash2,
   CheckCircle2,
   Clock,
-  Search
+  Search,
+  BookOpenCheck
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
 import { useSettingsStore, AppSettings } from '@/lib/settings-store';
@@ -74,6 +75,14 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Horario', href: '/schedule', icon: Calendar, roles: ['student', 'teacher', 'admin'] },
   { label: 'Biblioteca', href: '/library', icon: Library, roles: ['student', 'teacher', 'admin'] },
   { label: 'Progreso', href: '/progress', icon: TrendingUp, roles: ['student', 'teacher', 'admin'] },
+  { 
+    label: 'Plan de Estudios', 
+    href: '/curriculum', 
+    icon: BookOpenCheck, 
+    roles: ['teacher', 'admin'],
+    showKey: 'showCurriculum',
+    enableKey: 'enableCurriculum'
+  },
   { 
     label: 'Producción Musical', 
     href: '/production', 

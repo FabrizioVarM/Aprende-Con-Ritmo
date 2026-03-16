@@ -61,7 +61,8 @@ import {
   Settings,
   Bell,
   BellRing,
-  Globe
+  Globe,
+  BookOpenCheck
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -103,6 +104,8 @@ export default function SettingsPage() {
   const [enableMark, setEnableMarket] = useState(settings.enableMarket);
   const [showPost, setShowPost] = useState(settings.showPostulations);
   const [enablePost, setEnablePost] = useState(settings.enablePostulations);
+  const [showCurr, setShowCurr] = useState(settings.showCurriculum);
+  const [enableCurr, setEnableCurr] = useState(settings.enableCurriculum);
 
   // Dynamic Zones State
   const [localZones, setLocalZones] = useState<string[]>(settings.zones || []);
@@ -135,6 +138,8 @@ export default function SettingsPage() {
     setEnableMarket(settings.enableMarket);
     setShowPost(settings.showPostulations);
     setEnablePost(settings.enablePostulations);
+    setShowCurr(settings.showCurriculum);
+    setEnableCurr(settings.enableCurriculum);
     setLocalZones(settings.zones || []);
     setTermsContent(settings.termsContent || '');
   }, [settings]);
@@ -199,6 +204,8 @@ export default function SettingsPage() {
       enableMarket: enableMark,
       showPostulations: showPost,
       enablePostulations: enablePost,
+      showCurriculum: showCurr,
+      enableCurriculum: enableCurr,
       zones: localZones,
       termsContent: termsContent
     });
@@ -331,6 +338,93 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     <Progress value={quotaStats.docs.percent} className="h-3 rounded-full bg-primary/10" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* GESTIÓN DE MÓDULOS (ADMIN ONLY) */}
+          {isAdmin && (
+            <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
+              <CardHeader className="bg-primary/5 p-8 border-b">
+                <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
+                  <LayoutGrid className="w-8 h-8 text-accent" />
+                  Gestión de Módulos y Visibilidad
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Curriculum */}
+                  <div className="p-6 rounded-[2rem] border-2 border-primary/10 bg-primary/5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <BookOpenCheck className="w-6 h-6 text-accent" />
+                        <h4 className="font-black text-lg text-foreground">Plan de Estudios</h4>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                        <Switch checked={showCurr} onCheckedChange={setShowCurr} className="data-[state=checked]:bg-accent" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-primary/10">
+                      <span className="text-xs font-bold text-muted-foreground">Habilitar Funciones</span>
+                      <Switch checked={enableCurr} onCheckedChange={setEnableCurr} className="data-[state=checked]:bg-accent" />
+                    </div>
+                  </div>
+
+                  {/* Rewards */}
+                  <div className="p-6 rounded-[2rem] border-2 border-primary/10 bg-primary/5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Gift className="w-6 h-6 text-accent" />
+                        <h4 className="font-black text-lg text-foreground">Recompensas</h4>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                        <Switch checked={showRew} onCheckedChange={setShowRew} className="data-[state=checked]:bg-accent" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-primary/10">
+                      <span className="text-xs font-bold text-muted-foreground">Habilitar Funciones</span>
+                      <Switch checked={enableRew} onCheckedChange={setEnableRew} className="data-[state=checked]:bg-accent" />
+                    </div>
+                  </div>
+
+                  {/* Market */}
+                  <div className="p-6 rounded-[2rem] border-2 border-primary/10 bg-primary/5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <ShoppingBag className="w-6 h-6 text-accent" />
+                        <h4 className="font-black text-lg text-foreground">RitmoMarket</h4>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                        <Switch checked={showMark} onCheckedChange={setShowMark} className="data-[state=checked]:bg-accent" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-primary/10">
+                      <span className="text-xs font-bold text-muted-foreground">Habilitar Funciones</span>
+                      <Switch checked={enableMark} onCheckedChange={setEnableMarket} className="data-[state=checked]:bg-accent" />
+                    </div>
+                  </div>
+
+                  {/* Production */}
+                  <div className="p-6 rounded-[2rem] border-2 border-primary/10 bg-primary/5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Mic2 className="w-6 h-6 text-accent" />
+                        <h4 className="font-black text-lg text-foreground">Producción</h4>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-4 h-4 text-muted-foreground" />
+                        <Switch checked={showProd} onCheckedChange={setShowProd} className="data-[state=checked]:bg-accent" />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-primary/10">
+                      <span className="text-xs font-bold text-muted-foreground">Habilitar Funciones</span>
+                      <Switch checked={enableProd} onCheckedChange={setEnableProd} className="data-[state=checked]:bg-accent" />
+                    </div>
                   </div>
                 </div>
               </CardContent>

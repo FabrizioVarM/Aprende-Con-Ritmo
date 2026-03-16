@@ -36,6 +36,8 @@ export interface AppSettings {
   enableMarket: boolean;
   showPostulations: boolean;
   enablePostulations: boolean;
+  showCurriculum: boolean;
+  enableCurriculum: boolean;
   // Zonas configurables
   zones: string[];
   // Campos de texto para el inicio
@@ -85,6 +87,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   enableMarket: false,
   showPostulations: true,
   enablePostulations: false,
+  showCurriculum: false, // Oculto por defecto hasta terminarlo
+  enableCurriculum: false,
   zones: FALLBACK_ZONES,
   heroTitle: 'Tu aventura musical continúa aquí 🎼',
   heroSubtitle: 'Explora las últimas noticias, eventos y actualizaciones de Aprende con Ritmo.',
