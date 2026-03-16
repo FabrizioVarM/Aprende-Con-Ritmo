@@ -1,7 +1,8 @@
+
 "use client"
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -83,6 +84,7 @@ function LibraryContent() {
   } = useResourceStore();
   const { toast } = useToast();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const targetResourceId = searchParams.get('resourceId');
   
   const [isMounted, setIsMounted] = useState(false);
@@ -95,6 +97,9 @@ function LibraryContent() {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tempDescription, setTempDescription] = useState(libraryDescription);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  
+  // Estado para rastrear qué recurso ya se abrió automáticamente para evitar bucles
+  const [autoOpenedId, setAutoOpenedId] = useState<string | null>(null);
 
   // Helper local states for UI toggles in forms
   const [enableDownloadInForm, setEnableDownloadInForm] = useState(true);
@@ -125,15 +130,16 @@ function LibraryContent() {
     setIsMounted(true);
   }, []);
 
-  // Lógica para abrir automáticamente un recurso si viene por URL
+  // Lógica para abrir automáticamente un recurso si viene por URL (ej: recomendado)
   useEffect(() => {
-    if (isMounted && targetResourceId && resources.length > 0 && !viewingResource) {
+    if (isMounted && targetResourceId && resources.length > 0 && targetResourceId !== autoOpenedId) {
       const res = resources.find(r => String(r.id) === targetResourceId);
       if (res) {
         setViewingResource(res);
+        setAutoOpenedId(targetResourceId);
       }
     }
-  }, [isMounted, targetResourceId, resources, viewingResource]);
+  }, [isMounted, targetResourceId, resources, autoOpenedId]);
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
@@ -276,6 +282,17 @@ function LibraryContent() {
       return direct;
     }
     return fallback;
+  };
+
+  const closeViewingResource = () => {
+    setViewingResource(null);
+    // Limpiamos los parámetros de búsqueda de la URL para evitar que se vuelva a abrir automáticamente
+    const params = new URLSearchParams(searchParams.toString());
+    if (params.has('resourceId')) {
+      params.delete('resourceId');
+      const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
+      router.replace(newUrl, { scroll: false });
+    }
   };
 
   if (!isMounted || loading || !user) return null;
@@ -665,7 +682,7 @@ function LibraryContent() {
       </div>
 
       {/* DIÁLOGO: VISTA DE DETALLES DEL MATERIAL */}
-      <Dialog open={!!viewingResource} onOpenChange={(open) => !open && setViewingResource(null)}>
+      <Dialog open={!!viewingResource} onOpenChange={(open) => !open && closeViewingResource()}>
         <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
           {viewingResource && (
             <>
@@ -805,7 +822,7 @@ function LibraryContent() {
                 <Button 
                   variant="outline" 
                   className="rounded-2xl h-12 font-black sm:w-32"
-                  onClick={() => setViewingResource(null)}
+                  onClick={closeViewingResource}
                 >
                   Cerrar
                 </Button>
