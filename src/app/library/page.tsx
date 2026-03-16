@@ -199,6 +199,8 @@ function LibraryContent() {
   };
 
   const toggleLevelFilter = (lvl: number) => {
+    // Solo permitir seleccionar un nivel a la vez. 
+    // Para ver todos, el usuario debe deseleccionar el activo o limpiar.
     setSelectedLevels(prev => 
       prev.includes(lvl) ? [] : [lvl]
     );
@@ -551,7 +553,7 @@ function LibraryContent() {
                   </div>
 
                   {canManage && (
-                    <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+                    <div className="absolute top-16 right-4 flex flex-col gap-2 items-end">
                       <Button 
                         size="icon" 
                         variant="secondary" 
@@ -586,8 +588,8 @@ function LibraryContent() {
                         </p>
                       )}
                     </div>
-                    <Badge className={cn("border-none px-3 py-1 rounded-full font-black text-[9px] uppercase tracking-widest shadow-sm shrink-0", levelStyle.bg, levelStyle.text)}>
-                      Nivel {res.level || 1}
+                    <Badge className={cn("border-none w-9 h-9 rounded-full font-black text-xs shadow-sm shrink-0 flex items-center justify-center p-0", levelStyle.bg, levelStyle.text)}>
+                      {res.level || 1}
                     </Badge>
                   </div>
                   <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[2.5rem] line-clamp-2 text-foreground font-headline">
@@ -770,8 +772,8 @@ function LibraryContent() {
                     <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
                       {viewingResource.category}
                     </Badge>
-                    <Badge className={cn("border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit", LEVEL_STYLE[viewingResource.level || 1]?.bg, LEVEL_STYLE[viewingResource.level || 1]?.text)}>
-                      Nivel {viewingResource.level || 1}
+                    <Badge className={cn("border-none w-10 h-10 rounded-full font-black text-sm shadow-lg shrink-0 flex items-center justify-center p-0", LEVEL_STYLE[viewingResource.level || 1]?.bg, LEVEL_STYLE[viewingResource.level || 1]?.text)}>
+                      {viewingResource.level || 1}
                     </Badge>
                   </div>
                   <div className="space-y-1">
