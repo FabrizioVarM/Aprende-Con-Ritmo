@@ -144,6 +144,7 @@
         "id": { "type": "number" },
         "title": { "type": "string" },
         "category": { "type": "string" },
+        "level": { "type": "number", "description": "Nivel de dificultad del recurso (1 a 5)." },
         "type": { "type": "string" },
         "length": { "type": "string" },
         "description": { "type": "string", "description": "Descripción detallada del material." },

@@ -6,6 +6,7 @@ export interface Resource {
   id: number;
   title: string;
   category: string;
+  level: number;
   type: string;
   icon?: any; 
   img: {
@@ -28,6 +29,7 @@ export const INITIAL_RESOURCES: Resource[] = [
     id: 1, 
     title: 'Nivel 1 - Acordes Básicos 1 - Acordes Mayores', 
     category: 'Guitarra', 
+    level: 1,
     type: 'PDF', 
     img: { imageUrl: "https://picsum.photos/seed/guitar1/600/400", imageHint: "guitar music" }, 
     length: '12 págs',
@@ -44,6 +46,7 @@ export const INITIAL_RESOURCES: Resource[] = [
     id: 2, 
     title: 'Masterclass de Escalas de Piano', 
     category: 'Piano', 
+    level: 2,
     type: 'Video', 
     img: { imageUrl: "https://picsum.photos/seed/piano1/600/400", imageHint: "piano keys" }, 
     length: '45 min',
@@ -60,6 +63,7 @@ export const INITIAL_RESOURCES: Resource[] = [
     id: 3, 
     title: 'Guía de Afinación de Violín', 
     category: 'Violín', 
+    level: 1,
     type: 'PDF', 
     img: { imageUrl: "https://picsum.photos/seed/violin1/600/400", imageHint: "violin instrument" }, 
     length: '5 págs',
@@ -76,6 +80,7 @@ export const INITIAL_RESOURCES: Resource[] = [
     id: 4, 
     title: 'Teoría Avanzada Vol 1', 
     category: 'Teoría', 
+    level: 3,
     type: 'Libro', 
     img: { imageUrl: "https://picsum.photos/seed/theory1/600/400", imageHint: "music theory" }, 
     length: '120 págs',
@@ -92,6 +97,7 @@ export const INITIAL_RESOURCES: Resource[] = [
     id: 5, 
     title: 'Rudimentos Esenciales de Batería', 
     category: 'Batería', 
+    level: 2,
     type: 'PDF', 
     img: { imageUrl: "https://picsum.photos/seed/drums1/600/400", imageHint: "drums instrument" }, 
     length: '15 págs',
@@ -108,6 +114,7 @@ export const INITIAL_RESOURCES: Resource[] = [
     id: 6, 
     title: 'Técnicas de Respiración y Apoyo', 
     category: 'Canto', 
+    level: 1,
     type: 'Video', 
     img: { imageUrl: "https://picsum.photos/seed/vocal1/600/400", imageHint: "singing microphone" }, 
     length: '30 min',

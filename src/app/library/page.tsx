@@ -53,7 +53,8 @@ import {
   Sparkles,
   Info,
   GraduationCap,
-  X
+  X,
+  BarChart
 } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -67,6 +68,7 @@ import { getDirectImageUrl, getDriveDownloadUrl } from '@/lib/utils/images';
 
 const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'];
 const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
+const LEVELS = [1, 2, 3, 4, 5];
 const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 
 function LibraryContent() {
@@ -89,6 +91,7 @@ function LibraryContent() {
   
   const [isMounted, setIsMounted] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [selectedLevels, setSelectedLevels] = useState<number[]>([]);
   const [search, setSearch] = useState('');
   const [isInitialFilterSet, setIsInitialFilterSet] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState(''); 
@@ -98,18 +101,16 @@ function LibraryContent() {
   const [tempDescription, setTempDescription] = useState(libraryDescription);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   
-  // Estado para rastrear qué recurso ya se abrió automáticamente para evitar bucles
   const [autoOpenedId, setAutoOpenedId] = useState<string | null>(null);
 
-  // Helper local states for UI toggles in forms
   const [enableDownloadInForm, setEnableDownloadInForm] = useState(true);
   const [enableInteractInForm, setEnableInteractInForm] = useState(true);
 
-  // Create State
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newResource, setNewResource] = useState<Partial<Resource>>({
     title: '',
     category: 'Guitarra',
+    level: 1,
     type: 'PDF',
     length: '',
     description: '',
@@ -130,7 +131,6 @@ function LibraryContent() {
     setIsMounted(true);
   }, []);
 
-  // Lógica para abrir automáticamente un recurso si viene por URL (ej: recomendado)
   useEffect(() => {
     if (isMounted && targetResourceId && resources.length > 0 && targetResourceId !== autoOpenedId) {
       const res = resources.find(r => String(r.id) === targetResourceId);
@@ -169,7 +169,6 @@ function LibraryContent() {
     }
   }, [selectedStudentId, isStaff, studentsList]);
 
-  // Sincronizar toggles de formulario cuando se edita un recurso
   useEffect(() => {
     if (editingResource) {
       setEnableDownloadInForm(editingResource.downloadUrl !== '#' && !!editingResource.downloadUrl);
@@ -189,6 +188,14 @@ function LibraryContent() {
     );
   };
 
+  const toggleLevelFilter = (lvl: number) => {
+    setSelectedLevels(prev => 
+      prev.includes(lvl) 
+        ? prev.filter(l => l !== lvl) 
+        : [...prev, lvl]
+    );
+  };
+
   const visibleResources = useMemo(() => {
     if (!user) return [];
     if (isStaff) return resources;
@@ -200,6 +207,7 @@ function LibraryContent() {
 
   const filtered = visibleResources.filter(res => 
     (selectedFilters.length === 0 || selectedFilters.includes(res.category)) &&
+    (selectedLevels.length === 0 || selectedLevels.includes(res.level || 1)) &&
     (res.title.toLowerCase().includes(search.toLowerCase()))
   );
 
@@ -252,6 +260,7 @@ function LibraryContent() {
     setNewResource({
       title: '',
       category: 'Guitarra',
+      level: 1,
       type: 'PDF',
       length: '',
       description: '',
@@ -286,7 +295,6 @@ function LibraryContent() {
 
   const closeViewingResource = () => {
     setViewingResource(null);
-    // Limpiamos los parámetros de búsqueda de la URL para evitar que se vuelva a abrir automáticamente
     const params = new URLSearchParams(searchParams.toString());
     if (params.has('resourceId')) {
       params.delete('resourceId');
@@ -402,36 +410,65 @@ function LibraryContent() {
           )}
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-primary/5 p-4 rounded-3xl border border-primary/20">
-          <div className="relative w-full md:max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input 
-              placeholder="Buscar recursos..." 
-              className="pl-11 rounded-2xl h-12 border-primary/20 bg-card focus:border-accent transition-all font-medium text-foreground"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <div className="flex flex-col gap-6 bg-primary/5 p-6 rounded-3xl border border-primary/20">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full md:max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input 
+                placeholder="Buscar recursos..." 
+                className="pl-11 rounded-2xl h-12 border-primary/20 bg-card focus:border-accent transition-all font-medium text-foreground"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto scrollbar-hide">
+              {ALL_CATEGORIES.map((cat) => {
+                const isActive = cat === 'Todos' ? selectedFilters.length === 0 : selectedFilters.includes(cat);
+                return (
+                  <Button
+                    key={cat}
+                    variant={isActive ? 'default' : 'outline'}
+                    className={cn(
+                      "rounded-full px-5 h-10 transition-all font-black text-xs shrink-0",
+                      isActive 
+                        ? "bg-accent text-white border-accent shadow-md shadow-accent/20" 
+                        : "border-primary/20 bg-card text-muted-foreground hover:border-accent/50"
+                    )}
+                    onClick={() => toggleFilter(cat)}
+                  >
+                    {cat}
+                    {isActive && cat !== 'Todos' && <Check className="ml-2 w-3 h-3" />}
+                  </Button>
+                );
+              })}
+            </div>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto scrollbar-hide">
-            {ALL_CATEGORIES.map((cat) => {
-              const isActive = cat === 'Todos' ? selectedFilters.length === 0 : selectedFilters.includes(cat);
-              return (
-                <Button
-                  key={cat}
-                  variant={isActive ? 'default' : 'outline'}
-                  className={cn(
-                    "rounded-full px-5 h-10 transition-all font-black text-xs shrink-0",
-                    isActive 
-                      ? "bg-accent text-white border-accent shadow-md shadow-accent/20" 
-                      : "border-primary/20 bg-card text-muted-foreground hover:border-accent/50"
-                  )}
-                  onClick={() => toggleFilter(cat)}
-                >
-                  {cat}
-                  {isActive && cat !== 'Todos' && <Check className="ml-2 w-3 h-3" />}
-                </Button>
-              );
-            })}
+
+          <div className="flex items-center gap-4 border-t border-primary/10 pt-4">
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground shrink-0">Filtrar Nivel:</span>
+            <div className="flex gap-2">
+              {LEVELS.map((lvl) => {
+                const isActive = selectedLevels.includes(lvl);
+                return (
+                  <Button
+                    key={lvl}
+                    variant={isActive ? 'default' : 'outline'}
+                    className={cn(
+                      "rounded-lg w-10 h-10 p-0 transition-all font-black text-xs",
+                      isActive 
+                        ? "bg-blue-600 text-white border-blue-600 shadow-md" 
+                        : "border-primary/20 bg-card text-muted-foreground hover:border-blue-400"
+                    )}
+                    onClick={() => toggleLevelFilter(lvl)}
+                  >
+                    {lvl}
+                  </Button>
+                );
+              })}
+              {selectedLevels.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={() => setSelectedLevels([])} className="h-10 text-[9px] font-black uppercase text-accent">Limpiar Niveles</Button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -486,7 +523,10 @@ function LibraryContent() {
                     }}
                   />
                   <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none w-fit">{res.category}</Badge>
+                    <div className="flex gap-2">
+                      <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none w-fit">{res.category}</Badge>
+                      <Badge className="bg-blue-600 text-white border-none px-3 py-1 rounded-full font-black text-[10px] shadow-sm">Nivel {res.level || 1}</Badge>
+                    </div>
                     {isStaff && !res.isVisibleGlobally && (
                       <Badge variant="destructive" className="rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1 w-fit">
                         <EyeOff className="w-2.5 h-2.5" /> Privado
@@ -675,7 +715,7 @@ function LibraryContent() {
               <BookOpen className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
               <h3 className="text-xl font-black text-foreground">Sin resultados</h3>
               <p className="text-muted-foreground font-bold italic">No hay recursos que coincidan con los filtros seleccionados o no tienes permisos de acceso.</p>
-              <Button variant="link" onClick={() => setSelectedFilters([])} className="text-accent font-black mt-2 underline">Ver todo el catálogo</Button>
+              <Button variant="link" onClick={() => { setSelectedFilters([]); setSelectedLevels([]); }} className="text-accent font-black mt-2 underline">Ver todo el catálogo</Button>
             </div>
           )}
         </div>
@@ -699,9 +739,14 @@ function LibraryContent() {
                 />
                 <div className="absolute inset-0 bg-black/40" />
                 <div className="absolute inset-0 flex flex-col justify-center px-8">
-                  <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest mb-2 shadow-lg w-fit">
-                    {viewingResource.category}
-                  </Badge>
+                  <div className="flex gap-2 mb-2">
+                    <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
+                      {viewingResource.category}
+                    </Badge>
+                    <Badge className="bg-blue-600 text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
+                      Nivel {viewingResource.level || 1}
+                    </Badge>
+                  </div>
                   <h2 className="text-xl md:text-2xl font-black text-white leading-tight drop-shadow-md font-headline line-clamp-2">
                     {viewingResource.title}
                   </h2>
@@ -710,7 +755,7 @@ function LibraryContent() {
 
               <div className="flex-1 overflow-y-auto min-h-0 bg-card custom-scrollbar">
                 <div className="p-6 space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="p-3 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
                         <BookOpen className="w-4 h-4" />
@@ -727,6 +772,15 @@ function LibraryContent() {
                       <div>
                         <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Extensión</p>
                         <p className="text-xs font-black text-foreground">{viewingResource.length || '---'}</p>
+                      </div>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
+                        <BarChart className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="text-[8px] font-black uppercase text-muted-foreground tracking-widest">Nivel</p>
+                        <p className="text-xs font-black text-foreground">{viewingResource.level || 1} / 5</p>
                       </div>
                     </div>
                   </div>
@@ -776,7 +830,6 @@ function LibraryContent() {
                     </div>
                   </div>
 
-                  {/* PREVISUALIZACIÓN DE PARTITURA */}
                   {viewingResource.downloadUrl && viewingResource.downloadUrl !== '#' && (
                     <div className="space-y-3 pt-4 border-t border-primary/10">
                       <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -890,7 +943,7 @@ function LibraryContent() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
                     <Select 
@@ -903,6 +956,22 @@ function LibraryContent() {
                       <SelectContent className="rounded-xl">
                         {ALL_CATEGORIES.filter(c => c !== 'Todos').map(cat => (
                           <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nivel de Dificultad</Label>
+                    <Select 
+                      value={String(newResource.level || 1)} 
+                      onValueChange={(val) => setNewResource(prev => ({...prev, level: parseInt(val)}))}
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
+                        <SelectValue placeholder="Nivel" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {LEVELS.map(lvl => (
+                          <SelectItem key={lvl} value={String(lvl)} className="font-bold">Nivel {lvl}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -1045,7 +1114,7 @@ function LibraryContent() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
                     <Select 
@@ -1058,6 +1127,22 @@ function LibraryContent() {
                       <SelectContent className="rounded-xl">
                         {ALL_CATEGORIES.filter(c => c !== 'Todos').map(cat => (
                           <SelectItem key={cat} value={cat} className="font-bold">{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nivel</Label>
+                    <Select 
+                      value={String(editingResource?.level || 1)} 
+                      onValueChange={(val) => setEditingResource(prev => prev ? {...prev, level: parseInt(val)} : null)}
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-foreground bg-card">
+                        <SelectValue placeholder="Nivel" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {LEVELS.map(lvl => (
+                          <SelectItem key={lvl} value={String(lvl)} className="font-bold">Nivel {lvl}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
