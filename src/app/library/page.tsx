@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -71,7 +70,7 @@ const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
 const LEVELS = [1, 2, 3, 4, 5];
 const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 
-// Configuración de colores por nivel (Suavizados para mejor contraste)
+// Configuración de colores por nivel (Mate/Sutíl para mejor contraste)
 const LEVEL_STYLE: Record<number, { bg: string, text: string, border: string, hover: string }> = {
   1: { bg: 'bg-emerald-400', text: 'text-white', border: 'border-emerald-500', hover: 'hover:border-emerald-300' },
   2: { bg: 'bg-sky-400', text: 'text-white', border: 'border-sky-500', hover: 'hover:border-sky-300' },
@@ -422,10 +421,10 @@ function LibraryContent() {
         <div className="flex flex-col gap-6 bg-primary/5 p-6 rounded-3xl border border-primary/20">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="relative w-full md:max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground z-10" />
               <Input 
                 placeholder="Buscar recursos..." 
-                className="pl-11 rounded-2xl h-12 border-primary/20 bg-card focus:border-accent transition-all font-medium text-foreground"
+                className="pl-11 rounded-2xl h-12 border-2 border-primary/30 bg-white dark:bg-slate-900 shadow-sm focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all font-bold text-foreground"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -586,7 +585,7 @@ function LibraryContent() {
                         </p>
                       )}
                     </div>
-                    <Badge className={cn("border-none w-12 h-12 rounded-full font-black shadow-sm shrink-0 flex flex-col items-center justify-center p-0 leading-none", levelStyle.bg, levelStyle.text)}>
+                    <Badge className={cn("border-none w-12 h-12 rounded-full font-black shadow-sm shrink-0 flex flex-col items-center justify-center p-0 leading-none text-white", levelStyle.bg)}>
                       <span className="text-[7px] uppercase tracking-tighter mb-0.5">Nivel</span>
                       <span className="text-sm">{res.level || 1}</span>
                     </Badge>
@@ -771,7 +770,7 @@ function LibraryContent() {
                     <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
                       {viewingResource.category}
                     </Badge>
-                    <Badge className={cn("border-none w-14 h-14 rounded-full font-black shadow-lg shrink-0 flex flex-col items-center justify-center p-0 leading-none", LEVEL_STYLE[viewingResource.level || 1]?.bg, LEVEL_STYLE[viewingResource.level || 1]?.text)}>
+                    <Badge className={cn("border-none w-14 h-14 rounded-full font-black shadow-lg shrink-0 flex flex-col items-center justify-center p-0 leading-none text-white", LEVEL_STYLE[viewingResource.level || 1]?.bg)}>
                       <span className="text-[8px] uppercase tracking-tighter mb-0.5">Nivel</span>
                       <span className="text-lg">{viewingResource.level || 1}</span>
                     </Badge>
