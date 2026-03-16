@@ -550,11 +550,8 @@ function LibraryContent() {
                     )}
                   </div>
 
-                  <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
-                    <Badge className={cn("border-none px-3 py-1 rounded-full font-black text-[10px] shadow-sm", levelStyle.bg, levelStyle.text)}>
-                      Nivel {res.level || 1}
-                    </Badge>
-                    {canManage && (
+                  {canManage && (
+                    <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
                       <Button 
                         size="icon" 
                         variant="secondary" 
@@ -566,8 +563,8 @@ function LibraryContent() {
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {isLockedForStudent && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-6 text-center">
@@ -581,11 +578,18 @@ function LibraryContent() {
                   )}
                 </div>
                 <CardHeader className="pb-2 space-y-1">
-                  {res.lineName && (
-                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70 leading-none">
-                      {res.lineName}
-                    </p>
-                  )}
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1">
+                      {res.lineName && (
+                        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70 leading-none">
+                          {res.lineName}
+                        </p>
+                      )}
+                    </div>
+                    <Badge className={cn("border-none px-3 py-1 rounded-full font-black text-[9px] uppercase tracking-widest shadow-sm shrink-0", levelStyle.bg, levelStyle.text)}>
+                      Nivel {res.level || 1}
+                    </Badge>
+                  </div>
                   <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[2.5rem] line-clamp-2 text-foreground font-headline">
                     {res.title}
                   </CardTitle>
