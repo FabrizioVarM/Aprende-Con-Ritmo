@@ -1473,7 +1473,7 @@ function ScheduleContent() {
                           <h2 className="text-2xl font-black text-foreground tracking-tight">Horarios Disponibles para este día 🎸</h2>
                         </div>
                         <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 shadow-md transition-all">
-                          <ChevronDown className={cn("h-7 w-7 text-primary transition-transform duration-300", isAvailableSlotsOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
+                          <ChevronDown className={cn("h-7 w-7 text-accent transition-transform duration-300", isAvailableSlotsOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                         </Button>
                       </div>
                     </CollapsibleTrigger>
