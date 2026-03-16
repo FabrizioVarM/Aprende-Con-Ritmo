@@ -71,13 +71,13 @@ const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
 const LEVELS = [1, 2, 3, 4, 5];
 const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 
-// Configuración de colores por nivel
+// Configuración de colores por nivel (Suavizados para mejor contraste)
 const LEVEL_STYLE: Record<number, { bg: string, text: string, border: string, hover: string }> = {
-  1: { bg: 'bg-emerald-500', text: 'text-white', border: 'border-emerald-600', hover: 'hover:border-emerald-400' },
-  2: { bg: 'bg-sky-500', text: 'text-white', border: 'border-sky-600', hover: 'hover:border-sky-400' },
-  3: { bg: 'bg-violet-500', text: 'text-white', border: 'border-violet-600', hover: 'hover:border-violet-400' },
-  4: { bg: 'bg-orange-500', text: 'text-white', border: 'border-orange-600', hover: 'hover:border-orange-400' },
-  5: { bg: 'bg-rose-500', text: 'text-white', border: 'border-rose-600', hover: 'hover:border-rose-400' },
+  1: { bg: 'bg-emerald-400', text: 'text-white', border: 'border-emerald-500', hover: 'hover:border-emerald-300' },
+  2: { bg: 'bg-sky-400', text: 'text-white', border: 'border-sky-500', hover: 'hover:border-sky-300' },
+  3: { bg: 'bg-violet-400', text: 'text-white', border: 'border-violet-500', hover: 'hover:border-violet-300' },
+  4: { bg: 'bg-amber-400', text: 'text-white', border: 'border-amber-500', hover: 'hover:border-amber-300' },
+  5: { bg: 'bg-rose-400', text: 'text-white', border: 'border-rose-500', hover: 'hover:border-rose-300' },
 };
 
 function LibraryContent() {
@@ -199,8 +199,6 @@ function LibraryContent() {
   };
 
   const toggleLevelFilter = (lvl: number) => {
-    // Solo permitir seleccionar un nivel a la vez. 
-    // Para ver todos, el usuario debe deseleccionar el activo o limpiar.
     setSelectedLevels(prev => 
       prev.includes(lvl) ? [] : [lvl]
     );

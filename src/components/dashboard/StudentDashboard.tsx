@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -79,12 +80,13 @@ const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: str
   'Default': { color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/40' }
 };
 
+// Configuración de colores por nivel (Suavizados para mejor contraste)
 const LEVEL_STYLE: Record<number, { bg: string }> = {
-  1: { bg: 'bg-emerald-500' },
-  2: { bg: 'bg-sky-500' },
-  3: { bg: 'bg-violet-500' },
-  4: { bg: 'bg-orange-500' },
-  5: { bg: 'bg-rose-500' },
+  1: { bg: 'bg-emerald-400' },
+  2: { bg: 'bg-sky-400' },
+  3: { bg: 'bg-violet-400' },
+  4: { bg: 'bg-amber-400' },
+  5: { bg: 'bg-rose-400' },
 };
 
 const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
@@ -391,7 +393,7 @@ export default function StudentDashboard() {
     const targetSlot = freeSlots.find(s => s.id === selectedSlotId);
     if (!targetSlot) return;
     if (hasConflict(targetSlot.time)) {
-      toast({ variant: "destructive", title: "Conflicto de Horario", description: "Ya tienes una clase en este horario." });
+      toast({ variant: "destructive", title: "Horario Ocupado", description: "Ya tienes una clase en este horario." });
       return;
     }
     const travelError = getSlotTravelMarginError(targetSlot);
@@ -814,28 +816,31 @@ export default function StudentDashboard() {
             <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground"><PlayCircle className="w-6 h-6 text-accent" />Recursos Recomendados</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {recommendedResources.length > 0 ? recommendedResources.map((resource, i) => (
-              <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0 border-border cursor-pointer group" onClick={() => router.push(`/library?resourceId=${resource.id}`)}>
-                <div className="flex gap-3 sm:gap-4 items-center min-w-0 flex-1">
-                  <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border border-primary/10 shrink-0 bg-muted">
-                    <Image src={getDirectImageUrl(typeof resource.img === 'string' ? resource.img : resource.img?.imageUrl) || "https://picsum.photos/seed/fallback/200/200"} alt={resource.title} fill className="object-cover" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate group-hover:text-accent transition-colors">{resource.title}</div>
-                      <Badge className={cn(
-                        "h-4 px-1.5 rounded-md border-none text-[8px] font-black shrink-0 text-white",
-                        LEVEL_STYLE[resource.level || 1]?.bg || 'bg-primary'
-                      )}>
-                        NV. {resource.level || 1}
-                      </Badge>
+            {recommendedResources.length > 0 ? recommendedResources.map((resource, i) => {
+              const levelStyle = LEVEL_STYLE[resource.level || 1] || LEVEL_STYLE[1];
+              return (
+                <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0 border-border cursor-pointer group" onClick={() => router.push(`/library?resourceId=${resource.id}`)}>
+                  <div className="flex gap-3 sm:gap-4 items-center min-w-0 flex-1">
+                    <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border border-primary/10 shrink-0 bg-muted">
+                      <Image src={getDirectImageUrl(typeof resource.img === 'string' ? resource.img : resource.img?.imageUrl) || "https://picsum.photos/seed/fallback/200/200"} alt={resource.title} fill className="object-cover" />
                     </div>
-                    <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length} • {resource.type}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate group-hover:text-accent transition-colors">{resource.title}</div>
+                        <Badge className={cn(
+                          "h-4 px-1.5 rounded-md border-none text-[8px] font-black shrink-0 text-white",
+                          levelStyle.bg
+                        )}>
+                          NV. {resource.level || 1}
+                        </Badge>
+                      </div>
+                      <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length} • {resource.type}</div>
+                    </div>
                   </div>
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0 text-accent"><ChevronRight className="w-6 h-6" /></Button>
                 </div>
-                <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0 text-accent"><ChevronRight className="w-6 h-6" /></Button>
-              </div>
-            )) : (
+              );
+            }) : (
               <div className="p-16 text-center"><Music className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" /><p className="text-muted-foreground font-bold italic">¡Todo al día! No hay recursos pendientes para tus instrumentos.</p></div>
             )}
           </CardContent>
