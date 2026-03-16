@@ -31,7 +31,8 @@ import {
   AlertTriangle,
   Building2,
   Home,
-  LayoutGrid
+  LayoutGrid,
+  TrendingUp
 } from 'lucide-react';
 import {
   Dialog,
@@ -463,269 +464,280 @@ export default function StudentDashboard() {
           <p className="text-muted-foreground mt-1 text-lg font-medium">¿Listo para tu próximo avance musical?</p>
         </div>
         
-        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-accent text-white rounded-2xl px-8 h-14 text-lg font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all animate-pulse-subtle">
-              Agendar Nueva Lección
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
-            <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
-              <DialogTitle className="text-3xl font-black text-foreground flex items-center gap-3">
-                <Music className="w-8 h-8 text-accent" />
-                Agendar Sesión
-              </DialogTitle>
-              <DialogDescription className="text-lg text-muted-foreground font-medium">
-                Elige tu instrumento y modalidad para encontrar el horario perfecto.
-              </DialogDescription>
-            </DialogHeader>
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <Button 
+            variant="outline"
+            className="border-2 border-accent/20 text-accent rounded-2xl px-8 h-14 text-lg font-black hover:bg-accent/5 transition-all w-full sm:w-auto"
+            onClick={() => router.push('/progress')}
+          >
+            <TrendingUp className="w-5 h-5 mr-2" />
+            Ver mi progreso
+          </Button>
 
-            <div className="p-8 space-y-8 bg-card overflow-y-auto flex-1 max-h-[60vh]">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                <div className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Instrumento</label>
-                        <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                          <SelectTrigger className="rounded-2xl h-14 text-base font-bold border-2 bg-card text-foreground px-3">
-                            <SelectValue placeholder="Instrumento" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl">
-                            {availableInstruments.map(inst => {
-                              const config = INSTRUMENT_CONFIG[inst] || INSTRUMENT_CONFIG['Default'];
-                              const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
-                              return (
-                                <SelectItem key={inst} value={inst} className="font-bold py-3">
-                                  <div className="flex items-center gap-2">
-                                    <div className={cn("w-8 h-8 flex items-center justify-center text-base rounded-lg border shadow-sm", config.bg, config.border)}>
-                                      {emoji}
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-accent text-white rounded-2xl px-8 h-14 text-lg font-black shadow-xl shadow-accent/20 hover:scale-105 transition-all animate-pulse-subtle w-full sm:w-auto">
+                Agendar Nueva Lección
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+              <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+                <DialogTitle className="text-3xl font-black text-foreground flex items-center gap-3">
+                  <Music className="w-8 h-8 text-accent" />
+                  Agendar Sesión
+                </DialogTitle>
+                <DialogDescription className="text-lg text-muted-foreground font-medium">
+                  Elige tu instrumento y modalidad para encontrar el horario perfecto.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="p-8 space-y-8 bg-card overflow-y-auto flex-1 max-h-[60vh]">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">1. Instrumento</label>
+                          <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+                            <SelectTrigger className="rounded-2xl h-14 text-base font-bold border-2 bg-card text-foreground px-3">
+                              <SelectValue placeholder="Instrumento" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl">
+                              {availableInstruments.map(inst => {
+                                const config = INSTRUMENT_CONFIG[inst] || INSTRUMENT_CONFIG['Default'];
+                                const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
+                                return (
+                                  <SelectItem key={inst} value={inst} className="font-bold py-3">
+                                    <div className="flex items-center gap-2">
+                                      <div className={cn("w-8 h-8 flex items-center justify-center text-base rounded-lg border shadow-sm", config.bg, config.border)}>
+                                        {emoji}
+                                      </div>
+                                      <span>{inst}</span>
                                     </div>
-                                    <span>{inst}</span>
-                                  </div>
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                      <div className="space-y-2">
-                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Modalidad</label>
-                        <Select value={selectedModality} onValueChange={(val: any) => setSelectedModality(val)}>
-                          <SelectTrigger className="rounded-2xl h-14 text-base font-bold border-2 bg-card text-foreground px-3">
-                            <SelectValue placeholder="Modalidad" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl">
-                            <SelectItem value="domicilio" className="font-bold py-3">
-                              <div className="flex items-center gap-2">
-                                <Home className="w-4 h-4 text-accent" />
-                                <span>A domicilio</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="virtual" className="font-bold py-3">
-                              <div className="flex items-center gap-2">
-                                <Video className="w-4 h-4 text-blue-500" />
-                                <span>Virtual</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="cualquiera" className="font-bold py-3">
-                              <div className="flex items-center gap-2">
-                                <LayoutGrid className="w-4 h-4 text-muted-foreground" />
-                                <span>Cualquiera</span>
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
-                              <div className="flex items-center gap-2">
-                                <Building2 className="w-4 h-4 text-muted-foreground" />
-                                <span>En Sede</span>
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') && (
-                      <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
-                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Zona de la Clase</label>
-                        <Select value={selectedZone} onValueChange={handleZoneChange}>
-                          <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-card text-foreground">
-                            <SelectValue placeholder="¿En qué zona estás?" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl">
-                            {activeZones.filter(z => z !== 'Virtual').map(zone => (
-                              <SelectItem key={zone} value={zone} className="font-bold py-3">
-                                <div className="flex items-center gap-3">
-                                  <MapPinIcon className="w-4 h-4 text-accent" />
-                                  <span>{zone}</span>
+                        <div className="space-y-2">
+                          <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">2. Modalidad</label>
+                          <Select value={selectedModality} onValueChange={(val: any) => setSelectedModality(val)}>
+                            <SelectTrigger className="rounded-2xl h-14 text-base font-bold border-2 bg-card text-foreground px-3">
+                              <SelectValue placeholder="Modalidad" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl">
+                              <SelectItem value="domicilio" className="font-bold py-3">
+                                <div className="flex items-center gap-2">
+                                  <Home className="w-4 h-4 text-accent" />
+                                  <span>A domicilio</span>
                                 </div>
                               </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-[10px] font-bold text-muted-foreground italic px-2 mt-1">
-                          * Si el profesor está en otra zona, se aplicará 1 hora de margen para su traslado.
-                        </p>
+                              <SelectItem value="virtual" className="font-bold py-3">
+                                <div className="flex items-center gap-2">
+                                  <Video className="w-4 h-4 text-blue-500" />
+                                  <span>Virtual</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="cualquiera" className="font-bold py-3">
+                                <div className="flex items-center gap-2">
+                                  <LayoutGrid className="w-4 h-4 text-muted-foreground" />
+                                  <span>Cualquiera</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
+                                <div className="flex items-center gap-2">
+                                  <Building2 className="w-4 h-4 text-muted-foreground" />
+                                  <span>En Sede</span>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
-                    )}
+
+                      {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') && (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-1 duration-300">
+                          <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">3. Zona de la Clase</label>
+                          <Select value={selectedZone} onValueChange={handleZoneChange}>
+                            <SelectTrigger className="rounded-2xl h-14 text-lg font-bold border-2 bg-card text-foreground">
+                              <SelectValue placeholder="¿En qué zona estás?" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl">
+                              {activeZones.filter(z => z !== 'Virtual').map(zone => (
+                                <SelectItem key={zone} value={zone} className="font-bold py-3">
+                                  <div className="flex items-center gap-3">
+                                    <MapPinIcon className="w-4 h-4 text-accent" />
+                                    <span>{zone}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-[10px] font-bold text-muted-foreground italic px-2 mt-1">
+                            * Si el profesor está en otra zona, se aplicará 1 hora de margen para su traslado.
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="space-y-3">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                          {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '4.' : '3.'} Elige tu Profesor
+                        </label>
+                        <div className="grid grid-cols-1 gap-2">
+                          {filteredTeachers.length > 0 ? filteredTeachers.map(t => (
+                            <Button
+                              key={t.id}
+                              variant={selectedTeacherId === t.id ? "default" : "outline"}
+                              className={cn(
+                                "h-16 rounded-2xl justify-start px-4 border-2 font-black transition-all",
+                                selectedTeacherId === t.id 
+                                  ? "bg-accent border-accent text-white shadow-lg" 
+                                  : "bg-card text-foreground hover:border-accent/30 hover:bg-accent/5"
+                              )}
+                              onClick={() => setSelectedTeacherId(t.id)}
+                            >
+                              <Avatar className="w-8 h-8 mr-3 border-2 border-white/20">
+                                  {t.photoUrl ? (
+                                    <AvatarImage src={t.photoUrl} className="object-cover" />
+                                  ) : (
+                                    <AvatarImage src={`https://picsum.photos/seed/${t.avatarSeed || t.id}/100`} />
+                                  )}
+                                  <AvatarFallback>{t.name[0]}</AvatarFallback>
+                              </Avatar>
+                              <div className="text-left">
+                                  <p className="text-sm leading-none">{t.name}</p>
+                                  <p className="text-[10px] opacity-70 uppercase tracking-tighter mt-1">{selectedInstrument}</p>
+                              </div>
+                              {selectedTeacherId === t.id && <CheckCircle2 className="ml-auto w-5 h-5" />}
+                            </Button>
+                          )) : (
+                            <p className="text-sm font-bold text-muted-foreground text-center py-4 italic">No hay profesores disponibles para este instrumento.</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="space-y-3">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                        {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '4.' : '3.'} Elige tu Profesor
-                      </label>
-                      <div className="grid grid-cols-1 gap-2">
-                        {filteredTeachers.length > 0 ? filteredTeachers.map(t => (
-                          <Button
-                            key={t.id}
-                            variant={selectedTeacherId === t.id ? "default" : "outline"}
-                            className={cn(
-                              "h-16 rounded-2xl justify-start px-4 border-2 font-black transition-all",
-                              selectedTeacherId === t.id 
-                                ? "bg-accent border-accent text-white shadow-lg" 
-                                : "bg-card text-foreground hover:border-accent/30 hover:bg-accent/5"
-                            )}
-                            onClick={() => setSelectedTeacherId(t.id)}
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                          {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '5.' : '4.'} Selecciona el Día
+                        </label>
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => {
+                              const newDate = new Date(selectedDate);
+                              newDate.setDate(selectedDate.getDate() - 7);
+                              setSelectedDate(newDate);
+                            }}
+                            className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
                           >
-                            <Avatar className="w-8 h-8 mr-3 border-2 border-white/20">
-                                {t.photoUrl ? (
-                                  <AvatarImage src={t.photoUrl} className="object-cover" />
-                                ) : (
-                                  <AvatarImage src={`https://picsum.photos/seed/${t.avatarSeed || t.id}/100`} />
-                                )}
-                                <AvatarFallback>{t.name[0]}</AvatarFallback>
-                            </Avatar>
-                            <div className="text-left">
-                                <p className="text-sm leading-none">{t.name}</p>
-                                <p className="text-[10px] opacity-70 uppercase tracking-tighter mt-1">{selectedInstrument}</p>
-                            </div>
-                            {selectedTeacherId === t.id && <CheckCircle2 className="ml-auto w-5 h-5" />}
+                            <ChevronLeft className="w-4 h-4" />
                           </Button>
-                        )) : (
-                          <p className="text-sm font-bold text-muted-foreground text-center py-4 italic">No hay profesores disponibles para este instrumento.</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                        {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '5.' : '4.'} Selecciona el Día
-                      </label>
-                      <div className="flex gap-1">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => {
-                            const newDate = new Date(selectedDate);
-                            newDate.setDate(selectedDate.getDate() - 7);
-                            setSelectedDate(newDate);
-                          }}
-                          className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => {
-                            const newDate = new Date(selectedDate);
-                            newDate.setDate(selectedDate.getDate() + 7);
-                            setSelectedDate(newDate);
-                          }}
-                          className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
-                        >
-                          <ChevronRightIcon className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-7 gap-2">
-                      {weekDaysNav.map((d, i) => {
-                        const isSelected = d.toDateString() === selectedDate.toDateString();
-                        const isToday = d.toDateString() === todayStr;
-                        const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-                        const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
-                        const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                        const hasAvailability = daysWithAvailability.has(dStr);
-                        return (
-                          <button
-                            key={i}
-                            disabled={isPast}
-                            onClick={() => !isPast && setSelectedDate(d)}
-                            className={cn(
-                              "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
-                              isSelected ? "bg-accent border-accent text-white shadow-md" : "bg-muted/30 border-primary/10 hover:border-accent/20",
-                              isToday && !isSelected && "border-accent/30",
-                              isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
-                            )}
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => {
+                              const newDate = new Date(selectedDate);
+                              newDate.setDate(selectedDate.getDate() + 7);
+                              setSelectedDate(newDate);
+                            }}
+                            className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
                           >
-                            <span className={cn("text-[8px] font-black uppercase", isSelected ? "text-white" : "text-muted-foreground")}>{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
-                            <span className={cn("text-lg font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
-                            {hasAvailability && (
-                              <div className={cn("absolute bottom-1.5 w-1 h-1 rounded-full shadow-sm", isSelected ? "bg-white" : "bg-emerald-500 animate-pulse")} />
-                            )}
-                            {isToday && (
-                              <span className={cn("text-[7px] font-black uppercase absolute -bottom-1", isSelected ? "text-white/80" : "text-accent")}>HOY</span>
-                            )}
-                          </button>
-                        );
-                      })}
+                            <ChevronRightIcon className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-7 gap-2">
+                        {weekDaysNav.map((d, i) => {
+                          const isSelected = d.toDateString() === selectedDate.toDateString();
+                          const isToday = d.toDateString() === todayStr;
+                          const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                          const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
+                          const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                          const hasAvailability = daysWithAvailability.has(dStr);
+                          return (
+                            <button
+                              key={i}
+                              disabled={isPast}
+                              onClick={() => !isPast && setSelectedDate(d)}
+                              className={cn(
+                                "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
+                                isSelected ? "bg-accent border-accent text-white shadow-md" : "bg-muted/30 border-primary/10 hover:border-accent/20",
+                                isToday && !isSelected && "border-accent/30",
+                                isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
+                              )}
+                            >
+                              <span className={cn("text-[8px] font-black uppercase", isSelected ? "text-white" : "text-muted-foreground")}>{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
+                              <span className={cn("text-lg font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
+                              {hasAvailability && (
+                                <div className={cn("absolute bottom-1.5 w-1 h-1 rounded-full shadow-sm", isSelected ? "bg-white" : "bg-emerald-500 animate-pulse")} />
+                              )}
+                              {isToday && (
+                                <span className={cn("text-[7px] font-black uppercase absolute -bottom-1", isSelected ? "text-white/80" : "text-accent")}>HOY</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-6">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">HORARIOS DISPONIBLES</label>
-                  <div className="grid grid-cols-1 gap-2">
-                    {freeSlots.length > 0 ? freeSlots.map((slot) => {
-                      const isSelected = selectedSlotId === slot.id;
-                      const period = getTimePeriod(slot.time);
-                      const conflict = hasConflict(slot.time);
-                      const travelError = getSlotTravelMarginError(slot);
-                      return (
-                        <Button
-                          key={slot.id}
-                          variant={isSelected ? "default" : "outline"}
-                          className={cn("justify-between rounded-2xl h-auto min-h-[5rem] border-2 font-black px-6 py-4", isSelected ? 'bg-accent text-white border-accent shadow-md' : 'bg-card text-foreground border-primary/10 hover:border-accent/30', (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed hover:bg-orange-50/30")}
-                          onClick={() => {
-                            if (conflict) { toast({ variant: "destructive", title: "Horario Ocupado", description: "Ya tienes una clase en este horario." }); return; }
-                            if (travelError) { toast({ variant: "destructive", title: "Margen de Viaje", description: travelError }); return; }
-                            setSelectedSlotId(slot.id);
-                          }}
-                        >
-                          <div className="flex items-center gap-4 w-full">
-                            <div className={cn("p-2.5 rounded-xl border shadow-inner shrink-0", isSelected ? "bg-white/20 border-white/30" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`))}>
-                              {conflict || travelError ? <AlertTriangle className="w-5 h-5" /> : <period.icon className="w-5 h-5" />}
+                  <div className="space-y-6">
+                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">HORARIOS DISPONIBLES</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {freeSlots.length > 0 ? freeSlots.map((slot) => {
+                        const isSelected = selectedSlotId === slot.id;
+                        const period = getTimePeriod(slot.time);
+                        const conflict = hasConflict(slot.time);
+                        const travelError = getSlotTravelMarginError(slot);
+                        return (
+                          <Button
+                            key={slot.id}
+                            variant={isSelected ? "default" : "outline"}
+                            className={cn("justify-between rounded-2xl h-auto min-h-[5rem] border-2 font-black px-6 py-4", isSelected ? 'bg-accent text-white border-accent shadow-md' : 'bg-card text-foreground border-primary/10 hover:border-accent/30', (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed hover:bg-orange-50/30")}
+                            onClick={() => {
+                              if (conflict) { toast({ variant: "destructive", title: "Horario Ocupado", description: "Ya tienes una clase en este horario." }); return; }
+                              if (travelError) { toast({ variant: "destructive", title: "Margen de Viaje", description: travelError }); return; }
+                              setSelectedSlotId(slot.id);
+                            }}
+                          >
+                            <div className="flex items-center gap-4 w-full">
+                              <div className={cn("p-2.5 rounded-xl border shadow-inner shrink-0", isSelected ? "bg-white/20 border-white/30" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`))}>
+                                {conflict || travelError ? <AlertTriangle className="w-5 h-5" /> : <period.icon className="w-5 h-5" />}
+                              </div>
+                              <div className="flex flex-col items-start min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className={cn("text-lg leading-none", (conflict || travelError) && "text-orange-700")}>{slot.time}</span>
+                                    <span className={cn("text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border", isSelected ? "bg-white/20 border-white/30 text-white" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`))}>{conflict ? 'Conflicto' : (travelError ? 'Sin Margen' : period.label)}</span>
+                                  </div>
+                                  {travelError ? <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">{travelError}</p> : conflict ? <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">Ya reservaste en este horario con otro profesor</p> : <span className={cn("text-[9px] font-black uppercase flex items-center gap-1 mt-1", slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500"))}>{slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}{slot.type === 'virtual' ? 'Online' : (slot.zone || 'Presencial')}</span>}
+                              </div>
                             </div>
-                            <div className="flex flex-col items-start min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span className={cn("text-lg leading-none", (conflict || travelError) && "text-orange-700")}>{slot.time}</span>
-                                  <span className={cn("text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border", isSelected ? "bg-white/20 border-white/30 text-white" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`))}>{conflict ? 'Conflicto' : (travelError ? 'Sin Margen' : period.label)}</span>
-                                </div>
-                                {travelError ? <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">{travelError}</p> : conflict ? <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">Ya reservaste en este horario con otro profesor</p> : <span className={cn("text-[9px] font-black uppercase flex items-center gap-1 mt-1", slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500"))}>{slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}{slot.type === 'virtual' ? 'Online' : (slot.zone || 'Presencial')}</span>}
-                            </div>
-                          </div>
-                          {isSelected && <CheckCircle2 className="w-5 h-5 animate-in zoom-in shrink-0 ml-2" />}
-                        </Button>
-                      );
-                    }) : (
-                      <div className="bg-muted/10 p-8 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5 space-y-4">
-                        <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30" />
-                        <div className="space-y-2"><p className="font-black text-muted-foreground">¡Vaya! Todos los cupos están llenos para este día.</p><p className="text-xs font-bold text-muted-foreground/70 italic">Te sugerimos esperar a que se libere un cupo o elegir otro día en el calendario.</p></div>
-                      </div>
-                    )}
+                            {isSelected && <CheckCircle2 className="w-5 h-5 animate-in zoom-in shrink-0 ml-2" />}
+                          </Button>
+                        );
+                      }) : (
+                        <div className="bg-muted/10 p-8 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5 space-y-4">
+                          <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30" />
+                          <div className="space-y-2"><p className="font-black text-muted-foreground">¡Vaya! Todos los cupos están llenos para este día.</p><p className="text-xs font-bold text-muted-foreground/70 italic">Te sugerimos esperar a que se libere un cupo o elegir otro día en el calendario.</p></div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="p-8 bg-muted/30 flex gap-4 border-t shrink-0 mt-auto">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black text-foreground">Cancelar</Button>
-              <Button onClick={handleBookLesson} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black shadow-xl">Confirmar</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+              <div className="p-8 bg-muted/30 flex gap-4 border-t shrink-0 mt-auto">
+                <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black text-foreground">Cancelar</Button>
+                <Button onClick={handleBookLesson} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black shadow-xl">Confirmar</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
