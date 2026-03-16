@@ -1479,7 +1479,7 @@ function ScheduleContent() {
                     </CollapsibleTrigger>
 
                     <CollapsibleContent className="animate-in fade-in slide-in-from-top-1 duration-300 space-y-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 px-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-start gap-4 px-2">
                         <div className="flex items-center gap-3">
                           <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden sm:block">Ver horarios de:</span>
                           <Card className="rounded-2xl border-2 border-accent/20 p-1 pl-3 flex items-center gap-3 bg-card shadow-sm h-12 shrink-0">
