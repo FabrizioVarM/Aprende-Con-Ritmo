@@ -583,13 +583,14 @@ function LibraryContent() {
                   <div className="flex justify-between items-center gap-2">
                     <div className="flex-1">
                       {res.lineName && (
-                        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70 leading-none">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 leading-none">
                           {res.lineName}
                         </p>
                       )}
                     </div>
-                    <Badge className={cn("border-none w-9 h-9 rounded-full font-black text-xs shadow-sm shrink-0 flex items-center justify-center p-0", levelStyle.bg, levelStyle.text)}>
-                      {res.level || 1}
+                    <Badge className={cn("border-none w-12 h-12 rounded-full font-black shadow-sm shrink-0 flex flex-col items-center justify-center p-0 leading-none", levelStyle.bg, levelStyle.text)}>
+                      <span className="text-[7px] uppercase tracking-tighter mb-0.5">Nivel</span>
+                      <span className="text-sm">{res.level || 1}</span>
                     </Badge>
                   </div>
                   <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[2.5rem] line-clamp-2 text-foreground font-headline">
@@ -772,8 +773,9 @@ function LibraryContent() {
                     <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
                       {viewingResource.category}
                     </Badge>
-                    <Badge className={cn("border-none w-10 h-10 rounded-full font-black text-sm shadow-lg shrink-0 flex items-center justify-center p-0", LEVEL_STYLE[viewingResource.level || 1]?.bg, LEVEL_STYLE[viewingResource.level || 1]?.text)}>
-                      {viewingResource.level || 1}
+                    <Badge className={cn("border-none w-14 h-14 rounded-full font-black shadow-lg shrink-0 flex flex-col items-center justify-center p-0 leading-none", LEVEL_STYLE[viewingResource.level || 1]?.bg, LEVEL_STYLE[viewingResource.level || 1]?.text)}>
+                      <span className="text-[8px] uppercase tracking-tighter mb-0.5">Nivel</span>
+                      <span className="text-lg">{viewingResource.level || 1}</span>
                     </Badge>
                   </div>
                   <div className="space-y-1">
