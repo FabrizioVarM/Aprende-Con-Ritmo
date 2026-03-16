@@ -91,5 +91,10 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
       allow update, delete: if isAdmin();
     }
+
+    match /curriculums/{planId} {
+      allow read: if isTeacher();
+      allow write: if isAdmin();
+    }
   }
 }
