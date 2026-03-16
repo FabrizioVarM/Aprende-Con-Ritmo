@@ -965,17 +965,21 @@ export default function StudentDashboard() {
           <CardContent className="p-0">
             {recommendedResources.length > 0 ? (
               recommendedResources.map((resource, i) => (
-                <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0 border-border">
+                <div 
+                  key={i} 
+                  className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0 border-border cursor-pointer group"
+                  onClick={() => router.push('/library')}
+                >
                   <div className="flex gap-3 sm:gap-4 items-center min-w-0">
                     <div className="bg-white dark:bg-slate-800 p-2 sm:p-4 rounded-3xl shadow-md border border-primary/10 shrink-0">
                       <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-accent" />
                     </div>
                     <div className="min-w-0">
-                      <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate">{resource.title}</div>
+                      <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate group-hover:text-accent transition-colors">{resource.title}</div>
                       <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length} • {resource.type}</div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0 text-accent" onClick={() => router.push('/library')}>
+                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0 text-accent">
                     <ChevronRight className="w-6 h-6" />
                   </Button>
                 </div>
