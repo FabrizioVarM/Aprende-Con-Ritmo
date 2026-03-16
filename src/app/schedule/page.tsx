@@ -303,7 +303,7 @@ function ScheduleContent() {
 
   const otherAvailableSlots = useMemo(() => {
     if (!currentTime) return [];
-    const isToday = date.toDateString() === currentTime.toDateString();
+    const isToday = date.toDateString() === date.toDateString();
 
     return allDaySlots.filter(s => {
       if (!s.isAvailable || s.isBooked) return false;
@@ -883,7 +883,7 @@ function ScheduleContent() {
               >
                 <DialogTrigger asChild>
                   <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
-                    <Plus className="w-5 h-5" /> Nueva Reserva Rápida
+                    <Plus className="w-5 h-5" /> Nueva Reserva para Hoy
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="rounded-[2.5rem] max-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
