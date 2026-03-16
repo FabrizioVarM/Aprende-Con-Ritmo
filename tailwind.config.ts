@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -91,15 +90,19 @@ export default {
         },
         float: {
           '0%, 100%': { transform: 'translateY(0) translateX(0) rotate(0deg)' },
-          // Aumento de amplitud en un ~30% (de 25px a 33px y de 15px a 20px)
           '33%': { transform: 'translateY(-33px) translateX(33px) rotate(20deg)' },
           '66%': { transform: 'translateY(20px) translateX(-26px) rotate(-20deg)' },
+        },
+        'pulse-subtle': {
+          '0%, 100%': { backgroundColor: 'hsl(var(--accent))' },
+          '50%': { backgroundColor: 'hsl(7, 100%, 80%)' },
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         float: 'float 10s ease-in-out infinite',
+        'pulse-subtle': 'pulse-subtle 3s ease-in-out infinite',
       },
     },
   },
