@@ -1,7 +1,7 @@
-
 "use client"
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -68,7 +68,7 @@ const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Bater�
 const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
 const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 
-export default function LibraryPage() {
+function LibraryContent() {
   const { user, allUsers, loading } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
   const { 
@@ -82,6 +82,8 @@ export default function LibraryPage() {
     toggleEnabledStatus
   } = useResourceStore();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const targetResourceId = searchParams.get('resourceId');
   
   const [isMounted, setIsMounted] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
@@ -122,6 +124,16 @@ export default function LibraryPage() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Lógica para abrir automáticamente un recurso si viene por URL
+  useEffect(() => {
+    if (isMounted && targetResourceId && resources.length > 0 && !viewingResource) {
+      const res = resources.find(r => String(r.id) === targetResourceId);
+      if (res) {
+        setViewingResource(res);
+      }
+    }
+  }, [isMounted, targetResourceId, resources, viewingResource]);
 
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
@@ -1187,5 +1199,13 @@ export default function LibraryPage() {
         </DialogContent>
       </Dialog>
     </AppLayout>
+  );
+}
+
+export default function LibraryPage() {
+  return (
+    <Suspense fallback={null}>
+      <LibraryContent />
+    </Suspense>
   );
 }

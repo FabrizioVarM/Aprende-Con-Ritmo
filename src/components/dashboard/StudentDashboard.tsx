@@ -968,7 +968,7 @@ export default function StudentDashboard() {
                 <div 
                   key={i} 
                   className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0 border-border cursor-pointer group"
-                  onClick={() => router.push('/library')}
+                  onClick={() => router.push(`/library?resourceId=${resource.id}`)}
                 >
                   <div className="flex gap-3 sm:gap-4 items-center min-w-0">
                     <div className="bg-white dark:bg-slate-800 p-2 sm:p-4 rounded-3xl shadow-md border border-primary/10 shrink-0">
