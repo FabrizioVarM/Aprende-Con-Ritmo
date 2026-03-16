@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect, Suspense } from 'react';
+import { useState, useMemo, useEffect, Suspense, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -137,7 +137,7 @@ function ScheduleContent() {
   const [isDaySelectorOpen, setIsDaySelectorOpen] = useState(false);
   
   // Main section collapsible states
-  const [isMyLessonsOpen, setIsMyLessonsOpen] = useState(true);
+  const [isMyLessonsOpen, setIsMyLessonsOpen] = useState(false);
   const [isAvailableSlotsOpen, setIsAvailableSlotsOpen] = useState(false);
   const [isAdminLessonsOpen, setIsAdminLessonsOpen] = useState(true);
   const [isTeacherPendingOpen, setIsTeacherPendingOpen] = useState(true);
@@ -307,6 +307,19 @@ function ScheduleContent() {
     });
     return studentClasses.sort((a, b) => a.time.localeCompare(b.time));
   }, [availabilities, dateStrKey, user, isTeacher, allDaySlots, allUsers]);
+
+  // Lógica de apertura/cierre automático de paneles
+  useEffect(() => {
+    // Al cambiar de día o cuando se cargan las clases
+    if (mySlots.length > 0) {
+      setIsMyLessonsOpen(true);
+    } else {
+      setIsMyLessonsOpen(false);
+    }
+    
+    // Horarios disponibles siempre retraído por defecto al cambiar de día
+    setIsAvailableSlotsOpen(false);
+  }, [mySlots.length, dateStrKey]);
 
   const otherAvailableSlots = useMemo(() => {
     if (!currentTime) return [];
