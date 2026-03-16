@@ -142,7 +142,8 @@
       "description": "Material didáctico de la biblioteca.",
       "properties": {
         "id": { "type": "number" },
-        "title": { "type": "string" },
+        "title": { "type": "string", "description": "Nombre específico y llamativo del recurso." },
+        "lineName": { "type": "string", "description": "Nombre de la línea curricular o categoría de aprendizaje." },
         "category": { "type": "string" },
         "level": { "type": "number", "description": "Nivel de dificultad del recurso (1 a 5)." },
         "type": { "type": "string" },

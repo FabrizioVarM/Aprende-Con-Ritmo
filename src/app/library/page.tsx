@@ -118,6 +118,7 @@ function LibraryContent() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newResource, setNewResource] = useState<Partial<Resource>>({
     title: '',
+    lineName: '',
     category: 'Guitarra',
     level: 1,
     type: 'PDF',
@@ -215,7 +216,7 @@ function LibraryContent() {
   const filtered = visibleResources.filter(res => 
     (selectedFilters.length === 0 || selectedFilters.includes(res.category)) &&
     (selectedLevels.length === 0 || selectedLevels.includes(res.level || 1)) &&
-    (res.title.toLowerCase().includes(search.toLowerCase()))
+    (res.title.toLowerCase().includes(search.toLowerCase()) || (res.lineName?.toLowerCase().includes(search.toLowerCase()) || false))
   );
 
   const handleToggleCompletion = (resourceId: number, title: string) => {
@@ -266,6 +267,7 @@ function LibraryContent() {
     setIsCreateDialogOpen(false);
     setNewResource({
       title: '',
+      lineName: '',
       category: 'Guitarra',
       level: 1,
       type: 'PDF',
@@ -578,8 +580,15 @@ function LibraryContent() {
                     </div>
                   )}
                 </div>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[3rem] line-clamp-2 text-foreground font-headline">{res.title}</CardTitle>
+                <CardHeader className="pb-2 space-y-1">
+                  {res.lineName && (
+                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/70 leading-none">
+                      {res.lineName}
+                    </p>
+                  )}
+                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[2.5rem] line-clamp-2 text-foreground font-headline">
+                    {res.title}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 flex-1">
                   <div className="flex items-center justify-between">
@@ -761,9 +770,16 @@ function LibraryContent() {
                       Nivel {viewingResource.level || 1}
                     </Badge>
                   </div>
-                  <h2 className="text-xl md:text-2xl font-black text-white leading-tight drop-shadow-md font-headline line-clamp-2">
-                    {viewingResource.title}
-                  </h2>
+                  <div className="space-y-1">
+                    {viewingResource.lineName && (
+                      <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-white/70 leading-none drop-shadow-sm">
+                        {viewingResource.lineName}
+                      </p>
+                    )}
+                    <h2 className="text-xl md:text-2xl font-black text-white leading-tight drop-shadow-md font-headline line-clamp-2">
+                      {viewingResource.title}
+                    </h2>
+                  </div>
                 </div>
               </div>
 
@@ -947,19 +963,30 @@ function LibraryContent() {
           <div className="flex-1 overflow-y-auto min-h-0 bg-card custom-scrollbar">
             <div className="p-8 space-y-6">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
-                  <Input 
-                    value={newResource.title} 
-                    onChange={(e) => setNewResource(prev => ({...prev, title: e.target.value}))}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                    placeholder="Ej: Acordes de Jazz Vol 1"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título Específico (Identificador)</Label>
+                    <Input 
+                      value={newResource.title} 
+                      onChange={(e) => setNewResource(prev => ({...prev, title: e.target.value}))}
+                      className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                      placeholder="Ej: Acordes Mayores"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nombre de la Línea (Categoría)</Label>
+                    <Input 
+                      value={newResource.lineName} 
+                      onChange={(e) => setNewResource(prev => ({...prev, lineName: e.target.value}))}
+                      className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                      placeholder="Ej: Acordes Básicos 1"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Instrumento</Label>
                     <Select 
                       value={newResource.category} 
                       onValueChange={(val) => setNewResource(prev => ({...prev, category: val}))}
@@ -1119,18 +1146,28 @@ function LibraryContent() {
           <div className="flex-1 overflow-y-auto min-h-0 bg-card custom-scrollbar">
             <div className="p-8 space-y-6">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Material</Label>
-                  <Input 
-                    value={editingResource?.title || ''} 
-                    onChange={(e) => setEditingResource(prev => prev ? {...prev, title: e.target.value} : null)}
-                    className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título Específico</Label>
+                    <Input 
+                      value={editingResource?.title || ''} 
+                      onChange={(e) => setEditingResource(prev => prev ? {...prev, title: e.target.value} : null)}
+                      className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nombre de la Línea</Label>
+                    <Input 
+                      value={editingResource?.lineName || ''} 
+                      onChange={(e) => setEditingResource(prev => prev ? {...prev, lineName: e.target.value} : null)}
+                      className="h-12 rounded-xl border-2 font-bold text-foreground bg-card focus:border-accent"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Categoría (Instrumento)</Label>
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Instrumento</Label>
                     <Select 
                       value={editingResource?.category || ''} 
                       onValueChange={(val) => setEditingResource(prev => prev ? {...prev, category: val} : null)}

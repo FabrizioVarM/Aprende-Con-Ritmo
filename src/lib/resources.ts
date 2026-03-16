@@ -5,6 +5,7 @@ import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-imag
 export interface Resource {
   id: number;
   title: string;
+  lineName?: string;
   category: string;
   level: number;
   type: string;
@@ -27,7 +28,8 @@ export interface Resource {
 export const INITIAL_RESOURCES: Resource[] = [
   { 
     id: 1, 
-    title: 'Nivel 1 - Acordes Básicos 1 - Acordes Mayores', 
+    title: 'Acordes Mayores',
+    lineName: 'Acordes Básicos 1', 
     category: 'Guitarra', 
     level: 1,
     type: 'PDF', 
@@ -44,7 +46,8 @@ export const INITIAL_RESOURCES: Resource[] = [
   },
   { 
     id: 2, 
-    title: 'Masterclass de Escalas de Piano', 
+    title: 'Escalas de Piano',
+    lineName: 'Masterclass Técnica', 
     category: 'Piano', 
     level: 2,
     type: 'Video', 
@@ -61,7 +64,8 @@ export const INITIAL_RESOURCES: Resource[] = [
   },
   { 
     id: 3, 
-    title: 'Guía de Afinación de Violín', 
+    title: 'Afinación de Violín',
+    lineName: 'Fundamentos Iniciales', 
     category: 'Violín', 
     level: 1,
     type: 'PDF', 
@@ -78,7 +82,8 @@ export const INITIAL_RESOURCES: Resource[] = [
   },
   { 
     id: 4, 
-    title: 'Teoría Avanzada Vol 1', 
+    title: 'Armonía Funcional',
+    lineName: 'Teoría Avanzada Vol 1', 
     category: 'Teoría', 
     level: 3,
     type: 'Libro', 
@@ -95,7 +100,8 @@ export const INITIAL_RESOURCES: Resource[] = [
   },
   { 
     id: 5, 
-    title: 'Rudimentos Esenciales de Batería', 
+    title: 'Rudimentos Esenciales 1',
+    lineName: 'Técnica de Baquetas', 
     category: 'Batería', 
     level: 2,
     type: 'PDF', 
@@ -112,7 +118,8 @@ export const INITIAL_RESOURCES: Resource[] = [
   },
   { 
     id: 6, 
-    title: 'Técnicas de Respiración y Apoyo', 
+    title: 'Respiración y Apoyo',
+    lineName: 'Técnica Vocal Básica', 
     category: 'Canto', 
     level: 1,
     type: 'Video', 
