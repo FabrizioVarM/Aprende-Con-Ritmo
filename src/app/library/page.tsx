@@ -71,6 +71,15 @@ const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
 const LEVELS = [1, 2, 3, 4, 5];
 const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 
+// Configuración de colores por nivel
+const LEVEL_STYLE: Record<number, { bg: string, text: string, border: string, hover: string }> = {
+  1: { bg: 'bg-emerald-500', text: 'text-white', border: 'border-emerald-600', hover: 'hover:border-emerald-400' },
+  2: { bg: 'bg-sky-500', text: 'text-white', border: 'border-sky-600', hover: 'hover:border-sky-400' },
+  3: { bg: 'bg-violet-500', text: 'text-white', border: 'border-violet-600', hover: 'hover:border-violet-400' },
+  4: { bg: 'bg-orange-500', text: 'text-white', border: 'border-orange-600', hover: 'hover:border-orange-400' },
+  5: { bg: 'bg-rose-500', text: 'text-white', border: 'border-rose-600', hover: 'hover:border-rose-400' },
+};
+
 function LibraryContent() {
   const { user, allUsers, loading } = useAuth();
   const { toggleCompletion, getCompletionStatus } = useCompletionStore();
@@ -189,7 +198,6 @@ function LibraryContent() {
   };
 
   const toggleLevelFilter = (lvl: number) => {
-    // Solo permitimos un nivel a la vez. Si ya está seleccionado, lo quitamos.
     setSelectedLevels(prev => 
       prev.includes(lvl) ? [] : [lvl]
     );
@@ -448,6 +456,7 @@ function LibraryContent() {
             <div className="flex gap-2">
               {LEVELS.map((lvl) => {
                 const isActive = selectedLevels.includes(lvl);
+                const style = LEVEL_STYLE[lvl];
                 return (
                   <Button
                     key={lvl}
@@ -455,8 +464,8 @@ function LibraryContent() {
                     className={cn(
                       "rounded-lg w-10 h-10 p-0 transition-all font-black text-xs",
                       isActive 
-                        ? "bg-blue-600 text-white border-blue-600 shadow-md" 
-                        : "border-primary/20 bg-card text-muted-foreground hover:border-blue-400"
+                        ? `${style.bg} ${style.text} border-none shadow-md scale-110` 
+                        : cn("border-primary/20 bg-card text-muted-foreground", style.hover)
                     )}
                     onClick={() => toggleLevelFilter(lvl)}
                   >
@@ -477,6 +486,7 @@ function LibraryContent() {
             const isVisibleForTarget = res.isVisibleGlobally || res.assignedStudentIds?.includes(selectedStudentId);
             const isEnabled = res.isEnabled !== false;
             const isLockedForStudent = !isStaff && !isEnabled;
+            const levelStyle = LEVEL_STYLE[res.level || 1] || LEVEL_STYLE[1];
 
             let rawImgUrl = FALLBACK_IMAGE;
             if (typeof res.img === 'string') {
@@ -522,7 +532,6 @@ function LibraryContent() {
                     }}
                   />
                   
-                  {/* Etiquetas a la izquierda */}
                   <div className="absolute top-4 left-4 flex flex-col gap-2">
                     <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none w-fit">
                       {res.category}
@@ -539,9 +548,8 @@ function LibraryContent() {
                     )}
                   </div>
 
-                  {/* Nivel y Botón Editar a la derecha */}
                   <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
-                    <Badge className="bg-blue-600 text-white border-none px-3 py-1 rounded-full font-black text-[10px] shadow-sm">
+                    <Badge className={cn("border-none px-3 py-1 rounded-full font-black text-[10px] shadow-sm", levelStyle.bg, levelStyle.text)}>
                       Nivel {res.level || 1}
                     </Badge>
                     {canManage && (
@@ -749,7 +757,7 @@ function LibraryContent() {
                     <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
                       {viewingResource.category}
                     </Badge>
-                    <Badge className="bg-blue-600 text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
+                    <Badge className={cn("border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit", LEVEL_STYLE[viewingResource.level || 1]?.bg, LEVEL_STYLE[viewingResource.level || 1]?.text)}>
                       Nivel {viewingResource.level || 1}
                     </Badge>
                   </div>
