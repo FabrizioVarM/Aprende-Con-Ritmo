@@ -1138,8 +1138,8 @@ function ScheduleContent() {
                       <CardTitle className="text-base font-black text-foreground">Elige la semana</CardTitle>
                     </div>
                     <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                        <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isWeekSelectorOpen ? "rotate-180" : "")} />
+                      <Button variant="secondary" size="icon" className="h-10 w-10 rounded-xl bg-accent/10 hover:bg-accent/20 border border-accent/20 shadow-sm transition-all group">
+                        <ChevronDown className={cn("h-6 w-6 text-accent transition-transform duration-300", isWeekSelectorOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                       </Button>
                     </CollapsibleTrigger>
                   </div>
@@ -1197,8 +1197,8 @@ function ScheduleContent() {
                         Ir a Hoy
                       </Button>
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-                          <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", isDaySelectorOpen ? "rotate-180" : "")} />
+                        <Button variant="secondary" size="icon" className="h-10 w-10 rounded-xl bg-accent/10 hover:bg-accent/20 border border-accent/20 shadow-sm transition-all group">
+                          <ChevronDown className={cn("h-6 w-6 text-accent transition-transform duration-300", isDaySelectorOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                         </Button>
                       </CollapsibleTrigger>
                     </div>
@@ -1347,12 +1347,14 @@ function ScheduleContent() {
             <div className="space-y-10">
               {isAdmin ? (
                 <Collapsible open={isAdminLessonsOpen} onOpenChange={setIsAdminLessonsOpen} className="space-y-6">
-                  <div className="flex items-center gap-3 px-2">
-                    <div className="w-2 h-8 bg-accent rounded-full" />
-                    <h2 className="text-2xl font-black text-foreground tracking-tight">Todas las Reservas de la Academia 🌟</h2>
+                  <div className="flex items-center justify-between gap-4 px-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-8 bg-accent rounded-full" />
+                      <h2 className="text-2xl font-black text-foreground tracking-tight">Todas las Reservas de la Academia 🌟</h2>
+                    </div>
                     <CollapsibleTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-full">
-                        <ChevronDown className={cn("h-5 w-5 transition-transform duration-300", isAdminLessonsOpen ? "rotate-180" : "")} />
+                      <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-accent/10 hover:bg-accent/20 border-2 border-accent/20 shadow-md transition-all group">
+                        <ChevronDown className={cn("h-7 w-7 text-accent transition-transform duration-300", isAdminLessonsOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                       </Button>
                     </CollapsibleTrigger>
                   </div>
@@ -1380,12 +1382,14 @@ function ScheduleContent() {
               ) : isTeacher ? (
                 <>
                   <Collapsible open={isTeacherPendingOpen} onOpenChange={setIsTeacherPendingOpen} className="space-y-6">
-                    <div className="flex items-center gap-3 px-2">
-                      <div className="w-2 h-8 bg-accent rounded-full" />
-                      <h2 className="text-2xl font-black text-foreground tracking-tight">Próximas Clases Pendientes ⏳</h2>
+                    <div className="flex items-center justify-between gap-4 px-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-8 bg-accent rounded-full" />
+                        <h2 className="text-2xl font-black text-foreground tracking-tight">Próximas Clases Pendientes ⏳</h2>
+                      </div>
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                          <ChevronDown className={cn("h-5 w-5 transition-transform duration-300", isTeacherPendingOpen ? "rotate-180" : "")} />
+                        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-accent/10 hover:bg-accent/20 border-2 border-accent/20 shadow-md transition-all group">
+                          <ChevronDown className={cn("h-7 w-7 text-accent transition-transform duration-300", isTeacherPendingOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                         </Button>
                       </CollapsibleTrigger>
                     </div>
@@ -1403,12 +1407,14 @@ function ScheduleContent() {
                   </Collapsible>
 
                   <Collapsible open={isTeacherPastOpen} onOpenChange={setIsTeacherPastOpen} className="space-y-6">
-                    <div className="flex items-center gap-3 px-2">
-                      <div className="w-2 h-8 bg-emerald-500 rounded-full" />
-                      <h2 className="text-2xl font-black text-foreground tracking-tight">Clases para Validar/Pasadas 👩‍🎓</h2>
+                    <div className="flex items-center justify-between gap-4 px-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-8 bg-emerald-500 rounded-full" />
+                        <h2 className="text-2xl font-black text-foreground tracking-tight">Clases para Validar/Pasadas 👩‍🎓</h2>
+                      </div>
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                          <ChevronDown className={cn("h-5 w-5 transition-transform duration-300", isTeacherPastOpen ? "rotate-180" : "")} />
+                        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-emerald-100/50 hover:bg-emerald-100 border-2 border-emerald-200 shadow-md transition-all group">
+                          <ChevronDown className={cn("h-7 w-7 text-emerald-600 transition-transform duration-300", isTeacherPastOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                         </Button>
                       </CollapsibleTrigger>
                     </div>
@@ -1428,12 +1434,14 @@ function ScheduleContent() {
               ) : (
                 <>
                   <Collapsible open={isMyLessonsOpen} onOpenChange={setIsMyLessonsOpen} className="space-y-6">
-                    <div className="flex items-center gap-3 px-2">
-                      <div className="w-2 h-8 bg-accent rounded-full" />
-                      <h2 className="text-2xl font-black text-foreground tracking-tight">Mis Clases Confirmadas 🌟</h2>
+                    <div className="flex items-center justify-between gap-4 px-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-8 bg-accent rounded-full" />
+                        <h2 className="text-2xl font-black text-foreground tracking-tight">Mis Clases Confirmadas 🌟</h2>
+                      </div>
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full">
-                          <ChevronDown className={cn("h-5 w-5 transition-transform duration-300", isMyLessonsOpen ? "rotate-180" : "")} />
+                        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-accent/10 hover:bg-accent/20 border-2 border-accent/20 shadow-md transition-all group">
+                          <ChevronDown className={cn("h-7 w-7 text-accent transition-transform duration-300", isMyLessonsOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                         </Button>
                       </CollapsibleTrigger>
                     </div>
@@ -1459,13 +1467,13 @@ function ScheduleContent() {
 
                   <Collapsible open={isAvailableSlotsOpen} onOpenChange={setIsAvailableSlotsOpen} className="space-y-6">
                     <CollapsibleTrigger asChild>
-                      <div className="flex items-center justify-between gap-4 cursor-pointer group hover:bg-primary/5 p-2 rounded-2xl transition-colors">
+                      <div className="flex items-center justify-between gap-4 cursor-pointer group hover:bg-primary/5 p-3 rounded-2xl transition-all border border-transparent hover:border-primary/20 bg-card/50 shadow-sm">
                         <div className="flex items-center gap-3 px-2">
                           <div className="w-2 h-8 bg-primary rounded-full" />
                           <h2 className="text-2xl font-black text-foreground tracking-tight">Horarios Disponibles para este día 🎸</h2>
                         </div>
-                        <Button variant="ghost" size="icon" className="rounded-full shrink-0">
-                          <ChevronDown className={cn("h-5 w-5 transition-transform duration-300", isAvailableSlotsOpen ? "rotate-180" : "")} />
+                        <Button variant="secondary" size="icon" className="h-12 w-12 rounded-2xl bg-primary/10 hover:bg-primary/20 border-2 border-primary/20 shadow-md transition-all">
+                          <ChevronDown className={cn("h-7 w-7 text-primary transition-transform duration-300", isAvailableSlotsOpen ? "rotate-180" : "group-hover:translate-y-0.5")} />
                         </Button>
                       </div>
                     </CollapsibleTrigger>
