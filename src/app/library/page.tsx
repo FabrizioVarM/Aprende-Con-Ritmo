@@ -189,10 +189,9 @@ function LibraryContent() {
   };
 
   const toggleLevelFilter = (lvl: number) => {
+    // Solo permitimos un nivel a la vez. Si ya está seleccionado, lo quitamos.
     setSelectedLevels(prev => 
-      prev.includes(lvl) 
-        ? prev.filter(l => l !== lvl) 
-        : [...prev, lvl]
+      prev.includes(lvl) ? [] : [lvl]
     );
   };
 
