@@ -522,11 +522,12 @@ function LibraryContent() {
                       }
                     }}
                   />
+                  
+                  {/* Etiquetas a la izquierda */}
                   <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none w-fit">{res.category}</Badge>
-                      <Badge className="bg-blue-600 text-white border-none px-3 py-1 rounded-full font-black text-[10px] shadow-sm">Nivel {res.level || 1}</Badge>
-                    </div>
+                    <Badge className="bg-white/95 dark:bg-slate-900/95 text-secondary-foreground dark:text-foreground backdrop-blur-sm rounded-full px-4 py-1 font-black shadow-sm border-none w-fit">
+                      {res.category}
+                    </Badge>
                     {isStaff && !res.isVisibleGlobally && (
                       <Badge variant="destructive" className="rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1 w-fit">
                         <EyeOff className="w-2.5 h-2.5" /> Privado
@@ -538,8 +539,13 @@ function LibraryContent() {
                       </Badge>
                     )}
                   </div>
-                  {canManage && (
-                    <div className="absolute top-4 right-4">
+
+                  {/* Nivel y Botón Editar a la derecha */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
+                    <Badge className="bg-blue-600 text-white border-none px-3 py-1 rounded-full font-black text-[10px] shadow-sm">
+                      Nivel {res.level || 1}
+                    </Badge>
+                    {canManage && (
                       <Button 
                         size="icon" 
                         variant="secondary" 
@@ -551,8 +557,9 @@ function LibraryContent() {
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
                   {isLockedForStudent && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center p-6 text-center">
                       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
@@ -739,7 +746,7 @@ function LibraryContent() {
                 />
                 <div className="absolute inset-0 bg-black/40" />
                 <div className="absolute inset-0 flex flex-col justify-center px-8">
-                  <div className="flex gap-2 mb-2">
+                  <div className="flex justify-between items-center mb-2">
                     <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
                       {viewingResource.category}
                     </Badge>
