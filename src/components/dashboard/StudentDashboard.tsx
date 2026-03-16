@@ -78,6 +78,14 @@ const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: str
   'Default': { color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/40' }
 };
 
+const LEVEL_STYLE: Record<number, { bg: string }> = {
+  1: { bg: 'bg-emerald-500' },
+  2: { bg: 'bg-sky-500' },
+  3: { bg: 'bg-violet-500' },
+  4: { bg: 'bg-orange-500' },
+  5: { bg: 'bg-rose-500' },
+};
+
 const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
 
 const calculateDuration = (timeStr: string): number => {
@@ -153,7 +161,6 @@ export default function StudentDashboard() {
     setCurrentTime(now);
     setSelectedDate(now);
 
-    // Auto-abrir diálogo de reserva si viene del Hero
     if (searchParams.get('book') === 'true') {
       setIsOpen(true);
     }
@@ -163,10 +170,7 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (!isMounted) return;
-    
-    // Recuperar la última zona guardada en localStorage
     const savedZone = localStorage.getItem('ritmo_last_selected_zone');
-    
     if (savedZone && activeZones.includes(savedZone)) {
       setSelectedZone(savedZone);
     } else if (activeZones.length > 0 && !selectedZone) {
@@ -267,25 +271,17 @@ export default function StudentDashboard() {
 
   const freeSlots = useMemo(() => {
     if (!currentTime || !selectedDate) return [];
-    
     const isToday = selectedDate.toDateString() === currentTime.toDateString();
-    
     return availability.slots.filter(s => {
       if (!s.isAvailable || s.isBooked) return false;
-
       if (selectedModality === 'virtual' && s.type !== 'virtual') return false;
       if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
       if (selectedModality === 'sede' && s.type !== 'presencial') return false; 
-      
       const startTimeStr = s.time.split(' - ')[0];
       const [h, m] = startTimeStr.split(':').map(Number);
       const slotStartTime = new Date(selectedDate);
       slotStartTime.setHours(h, m, 0, 0);
-
-      if (isToday && currentTime.getTime() >= slotStartTime.getTime()) {
-        return false;
-      }
-      
+      if (isToday && currentTime.getTime() >= slotStartTime.getTime()) return false;
       const selectedDateStart = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()).getTime();
       return selectedDateStart >= todayTimestamp;
     });
@@ -293,7 +289,6 @@ export default function StudentDashboard() {
 
   const myUpcomingLessons = useMemo(() => {
     if (!user || !currentTime) return [];
-    
     const lessons: any[] = [];
     availabilities.forEach(dayAvail => {
       dayAvail.slots.forEach(slot => {
@@ -302,15 +297,12 @@ export default function StudentDashboard() {
           slot.bookedBy === user.name || 
           slot.students?.some(st => st.id === user.id)
         );
-
         if (isParticipant) {
           const teacher = teachers.find(t => t.id === dayAvail.teacherId);
           const lessonDate = dayAvail.date;
-          
           const timeParts = slot.time.split(' - ');
           let startTimeStr = timeParts[0].trim();
           let endTimeStr = timeParts[1]?.trim() || startTimeStr;
-
           const formatTime = (t: string) => {
             if (t.includes(':')) {
               const [h, m] = t.split(':');
@@ -318,12 +310,9 @@ export default function StudentDashboard() {
             }
             return t.padStart(2, '0') + ':00';
           };
-
           const startTime = formatTime(startTimeStr);
           const endTime = formatTime(endTimeStr);
-          
           const endDateTime = new Date(`${lessonDate}T${endTime}:00`);
-          
           if (currentTime.getTime() < endDateTime.getTime()) {
             lessons.push({
               id: slot.id,
@@ -340,23 +329,17 @@ export default function StudentDashboard() {
         }
       });
     });
-
-    return lessons
-      .sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime())
-      .slice(0, 4);
+    return lessons.sort((a, b) => a.sortDate.getTime() - b.sortDate.getTime()).slice(0, 4);
   }, [availabilities, user, currentTime, teachers, selectedInstrument]);
 
   const nextLesson = myUpcomingLessons[0];
 
   const topInstrument = useMemo(() => {
     if (!user) return 'Música';
-    
     const studentInstruments = [...(user.instruments || []), 'Teoría'];
     const stats: Record<string, number> = {};
-
     studentInstruments.forEach(cat => {
       let points = 0;
-      
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(user.id)) {
           const resource = resources.find(r => r.id === comp.resourceId);
@@ -366,13 +349,11 @@ export default function StudentDashboard() {
           }
         }
       });
-
       availabilities.forEach(day => {
         day.slots.forEach(slot => {
           const isMyCompletedSlot = slot.isBooked && 
             slot.status === 'completed' && 
             (String(slot.studentId) === String(user.id) || slot.students?.some(st => String(st.id) === String(user.id)));
-
           if (isMyCompletedSlot) {
             const slotInst = slot.instrument || 'Música';
             if (normalizeStr(slotInst) === normalizeStr(cat)) {
@@ -381,28 +362,22 @@ export default function StudentDashboard() {
           }
         });
       });
-
       stats[cat] = points;
     });
-
     let maxPts = -1;
     let bestInst = user.instruments?.[0] || 'Música';
-    
     Object.entries(stats).forEach(([inst, pts]) => {
       if (pts > maxPts) {
         maxPts = pts;
         bestInst = inst;
       }
     });
-
     return bestInst;
   }, [user, completions, availabilities, resources]);
 
   const recommendedResources = useMemo(() => {
     if (!user) return [];
-    
     const userInstruments = user.instruments || [];
-    
     return resources.filter(res => {
       const isRelevant = userInstruments.includes(res.category) || res.category === 'Teoría';
       const isCompleted = getCompletionStatus(res.id, user.id);
@@ -412,54 +387,33 @@ export default function StudentDashboard() {
 
   const handleBookLesson = async () => {
     if (!selectedSlotId || !user || !selectedTeacherId) return;
-
     const targetSlot = freeSlots.find(s => s.id === selectedSlotId);
     if (!targetSlot) return;
-
     if (hasConflict(targetSlot.time)) {
-      toast({
-        variant: "destructive",
-        title: "Conflicto de Horario",
-        description: "Ya tienes una clase reservada en este horario con otro profesor."
-      });
+      toast({ variant: "destructive", title: "Conflicto de Horario", description: "Ya tienes una clase en este horario." });
       return;
     }
-
     const travelError = getSlotTravelMarginError(targetSlot);
     if (travelError) {
-      toast({
-        variant: "destructive",
-        title: "No es posible reservar",
-        description: travelError
-      });
+      toast({ variant: "destructive", title: "No es posible reservar", description: travelError });
       return;
     }
-
     const teacher = teachers.find(t => t.id === selectedTeacherId);
     const finalZone = (selectedModality === 'virtual' || (selectedModality === 'cualquiera' && targetSlot.type === 'virtual')) 
       ? 'Virtual' 
       : (selectedZone || activeZones[0]);
-    
     await bookSlot(selectedTeacherId, selectedDate, selectedSlotId, user.name, user.id, selectedInstrument, teacher?.name, adminIds, finalZone);
-    
-    toast({
-      title: "¡Reserva Exitosa! 🎸",
-      description: "Tu clase ha sido agendada. El profesor y administración han sido notificados.",
-    });
-    
+    toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada." });
     setIsOpen(false);
     setSelectedSlotId(null);
-
-    // Solicitar permisos de notificación justo después de una reserva exitosa
     errorEmitter.emit('request-notification-permission', undefined);
   };
 
-  const weekDays = useMemo(() => {
+  const weekDaysNav = useMemo(() => {
     const startOfWeek = new Date(selectedDate);
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
     startOfWeek.setDate(diff);
-
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(startOfWeek);
       d.setDate(startOfWeek.getDate() + i);
@@ -467,27 +421,21 @@ export default function StudentDashboard() {
     });
   }, [selectedDate]);
 
-  // Mapa de disponibilidad para el calendario visual (puntos verdes)
   const daysWithAvailability = useMemo(() => {
     if (!selectedTeacherId || !currentTime) return new Set<string>();
     const availableDates = new Set<string>();
-
-    weekDays.forEach(d => {
+    weekDaysNav.forEach(d => {
       const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       const isToday = d.toDateString() === currentTime.toDateString();
       const dateStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-      
       if (dateStart < todayTimestamp && !isToday) return;
-
       const dayData = availabilities.find(a => a.teacherId === selectedTeacherId && a.date === dStr);
       if (dayData) {
         const hasFree = dayData.slots.some(s => {
           if (!s.isAvailable || s.isBooked) return false;
-          
           if (selectedModality === 'virtual' && s.type !== 'virtual') return false;
           if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
           if (selectedModality === 'sede' && s.type !== 'presencial') return false;
-          
           if (isToday) {
             const startTimeStr = s.time.split(' - ')[0];
             const [h, m] = startTimeStr.split(':').map(Number);
@@ -497,13 +445,11 @@ export default function StudentDashboard() {
           }
           return true;
         });
-        
         if (hasFree) availableDates.add(dStr);
       }
     });
-
     return availableDates;
-  }, [weekDays, availabilities, selectedTeacherId, selectedModality, currentTime, todayTimestamp]);
+  }, [weekDaysNav, availabilities, selectedTeacherId, selectedModality, currentTime, todayTimestamp]);
 
   if (!isMounted) return null;
 
@@ -695,14 +641,13 @@ export default function StudentDashboard() {
                       </div>
                     </div>
                     <div className="grid grid-cols-7 gap-2">
-                      {weekDays.map((d, i) => {
+                      {weekDaysNav.map((d, i) => {
                         const isSelected = d.toDateString() === selectedDate.toDateString();
                         const isToday = d.toDateString() === todayStr;
                         const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
                         const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
                         const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
                         const hasAvailability = daysWithAvailability.has(dStr);
-
                         return (
                           <button
                             key={i}
@@ -710,31 +655,18 @@ export default function StudentDashboard() {
                             onClick={() => !isPast && setSelectedDate(d)}
                             className={cn(
                               "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
-                              isSelected 
-                                ? "bg-accent border-accent text-white shadow-md" 
-                                : "bg-muted/30 border-primary/10 hover:border-accent/20",
+                              isSelected ? "bg-accent border-accent text-white shadow-md" : "bg-muted/30 border-primary/10 hover:border-accent/20",
                               isToday && !isSelected && "border-accent/30",
                               isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border"
                             )}
                           >
                             <span className={cn("text-[8px] font-black uppercase", isSelected ? "text-white" : "text-muted-foreground")}>{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
                             <span className={cn("text-lg font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
-                            
-                            {/* Punto verde de disponibilidad */}
                             {hasAvailability && (
-                              <div className={cn(
-                                "absolute bottom-1.5 w-1 h-1 rounded-full shadow-sm",
-                                isSelected ? "bg-white" : "bg-emerald-500 animate-pulse"
-                              )} />
+                              <div className={cn("absolute bottom-1.5 w-1 h-1 rounded-full shadow-sm", isSelected ? "bg-white" : "bg-emerald-500 animate-pulse")} />
                             )}
-
                             {isToday && (
-                              <span className={cn(
-                                "text-[7px] font-black uppercase absolute -bottom-1",
-                                isSelected ? "text-white/80" : "text-accent"
-                              )}>
-                                HOY
-                              </span>
+                              <span className={cn("text-[7px] font-black uppercase absolute -bottom-1", isSelected ? "text-white/80" : "text-accent")}>HOY</span>
                             )}
                           </button>
                         );
@@ -744,88 +676,43 @@ export default function StudentDashboard() {
                 </div>
 
                 <div className="space-y-6">
-                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                    HORARIOS DISPONIBLES
-                  </label>
+                  <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">HORARIOS DISPONIBLES</label>
                   <div className="grid grid-cols-1 gap-2">
-                    {freeSlots.length > 0 ? (
-                      freeSlots.map((slot) => {
-                        const isSelected = selectedSlotId === slot.id;
-                        const period = getTimePeriod(slot.time);
-                        const conflict = hasConflict(slot.time);
-                        const travelError = getSlotTravelMarginError(slot);
-
-                        return (
-                          <Button
-                            key={slot.id}
-                            variant={isSelected ? "default" : "outline"}
-                            className={cn(
-                              "justify-between rounded-2xl h-auto min-h-[5rem] border-2 font-black px-6 py-4",
-                              isSelected 
-                                ? 'bg-accent text-white border-accent shadow-md' 
-                                : 'bg-card text-foreground border-primary/10 hover:border-accent/30',
-                              (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed hover:bg-orange-50/30"
-                            )}
-                            onClick={() => {
-                              if (conflict) {
-                                toast({ variant: "destructive", title: "Horario Ocupado", description: "Ya tienes una clase en este horario." });
-                                return;
-                              }
-                              if (travelError) {
-                                toast({ variant: "destructive", title: "Margen de Viaje", description: travelError });
-                                return;
-                              }
-                              setSelectedSlotId(slot.id);
-                            }}
-                          >
-                            <div className="flex items-center gap-4 w-full">
-                              <div className={cn(
-                                "p-2.5 rounded-xl border shadow-inner shrink-0",
-                                isSelected ? "bg-white/20 border-white/30" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`)
-                              )}>
-                                {conflict || travelError ? <AlertTriangle className="w-5 h-5" /> : <period.icon className="w-5 h-5" />}
-                              </div>
-                              <div className="flex flex-col items-start min-w-0 flex-1">
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <span className={cn("text-lg leading-none", (conflict || travelError) && "text-orange-700")}>{slot.time}</span>
-                                    <span className={cn(
-                                      "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border",
-                                      isSelected ? "bg-white/20 border-white/30 text-white" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`)
-                                    )}>
-                                      {conflict ? 'Conflicto' : (travelError ? 'Sin Margen' : period.label)}
-                                    </span>
-                                  </div>
-                                  
-                                  {travelError ? (
-                                    <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">
-                                      {travelError}
-                                    </p>
-                                  ) : conflict ? (
-                                    <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">
-                                      Ya reservaste en este horario con otro profesor
-                                    </p>
-                                  ) : (
-                                    <span className={cn(
-                                        "text-[9px] font-black uppercase flex items-center gap-1 mt-1",
-                                        slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500")
-                                    )}>
-                                        {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                                        {slot.type === 'virtual' ? 'Online' : (slot.zone || 'Presencial')}
-                                    </span>
-                                  )}
-                              </div>
+                    {freeSlots.length > 0 ? freeSlots.map((slot) => {
+                      const isSelected = selectedSlotId === slot.id;
+                      const period = getTimePeriod(slot.time);
+                      const conflict = hasConflict(slot.time);
+                      const travelError = getSlotTravelMarginError(slot);
+                      return (
+                        <Button
+                          key={slot.id}
+                          variant={isSelected ? "default" : "outline"}
+                          className={cn("justify-between rounded-2xl h-auto min-h-[5rem] border-2 font-black px-6 py-4", isSelected ? 'bg-accent text-white border-accent shadow-md' : 'bg-card text-foreground border-primary/10 hover:border-accent/30', (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed hover:bg-orange-50/30")}
+                          onClick={() => {
+                            if (conflict) { toast({ variant: "destructive", title: "Horario Ocupado", description: "Ya tienes una clase en este horario." }); return; }
+                            if (travelError) { toast({ variant: "destructive", title: "Margen de Viaje", description: travelError }); return; }
+                            setSelectedSlotId(slot.id);
+                          }}
+                        >
+                          <div className="flex items-center gap-4 w-full">
+                            <div className={cn("p-2.5 rounded-xl border shadow-inner shrink-0", isSelected ? "bg-white/20 border-white/30" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`))}>
+                              {conflict || travelError ? <AlertTriangle className="w-5 h-5" /> : <period.icon className="w-5 h-5" />}
                             </div>
-                            {isSelected && <CheckCircle2 className="w-5 h-5 animate-in zoom-in shrink-0 ml-2" />}
-                          </Button>
-                        );
-                      })
-                    ) : (
+                            <div className="flex flex-col items-start min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className={cn("text-lg leading-none", (conflict || travelError) && "text-orange-700")}>{slot.time}</span>
+                                  <span className={cn("text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border", isSelected ? "bg-white/20 border-white/30 text-white" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`))}>{conflict ? 'Conflicto' : (travelError ? 'Sin Margen' : period.label)}</span>
+                                </div>
+                                {travelError ? <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">{travelError}</p> : conflict ? <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">Ya reservaste en este horario con otro profesor</p> : <span className={cn("text-[9px] font-black uppercase flex items-center gap-1 mt-1", slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500"))}>{slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}{slot.type === 'virtual' ? 'Online' : (slot.zone || 'Presencial')}</span>}
+                            </div>
+                          </div>
+                          {isSelected && <CheckCircle2 className="w-5 h-5 animate-in zoom-in shrink-0 ml-2" />}
+                        </Button>
+                      );
+                    }) : (
                       <div className="bg-muted/10 p-8 rounded-[2.5rem] text-center border-4 border-dashed border-primary/5 space-y-4">
                         <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground/30" />
-                        <div className="space-y-2">
-                          <p className="font-black text-muted-foreground">¡Vaya! Todos los cupos están llenos para este día.</p>
-                          <p className="text-xs font-bold text-muted-foreground/70 italic">Te sugerimos esperar a que se libere un cupo o elegir otro día en el calendario.</p>
-                        </div>
+                        <div className="space-y-2"><p className="font-black text-muted-foreground">¡Vaya! Todos los cupos están llenos para este día.</p><p className="text-xs font-bold text-muted-foreground/70 italic">Te sugerimos esperar a que se libere un cupo o elegir otro día en el calendario.</p></div>
                       </div>
                     )}
                   </div>
@@ -834,16 +721,8 @@ export default function StudentDashboard() {
             </div>
 
             <div className="p-8 bg-muted/30 flex gap-4 border-t shrink-0 mt-auto">
-              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black text-foreground">
-                Cancelar
-              </Button>
-              <Button 
-                onClick={handleBookLesson} 
-                disabled={!selectedSlotId}
-                className="bg-accent text-white rounded-2xl flex-1 h-14 font-black shadow-xl"
-              >
-                Confirmar
-              </Button>
+              <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-2xl flex-1 h-14 font-black text-foreground">Cancelar</Button>
+              <Button onClick={handleBookLesson} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-14 font-black shadow-xl">Confirmar</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -858,9 +737,7 @@ export default function StudentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className={cn("text-2xl sm:text-3xl font-black truncate", topInstConfig.color)}>
-              {topInstrument}
-            </div>
+            <div className={cn("text-2xl sm:text-3xl font-black truncate", topInstConfig.color)}>{topInstrument}</div>
             <p className={cn("text-[10px] font-bold mt-0.5 opacity-60", topInstConfig.color)}>Máximo Progreso</p>
           </CardContent>
         </Card>
@@ -873,18 +750,12 @@ export default function StudentDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-xl sm:text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">
-              {nextLesson ? nextLesson.time.split(' ')[0] : 'aún no hay 😴'}
-            </div>
-            <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-0.5">
-              {nextLesson 
-                ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con ${nextLesson.teacherName}` 
-                : '¡Despierta y reserva una sesión! 😴'}
-            </p>
+            <div className="text-xl sm:text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">{nextLesson ? nextLesson.time.split(' ')[0] : 'aún no hay 😴'}</div>
+            <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-0.5">{nextLesson ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con ${nextLesson.teacherName}` : '¡Despierta y reserva una sesión! 😴'}</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-2 border-orange-500 shadow-sm bg-orange-50 dark:bg-orange-950/20 p-4 sm:p-5">
+        <Card className="rounded-[2rem] border-2 border-orange-500 shadow-sm bg-orange-50 dark:bg-emerald-950/20 p-4 sm:p-5">
           <CardHeader className="p-0 pb-2 sm:pb-3">
             <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2")}>
               <Clock className="w-4 h-4 text-accent" />
@@ -901,101 +772,59 @@ export default function StudentDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
           <CardHeader className="border-b bg-primary/5 p-6">
-            <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground">
-              <CalendarIcon className="w-6 h-6 text-accent" />
-              Tus Próximas Clases
-            </CardTitle>
+            <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground"><CalendarIcon className="w-6 h-6 text-accent" />Tus Próximas Clases</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {myUpcomingLessons.length > 0 ? (
-              myUpcomingLessons.map((lesson, i) => {
-                const config = INSTRUMENT_CONFIG[lesson.instrument] || INSTRUMENT_CONFIG['Default'];
-                const emoji = INSTRUMENT_EMOJIS[lesson.instrument] || '🎵';
-                return (
-                  <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0 border-border">
-                    <div className="flex gap-3 sm:gap-4 items-center min-w-0">
-                      <div className={cn("w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-3xl sm:text-4xl rounded-3xl shadow-md border shrink-0", config.bg, config.border)}>
-                        {lesson.isGroup ? '🎓' : emoji}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate flex items-center gap-2">
-                          <span>{lesson.isGroup ? `Clase Grupal Especial: ${lesson.instrument}` : `Lección de ${lesson.instrument}`}</span>
-                        </div>
-                        <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">
-                          {new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={cn(
-                              "text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1",
-                              lesson.type === 'virtual' ? "text-blue-500" : "text-red-500"
-                          )}>
-                            {lesson.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                            {lesson.type === 'virtual' ? 'Online' : (lesson.zone || 'Presencial')}
-                          </span>
-                        </div>
-                      </div>
+            {myUpcomingLessons.length > 0 ? myUpcomingLessons.map((lesson, i) => {
+              const config = INSTRUMENT_CONFIG[lesson.instrument] || INSTRUMENT_CONFIG['Default'];
+              const emoji = INSTRUMENT_EMOJIS[lesson.instrument] || '🎵';
+              return (
+                <div key={lesson.id || i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-primary/5 transition-colors border-b last:border-0 border-border">
+                  <div className="flex gap-3 sm:gap-4 items-center min-w-0">
+                    <div className={cn("w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center text-3xl sm:text-4xl rounded-3xl shadow-md border shrink-0", config.bg, config.border)}>{lesson.isGroup ? '🎓' : emoji}</div>
+                    <div className="min-w-0">
+                      <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate flex items-center gap-2"><span>{lesson.isGroup ? `Clase Grupal Especial: ${lesson.instrument}` : `Lección de ${lesson.instrument}`}</span></div>
+                      <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{new Date(lesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })} @ {lesson.time}</div>
+                      <div className="flex items-center gap-2 mt-1"><span className={cn("text-[9px] sm:text-[10px] font-black uppercase flex items-center gap-1", lesson.type === 'virtual' ? "text-blue-500" : "text-red-500")}><Video className="w-3 h-3" />{lesson.type === 'virtual' ? 'Online' : (lesson.zone || 'Presencial')}</span></div>
                     </div>
-                    <Badge className="hidden sm:inline-flex bg-secondary text-secondary-foreground font-black px-4 py-1 rounded-full shrink-0 shadow-sm">
-                      {lesson.teacherName}
-                    </Badge>
                   </div>
-                );
-              })
-            ) : (
-              <div className="p-16 text-center">
-                <Music className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-                <p className="text-muted-foreground font-bold italic">No tienes clases agendadas próximamente.</p>
-                <Button 
-                  variant="link" 
-                  className="text-accent font-black mt-2 underline"
-                  onClick={() => setIsOpen(true)}
-                >
-                  Haz tu primera reserva aquí
-                </Button>
-              </div>
+                  <Badge className="hidden sm:inline-flex bg-secondary text-secondary-foreground font-black px-4 py-1 rounded-full shrink-0 shadow-sm">{lesson.teacherName}</Badge>
+                </div>
+              );
+            }) : (
+              <div className="p-16 text-center"><Music className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" /><p className="text-muted-foreground font-bold italic">No tienes clases agendadas próximamente.</p><Button variant="link" className="text-accent font-black mt-2 underline" onClick={() => setIsOpen(true)}>Haz tu primera reserva aquí</Button></div>
             )}
           </CardContent>
         </Card>
 
         <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">
           <CardHeader className="border-b bg-accent/5 p-6">
-            <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground">
-              <PlayCircle className="w-6 h-6 text-accent" />
-              Recursos Recomendados
-            </CardTitle>
+            <CardTitle className="text-xl font-black flex items-center gap-2 text-foreground"><PlayCircle className="w-6 h-6 text-accent" />Recursos Recomendados</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {recommendedResources.length > 0 ? (
-              recommendedResources.map((resource, i) => (
-                <div 
-                  key={i} 
-                  className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0 border-border cursor-pointer group"
-                  onClick={() => router.push(`/library?resourceId=${resource.id}`)}
-                >
-                  <div className="flex gap-3 sm:gap-4 items-center min-w-0">
-                    <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border border-primary/10 shrink-0 bg-muted">
-                      <Image 
-                        src={getDirectImageUrl(typeof resource.img === 'string' ? resource.img : resource.img?.imageUrl) || "https://picsum.photos/seed/fallback/200/200"} 
-                        alt={resource.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate group-hover:text-accent transition-colors">{resource.title}</div>
-                      <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length} • {resource.type}</div>
-                    </div>
+            {recommendedResources.length > 0 ? recommendedResources.map((resource, i) => (
+              <div key={i} className="flex items-center justify-between p-4 sm:p-6 hover:bg-accent/5 transition-colors border-b last:border-0 border-border cursor-pointer group" onClick={() => router.push(`/library?resourceId=${resource.id}`)}>
+                <div className="flex gap-3 sm:gap-4 items-center min-w-0 flex-1">
+                  <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border border-primary/10 shrink-0 bg-muted">
+                    <Image src={getDirectImageUrl(typeof resource.img === 'string' ? resource.img : resource.img?.imageUrl) || "https://picsum.photos/seed/fallback/200/200"} alt={resource.title} fill className="object-cover" />
                   </div>
-                  <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0 text-accent">
-                    <ChevronRight className="w-6 h-6" />
-                  </Button>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <div className="font-black text-base sm:text-lg text-foreground leading-tight truncate group-hover:text-accent transition-colors">{resource.title}</div>
+                      <Badge className={cn(
+                        "h-4 px-1.5 rounded-md border-none text-[8px] font-black shrink-0 text-white",
+                        LEVEL_STYLE[resource.level || 1]?.bg || 'bg-primary'
+                      )}>
+                        NV. {resource.level || 1}
+                      </Badge>
+                    </div>
+                    <div className="text-[11px] sm:text-sm text-muted-foreground font-bold truncate">{resource.length} • {resource.type}</div>
+                  </div>
                 </div>
-              ))
-            ) : (
-              <div className="p-16 text-center">
-                <Music className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-                <p className="text-muted-foreground font-bold italic">¡Todo al día! No hay recursos pendientes para tus instrumentos.</p>
+                <Button variant="ghost" size="icon" className="rounded-full hover:bg-accent/10 shrink-0 text-accent"><ChevronRight className="w-6 h-6" /></Button>
               </div>
+            )) : (
+              <div className="p-16 text-center"><Music className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" /><p className="text-muted-foreground font-bold italic">¡Todo al día! No hay recursos pendientes para tus instrumentos.</p></div>
             )}
           </CardContent>
         </Card>
