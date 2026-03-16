@@ -890,7 +890,7 @@ export default function StudentDashboard() {
               <Clock className="w-4 h-4 text-accent" />
               TOTAL RESERVAS PENDIENTES
             </CardTitle>
-          </Header>
+          </CardHeader>
           <CardContent className="p-0">
             <div className="text-3xl sm:text-4xl font-black text-orange-900 dark:text-orange-300">{myUpcomingLessons.length}</div>
             <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold mt-0.5">Clases programadas</p>
