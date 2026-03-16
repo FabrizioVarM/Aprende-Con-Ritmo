@@ -138,7 +138,7 @@ function ScheduleContent() {
   
   // Main section collapsible states
   const [isMyLessonsOpen, setIsMyLessonsOpen] = useState(true);
-  const [isAvailableSlotsOpen, setIsAvailableSlotsOpen] = useState(true);
+  const [isAvailableSlotsOpen, setIsAvailableSlotsOpen] = useState(false);
   const [isAdminLessonsOpen, setIsAdminLessonsOpen] = useState(true);
   const [isTeacherPendingOpen, setIsTeacherPendingOpen] = useState(true);
   const [isTeacherPastOpen, setIsTeacherPastOpen] = useState(true);
@@ -1458,36 +1458,38 @@ function ScheduleContent() {
                   </Collapsible>
 
                   <Collapsible open={isAvailableSlotsOpen} onOpenChange={setIsAvailableSlotsOpen} className="space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-3 px-2">
-                        <div className="w-2 h-8 bg-primary rounded-full" />
-                        <h2 className="text-2xl font-black text-foreground tracking-tight">Horarios Disponibles 🎸</h2>
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="icon" className="rounded-full">
-                            <ChevronDown className={cn("h-5 w-5 transition-transform duration-300", isAvailableSlotsOpen ? "rotate-180" : "")} />
-                          </Button>
-                        </CollapsibleTrigger>
+                    <CollapsibleTrigger asChild>
+                      <div className="flex items-center justify-between gap-4 cursor-pointer group hover:bg-primary/5 p-2 rounded-2xl transition-colors">
+                        <div className="flex items-center gap-3 px-2">
+                          <div className="w-2 h-8 bg-primary rounded-full" />
+                          <h2 className="text-2xl font-black text-foreground tracking-tight">Horarios Disponibles para este día 🎸</h2>
+                        </div>
+                        <Button variant="ghost" size="icon" className="rounded-full shrink-0">
+                          <ChevronDown className={cn("h-5 w-5 transition-transform duration-300", isAvailableSlotsOpen ? "rotate-180" : "")} />
+                        </Button>
                       </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden sm:block">Ver horarios de:</span>
-                        <Card className="rounded-2xl border-2 border-accent/20 p-1 pl-3 flex items-center gap-3 bg-card shadow-sm h-12 shrink-0">
-                          <UserIcon className="w-4 h-4 text-accent shrink-0" />
-                          <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
-                            <SelectTrigger className="w-40 h-full border-none font-black text-[10px] uppercase tracking-widest text-foreground focus:ring-0">
-                              <SelectValue placeholder="Elegir Profesor" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                              {teachersList.map(t => (
-                                <SelectItem key={t.id} value={t.id} className="font-bold text-xs">{t.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </Card>
-                      </div>
-                    </div>
+                    </CollapsibleTrigger>
 
-                    <CollapsibleContent className="animate-in fade-in slide-in-from-top-1 duration-300">
+                    <CollapsibleContent className="animate-in fade-in slide-in-from-top-1 duration-300 space-y-6">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4 px-2">
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hidden sm:block">Ver horarios de:</span>
+                          <Card className="rounded-2xl border-2 border-accent/20 p-1 pl-3 flex items-center gap-3 bg-card shadow-sm h-12 shrink-0">
+                            <UserIcon className="w-4 h-4 text-accent shrink-0" />
+                            <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                              <SelectTrigger className="w-40 h-full border-none font-black text-[10px] uppercase tracking-widest text-foreground focus:ring-0">
+                                <SelectValue placeholder="Elegir Profesor" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                {teachersList.map(t => (
+                                  <SelectItem key={t.id} value={t.id} className="font-bold text-xs">{t.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </Card>
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-1 gap-4">
                         {otherAvailableSlots.length > 0 ? (
                           otherAvailableSlots.map((slot) => <SlotCard key={slot.id} slot={slot} isMine={false} />)
