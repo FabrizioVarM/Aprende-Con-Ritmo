@@ -38,7 +38,8 @@ import {
   Info,
   ChevronDown,
   ChevronUp,
-  LayoutList
+  LayoutList,
+  LayoutGrid
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import { useCurriculumStore, CurriculumPlan, CurriculumStep } from '@/lib/curriculum-store';
