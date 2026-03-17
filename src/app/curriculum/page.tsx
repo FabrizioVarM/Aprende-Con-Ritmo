@@ -54,6 +54,8 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const INSTRUMENTS_LIST = ['Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'];
 
@@ -81,6 +83,8 @@ export default function CurriculumPage() {
   const currentPlan = useMemo(() => 
     curriculums.find(c => c.instrument === selectedInstrument), 
   [curriculums, selectedInstrument]);
+
+  const teacherImg = PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl || "https://picsum.photos/seed/teacher/600/400";
 
   // Manejo de la línea interactiva (máximo 4 puntos visibles)
   const visibleSteps = useMemo(() => {
@@ -197,48 +201,56 @@ export default function CurriculumPage() {
               </div>
             </div>
             <div className="lg:col-span-4 hidden lg:flex justify-center">
-              <BookOpenCheck className="w-48 h-48 text-white/20 animate-pulse" />
+              <div className="relative w-64 h-64 rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white/20 rotate-3 hover:rotate-0 transition-transform duration-500">
+                <Image 
+                  src={teacherImg}
+                  alt="Profesor de Música"
+                  fill
+                  className="object-cover"
+                  data-ai-hint="music teacher"
+                />
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Botones de Malla Curricular y Selector */}
-        <div className="flex flex-col lg:flex-row justify-between items-center gap-8 px-4">
-          <div className="flex flex-wrap justify-center lg:justify-start gap-3 flex-1">
-            {INSTRUMENTS_LIST.map(inst => (
-              <Button
-                key={inst}
-                variant="outline"
-                className={cn(
-                  "rounded-2xl h-14 px-6 font-black border-2 transition-all gap-2",
-                  selectedInstrument === inst 
-                    ? "bg-accent border-accent text-white shadow-lg scale-105" 
-                    : "border-primary/20 hover:border-accent/40 text-muted-foreground"
-                )}
-                onClick={() => {
-                  setSelectedInstrument(inst);
-                  setCurrentStepIdx(0);
-                }}
-              >
-                <LayoutList className="w-4 h-4" />
-                Malla de {inst}
-              </Button>
-            ))}
-            <Button 
-              className="rounded-2xl h-14 px-8 bg-white dark:bg-slate-800 border-2 border-accent text-accent font-black gap-2 hover:bg-accent hover:text-white transition-all shadow-md"
-              onClick={() => setIsMeshOpen(true)}
-            >
-              <FileText className="w-5 h-5" /> Ver Versión Escrita
-            </Button>
+        {/* Selección de Instrumento y Mallas */}
+        <div className="space-y-8 px-4">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-black text-foreground flex items-center gap-2">
+              <LayoutList className="w-6 h-6 text-accent" />
+              Consulta las Mallas Curriculares
+            </h2>
+            <div className="flex flex-wrap gap-3 w-full">
+              {INSTRUMENTS_LIST.map(inst => (
+                <Button
+                  key={inst}
+                  variant="outline"
+                  className={cn(
+                    "rounded-2xl h-14 px-6 font-black border-2 transition-all gap-2 flex-1 min-w-[180px]",
+                    selectedInstrument === inst 
+                      ? "bg-accent border-accent text-white shadow-lg scale-105" 
+                      : "border-primary/20 hover:border-accent/40 text-muted-foreground"
+                  )}
+                  onClick={() => {
+                    setSelectedInstrument(inst);
+                    setCurrentStepIdx(0);
+                    setIsMeshOpen(true);
+                  }}
+                >
+                  Malla de {inst}
+                </Button>
+              ))}
+            </div>
           </div>
 
-          <div className="shrink-0 space-y-2">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">Filtrar para Línea Interactiva</Label>
+          <div className="space-y-3 max-w-xs pt-4 border-t border-primary/10">
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">Ver Línea Interactiva por Instrumento</Label>
             <Select value={selectedInstrument} onValueChange={(v) => {
               setSelectedInstrument(v);
               setCurrentStepIdx(0);
             }}>
-              <SelectTrigger className="h-14 rounded-2xl border-2 font-black bg-card shadow-sm w-full lg:w-64 focus:ring-accent">
+              <SelectTrigger className="h-14 rounded-2xl border-2 font-black bg-card shadow-sm w-full focus:ring-accent">
                 <SelectValue placeholder="Elegir Instrumento" />
               </SelectTrigger>
               <SelectContent className="rounded-2xl">
