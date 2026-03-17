@@ -45,17 +45,20 @@ import {
   Sparkles,
   FileText,
   Target,
-  ArrowRight
+  ArrowRight,
+  Image as ImageIcon
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import { useCurriculumStore, CurriculumPlan, CurriculumStep } from '@/lib/curriculum-store';
 import { useResourceStore } from '@/lib/resource-store';
+import { useSettingsStore } from '@/lib/settings-store';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { getDirectImageUrl } from '@/lib/utils/images';
 
 const INSTRUMENTS_LIST = ['Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'];
 
@@ -73,6 +76,7 @@ export default function CurriculumPage() {
   const { user } = useAuth();
   const { curriculums, saveCurriculum, deleteCurriculum, loading } = useCurriculumStore();
   const { resources } = useResourceStore();
+  const { settings, updateSettings } = useSettingsStore();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -83,6 +87,16 @@ export default function CurriculumPage() {
   const [viewingStep, setViewingStep] = useState<CurriculumStep | null>(null);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   
+  // State for hero editing
+  const [isHeroEditing, setIsHeroEditing] = useState(false);
+  const [tempHero, setTempHero] = useState({
+    title: '',
+    subtitle: '',
+    description: '',
+    badge: '',
+    imageUrl: ''
+  });
+
   const [editPlan, setEditPlan] = useState<Partial<CurriculumPlan>>({
     instrument: INSTRUMENTS_LIST[0],
     description: '',
@@ -94,7 +108,7 @@ export default function CurriculumPage() {
     curriculums.find(c => c.instrument === selectedInstrument), 
   [curriculums, selectedInstrument]);
 
-  const teacherImg = PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl || "https://picsum.photos/seed/teacher/600/400";
+  const teacherImg = settings.curriculumHeroImageUrl || PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl || "https://picsum.photos/seed/teacher/600/400";
 
   // Manejo de la línea interactiva (máximo 4 puntos visibles)
   const visibleSteps = useMemo(() => {
@@ -177,6 +191,18 @@ export default function CurriculumPage() {
     }
   };
 
+  const handleSaveHero = () => {
+    updateSettings({
+      curriculumHeroTitle: tempHero.title,
+      curriculumHeroSubtitle: tempHero.subtitle,
+      curriculumHeroDescription: tempHero.description,
+      curriculumHeroBadge: tempHero.badge,
+      curriculumHeroImageUrl: tempHero.imageUrl
+    });
+    setIsHeroEditing(false);
+    toast({ title: "Encabezado Actualizado ✨" });
+  };
+
   if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
     return <AppLayout><div className="p-20 text-center">No tienes permiso para ver esta sección.</div></AppLayout>;
   }
@@ -185,19 +211,42 @@ export default function CurriculumPage() {
     <AppLayout>
       <div className="space-y-12">
         {/* Presentación de la Sección */}
-        <section className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-accent to-accent/80 p-8 md:p-12 text-white shadow-2xl shadow-accent/20">
+        <section className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-accent to-accent/80 p-8 md:p-12 text-white shadow-2xl shadow-accent/20 group">
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          
+          {isAdmin && (
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="absolute top-4 right-4 z-20 bg-white/20 hover:bg-white/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => {
+                setTempHero({
+                  title: settings.curriculumHeroTitle || 'Plan de Estudios',
+                  subtitle: settings.curriculumHeroSubtitle || 'Estandarizado',
+                  description: settings.curriculumHeroDescription || '',
+                  badge: settings.curriculumHeroBadge || 'Guía Docente Maestra',
+                  imageUrl: settings.curriculumHeroImageUrl || ''
+                });
+                setIsHeroEditing(true);
+              }}
+            >
+              <Edit2 className="w-4 h-4" />
+            </Button>
+          )}
+
           <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-8 space-y-6">
               <div className="inline-flex items-center gap-2 bg-white/20 px-4 py-2 rounded-full border border-white/30 backdrop-blur-md">
                 <Sparkles className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest">Guía Docente Maestra</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">
+                  {settings.curriculumHeroBadge || 'Guía Docente Maestra'}
+                </span>
               </div>
               <h1 className="text-4xl md:text-6xl font-black font-headline tracking-tight leading-none">
-                Plan de Estudios <br /> <span className="text-secondary">Estandarizado</span>
+                {settings.curriculumHeroTitle || 'Plan de Estudios'} <br /> <span className="text-secondary">{settings.curriculumHeroSubtitle || 'Estandarizado'}</span>
               </h1>
               <p className="text-lg md:text-xl font-medium text-white/90 max-w-2xl leading-relaxed">
-                Bienvenido al núcleo académico de Aprende con Ritmo. Aquí encontrarás la ruta estructurada que garantiza que cada alumno, sin importar su profesor, reciba una formación técnica y musical de excelencia.
+                {settings.curriculumHeroDescription || 'Bienvenido al núcleo académico de Aprende con Ritmo. Aquí encontrarás la ruta estructurada que garantiza que cada alumno, sin importar su profesor, reciba una formación técnica y musical de excelencia.'}
               </p>
               <div className="flex flex-wrap gap-4 pt-4">
                 <div className="flex items-center gap-3 bg-black/10 p-4 rounded-2xl border border-white/10">
@@ -213,7 +262,7 @@ export default function CurriculumPage() {
             <div className="lg:col-span-4 hidden lg:flex justify-center">
               <div className="relative w-64 h-64 rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white/20 rotate-3 hover:rotate-0 transition-transform duration-500">
                 <Image 
-                  src={teacherImg}
+                  src={getDirectImageUrl(teacherImg)}
                   alt="Profesor de Música"
                   fill
                   className="object-cover"
@@ -513,7 +562,74 @@ export default function CurriculumPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Admin: Modal de Configuración Global */}
+      {/* Admin: Modal de Edición de Encabezado (Hero) */}
+      <Dialog open={isHeroEditing} onOpenChange={setIsHeroEditing}>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+          <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
+            <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
+              <Edit2 className="w-6 h-6 text-accent" />
+              Editar Bienvenida
+            </DialogTitle>
+            <DialogDescription className="font-medium text-muted-foreground">Personaliza el mensaje y la imagen de cabecera de esta sección.</DialogDescription>
+          </DialogHeader>
+          <div className="p-8 space-y-6 bg-card overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Etiqueta (Badge)</Label>
+                <Input 
+                  value={tempHero.badge} 
+                  onChange={(e) => setTempHero(prev => ({...prev, badge: e.target.value}))}
+                  className="h-12 rounded-xl border-2 font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título (Parte 1)</Label>
+                <Input 
+                  value={tempHero.title} 
+                  onChange={(e) => setTempHero(prev => ({...prev, title: e.target.value}))}
+                  className="h-12 rounded-xl border-2 font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título (Parte 2 - Destacado)</Label>
+                <Input 
+                  value={tempHero.subtitle} 
+                  onChange={(e) => setTempHero(prev => ({...prev, subtitle: e.target.value}))}
+                  className="h-12 rounded-xl border-2 font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">URL de Imagen del Profesor</Label>
+                <div className="relative">
+                  <ImageIcon className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground" />
+                  <Input 
+                    value={tempHero.imageUrl} 
+                    onChange={(e) => setTempHero(prev => ({...prev, imageUrl: e.target.value}))}
+                    className="h-12 pl-10 rounded-xl border-2 font-bold"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Descripción de Bienvenida</Label>
+              <Textarea 
+                value={tempHero.description} 
+                onChange={(e) => setTempHero(prev => ({...prev, description: e.target.value}))}
+                className="min-h-[120px] rounded-xl border-2 font-medium p-4"
+              />
+            </div>
+          </div>
+          <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3 shrink-0">
+            <Button variant="outline" onClick={() => setIsHeroEditing(false)} className="rounded-xl flex-1 h-12 font-black">Cancelar</Button>
+            <Button onClick={handleSaveHero} className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20">
+              <Save className="w-4 h-4 mr-2" /> Guardar Encabezado
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Admin: Modal de Configuración de Malla (Plan) */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[90vh]">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
