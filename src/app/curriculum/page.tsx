@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -238,7 +237,7 @@ export default function CurriculumPage() {
                     setIsMeshOpen(true);
                   }}
                 >
-                  Malla de {inst}
+                  {inst}
                 </Button>
               ))}
             </div>
@@ -609,7 +608,7 @@ export default function CurriculumPage() {
 
       {/* Admin: Confirmar Eliminación */}
       <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
-        <DialogContent className="rounded-[2.5rem] max-w-sm border-none shadow-2xl p-8 bg-card text-center space-y-6">
+        <DialogContent className="rounded-[2.5rem] max-sm border-none shadow-2xl p-8 bg-card text-center space-y-6">
           <div className="w-20 h-20 bg-destructive/10 rounded-3xl flex items-center justify-center text-destructive mx-auto">
             <AlertTriangle className="w-10 h-10" />
           </div>
