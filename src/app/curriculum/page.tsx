@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -57,6 +58,16 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const INSTRUMENTS_LIST = ['Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'];
+
+const INSTRUMENT_EMOJIS: Record<string, string> = {
+  'Guitarra': '🎸',
+  'Piano': '🎹',
+  'Violín': '🎻',
+  'Canto': '🎤',
+  'Batería': '🥁',
+  'Bajo': '🎸',
+  'Teoría': '📖'
+};
 
 export default function CurriculumPage() {
   const { user } = useAuth();
@@ -161,7 +172,7 @@ export default function CurriculumPage() {
   const handleDelete = async () => {
     if (currentPlan) {
       await deleteCurriculum(currentPlan.id);
-      toast({ title: "Plan Eliminado 🗑️" });
+      toast({ title: "Plan Elimidado 🗑️" });
       setIsDeleting(false);
     }
   };
@@ -215,36 +226,43 @@ export default function CurriculumPage() {
 
         {/* Selección de Instrumento y Mallas */}
         <div className="space-y-8 px-4">
-          <div className="space-y-4">
+          <div className="space-y-6">
             <h2 className="text-2xl font-black text-foreground flex items-center gap-2">
               <LayoutList className="w-6 h-6 text-accent" />
               Consulta las Mallas Curriculares
             </h2>
-            <div className="flex flex-wrap gap-3 w-full">
-              {INSTRUMENTS_LIST.map(inst => (
-                <Button
-                  key={inst}
-                  variant="outline"
-                  className={cn(
-                    "rounded-2xl h-14 px-6 font-black border-2 transition-all gap-2 flex-1 min-w-[180px]",
-                    selectedInstrument === inst 
-                      ? "bg-accent border-accent text-white shadow-lg scale-105" 
-                      : "border-primary/20 hover:border-accent/40 text-muted-foreground"
-                  )}
-                  onClick={() => {
-                    setSelectedInstrument(inst);
-                    setCurrentStepIdx(0);
-                    setIsMeshOpen(true);
-                  }}
-                >
-                  {inst}
-                </Button>
-              ))}
+            
+            <div className="bg-primary/5 p-6 rounded-[2.5rem] border-2 border-primary/10 shadow-inner">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                {INSTRUMENTS_LIST.map(inst => {
+                  const isSelected = selectedInstrument === inst;
+                  return (
+                    <Button
+                      key={inst}
+                      variant="outline"
+                      className={cn(
+                        "rounded-[1.5rem] h-20 font-black border-2 transition-all flex flex-col items-center justify-center p-2 gap-1",
+                        isSelected 
+                          ? "bg-accent border-accent text-white shadow-xl scale-105 z-10" 
+                          : "bg-card border-primary/10 hover:border-accent/40 text-muted-foreground shadow-sm"
+                      )}
+                      onClick={() => {
+                        setSelectedInstrument(inst);
+                        setCurrentStepIdx(0);
+                        setIsMeshOpen(true);
+                      }}
+                    >
+                      <span className="text-2xl">{INSTRUMENT_EMOJIS[inst]}</span>
+                      <span className="text-[10px] uppercase tracking-widest truncate w-full text-center">{inst}</span>
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           <div className="space-y-3 max-w-xs pt-4 border-t border-primary/10">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">Ver Línea Interactiva por Instrumento</Label>
+            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">Filtrar Línea Interactiva</Label>
             <Select value={selectedInstrument} onValueChange={(v) => {
               setSelectedInstrument(v);
               setCurrentStepIdx(0);
