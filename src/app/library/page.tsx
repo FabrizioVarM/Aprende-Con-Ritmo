@@ -543,7 +543,7 @@ function LibraryContent() {
                       </Badge>
                     )}
                     {!isEnabled && (
-                      <Badge variant="secondary" className="bg-orange-500 text-white rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1 w-fit border-none">
+                      <Badge variant="secondary" className="bg-orange-50 text-white rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1 w-fit border-none">
                         <Lock className="w-2.5 h-2.5" /> Bloqueado
                       </Badge>
                     )}
@@ -588,11 +588,11 @@ function LibraryContent() {
 
                 <CardHeader className="pb-2 space-y-1 relative">
                   {res.lineName && (
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 leading-none pr-8">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 leading-none pr-10 pl-1">
                       {res.lineName}
                     </p>
                   )}
-                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[2.5rem] line-clamp-2 text-foreground font-headline pr-8">
+                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[2.5rem] line-clamp-2 text-foreground font-headline pr-10 pl-1">
                     {res.title}
                   </CardTitle>
                 </CardHeader>
