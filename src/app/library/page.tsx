@@ -465,8 +465,8 @@ function LibraryContent() {
                     className={cn(
                       "rounded-lg w-10 h-10 p-0 transition-all font-black text-xs",
                       isActive 
-                        ? `${style.bg} ${style.text} border-none shadow-md scale-110` 
-                        : cn("border-primary/20 bg-card text-muted-foreground", style.hover)
+                        ? `${style.bg} text-white border-none shadow-md scale-110` 
+                        : cn("border-primary/20 bg-card text-muted-foreground")
                     )}
                     onClick={() => toggleLevelFilter(lvl)}
                   >
@@ -549,8 +549,17 @@ function LibraryContent() {
                     )}
                   </div>
 
+                  {/* Level semi-circle badge at the edge */}
+                  <div className={cn(
+                    "absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center w-8 h-14 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/20 z-10",
+                    levelStyle.bg
+                  )}>
+                    <span className="text-[6px] uppercase mb-0.5 tracking-tighter">Niv.</span>
+                    <span className="text-sm leading-none">{res.level || 1}</span>
+                  </div>
+
                   {canManage && (
-                    <div className="absolute top-16 right-4 flex flex-col gap-2 items-end">
+                    <div className="absolute top-16 left-4 flex flex-col gap-2 items-start">
                       <Button 
                         size="icon" 
                         variant="secondary" 
@@ -577,19 +586,11 @@ function LibraryContent() {
                   )}
                 </div>
                 <CardHeader className="pb-2 space-y-1">
-                  <div className="flex justify-between items-center gap-2">
-                    <div className="flex-1">
-                      {res.lineName && (
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 leading-none">
-                          {res.lineName}
-                        </p>
-                      )}
-                    </div>
-                    <Badge className={cn("border-none w-12 h-12 rounded-full font-black shadow-sm shrink-0 flex flex-col items-center justify-center p-0 leading-none text-white", levelStyle.bg)}>
-                      <span className="text-[7px] uppercase tracking-tighter mb-0.5">Nivel</span>
-                      <span className="text-sm">{res.level || 1}</span>
-                    </Badge>
-                  </div>
+                  {res.lineName && (
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 leading-none">
+                      {res.lineName}
+                    </p>
+                  )}
                   <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[2.5rem] line-clamp-2 text-foreground font-headline">
                     {res.title}
                   </CardTitle>
@@ -770,10 +771,14 @@ function LibraryContent() {
                     <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
                       {viewingResource.category}
                     </Badge>
-                    <Badge className={cn("border-none w-14 h-14 rounded-full font-black shadow-lg shrink-0 flex flex-col items-center justify-center p-0 leading-none text-white", LEVEL_STYLE[viewingResource.level || 1]?.bg)}>
-                      <span className="text-[8px] uppercase tracking-tighter mb-0.5">Nivel</span>
-                      <span className="text-lg">{viewingResource.level || 1}</span>
-                    </Badge>
+                    {/* Level semi-circle badge in Dialog Header */}
+                    <div className={cn(
+                      "absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center w-10 h-16 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/30 z-10",
+                      LEVEL_STYLE[viewingResource.level || 1]?.bg
+                    )}>
+                      <span className="text-[8px] uppercase mb-0.5 tracking-tighter">Niv.</span>
+                      <span className="text-lg leading-none">{viewingResource.level || 1}</span>
+                    </div>
                   </div>
                   <div className="space-y-1">
                     {viewingResource.lineName && (
@@ -781,7 +786,7 @@ function LibraryContent() {
                         {viewingResource.lineName}
                       </p>
                     )}
-                    <h2 className="text-xl md:text-2xl font-black text-white leading-tight drop-shadow-md font-headline line-clamp-2">
+                    <h2 className="text-xl md:text-2xl font-black text-white leading-tight drop-shadow-md font-headline line-clamp-2 pr-12">
                       {viewingResource.title}
                     </h2>
                   </div>
