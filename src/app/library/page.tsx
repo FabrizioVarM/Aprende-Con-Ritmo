@@ -503,7 +503,7 @@ function LibraryContent() {
               <Card 
                 key={res.id} 
                 className={cn(
-                  "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col",
+                  "rounded-[2.5rem] border-2 shadow-md group overflow-hidden bg-card hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col relative",
                   isStaff && !res.isVisibleGlobally && !res.assignedStudentIds?.includes(selectedStudentId) 
                     ? "border-dashed border-primary/20 opacity-80" 
                     : "border-primary/40 hover:border-accent/40",
@@ -549,15 +549,6 @@ function LibraryContent() {
                     )}
                   </div>
 
-                  {/* Level semi-circle badge at the edge */}
-                  <div className={cn(
-                    "absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center w-8 h-14 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/20 z-10",
-                    levelStyle.bg
-                  )}>
-                    <span className="text-[6px] uppercase mb-0.5 tracking-tighter">Niv.</span>
-                    <span className="text-sm leading-none">{res.level || 1}</span>
-                  </div>
-
                   {canManage && (
                     <div className="absolute top-16 left-4 flex flex-col gap-2 items-start">
                       <Button 
@@ -585,13 +576,23 @@ function LibraryContent() {
                     </div>
                   )}
                 </div>
-                <CardHeader className="pb-2 space-y-1">
+
+                {/* Level Indicator: Lower position, absolute to edge, aligned with text header height */}
+                <div className={cn(
+                  "absolute right-0 top-[58%] flex flex-col items-center justify-center w-8 h-12 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/20 z-20 transition-transform duration-300 group-hover:scale-110",
+                  levelStyle.bg
+                )}>
+                  <span className="text-[6px] uppercase mb-0.5 tracking-tighter">Niv.</span>
+                  <span className="text-sm leading-none">{res.level || 1}</span>
+                </div>
+
+                <CardHeader className="pb-2 space-y-1 relative">
                   {res.lineName && (
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 leading-none">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 leading-none pr-8">
                       {res.lineName}
                     </p>
                   )}
-                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[2.5rem] line-clamp-2 text-foreground font-headline">
+                  <CardTitle className="text-xl font-black group-hover:text-accent transition-colors leading-tight min-h-[2.5rem] line-clamp-2 text-foreground font-headline pr-8">
                     {res.title}
                   </CardTitle>
                 </CardHeader>
@@ -771,14 +772,6 @@ function LibraryContent() {
                     <Badge className="bg-accent text-white border-none px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest shadow-lg w-fit">
                       {viewingResource.category}
                     </Badge>
-                    {/* Level semi-circle badge in Dialog Header */}
-                    <div className={cn(
-                      "absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center w-10 h-16 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/30 z-10",
-                      LEVEL_STYLE[viewingResource.level || 1]?.bg
-                    )}>
-                      <span className="text-[8px] uppercase mb-0.5 tracking-tighter">Niv.</span>
-                      <span className="text-lg leading-none">{viewingResource.level || 1}</span>
-                    </div>
                   </div>
                   <div className="space-y-1">
                     {viewingResource.lineName && (
@@ -794,7 +787,16 @@ function LibraryContent() {
               </div>
 
               <div className="flex-1 overflow-y-auto min-h-0 bg-card custom-scrollbar">
-                <div className="p-6 space-y-6">
+                <div className="p-6 space-y-6 relative">
+                  {/* Level semi-circle badge in Dialog Body Content Area */}
+                  <div className={cn(
+                    "absolute right-0 top-6 flex flex-col items-center justify-center w-10 h-16 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/30 z-10",
+                    LEVEL_STYLE[viewingResource.level || 1]?.bg
+                  )}>
+                    <span className="text-[8px] uppercase mb-0.5 tracking-tighter">Niv.</span>
+                    <span className="text-lg leading-none">{viewingResource.level || 1}</span>
+                  </div>
+
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div className="p-3 rounded-2xl bg-primary/5 border border-primary/10 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-xl bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm text-accent">
