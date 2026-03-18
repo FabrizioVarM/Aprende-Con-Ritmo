@@ -34,6 +34,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { Clock, Calendar as CalendarIcon, User, Plus, Trash2, Save, GraduationCap, CheckCircle2, ChevronLeft, ChevronRight, Eraser, Video, MapPin, Music, Drum, Keyboard, Mic, BookOpen, Timer, MapPin as MapPinIcon, Copy, ClipboardPaste, Sparkles, Settings, Building2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -81,6 +82,7 @@ export default function TeacherDashboard() {
   const [todayStr, setTodayStr] = useState<string>('');
   const [todayTimestamp, setTodayTimestamp] = useState<number>(0);
   const { toast } = useToast();
+  const router = useRouter();
   const { availabilities, getDayAvailability, updateAvailability } = useBookingStore();
   const { user, allUsers, updateUser } = useAuth();
   const { completions } = useCompletionStore();
@@ -397,6 +399,10 @@ export default function TeacherDashboard() {
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <button onClick={() => router.push('/schedule')} className="bg-secondary text-secondary-foreground border-2 border-secondary-foreground/10 rounded-xl flex items-center justify-center gap-2 h-12 px-6 shadow-lg hover:scale-105 transition-all font-black w-full sm:w-auto">
+            <Plus className="w-5 h-5" /> Agendar a Alumno
+          </button>
+
           <div className="flex items-center gap-2 bg-card border-2 border-primary/20 rounded-xl px-3 h-12 w-full sm:w-64">
             <MapPinIcon className="w-4 h-4 text-accent shrink-0" />
             <Select value={user?.currentZone || activeZones[0]} onValueChange={handleUpdateZone}>

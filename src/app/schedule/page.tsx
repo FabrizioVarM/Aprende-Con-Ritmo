@@ -146,6 +146,7 @@ function ScheduleContent() {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
+  const [selectedStudentIdForBooking, setSelectedStudentIdForBooking] = useState<string>('');
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio' | 'cualquiera'>('domicilio');
   
@@ -230,12 +231,14 @@ function ScheduleContent() {
   };
 
   const hasConflict = (slotTime: string) => {
-    if (!user) return false;
+    const targetId = (isTeacher || isAdmin) ? selectedStudentIdForBooking : user?.id;
+    if (!targetId) return false;
+    
     return availabilities.some(day => 
       day.date === dateStrKey && 
       day.slots.some(s => 
         s.isBooked && 
-        (s.studentId === user.id || s.bookedBy === user.name || s.students?.some(st => st.id === user.id)) &&
+        (s.studentId === targetId || s.students?.some(st => st.id === targetId)) &&
         s.time === slotTime
       )
     );
@@ -308,22 +311,18 @@ function ScheduleContent() {
     return studentClasses.sort((a, b) => a.time.localeCompare(b.time));
   }, [availabilities, dateStrKey, user, isTeacher, allDaySlots, allUsers]);
 
-  // Lógica de apertura/cierre automático de paneles
   useEffect(() => {
-    // Al cambiar de día o cuando se cargan las clases
     if (mySlots.length > 0) {
       setIsMyLessonsOpen(true);
     } else {
       setIsMyLessonsOpen(false);
     }
-    
-    // Horarios disponibles siempre retraído por defecto al cambiar de día
     setIsAvailableSlotsOpen(false);
   }, [mySlots.length, dateStrKey]);
 
   const otherAvailableSlots = useMemo(() => {
     if (!currentTime) return [];
-    const isToday = date.toDateString() === date.toDateString();
+    const isToday = date.toDateString() === new Date().toDateString();
 
     return allDaySlots.filter(s => {
       if (!s.isAvailable || s.isBooked) return false;
@@ -388,6 +387,14 @@ function ScheduleContent() {
 
   const handleBook = () => {
     if (!selectedSlotId || !date || !user || !selectedTeacherId) return;
+
+    if ((isTeacher || isAdmin) && !selectedStudentIdForBooking) {
+      toast({ variant: "destructive", title: "Selecciona un alumno", description: "Debes elegir un alumno para agendar la clase." });
+      return;
+    }
+
+    const targetStudentId = (isTeacher || isAdmin) ? selectedStudentIdForBooking : user.id;
+    const targetStudent = allUsers.find(u => u.id === targetStudentId) || user;
     
     const targetSlot = otherAvailableSlots.find(s => s.id === selectedSlotId);
     if (!targetSlot) return;
@@ -396,7 +403,9 @@ function ScheduleContent() {
       toast({
         variant: "destructive",
         title: "Conflicto de Horario",
-        description: "Ya tienes una clase reservada en este horario con otro profesor."
+        description: (isTeacher || isAdmin) 
+          ? `El alumno ${targetStudent.name} ya tiene otra clase en este mismo horario.` 
+          : "Ya tienes una clase reservada en este horario con otro profesor."
       });
       return;
     }
@@ -411,19 +420,19 @@ function ScheduleContent() {
       return;
     }
 
-    const instrument = bookingInstrument || user.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
+    const instrument = bookingInstrument || targetStudent.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
     const teacherName = currentTeacherProfile?.name || DEFAULT_TEACHER_NAME;
     const finalZone = (selectedModality === 'virtual' || (selectedModality === 'cualquiera' && targetSlot.type === 'virtual')) 
       ? 'Virtual' 
       : (selectedZone || activeZones[0]);
     
-    bookSlot(selectedTeacherId, date, selectedSlotId, user.name, user.id, instrument, teacherName, adminIds, finalZone);
-    toast({ title: "¡Reserva Exitosa! 🎸", description: "Tu clase ha sido agendada con éxito." });
+    bookSlot(selectedTeacherId, date, selectedSlotId, targetStudent.name, targetStudent.id, instrument, teacherName, adminIds, finalZone);
+    toast({ title: "¡Reserva Exitosa! 🎸", description: (isTeacher || isAdmin) ? `Clase agendada para ${targetStudent.name}.` : "Tu clase ha sido agendada con éxito." });
     setIsBookingOpen(false);
     setSelectedSlotId(null);
     setBookingInstrument('');
+    setSelectedStudentIdForBooking('');
 
-    // Solicitar permisos de notificación después de la reserva exitosa
     errorEmitter.emit('request-notification-permission', undefined);
   };
 
@@ -481,12 +490,9 @@ function ScheduleContent() {
   const navigateWeek = (direction: 'prev' | 'next') => {
     const newDate = new Date(date);
     newDate.setDate(date.getDate() + (direction === 'next' ? 7 : -7));
-    
-    // Auto-seleccionar el lunes de la nueva semana
     const day = newDate.getDay();
     const diff = newDate.getDate() - day + (day === 0 ? -6 : 1);
     newDate.setDate(diff);
-    
     setDate(newDate);
   };
 
@@ -499,9 +505,7 @@ function ScheduleContent() {
   const handleGoToToday = () => {
     const now = new Date();
     setDate(now);
-    toast({
-      description: "Has vuelto al día de hoy 🗓️",
-    });
+    toast({ description: "Has vuelto al día de hoy 🗓️" });
   };
 
   const weekDays = useMemo(() => {
@@ -520,38 +524,28 @@ function ScheduleContent() {
     if (weekDays.length < 7) return '';
     const start = weekDays[0];
     const end = weekDays[6];
-    
     const startDay = start.getDate();
     const startMonth = start.toLocaleDateString('es-ES', { month: 'long' });
     const endDay = end.getDate();
     const endMonth = end.toLocaleDateString('es-ES', { month: 'long' });
-
-    if (start.getMonth() === end.getMonth()) {
-      return `Del ${startDay} al ${endDay} de ${startMonth}`;
-    } else {
-      return `Del ${startDay} de ${start.toLocaleDateString('es-ES', { month: 'short' })} al ${endDay} de ${end.toLocaleDateString('es-ES', { month: 'short' })}`;
-    }
+    return start.getMonth() === end.getMonth() ? `Del ${startDay} al ${endDay} de ${startMonth}` : `Del ${startDay} de ${start.toLocaleDateString('es-ES', { month: 'short' })} al ${endDay} de ${end.toLocaleDateString('es-ES', { month: 'short' })}`;
   }, [weekDays]);
 
   const adminIds = useMemo(() => allUsers.filter(u => u.role === 'admin').map(u => u.id), [allUsers]);
 
-  // Mapa de estado de clases para indicadores de puntos en el calendario lateral (Solo Admin)
   const adminDayStatusMap = useMemo(() => {
     if (!isAdmin) return {};
     const stats: Record<string, { hasPending: boolean, hasCompleted: boolean }> = {};
-    
     availabilities.forEach(day => {
       let pending = false;
       let completed = false;
       day.slots.forEach(slot => {
         if (slot.isBooked) {
           if (slot.status === 'completed') completed = true;
-          else pending = true; // status is undefined or 'pending'
+          else pending = true;
         }
       });
-      if (pending || completed) {
-        stats[day.date] = { hasPending: pending, hasCompleted: completed };
-      }
+      if (pending || completed) stats[day.date] = { hasPending: pending, hasCompleted: completed };
     });
     return stats;
   }, [availabilities, isAdmin]);
@@ -564,7 +558,6 @@ function ScheduleContent() {
     const isCompleted = slot.status === 'completed';
     const isPast = isPastSlot(slot.time);
     const emoji = INSTRUMENT_EMOJIS[slot.instrument || 'Música'] || '🎵';
-
     const currentId = customTeacherId || (isStaffView || isTeacher ? selectedTeacherId : (slot.teacherId || selectedTeacherId));
     const teacherProfile = allUsers.find(u => u.id === currentId);
     const teacherInstrumentsList = (teacherProfile?.instruments || [DEFAULT_TEACHER_INSTRUMENT]);
@@ -887,245 +880,273 @@ function ScheduleContent() {
               </Dialog>
             )}
 
-            {!isTeacher && !isAdmin && (
-              <Dialog 
-                open={isBookingOpen} 
-                onOpenChange={(open) => {
-                  setIsBookingOpen(open);
-                  if (!open) {
-                    setSelectedSlotId(null);
-                    setBookingInstrument('');
-                  } else {
-                    // Forzar fecha a hoy para reserva rápida
-                    setDate(new Date());
-                  }
-                }}
-              >
-                <DialogTrigger asChild>
-                  <Button className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
-                    <Plus className="w-5 h-5" /> Nueva Reserva para Hoy
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="rounded-[2.5rem] max-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                  <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
-                    <div className="flex items-center gap-3">
-                      <DialogTitle className="text-2xl font-black text-foreground">Reserva para Hoy ⚡</DialogTitle>
+            <Dialog 
+              open={isBookingOpen} 
+              onOpenChange={(open) => {
+                setIsBookingOpen(open);
+                if (!open) {
+                  setSelectedSlotId(null);
+                  setBookingInstrument('');
+                  setSelectedStudentIdForBooking('');
+                }
+              }}
+            >
+              <DialogTrigger asChild>
+                <Button onClick={() => setDate(new Date())} className="bg-accent text-white rounded-2xl gap-2 h-14 px-8 shadow-xl shadow-accent/20 hover:scale-105 transition-all font-black">
+                  <Plus className="w-5 h-5" /> {isTeacher || isAdmin ? 'Agendar a Alumno (Hoy)' : 'Nueva Reserva para Hoy'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="rounded-[2.5rem] max-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+                <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
+                  <div className="flex items-center gap-3">
+                    <DialogTitle className="text-2xl font-black text-foreground">
+                      {date.toDateString() === new Date().toDateString() ? 'Reserva para Hoy ⚡' : 'Agendar Clase 🗓️'}
+                    </DialogTitle>
+                    {date.toDateString() === new Date().toDateString() && (
                       <Badge className="bg-accent text-white rounded-full px-3 py-0.5 text-[10px] font-black animate-pulse uppercase tracking-widest border-none">
                         Solo Hoy
                       </Badge>
-                    </div>
-                    <DialogDescription className="space-y-1">
-                      <span className="block text-base text-foreground/70 font-medium">
-                        {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                      </span>
+                    )}
+                  </div>
+                  <DialogDescription className="space-y-1">
+                    <span className="block text-base text-foreground/70 font-medium">
+                      {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </span>
+                    {date.toDateString() === new Date().toDateString() && (
                       <span className="block text-xs font-bold text-accent italic">
                         Atención: Este acceso es exclusivo para agendar clases en horarios disponibles para el día de hoy.
                       </span>
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-card max-h-[60vh]">
-                    <div className="space-y-3 pb-4 border-b border-accent/10">
+                    )}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-card max-h-[60vh]">
+                  {(isTeacher || isAdmin) && (
+                    <div className="space-y-3 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                        <UserIcon className="w-3 h-3" /> 1. Elige tu Profesor
+                        <Users className="w-3 h-3" /> 0. Seleccionar Alumno
                       </Label>
-                      <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                      <Select value={selectedStudentIdForBooking} onValueChange={setSelectedStudentIdForBooking}>
                         <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
-                          <SelectValue placeholder="Seleccionar profesor" />
+                          <SelectValue placeholder="Elegir un alumno..." />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-2">
-                          {teachersList.map(t => (
-                            <SelectItem key={t.id} value={t.id} className="font-bold py-3">
-                              {t.name}
+                          {studentsList.map(s => (
+                            <SelectItem key={s.id} value={s.id} className="font-bold py-3">
+                              {s.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
 
-                    <div className="space-y-3 pb-4 border-b border-accent/10">
+                  <div className="space-y-3 pb-4 border-b border-accent/10">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                      <UserIcon className="w-3 h-3" /> 1. Elige tu Profesor
+                    </Label>
+                    <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                      <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
+                        <SelectValue placeholder="Seleccionar profesor" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-2">
+                        {teachersList.map(t => (
+                          <SelectItem key={t.id} value={t.id} className="font-bold py-3">
+                            {t.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-3 pb-4 border-b border-accent/10">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                      <MousePointerClick className="w-3 h-3" /> 2. Modalidad de la Clase
+                    </Label>
+                    <Select value={selectedModality} onValueChange={(val: any) => setSelectedModality(val)}>
+                      <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
+                        <SelectValue placeholder="Seleccionar modalidad" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl border-2">
+                        <SelectItem value="domicilio" className="font-bold py-3">
+                          <div className="flex items-center gap-2">
+                            <Home className="w-4 h-4 text-accent" />
+                            <span>A domicilio</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="virtual" className="font-bold py-3">
+                          <div className="flex items-center gap-2">
+                            <Video className="w-4 h-4 text-blue-500" />
+                            <span>Virtual (Online)</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="cualquiera" className="font-bold py-3">
+                          <div className="flex items-center gap-2">
+                            <LayoutGrid className="w-4 h-4 text-muted-foreground" />
+                            <span>Cualquiera</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
+                          <div className="flex items-center gap-2">
+                            <Building2 className="w-4 h-4 text-muted-foreground" />
+                            <span>En Sede (Próximamente)</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') && (
+                    <div className="space-y-3 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1 duration-300">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                        <MousePointerClick className="w-3 h-3" /> 2. Modalidad de la Clase
+                        <MapPinIcon className="w-3 h-3" /> 3. Zona de la Clase
                       </Label>
-                      <Select value={selectedModality} onValueChange={(val: any) => setSelectedModality(val)}>
+                      <Select value={selectedZone} onValueChange={handleZoneChange}>
                         <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
-                          <SelectValue placeholder="Seleccionar modalidad" />
+                          <SelectValue placeholder="Seleccionar zona" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-2">
-                          <SelectItem value="domicilio" className="font-bold py-3">
-                            <div className="flex items-center gap-2">
-                              <Home className="w-4 h-4 text-accent" />
-                              <span>A domicilio</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="virtual" className="font-bold py-3">
-                            <div className="flex items-center gap-2">
-                              <Video className="w-4 h-4 text-blue-500" />
-                              <span>Virtual (Online)</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="cualquiera" className="font-bold py-3">
-                            <div className="flex items-center gap-2">
-                              <LayoutGrid className="w-4 h-4 text-muted-foreground" />
-                              <span>Cualquiera</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
-                            <div className="flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-muted-foreground" />
-                              <span>En Sede (Próximamente)</span>
-                            </div>
-                          </SelectItem>
+                          {activeZones.filter(z => z !== 'Virtual').map(z => (
+                            <SelectItem key={z} value={z} className="font-bold py-3">
+                              {z}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
 
-                    {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') && (
-                      <div className="space-y-3 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1 duration-300">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                          <MapPinIcon className="w-3 h-3" /> 3. Zona de la Clase
-                        </Label>
-                        <Select value={selectedZone} onValueChange={handleZoneChange}>
-                          <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
-                            <SelectValue placeholder="Seleccionar zona" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl border-2">
-                            {activeZones.filter(z => z !== 'Virtual').map(z => (
-                              <SelectItem key={z} value={z} className="font-bold py-3">
-                                {z}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
+                    {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '4.' : '3.'} Selecciona un Horario Disponible
+                  </Label>
+                  
+                  {otherAvailableSlots.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-4">
+                      {otherAvailableSlots.map((slot) => {
+                        const isSelected = selectedSlotId === slot.id;
+                        const period = getTimePeriod(slot.time);
+                        const conflict = hasConflict(slot.time);
+                        const travelError = getSlotTravelMarginError(slot);
 
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
-                      {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '4.' : '3.'} Selecciona un Horario Disponible
-                    </Label>
-                    
-                    {otherAvailableSlots.length > 0 ? (
-                      <div className="grid grid-cols-1 gap-4">
-                        {otherAvailableSlots.map((slot) => {
-                          const isSelected = selectedSlotId === slot.id;
-                          const period = getTimePeriod(slot.time);
-                          const conflict = hasConflict(slot.time);
-                          const travelError = getSlotTravelMarginError(slot);
-
-                          return (
-                            <div 
-                              key={slot.id} 
-                              className={cn(
-                                "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
-                                isSelected 
-                                  ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
-                                  : "bg-card border-primary/10 hover:border-accent/30",
-                                (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed"
-                              )}
-                              onClick={() => {
-                                if (conflict) {
-                                  toast({ variant: "destructive", title: "Horario Ocupado", description: "Ya tienes una clase reservada en este horario." });
-                                  return;
-                                }
-                                if (travelError) {
-                                  toast({ variant: "destructive", title: "Margen de Viaje", description: travelError });
-                                  return;
-                                }
-                                setSelectedSlotId(slot.id);
-                                if (!bookingInstrument && teacherInstruments.length > 0) {
+                        return (
+                          <div 
+                            key={slot.id} 
+                            className={cn(
+                              "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
+                              isSelected 
+                                ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
+                                : "bg-card border-primary/10 hover:border-accent/30",
+                              (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed"
+                            )}
+                            onClick={() => {
+                              if (conflict) {
+                                toast({ variant: "destructive", title: "Horario Ocupado", description: "El alumno seleccionado ya tiene una clase reservada en este horario." });
+                                return;
+                              }
+                              if (travelError) {
+                                toast({ variant: "destructive", title: "Margen de Viaje", description: travelError });
+                                return;
+                              }
+                              setSelectedSlotId(slot.id);
+                              if (!bookingInstrument) {
+                                const targetId = (isTeacher || isAdmin) ? selectedStudentIdForBooking : user?.id;
+                                const targetStudent = allUsers.find(u => u.id === targetId);
+                                if (targetStudent?.instruments?.length) {
+                                  setBookingInstrument(targetStudent.instruments[0]);
+                                } else if (teacherInstruments.length > 0) {
                                   setBookingInstrument(teacherInstruments[0]);
                                 }
-                              }}
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-4">
-                                  <div className={cn(
-                                    "p-2.5 rounded-2xl border shadow-inner",
-                                    isSelected ? "bg-accent text-white border-accent" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`),
-                                  )}>
-                                    {conflict || travelError ? <AlertTriangle className="w-5 h-5 shrink-0" /> : <period.icon className="w-5 h-5 shrink-0" />}
-                                  </div>
-                                  <div className="flex flex-col items-start min-w-0">
-                                    <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground", (conflict || travelError) && "text-orange-700")}>
-                                      {formatToAmPm(slot.time)}
-                                    </span>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      {conflict ? (
-                                        <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">
-                                          Conflicto de horario
+                              }
+                            }}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-4">
+                                <div className={cn(
+                                  "p-2.5 rounded-2xl border shadow-inner",
+                                  isSelected ? "bg-accent text-white border-accent" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`),
+                                )}>
+                                  {conflict || travelError ? <AlertTriangle className="w-5 h-5 shrink-0" /> : <period.icon className="w-5 h-5 shrink-0" />}
+                                </div>
+                                <div className="flex flex-col items-start min-w-0">
+                                  <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground", (conflict || travelError) && "text-orange-700")}>
+                                    {formatToAmPm(slot.time)}
+                                  </span>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {conflict ? (
+                                      <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">
+                                        Conflicto de horario
+                                      </span>
+                                    ) : travelError ? (
+                                      <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">
+                                        Sin margen de viaje
+                                      </span>
+                                    ) : (
+                                      <>
+                                        <span className={cn(
+                                          "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-1",
+                                          isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
+                                        )}>
+                                          <period.icon className="w-2.5 h-2.5" />
+                                          {period.label}
                                         </span>
-                                      ) : travelError ? (
-                                        <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">
-                                          Sin margen de viaje
+                                        <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
+                                          {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME}
                                         </span>
-                                      ) : (
-                                        <>
-                                          <span className={cn(
-                                            "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-1",
-                                            isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
-                                          )}>
-                                            <period.icon className="w-2.5 h-2.5" />
-                                            {period.label}
-                                          </span>
-                                          <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
-                                            {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME}
-                                          </span>
-                                        </>
-                                      )}
-                                    </div>
+                                      </>
+                                    )}
                                   </div>
                                 </div>
-                                {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
                               </div>
-
-                              {travelError && (
-                                <p className="text-[8px] font-bold text-orange-600 leading-tight">
-                                  {travelError}
-                                </p>
-                              )}
-
-                              {isSelected && (
-                                <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
-                                  <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                                    <Music className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '5.' : '4.'} ¿Qué instrumento tocarás?
-                                  </Label>
-                                  <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
-                                    <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">
-                                      <SelectValue placeholder="Seleccionar instrumento" />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-2xl border-2">
-                                      {teacherInstruments.map(inst => (
-                                        <SelectItem key={inst} value={inst} className="font-bold py-3">
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
-                                            <span>{inst}</span>
-                                          </div>
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              )}
+                              {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
                             </div>
-                          );
-                        })}
+
+                            {travelError && (
+                              <p className="text-[8px] font-bold text-orange-600 leading-tight">
+                                {travelError}
+                              </p>
+                            )}
+
+                            {isSelected && (
+                              <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                                  <Music className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '5.' : '4.'} ¿Qué instrumento tocarán?
+                                </Label>
+                                <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
+                                  <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">
+                                    <SelectValue placeholder="Seleccionar instrumento" />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-2xl border-2">
+                                    {teacherInstruments.map(inst => (
+                                      <SelectItem key={inst} value={inst} className="font-bold py-3">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
+                                          <span>{inst}</span>
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10 space-y-3">
+                      <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30" />
+                      <div className="space-y-1">
+                        <p className="text-sm font-bold text-muted-foreground">¡Vaya! No hay horarios disponibles para esta modalidad hoy.</p>
+                        <p className="text-[10px] font-bold text-muted-foreground/60 italic">Te sugerimos elegir otra modalidad o cambiar la fecha.</p>
                       </div>
-                    ) : (
-                      <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10 space-y-3">
-                        <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30" />
-                        <div className="space-y-1">
-                          <p className="text-sm font-bold text-muted-foreground">¡Vaya! No hay horarios disponibles para esta modalidad hoy.</p>
-                          <p className="text-[10px] font-bold text-muted-foreground/60 italic">Te sugerimos elegir otra modalidad o cambiar la fecha.</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-8 bg-muted/30 flex gap-3 border-t shrink-0 mt-auto">
-                    <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
-                    <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar Reserva</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
+                    </div>
+                  )}
+                </div>
+                <div className="p-8 bg-muted/30 flex gap-3 border-t shrink-0 mt-auto">
+                  <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+                  <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar Reserva</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 

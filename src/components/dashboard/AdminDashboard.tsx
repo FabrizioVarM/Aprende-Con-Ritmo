@@ -89,8 +89,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    setTodayTimestamp(startOfToday.getTime());
-  }, []);
+    todayTimestamp === 0 && setTodayTimestamp(startOfToday.getTime());
+  }, [todayTimestamp]);
 
   useEffect(() => {
     if (!isScheduleDialogOpen) {
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
       const ts = new Date(c.date).getTime();
       list.push({ id: `res-${c.resourceId}-${c.studentId}`, type: 'resource', user: student?.name || 'Alumno', action: `Material "${res?.title}" completado`, timestamp: ts, timeLabel: new Date(ts).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }), icon: BookOpen, color: 'text-accent', bg: 'bg-accent/5' });
     });
-    return list.sort((a, b) => a.timestamp - a.timestamp).slice(0, 10);
+    return list.sort((a, b) => b.timestamp - a.timestamp).slice(0, 10);
   }, [availabilities, completions, resources, allUsers]);
 
   const handleManageTeacherSchedule = (teacherId: string) => {
@@ -398,8 +398,9 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-extrabold text-foreground font-headline tracking-tight">Centro de Administración 🏢</h1>
           <p className="text-muted-foreground mt-1 text-lg font-medium">Resumen de las operaciones y crecimiento de la escuela.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {resources.length === 0 && <Button variant="outline" className="rounded-2xl gap-2 h-12 border-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50 font-black" onClick={handleSeedResources}><Database className="w-4 h-4" /> Inicializar Biblioteca</Button>}
+          <Button variant="outline" className="rounded-2xl gap-2 h-12 border-2 border-accent/20 text-accent hover:bg-accent/5 font-black px-6" onClick={() => router.push('/schedule')}><Plus className="w-4 h-4" /> Agendar a Alumno</Button>
           <Button variant="outline" className="rounded-2xl gap-2 h-12 border-2 font-black text-foreground" onClick={() => router.push('/settings')}><Settings className="w-4 h-4" /> Ajustes</Button>
           <Button className="bg-accent text-white rounded-2xl gap-2 h-12 shadow-lg shadow-accent/20 font-black px-6 hover:scale-105 transition-all" onClick={() => router.push('/users?add=true')}><UserPlus className="w-4 h-4" /> Agregar Usuario</Button>
         </div>
@@ -517,7 +518,6 @@ export default function AdminDashboard() {
                   <p className="text-base font-black text-foreground capitalize">{selectedDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}</p>
                   
                   <div className="flex flex-wrap items-center gap-3">
-                    {/* ACCIONES DE LOTE */}
                     <div className="bg-primary/5 p-1 rounded-xl flex gap-1 border border-primary/10 shadow-inner">
                       <Button size="sm" variant="ghost" onClick={handleCopyDay} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm"><Copy className="w-3 h-3 mr-1" /> Copiar</Button>
                       <Button size="sm" variant="ghost" onClick={handlePasteDay} disabled={!copyBuffer} className="h-8 px-3 rounded-lg text-[9px] font-black uppercase text-foreground hover:bg-white dark:hover:bg-slate-800 shadow-sm disabled:opacity-30"><ClipboardPaste className="w-3 h-3 mr-1" /> Pegar</Button>
