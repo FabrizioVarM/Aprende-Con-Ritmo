@@ -579,7 +579,7 @@ function LibraryContent() {
 
                 {/* Level Indicator: Lower position, absolute to edge, aligned with text header height */}
                 <div className={cn(
-                  "absolute right-0 top-[48%] flex flex-col items-center justify-center w-8 h-12 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/20 z-20 transition-transform duration-300 group-hover:scale-110",
+                  "absolute right-0 top-[42%] flex flex-col items-center justify-center w-8 h-12 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/20 z-20 transition-transform duration-300 group-hover:scale-110",
                   levelStyle.bg
                 )}>
                   <span className="text-[6px] uppercase mb-0.5 tracking-tighter">Niv.</span>
