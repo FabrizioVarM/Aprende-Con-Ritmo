@@ -96,6 +96,10 @@ export default {
         'pulse-subtle': {
           '0%, 100%': { backgroundColor: 'hsl(var(--accent))' },
           '50%': { backgroundColor: 'hsl(7, 100%, 80%)' },
+        },
+        'sonar': {
+          '0%': { transform: 'scale(1.1)', opacity: '0.8' },
+          '100%': { transform: 'scale(2.2)', opacity: '0' },
         }
       },
       animation: {
@@ -103,6 +107,7 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         float: 'float 10s ease-in-out infinite',
         'pulse-subtle': 'pulse-subtle 3s ease-in-out infinite',
+        'sonar': 'sonar 2s cubic-bezier(0, 0, 0.2, 1) infinite',
       },
     },
   },

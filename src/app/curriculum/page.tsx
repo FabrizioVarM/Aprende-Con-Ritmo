@@ -406,15 +406,24 @@ export default function CurriculumPage() {
                         setCurrentStepIdx(step.originalIndex);
                       }}
                     >
-                      <div className={cn(
-                        "w-20 h-20 rounded-[2rem] flex items-center justify-center text-2xl font-black shadow-xl transition-all duration-500 group-hover:scale-110",
-                        isCurrent 
-                          ? "bg-accent text-white ring-8 ring-accent/20 scale-110" 
-                          : isCompleted 
-                            ? "bg-emerald-500 text-white" 
-                            : "bg-white dark:bg-slate-800 text-muted-foreground border-4 border-primary/10"
-                      )}>
-                        {isCompleted ? <CheckCircle2 className="w-10 h-10" /> : step.originalIndex + 1}
+                      {/* Indicador Numérico con efecto de ondas */}
+                      <div className="relative">
+                        {isCurrent && (
+                          <>
+                            <div className="absolute inset-0 rounded-[2rem] ring-4 ring-accent/60 animate-sonar" />
+                            <div className="absolute inset-0 rounded-[2rem] ring-4 ring-accent/40 animate-sonar [animation-delay:1s]" />
+                          </>
+                        )}
+                        <div className={cn(
+                          "w-20 h-20 rounded-[2rem] flex items-center justify-center text-2xl font-black shadow-xl transition-all duration-500 group-hover:scale-110 relative z-10",
+                          isCurrent 
+                            ? "bg-accent text-white ring-8 ring-accent/20 scale-110" 
+                            : isCompleted 
+                              ? "bg-emerald-500 text-white" 
+                              : "bg-white dark:bg-slate-800 text-muted-foreground border-4 border-primary/10"
+                        )}>
+                          {isCompleted ? <CheckCircle2 className="w-10 h-10" /> : step.originalIndex + 1}
+                        </div>
                       </div>
                       
                       <div className="space-y-2">
@@ -908,7 +917,7 @@ export default function CurriculumPage() {
           </ScrollArea>
 
           <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3 shrink-0">
-            <Button variant="outline" onClick={() => setIsEditing(false)} className="rounded-xl flex-1 h-12 font-black">Cancelar</Button>
+            <Button variant="outline" onClick={() => setIsEditing(false)} className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
             <Button onClick={handleSave} className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20">
               <Save className="w-4 h-4 mr-2" /> Guardar Plan Maestro
             </Button>
