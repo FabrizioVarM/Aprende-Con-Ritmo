@@ -49,7 +49,9 @@ import {
   Image as ImageIcon,
   Library,
   Lightbulb,
-  CheckSquare
+  CheckSquare,
+  Images,
+  Trash
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import { useCurriculumStore, CurriculumPlan, CurriculumStep } from '@/lib/curriculum-store';
@@ -150,7 +152,8 @@ export default function CurriculumPage() {
         concepts: '', 
         activities: '', 
         criteria: '', 
-        durationClasses: 1 
+        durationClasses: 1,
+        images: []
       }]
     }));
   };
@@ -174,6 +177,29 @@ export default function CurriculumPage() {
     if (targetIndex < 0 || targetIndex >= newSteps.length) return;
     
     [newSteps[index], newSteps[targetIndex]] = [newSteps[targetIndex], newSteps[index]];
+    setEditPlan(prev => ({ ...prev, steps: newSteps }));
+  };
+
+  const handleAddStepImage = (stepIndex: number) => {
+    const newSteps = [...(editPlan.steps || [])];
+    const step = newSteps[stepIndex];
+    step.images = [...(step.images || []), ''];
+    setEditPlan(prev => ({ ...prev, steps: newSteps }));
+  };
+
+  const handleUpdateStepImage = (stepIndex: number, imgIndex: number, value: string) => {
+    const newSteps = [...(editPlan.steps || [])];
+    const step = newSteps[stepIndex];
+    const newImages = [...(step.images || [])];
+    newImages[imgIndex] = value;
+    step.images = newImages;
+    setEditPlan(prev => ({ ...prev, steps: newSteps }));
+  };
+
+  const handleRemoveStepImage = (stepIndex: number, imgIndex: number) => {
+    const newSteps = [...(editPlan.steps || [])];
+    const step = newSteps[stepIndex];
+    step.images = (step.images || []).filter((_, i) => i !== imgIndex);
     setEditPlan(prev => ({ ...prev, steps: newSteps }));
   };
 
@@ -471,7 +497,7 @@ export default function CurriculumPage() {
                     <Target className="w-4 h-4 text-accent" /> Objetivo del Paso
                   </h4>
                   <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 min-h-[80px]">
-                    <p className="text-sm font-medium text-foreground leading-relaxed italic">
+                    <p className="text-sm font-medium text-foreground leading-relaxed italic whitespace-pre-wrap">
                       {viewingStep.objective || "No definido."}
                     </p>
                   </div>
@@ -501,13 +527,34 @@ export default function CurriculumPage() {
                   </div>
                 </div>
 
+                {/* Imágenes del paso (Nuevo) */}
+                {viewingStep.images && viewingStep.images.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <Images className="w-4 h-4 text-accent" /> Multimedia de Apoyo
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {viewingStep.images.map((img, idx) => (
+                        <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-primary/10 shadow-sm group/img">
+                          <Image 
+                            src={getDirectImageUrl(img)} 
+                            alt={`Guía ${idx + 1}`} 
+                            fill 
+                            className="object-cover transition-transform duration-500 group-hover/img:scale-105"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Material Sugerido */}
                 <div className="space-y-3">
                   <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
                     <Lightbulb className="w-4 h-4 text-accent" /> Material Interactivo Sugerido
                   </h4>
                   <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border-2 border-blue-100 dark:border-blue-900/20">
-                    <p className="text-xs font-bold text-blue-800 dark:text-blue-300 leading-relaxed">
+                    <p className="text-xs font-bold text-blue-800 dark:text-blue-300 leading-relaxed whitespace-pre-wrap">
                       {viewingStep.interactiveMaterial || "No hay sugerencias adicionales."}
                     </p>
                   </div>
@@ -519,7 +566,7 @@ export default function CurriculumPage() {
                     <CheckSquare className="w-4 h-4 text-accent" /> Criterio para Avanzar
                   </h4>
                   <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border-2 border-emerald-100 dark:border-emerald-900/20">
-                    <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                    <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 leading-relaxed whitespace-pre-wrap">
                       {viewingStep.criteria || "Validar comprensión técnica básica."}
                     </p>
                   </div>
@@ -599,6 +646,11 @@ export default function CurriculumPage() {
                         {step.resourceId && (
                           <Badge variant="outline" className="rounded-lg text-[10px] font-black uppercase px-2 py-0.5 border-accent/20 text-accent">
                             Recurso Enlazado
+                          </Badge>
+                        )}
+                        {step.images && step.images.length > 0 && (
+                          <Badge variant="outline" className="rounded-lg text-[10px] font-black uppercase px-2 py-0.5 border-blue-200 text-blue-600">
+                            {step.images.length} Imagen(es)
                           </Badge>
                         )}
                       </div>
@@ -761,28 +813,55 @@ export default function CurriculumPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Objetivo Académico</Label>
-                            <Textarea value={step.objective} onChange={(e) => updateStep(idx, 'objective', e.target.value)} className="min-h-[80px] rounded-lg border-2 font-medium text-xs" placeholder="¿Qué debe lograr el alumno?" />
+                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Objetivo Académico (Soporta listas)</Label>
+                            <Textarea value={step.objective} onChange={(e) => updateStep(idx, 'objective', e.target.value)} className="min-h-[100px] rounded-lg border-2 font-medium text-xs" placeholder="¿Qué debe lograr el alumno?" />
                           </div>
                           <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Conceptos a Enseñar</Label>
-                            <Textarea value={step.concepts} onChange={(e) => updateStep(idx, 'concepts', e.target.value)} className="min-h-[80px] rounded-lg border-2 font-medium text-xs" placeholder="Teoría, técnica, notas..." />
+                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Conceptos a Enseñar (Soporta listas)</Label>
+                            <Textarea value={step.concepts} onChange={(e) => updateStep(idx, 'concepts', e.target.value)} className="min-h-[100px] rounded-lg border-2 font-medium text-xs" placeholder="Teoría, técnica, notas..." />
                           </div>
                         </div>
 
                         <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-muted-foreground">Actividades Prácticas</Label>
-                          <Textarea value={step.activities} onChange={(e) => updateStep(idx, 'activities', e.target.value)} className="min-h-[100px] rounded-lg border-2 font-medium text-xs" placeholder="Ejercicios, dinámicas en clase..." />
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground">Actividades Prácticas (Soporta listas)</Label>
+                          <Textarea value={step.activities} onChange={(e) => updateStep(idx, 'activities', e.target.value)} className="min-h-[120px] rounded-lg border-2 font-medium text-xs" placeholder="Ejercicios, dinámicas en clase..." />
+                        </div>
+
+                        {/* Gestión de Imágenes del Paso (Nuevo) */}
+                        <div className="space-y-4 border-t border-primary/10 pt-4">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
+                              <Images className="w-3 h-3 text-accent" /> Imágenes Explicativas del Paso
+                            </Label>
+                            <Button type="button" variant="outline" size="sm" className="h-7 text-[9px] font-black uppercase" onClick={() => handleAddStepImage(idx)}>
+                              <Plus className="w-3 h-3 mr-1" /> Añadir Imagen
+                            </Button>
+                          </div>
+                          <div className="space-y-3">
+                            {step.images?.map((url, imgIdx) => (
+                              <div key={imgIdx} className="flex gap-2">
+                                <Input 
+                                  value={url} 
+                                  onChange={(e) => handleUpdateStepImage(idx, imgIdx, e.target.value)} 
+                                  className="h-9 text-xs rounded-lg border-2 font-bold" 
+                                  placeholder="URL de la imagen..." 
+                                />
+                                <Button variant="ghost" size="icon" onClick={() => handleRemoveStepImage(idx, imgIdx)} className="h-9 w-9 text-destructive">
+                                  <Trash className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase text-muted-foreground">Material Interactivo Sugerido</Label>
-                            <Textarea value={step.interactiveMaterial} onChange={(e) => updateStep(idx, 'interactiveMaterial', e.target.value)} className="min-h-[60px] rounded-lg border-2 font-medium text-xs" placeholder="Videos, apps, pistas..." />
+                            <Textarea value={step.interactiveMaterial} onChange={(e) => updateStep(idx, 'interactiveMaterial', e.target.value)} className="min-h-[80px] rounded-lg border-2 font-medium text-xs" placeholder="Videos, apps, pistas..." />
                           </div>
                           <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase text-muted-foreground">Criterio para Avanzar</Label>
-                            <Textarea value={step.criteria} onChange={(e) => updateStep(idx, 'criteria', e.target.value)} className="min-h-[60px] rounded-lg border-2 font-medium text-xs" placeholder="¿Cómo sabemos que está listo?" />
+                            <Textarea value={step.criteria} onChange={(e) => updateStep(idx, 'criteria', e.target.value)} className="min-h-[80px] rounded-lg border-2 font-medium text-xs" placeholder="¿Cómo sabemos que está listo?" />
                           </div>
                         </div>
 

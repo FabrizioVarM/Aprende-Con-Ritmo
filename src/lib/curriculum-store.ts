@@ -24,6 +24,7 @@ export interface CurriculumStep {
   criteria: string;
   durationClasses: number;
   resourceId?: number;
+  images?: string[];
 }
 
 export interface CurriculumPlan {
