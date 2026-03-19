@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -503,16 +502,37 @@ export default function CurriculumPage() {
                   </div>
                 </div>
 
-                {/* Conceptos */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Library className="w-4 h-4 text-accent" /> Conceptos a Enseñar
-                  </h4>
-                  <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 min-h-[80px]">
-                    <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">
-                      {viewingStep.concepts || "No definido."}
-                    </p>
+                {/* Conceptos y Primera Imagen */}
+                <div className={cn(
+                  "grid gap-6 items-start",
+                  (viewingStep.images && viewingStep.images.length > 0) ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"
+                )}>
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                      <Library className="w-4 h-4 text-accent" /> Conceptos a Enseñar
+                    </h4>
+                    <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 min-h-[80px]">
+                      <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">
+                        {viewingStep.concepts || "No definido."}
+                      </p>
+                    </div>
                   </div>
+
+                  {viewingStep.images && viewingStep.images.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <Images className="w-4 h-4 text-accent" /> Guía Visual Principal
+                      </h4>
+                      <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-primary/10 shadow-md group/img">
+                        <Image 
+                          src={getDirectImageUrl(viewingStep.images[0])} 
+                          alt="Concepto Visual" 
+                          fill 
+                          className="object-cover transition-transform duration-500 group-hover/img:scale-105"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Actividades */}
@@ -527,18 +547,18 @@ export default function CurriculumPage() {
                   </div>
                 </div>
 
-                {/* Imágenes del paso (Nuevo) */}
-                {viewingStep.images && viewingStep.images.length > 0 && (
+                {/* Galería de Imágenes Adicionales */}
+                {viewingStep.images && viewingStep.images.length > 1 && (
                   <div className="space-y-3">
                     <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Images className="w-4 h-4 text-accent" /> Multimedia de Apoyo
+                      <Images className="w-4 h-4 text-accent" /> Multimedia Adicional
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {viewingStep.images.map((img, idx) => (
+                      {viewingStep.images.slice(1).map((img, idx) => (
                         <div key={idx} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-primary/10 shadow-sm group/img">
                           <Image 
                             src={getDirectImageUrl(img)} 
-                            alt={`Guía ${idx + 1}`} 
+                            alt={`Guía Extra ${idx + 1}`} 
                             fill 
                             className="object-cover transition-transform duration-500 group-hover/img:scale-105"
                           />
