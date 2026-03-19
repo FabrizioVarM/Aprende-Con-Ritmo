@@ -465,29 +465,27 @@ export default function CurriculumPage() {
               </DialogHeader>
               
               <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-card">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Objetivo */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Target className="w-4 h-4 text-accent" /> Objetivo del Paso
-                    </h4>
-                    <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 min-h-[80px]">
-                      <p className="text-sm font-medium text-foreground leading-relaxed italic">
-                        {viewingStep.objective || "No definido."}
-                      </p>
-                    </div>
+                {/* Objetivo */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Target className="w-4 h-4 text-accent" /> Objetivo del Paso
+                  </h4>
+                  <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 min-h-[80px]">
+                    <p className="text-sm font-medium text-foreground leading-relaxed italic">
+                      {viewingStep.objective || "No definido."}
+                    </p>
                   </div>
+                </div>
 
-                  {/* Conceptos */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Library className="w-4 h-4 text-accent" /> Conceptos a Enseñar
-                    </h4>
-                    <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 min-h-[80px]">
-                      <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">
-                        {viewingStep.concepts || "No definido."}
-                      </p>
-                    </div>
+                {/* Conceptos */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Library className="w-4 h-4 text-accent" /> Conceptos a Enseñar
+                  </h4>
+                  <div className="p-4 bg-primary/5 rounded-2xl border-2 border-primary/10 min-h-[80px]">
+                    <p className="text-sm font-medium text-foreground leading-relaxed whitespace-pre-wrap">
+                      {viewingStep.concepts || "No definido."}
+                    </p>
                   </div>
                 </div>
 
@@ -503,29 +501,27 @@ export default function CurriculumPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Material Sugerido */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <Lightbulb className="w-4 h-4 text-accent" /> Material Interactivo Sugerido
-                    </h4>
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border-2 border-blue-100 dark:border-blue-900/20">
-                      <p className="text-xs font-bold text-blue-800 dark:text-blue-300 leading-relaxed">
-                        {viewingStep.interactiveMaterial || "No hay sugerencias adicionales."}
-                      </p>
-                    </div>
+                {/* Material Sugerido */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4 text-accent" /> Material Interactivo Sugerido
+                  </h4>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border-2 border-blue-100 dark:border-blue-900/20">
+                    <p className="text-xs font-bold text-blue-800 dark:text-blue-300 leading-relaxed">
+                      {viewingStep.interactiveMaterial || "No hay sugerencias adicionales."}
+                    </p>
                   </div>
+                </div>
 
-                  {/* Criterio de Avance */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <CheckSquare className="w-4 h-4 text-accent" /> Criterio para Avanzar
-                    </h4>
-                    <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border-2 border-emerald-100 dark:border-emerald-900/20">
-                      <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 leading-relaxed">
-                        {viewingStep.criteria || "Validar comprensión técnica básica."}
-                      </p>
-                    </div>
+                {/* Criterio de Avance */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <CheckSquare className="w-4 h-4 text-accent" /> Criterio para Avanzar
+                  </h4>
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border-2 border-emerald-100 dark:border-emerald-900/20">
+                    <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                      {viewingStep.criteria || "Validar comprensión técnica básica."}
+                    </p>
                   </div>
                 </div>
 
