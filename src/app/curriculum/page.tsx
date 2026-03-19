@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,7 +61,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import Image from 'image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { getDirectImageUrl } from '@/lib/utils/images';
 
@@ -84,6 +84,9 @@ export default function CurriculumPage() {
   const { settings, updateSettings } = useSettingsStore();
   const { toast } = useToast();
   const router = useRouter();
+  
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const [showScrollArrow, setShowScrollArrow] = useState(true);
 
   const [selectedInstrument, setSelectedInstrument] = useState<string>(INSTRUMENTS_LIST[0]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -117,6 +120,22 @@ export default function CurriculumPage() {
     images: [],
     resourceId: undefined
   });
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollArrow(false);
+      } else {
+        setShowScrollArrow(true);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTimeline = () => {
+    timelineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const isAdmin = user?.role === 'admin';
   const currentPlan = useMemo(() => 
@@ -244,7 +263,18 @@ export default function CurriculumPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-12">
+      <div className="space-y-12 relative">
+        {/* Flecha Flotante de Desplazamiento */}
+        {showScrollArrow && (
+          <Button 
+            onClick={scrollToTimeline}
+            className="fixed bottom-10 left-1/2 -translate-x-1/2 z-40 rounded-full w-14 h-14 bg-accent/90 backdrop-blur-md text-white shadow-2xl hover:scale-110 hover:bg-accent active:scale-95 transition-all animate-bounce flex items-center justify-center border-4 border-white/20"
+            size="icon"
+          >
+            <ChevronDown className="w-8 h-8" strokeWidth={3} />
+          </Button>
+        )}
+
         {/* Presentación de la Sección */}
         <section className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-accent to-accent/80 p-8 md:p-12 text-white shadow-2xl shadow-accent/20 group">
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
@@ -364,7 +394,7 @@ export default function CurriculumPage() {
         </div>
 
         {/* Línea de Tiempo Interactiva */}
-        <section className="space-y-8 px-2">
+        <section ref={timelineRef} className="space-y-8 px-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-2 h-8 bg-accent rounded-full" />
@@ -427,7 +457,7 @@ export default function CurriculumPage() {
                           isCurrent 
                             ? "bg-accent text-white ring-8 ring-accent/20 scale-110" 
                             : isCompleted 
-                              ? "bg-emerald-500 text-white" 
+                              ? "bg-emerald-50 text-white" 
                               : "bg-white dark:bg-slate-800 text-muted-foreground border-4 border-primary/10"
                         )}>
                           {isCompleted ? <CheckCircle2 className="w-10 h-10" /> : step.originalIndex + 1}
@@ -730,36 +760,36 @@ export default function CurriculumPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Etiqueta (Badge)</Label>
-                <Input 
+                <input 
                   value={tempHero.badge} 
                   onChange={(e) => setTempHero(prev => ({...prev, badge: e.target.value}))}
-                  className="h-12 rounded-xl border-2 font-bold"
+                  className="flex h-12 w-full rounded-xl border-2 border-input bg-background px-3 py-2 text-sm font-bold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título (Parte 1)</Label>
-                <Input 
+                <input 
                   value={tempHero.title} 
                   onChange={(e) => setTempHero(prev => ({...prev, title: e.target.value}))}
-                  className="h-12 rounded-xl border-2 font-bold"
+                  className="flex h-12 w-full rounded-xl border-2 border-input bg-background px-3 py-2 text-sm font-bold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Título (Parte 2 - Destacado)</Label>
-                <Input 
+                <input 
                   value={tempHero.subtitle} 
                   onChange={(e) => setTempHero(prev => ({...prev, subtitle: e.target.value}))}
-                  className="h-12 rounded-xl border-2 font-bold"
+                  className="flex h-12 w-full rounded-xl border-2 border-input bg-background px-3 py-2 text-sm font-bold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">URL de Imagen del Profesor</Label>
                 <div className="relative">
                   <ImageIcon className="absolute left-3 top-3.5 w-4 h-4 text-muted-foreground" />
-                  <Input 
+                  <input 
                     value={tempHero.imageUrl} 
                     onChange={(e) => setTempHero(prev => ({...prev, imageUrl: e.target.value}))}
-                    className="h-12 pl-10 rounded-xl border-2 font-bold"
+                    className="flex h-12 w-full rounded-xl border-2 border-input bg-background pl-10 pr-3 py-2 text-sm font-bold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="https://..."
                   />
                 </div>
@@ -820,7 +850,7 @@ export default function CurriculumPage() {
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                 <div className="md:col-span-8 space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground">Título del Paso</Label>
-                  <Input value={stepForm.title} onChange={(e) => setStepForm(p => ({...p, title: e.target.value}))} className="h-12 rounded-xl border-2 font-black" placeholder="Ej: Primeros Acordes" />
+                  <input value={stepForm.title} onChange={(e) => setStepForm(p => ({...p, title: e.target.value}))} className="flex h-12 w-full rounded-xl border-2 border-input bg-background px-3 py-2 text-sm font-black ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" placeholder="Ej: Primeros Acordes" />
                 </div>
                 <div className="md:col-span-4 space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground">Duración (Sesiones)</Label>
@@ -865,10 +895,10 @@ export default function CurriculumPage() {
                 <div className="space-y-3">
                   {stepForm.images?.map((url, idx) => (
                     <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-1">
-                      <Input 
+                      <input 
                         value={url} 
                         onChange={(e) => handleUpdateStepImage(idx, e.target.value)} 
-                        className="h-10 text-xs rounded-xl border-2 font-bold" 
+                        className="flex h-10 w-full rounded-xl border-2 border-input bg-background px-3 py-2 text-xs font-bold ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" 
                         placeholder="https://..." 
                       />
                       <Button variant="ghost" size="icon" onClick={() => handleRemoveStepImage(idx)} className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl">
