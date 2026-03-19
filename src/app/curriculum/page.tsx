@@ -547,7 +547,19 @@ export default function CurriculumPage() {
                   </div>
                 </div>
 
-                {/* Galería de Imágenes Adicionales */}
+                {/* Material Sugerido */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Lightbulb className="w-4 h-4 text-accent" /> Material Interactivo Sugerido
+                  </h4>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border-2 border-blue-100 dark:border-blue-900/20">
+                    <p className="text-xs font-bold text-blue-800 dark:text-blue-300 leading-relaxed whitespace-pre-wrap">
+                      {viewingStep.interactiveMaterial || "No hay sugerencias adicionales."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Galería de Imágenes Adicionales - MOVIDO DEBAJO DE MATERIAL SUGERIDO */}
                 {viewingStep.images && viewingStep.images.length > 1 && (
                   <div className="space-y-3">
                     <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -567,18 +579,6 @@ export default function CurriculumPage() {
                     </div>
                   </div>
                 )}
-
-                {/* Material Sugerido */}
-                <div className="space-y-3">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Lightbulb className="w-4 h-4 text-accent" /> Material Interactivo Sugerido
-                  </h4>
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border-2 border-blue-100 dark:border-blue-900/20">
-                    <p className="text-xs font-bold text-blue-800 dark:text-blue-300 leading-relaxed whitespace-pre-wrap">
-                      {viewingStep.interactiveMaterial || "No hay sugerencias adicionales."}
-                    </p>
-                  </div>
-                </div>
 
                 {/* Criterio de Avance */}
                 <div className="space-y-3">
