@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -61,7 +60,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRouter } from 'next/navigation';
-import Image from 'image';
+import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { getDirectImageUrl } from '@/lib/utils/images';
 
