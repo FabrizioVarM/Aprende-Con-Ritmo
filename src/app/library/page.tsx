@@ -543,7 +543,7 @@ function LibraryContent() {
                       </Badge>
                     )}
                     {!isEnabled && (
-                      <Badge variant="secondary" className="bg-orange-50 text-white rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1 w-fit border-none">
+                      <Badge variant="secondary" className="bg-orange-600 text-white rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-widest gap-1 w-fit border-none shadow-md">
                         <Lock className="w-2.5 h-2.5" /> Bloqueado
                       </Badge>
                     )}

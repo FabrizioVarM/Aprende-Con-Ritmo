@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -627,7 +626,7 @@ export default function SettingsPage() {
         {/* Versión de la Aplicación */}
         <div className="pt-8 pb-4 text-center">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pointer-events-none select-none">
-            v2.1.15
+            v2.1.19
           </p>
         </div>
       </div>
