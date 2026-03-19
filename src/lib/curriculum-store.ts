@@ -17,7 +17,11 @@ import { useAuth } from './auth-store';
 
 export interface CurriculumStep {
   title: string;
-  explanation: string;
+  objective: string;
+  concepts: string;
+  activities: string;
+  interactiveMaterial?: string;
+  criteria: string;
   durationClasses: number;
   resourceId?: number;
 }

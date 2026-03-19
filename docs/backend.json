@@ -44,7 +44,11 @@
             "type": "object",
             "properties": {
               "title": { "type": "string" },
-              "explanation": { "type": "string" },
+              "objective": { "type": "string", "description": "Objetivo pedagógico del paso." },
+              "concepts": { "type": "string", "description": "Conceptos teóricos o técnicos a enseñar." },
+              "activities": { "type": "string", "description": "Ejercicios o actividades prácticas." },
+              "interactiveMaterial": { "type": "string", "description": "Sugerencias de material interactivo." },
+              "criteria": { "type": "string", "description": "Criterios para validar el avance al siguiente paso." },
               "durationClasses": { "type": "number", "minimum": 1, "maximum": 3 },
               "resourceId": { "type": "number", "description": "ID opcional de un recurso de la biblioteca." }
             }
