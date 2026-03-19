@@ -100,6 +100,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'blog.musicopolix.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
