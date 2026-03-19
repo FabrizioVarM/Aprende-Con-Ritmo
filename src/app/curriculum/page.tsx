@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -85,10 +86,9 @@ export default function CurriculumPage() {
   const router = useRouter();
 
   const [selectedInstrument, setSelectedInstrument] = useState<string>(INSTRUMENTS_LIST[0]);
-  const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isMeshOpen, setIsMeshOpen] = useState(false);
-  const [viewingStep, setViewingStep] = useState<CurriculumStep | null>(null);
+  const [viewingStep, setViewingStep] = useState<(CurriculumStep & { originalIndex: number }) | null>(null);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   
   const [isHeroEditing, setIsHeroEditing] = useState(false);
@@ -100,10 +100,22 @@ export default function CurriculumPage() {
     imageUrl: ''
   });
 
-  const [editPlan, setEditPlan] = useState<Partial<CurriculumPlan>>({
-    instrument: INSTRUMENTS_LIST[0],
-    description: '',
-    steps: []
+  // Individual Step Editing/Adding states
+  const [isStepFormOpen, setIsStepFormOpen] = useState(false);
+  const [stepFormMode, setStepFormMode] = useState<'add' | 'edit'>('add');
+  const [targetStepIdx, setTargetStepIdx] = useState<number | null>(null);
+  const [insertPosition, setInsertPosition] = useState<string>('end');
+  
+  const [stepForm, setStepForm] = useState<CurriculumStep>({
+    title: '',
+    objective: '',
+    concepts: '',
+    activities: '',
+    interactiveMaterial: '',
+    criteria: '',
+    durationClasses: 1,
+    images: [],
+    resourceId: undefined
   });
 
   const isAdmin = user?.role === 'admin';
@@ -126,90 +138,84 @@ export default function CurriculumPage() {
     }));
   }, [currentPlan, currentStepIdx]);
 
-  const openCreate = () => {
-    setEditPlan({
-      instrument: selectedInstrument,
-      description: '',
-      steps: []
+  const openAddStep = () => {
+    setStepFormMode('add');
+    setStepForm({
+      title: '',
+      objective: '',
+      concepts: '',
+      activities: '',
+      interactiveMaterial: '',
+      criteria: '',
+      durationClasses: 1,
+      images: [],
+      resourceId: undefined
     });
-    setIsEditing(true);
+    setInsertPosition('end');
+    setIsStepFormOpen(true);
   };
 
-  const openEdit = () => {
-    if (currentPlan) {
-      setEditPlan(JSON.parse(JSON.stringify(currentPlan)));
-      setIsEditing(true);
-    }
+  const openEditIndividualStep = (step: CurriculumStep, index: number) => {
+    setStepFormMode('edit');
+    setTargetStepIdx(index);
+    setStepForm(JSON.parse(JSON.stringify(step)));
+    setIsStepFormOpen(true);
   };
 
-  const addStep = () => {
-    setEditPlan(prev => ({
-      ...prev,
-      steps: [...(prev.steps || []), { 
-        title: '', 
-        objective: '', 
-        concepts: '', 
-        activities: '', 
-        criteria: '', 
-        durationClasses: 1,
-        images: []
-      }]
-    }));
-  };
-
-  const removeStep = (index: number) => {
-    setEditPlan(prev => ({
-      ...prev,
-      steps: prev.steps?.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateStep = (index: number, field: keyof CurriculumStep, value: any) => {
-    const newSteps = [...(editPlan.steps || [])];
-    newSteps[index] = { ...newSteps[index], [field]: value };
-    setEditPlan(prev => ({ ...prev, steps: newSteps }));
-  };
-
-  const moveStep = (index: number, direction: 'up' | 'down') => {
-    const newSteps = [...(editPlan.steps || [])];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= newSteps.length) return;
-    
-    [newSteps[index], newSteps[targetIndex]] = [newSteps[targetIndex], newSteps[index]];
-    setEditPlan(prev => ({ ...prev, steps: newSteps }));
-  };
-
-  const handleAddStepImage = (stepIndex: number) => {
-    const newSteps = [...(editPlan.steps || [])];
-    const step = newSteps[stepIndex];
-    step.images = [...(step.images || []), ''];
-    setEditPlan(prev => ({ ...prev, steps: newSteps }));
-  };
-
-  const handleUpdateStepImage = (stepIndex: number, imgIndex: number, value: string) => {
-    const newSteps = [...(editPlan.steps || [])];
-    const step = newSteps[stepIndex];
-    const newImages = [...(step.images || [])];
-    newImages[imgIndex] = value;
-    step.images = newImages;
-    setEditPlan(prev => ({ ...prev, steps: newSteps }));
-  };
-
-  const handleRemoveStepImage = (stepIndex: number, imgIndex: number) => {
-    const newSteps = [...(editPlan.steps || [])];
-    const step = newSteps[stepIndex];
-    step.images = (step.images || []).filter((_, i) => i !== imgIndex);
-    setEditPlan(prev => ({ ...prev, steps: newSteps }));
-  };
-
-  const handleSave = async () => {
-    if (!editPlan.instrument || !editPlan.description) {
-      toast({ variant: "destructive", title: "Datos incompletos" });
+  const handleSaveStep = async () => {
+    if (!stepForm.title) {
+      toast({ variant: "destructive", title: "Título obligatorio" });
       return;
     }
-    await saveCurriculum(editPlan as CurriculumPlan, currentPlan?.id);
-    toast({ title: "Plan de Estudios Guardado ✨" });
-    setIsEditing(false);
+
+    if (!currentPlan) {
+      // Create first plan if none exists
+      const newPlan: CurriculumPlan = {
+        id: selectedInstrument.toLowerCase(),
+        instrument: selectedInstrument,
+        description: `Plan de estudios para ${selectedInstrument}`,
+        steps: [stepForm]
+      };
+      await saveCurriculum(newPlan);
+    } else {
+      let newSteps = [...currentPlan.steps];
+      if (stepFormMode === 'add') {
+        if (insertPosition === 'end') {
+          newSteps.push(stepForm);
+        } else {
+          const idx = parseInt(insertPosition);
+          newSteps.splice(idx + 1, 0, stepForm);
+        }
+      } else if (stepFormMode === 'edit' && targetStepIdx !== null) {
+        newSteps[targetStepIdx] = stepForm;
+      }
+      
+      await saveCurriculum({ ...currentPlan, steps: newSteps }, currentPlan.id);
+    }
+
+    toast({ title: stepFormMode === 'add' ? "Paso añadido ✨" : "Paso actualizado ✨" });
+    setIsStepFormOpen(false);
+    setViewingStep(null);
+  };
+
+  const handleAddStepImage = () => {
+    setStepForm(prev => ({
+      ...prev,
+      images: [...(prev.images || []), '']
+    }));
+  };
+
+  const handleUpdateStepImage = (idx: number, value: string) => {
+    const newImages = [...(stepForm.images || [])];
+    newImages[idx] = value;
+    setStepForm(prev => ({ ...prev, images: newImages }));
+  };
+
+  const handleRemoveStepImage = (idx: number) => {
+    setStepForm(prev => ({
+      ...prev,
+      images: (prev.images || []).filter((_, i) => i !== idx)
+    }));
   };
 
   const handleDelete = async () => {
@@ -364,14 +370,16 @@ export default function CurriculumPage() {
               <div className="w-2 h-8 bg-accent rounded-full" />
               <h2 className="text-2xl font-black text-foreground">Ruta de Aprendizaje Interactiva: {selectedInstrument}</h2>
             </div>
-            {isAdmin && currentPlan && (
+            {isAdmin && (
               <div className="flex gap-2">
-                <Button onClick={openEdit} size="icon" className="h-12 w-12 rounded-xl bg-accent text-white shadow-lg">
-                  <Edit2 className="w-5 h-5" />
+                <Button onClick={openAddStep} className="bg-accent text-white rounded-xl shadow-lg font-black gap-2 h-12 px-6">
+                  <Plus className="w-5 h-5" /> Añadir Paso
                 </Button>
-                <Button onClick={() => setIsDeleting(true)} size="icon" variant="outline" className="h-12 w-12 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10">
-                  <Trash2 className="w-5 h-5" />
-                </Button>
+                {currentPlan && (
+                  <Button onClick={() => setIsDeleting(true)} size="icon" variant="outline" className="h-12 w-12 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10">
+                    <Trash2 className="w-5 h-5" />
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -402,7 +410,7 @@ export default function CurriculumPage() {
                         isFuture && "opacity-60 grayscale-[0.5] hover:grayscale-0 hover:opacity-100"
                       )}
                       onClick={() => {
-                        setViewingStep(step);
+                        setViewingStep({ ...step, originalIndex: step.originalIndex });
                         setCurrentStepIdx(step.originalIndex);
                       }}
                     >
@@ -470,8 +478,8 @@ export default function CurriculumPage() {
                 <p className="text-muted-foreground font-bold italic mt-2">Aún no se ha estandarizado la currícula para este instrumento.</p>
               </div>
               {isAdmin && (
-                <Button onClick={openCreate} className="bg-accent text-white rounded-2xl h-14 px-10 font-black shadow-xl shadow-accent/20 gap-2">
-                  <Plus className="w-5 h-5" /> Crear Primer Plan
+                <Button onClick={openAddStep} className="bg-accent text-white rounded-2xl h-14 px-10 font-black shadow-xl shadow-accent/20 gap-2">
+                  <Plus className="w-5 h-5" /> Crear Primer Paso
                 </Button>
               )}
             </div>
@@ -485,13 +493,25 @@ export default function CurriculumPage() {
           {viewingStep && (
             <>
               <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
-                <div className="flex items-center gap-3">
-                  <Badge className="bg-accent text-white rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-none">
-                    Paso {currentPlan?.steps.findIndex(s => s.title === viewingStep.title)! + 1}
-                  </Badge>
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Duración: {viewingStep.durationClasses} Sesiones
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Badge className="bg-accent text-white rounded-full px-4 py-1 text-[10px] font-black uppercase tracking-widest border-none">
+                      Paso {viewingStep.originalIndex + 1}
+                    </Badge>
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> Duración: {viewingStep.durationClasses} Sesiones
+                    </span>
+                  </div>
+                  {isAdmin && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-xl border-2 font-black gap-2 h-10 px-4 hover:bg-accent hover:text-white transition-all"
+                      onClick={() => openEditIndividualStep(viewingStep, viewingStep.originalIndex)}
+                    >
+                      <Edit2 className="w-4 h-4" /> Editar Paso
+                    </Button>
+                  )}
                 </div>
                 <DialogTitle className="text-3xl font-black text-foreground leading-tight">
                   {viewingStep.title}
@@ -568,7 +588,7 @@ export default function CurriculumPage() {
                   </div>
                 </div>
 
-                {/* Galería de Imágenes Adicionales - MOVIDO DEBAJO DE MATERIAL SUGERIDO */}
+                {/* Galería de Imágenes Adicionales */}
                 {viewingStep.images && viewingStep.images.length > 1 && (
                   <div className="space-y-3">
                     <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
@@ -655,7 +675,7 @@ export default function CurriculumPage() {
             <div className="p-8 space-y-6">
               <div className="p-6 bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/20 mb-8">
                 <p className="text-sm font-bold text-accent italic leading-relaxed text-center">
-                  "{currentPlan?.description}"
+                  "{currentPlan?.description || 'Plan estandarizado de la academia.'}"
                 </p>
               </div>
 
@@ -763,169 +783,140 @@ export default function CurriculumPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Admin: Modal de Configuración de Malla (Plan) */}
-      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="rounded-[2.5rem] max-w-5xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[90vh]">
+      {/* Admin: Modal de Gestión de Paso Individual (Añadir o Editar) */}
+      <Dialog open={isStepFormOpen} onOpenChange={setIsStepFormOpen}>
+        <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[90vh]">
           <DialogHeader className="bg-accent/10 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
-              <GraduationCap className="w-8 h-8 text-accent" />
-              Configurar Plan Maestro
+              {stepFormMode === 'add' ? <Plus className="w-8 h-8 text-accent" /> : <Edit2 className="w-8 h-8 text-accent" />}
+              {stepFormMode === 'add' ? 'Añadir Nuevo Paso' : 'Editar Paso Existente'}
             </DialogTitle>
-            <DialogDescription className="font-medium text-muted-foreground">Define la ruta académica paso a paso para {editPlan.instrument}.</DialogDescription>
+            <DialogDescription className="font-medium text-muted-foreground">
+              Define los detalles pedagógicos y multimedia para este nivel de aprendizaje.
+            </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="flex-1 bg-card">
             <div className="p-8 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Instrumento</Label>
-                  <Select value={editPlan.instrument} onValueChange={(v) => setEditPlan(p => ({...p, instrument: v}))}>
-                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
-                      <SelectValue />
+              {stepFormMode === 'add' && currentPlan && currentPlan.steps.length > 0 && (
+                <div className="space-y-3 p-6 bg-accent/5 rounded-3xl border-2 border-accent/10 border-dashed">
+                  <Label className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                    <LayoutGrid className="w-4 h-4" /> Ubicación del nuevo paso
+                  </Label>
+                  <Select value={insertPosition} onValueChange={setInsertPosition}>
+                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold bg-white">
+                      <SelectValue placeholder="Elegir posición..." />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {INSTRUMENTS_LIST.map(inst => (
-                        <SelectItem key={inst} value={inst} className="font-bold">{inst}</SelectItem>
+                      <SelectItem value="end" className="font-bold">Al final de la ruta</SelectItem>
+                      {currentPlan.steps.map((s, idx) => (
+                        <SelectItem key={idx} value={String(idx)} className="font-bold">Después de: {s.title}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Descripción Global del Plan</Label>
-                  <Textarea 
-                    value={editPlan.description}
-                    onChange={(e) => setEditPlan(p => ({...p, description: e.target.value}))}
-                    className="min-h-[100px] rounded-xl border-2 font-bold"
-                    placeholder="Ej: Este plan enfoca la técnica de púa alterna desde el primer día..."
-                  />
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div className="md:col-span-8 space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Título del Paso</Label>
+                  <Input value={stepForm.title} onChange={(e) => setStepForm(p => ({...p, title: e.target.value}))} className="h-12 rounded-xl border-2 font-black" placeholder="Ej: Primeros Acordes" />
+                </div>
+                <div className="md:col-span-4 space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Duración (Sesiones)</Label>
+                  <Select value={String(stepForm.durationClasses)} onValueChange={(v) => setStepForm(p => ({...p, durationClasses: parseInt(v)}))}>
+                    <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {[1, 2, 3].map(n => (
+                        <SelectItem key={n} value={String(n)} className="font-bold">{n} {n === 1 ? 'Clase' : 'Clases'}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <div className="flex items-center justify-between border-b pb-4">
-                  <h3 className="font-black text-lg text-foreground uppercase tracking-widest flex items-center gap-2">
-                    <LayoutGrid className="w-5 h-5 text-accent" /> Pasos del Esquema
-                  </h3>
-                  <Button size="sm" variant="outline" onClick={addStep} className="rounded-xl border-2 h-10 font-black uppercase text-[10px]">
-                    <Plus className="w-4 h-4 mr-1" /> Añadir Paso
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Objetivo Académico</Label>
+                  <Textarea value={stepForm.objective} onChange={(e) => setStepForm(p => ({...p, objective: e.target.value}))} className="min-h-[100px] rounded-xl border-2 font-medium text-xs" placeholder="¿Qué debe lograr el alumno?" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Conceptos a Enseñar (Soporta listas)</Label>
+                  <Textarea value={stepForm.concepts} onChange={(e) => setStepForm(p => ({...p, concepts: e.target.value}))} className="min-h-[100px] rounded-xl border-2 font-medium text-xs" placeholder="Teoría, técnica, notas..." />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">Actividades Prácticas (Soporta listas)</Label>
+                <Textarea value={stepForm.activities} onChange={(e) => setStepForm(p => ({...p, activities: e.target.value}))} className="min-h-[120px] rounded-xl border-2 font-medium text-xs" placeholder="Ejercicios, dinámicas en clase..." />
+              </div>
+
+              <div className="space-y-4 border-t border-primary/10 pt-6">
+                <div className="flex items-center justify-between">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
+                    <Images className="w-3 h-3 text-accent" /> Galería Visual (URLs)
+                  </Label>
+                  <Button type="button" variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase rounded-lg border-2" onClick={handleAddStepImage}>
+                    <Plus className="w-3 h-3 mr-1" /> Añadir Imagen
                   </Button>
                 </div>
-
-                <div className="space-y-6">
-                  {editPlan.steps?.map((step, idx) => (
-                    <Card key={idx} className="rounded-3xl border-2 border-primary/10 overflow-hidden relative group">
-                      <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg bg-white/80" onClick={() => moveStep(idx, 'up')} disabled={idx === 0}><ChevronUp className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg bg-white/80" onClick={() => moveStep(idx, 'down')} disabled={idx === editPlan.steps!.length - 1}><ChevronDown className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:bg-destructive/10 bg-white/80" onClick={() => removeStep(idx)}><Trash2 className="w-4 h-4" /></Button>
-                      </div>
-                      <CardContent className="p-6 space-y-6 bg-primary/5">
-                        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                          <div className="md:col-span-8 space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Título del Paso #{idx + 1}</Label>
-                            <Input value={step.title} onChange={(e) => updateStep(idx, 'title', e.target.value)} className="h-10 rounded-lg border-2 font-black" placeholder="Ej: Primeros Acordes" />
-                          </div>
-                          <div className="md:col-span-4 space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Duración (Clases)</Label>
-                            <Select value={String(step.durationClasses)} onValueChange={(v) => updateStep(idx, 'durationClasses', parseInt(v))}>
-                              <SelectTrigger className="h-10 rounded-lg border-2 font-bold">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-xl">
-                                <SelectItem value="1" className="font-bold">1 Clase</SelectItem>
-                                <SelectItem value="2" className="font-bold">2 Clases</SelectItem>
-                                <SelectItem value="3" className="font-bold">3 Clases</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Objetivo Académico (Soporta listas)</Label>
-                            <Textarea value={step.objective} onChange={(e) => updateStep(idx, 'objective', e.target.value)} className="min-h-[100px] rounded-lg border-2 font-medium text-xs" placeholder="¿Qué debe lograr el alumno?" />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Conceptos a Enseñar (Soporta listas)</Label>
-                            <Textarea value={step.concepts} onChange={(e) => updateStep(idx, 'concepts', e.target.value)} className="min-h-[100px] rounded-lg border-2 font-medium text-xs" placeholder="Teoría, técnica, notas..." />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-muted-foreground">Actividades Prácticas (Soporta listas)</Label>
-                          <Textarea value={step.activities} onChange={(e) => updateStep(idx, 'activities', e.target.value)} className="min-h-[120px] rounded-lg border-2 font-medium text-xs" placeholder="Ejercicios, dinámicas en clase..." />
-                        </div>
-
-                        {/* Gestión de Imágenes del Paso (Nuevo) */}
-                        <div className="space-y-4 border-t border-primary/10 pt-4">
-                          <div className="flex items-center justify-between">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
-                              <Images className="w-3 h-3 text-accent" /> Imágenes Explicativas del Paso
-                            </Label>
-                            <Button type="button" variant="outline" size="sm" className="h-7 text-[9px] font-black uppercase" onClick={() => handleAddStepImage(idx)}>
-                              <Plus className="w-3 h-3 mr-1" /> Añadir Imagen
-                            </Button>
-                          </div>
-                          <div className="space-y-3">
-                            {step.images?.map((url, imgIdx) => (
-                              <div key={imgIdx} className="flex gap-2">
-                                <Input 
-                                  value={url} 
-                                  onChange={(e) => handleUpdateStepImage(idx, imgIdx, e.target.value)} 
-                                  className="h-9 text-xs rounded-lg border-2 font-bold" 
-                                  placeholder="URL de la imagen..." 
-                                />
-                                <Button variant="ghost" size="icon" onClick={() => handleRemoveStepImage(idx, imgIdx)} className="h-9 w-9 text-destructive">
-                                  <Trash className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Material Interactivo Sugerido</Label>
-                            <Textarea value={step.interactiveMaterial} onChange={(e) => updateStep(idx, 'interactiveMaterial', e.target.value)} className="min-h-[80px] rounded-lg border-2 font-medium text-xs" placeholder="Videos, apps, pistas..." />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase text-muted-foreground">Criterio para Avanzar</Label>
-                            <Textarea value={step.criteria} onChange={(e) => updateStep(idx, 'criteria', e.target.value)} className="min-h-[80px] rounded-lg border-2 font-medium text-xs" placeholder="¿Cómo sabemos que está listo?" />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-[10px] font-black uppercase text-muted-foreground">Recurso Vinculado (Opcional)</Label>
-                          <Select value={String(step.resourceId || 'none')} onValueChange={(v) => updateStep(idx, 'resourceId', v === 'none' ? undefined : parseInt(v))}>
-                            <SelectTrigger className="h-10 rounded-lg border-2 font-bold text-xs">
-                              <SelectValue placeholder="Vincular a biblioteca..." />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                              <SelectItem value="none" className="font-bold italic">Sin recurso vinculado</SelectItem>
-                              {resources.filter(r => r.category === editPlan.instrument || r.category === 'Teoría').map(res => (
-                                <SelectItem key={res.id} value={String(res.id)} className="font-bold">{res.title}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </CardContent>
-                    </Card>
+                <div className="space-y-3">
+                  {stepForm.images?.map((url, idx) => (
+                    <div key={idx} className="flex gap-2 animate-in fade-in slide-in-from-top-1">
+                      <Input 
+                        value={url} 
+                        onChange={(e) => handleUpdateStepImage(idx, e.target.value)} 
+                        className="h-10 text-xs rounded-xl border-2 font-bold" 
+                        placeholder="https://..." 
+                      />
+                      <Button variant="ghost" size="icon" onClick={() => handleRemoveStepImage(idx)} className="h-10 w-10 text-destructive hover:bg-destructive/10 rounded-xl">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   ))}
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Material Interactivo Sugerido</Label>
+                  <Textarea value={stepForm.interactiveMaterial} onChange={(e) => setStepForm(p => ({...p, interactiveMaterial: e.target.value}))} className="min-h-[80px] rounded-xl border-2 font-medium text-xs" placeholder="Videos, apps, pistas..." />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Criterio para Avanzar</Label>
+                  <Textarea value={stepForm.criteria} onChange={(e) => setStepForm(p => ({...p, criteria: e.target.value}))} className="min-h-[80px] rounded-xl border-2 font-medium text-xs" placeholder="¿Cómo sabemos que está listo?" />
+                </div>
+              </div>
+
+              <div className="space-y-2 pb-8">
+                <Label className="text-[10px] font-black uppercase text-muted-foreground">Recurso Vinculado (Biblioteca)</Label>
+                <Select value={String(stepForm.resourceId || 'none')} onValueChange={(v) => setStepForm(p => ({...p, resourceId: v === 'none' ? undefined : parseInt(v)}))}>
+                  <SelectTrigger className="h-12 rounded-xl border-2 font-bold text-xs">
+                    <SelectValue placeholder="Vincular a biblioteca..." />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="none" className="font-bold italic text-muted-foreground">Sin recurso vinculado</SelectItem>
+                    {resources.filter(r => r.category === selectedInstrument || r.category === 'Teoría').map(res => (
+                      <SelectItem key={res.id} value={String(res.id)} className="font-bold">{res.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </ScrollArea>
 
           <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3 shrink-0">
-            <Button variant="outline" onClick={() => setIsEditing(false)} className="rounded-xl flex-1 h-12 font-black text-foreground">Cancelar</Button>
-            <Button onClick={handleSave} className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20">
-              <Save className="w-4 h-4 mr-2" /> Guardar Plan Maestro
+            <Button variant="outline" onClick={() => setIsStepFormOpen(false)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
+            <Button onClick={handleSaveStep} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 gap-2">
+              <Save className="w-5 h-5" /> {stepFormMode === 'add' ? 'Confirmar Nuevo Paso' : 'Guardar Cambios'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Admin: Confirmar Eliminación */}
+      {/* Admin: Confirmar Eliminación Plan */}
       <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
         <DialogContent className="rounded-[2.5rem] max-sm border-none shadow-2xl p-8 bg-card text-center space-y-6">
           <div className="w-20 h-20 bg-destructive/10 rounded-3xl flex items-center justify-center text-destructive mx-auto">
@@ -939,7 +930,7 @@ export default function CurriculumPage() {
           </div>
           <div className="flex gap-3">
             <Button variant="outline" className="flex-1 rounded-xl h-12 font-black" onClick={() => setIsDeleting(false)}>Cancelar</Button>
-            <Button className="flex-1 bg-destructive hover:bg-destructive/90 text-white rounded-xl h-12 font-black shadow-lg shadow-destructive/20" onClick={handleDelete}>Eliminar</Button>
+            <Button className="flex-1 bg-destructive hover:bg-destructive/90 text-white rounded-xl h-12 font-black shadow-lg shadow-destructive/20" onClick={handleDelete}>Eliminar Todo</Button>
           </div>
         </DialogContent>
       </Dialog>
