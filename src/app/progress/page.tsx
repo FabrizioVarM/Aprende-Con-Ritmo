@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -105,6 +105,12 @@ function ProgressContent() {
   const [mDate, setMDate] = useState('');
   const [mAchieved, setMAchieved] = useState(false);
 
+  // Drag-to-scroll logic for Level Path
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
   const isStaff = user?.role === 'teacher' || user?.role === 'admin';
   const isAdmin = user?.role === 'admin';
   
@@ -138,6 +144,48 @@ function ProgressContent() {
       }
     }
   }, [currentStudent, selectedInstrument]);
+
+  // Center the scroll on the current rank after mount or instrument change
+  useEffect(() => {
+    if (isMounted && scrollRef.current && currentStudent) {
+      // Find current rank index to scroll to it
+      const points = instrumentStats[selectedInstrument]?.points || 0;
+      let rankIdx = 0;
+      for (let i = RANKS.length - 1; i >= 0; i--) {
+        if (points >= RANKS[i].min) {
+          rankIdx = i;
+          break;
+        }
+      }
+      
+      // Approximate scroll to rank center (fixed gap-40 = 160px + node width 128px)
+      const scrollPos = rankIdx * 288; 
+      scrollRef.current.scrollTo({ left: scrollPos, behavior: 'smooth' });
+    }
+  }, [isMounted, selectedInstrument, currentStudent]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2; // scroll-fast multiplier
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
 
   const instrumentStats = useMemo(() => {
     if (!currentStudent) return {};
@@ -349,84 +397,101 @@ function ProgressContent() {
           </div>
 
           {/* MAIN PILAR: THE LEVEL PATH (IMMERSIVE EXPERIENCE) */}
-          <section className="relative py-32 px-4 animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
-            {/* The Level Line Base */}
-            <div className="absolute top-1/2 left-0 w-full h-[12px] bg-slate-900 -translate-y-1/2 rounded-full overflow-hidden border border-white/5 shadow-inner">
-              <div 
-                className="h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]"
-                style={{ width: `${Math.min(100, (currentInstData.points / 10000) * 100)}%` }}
-              />
-            </div>
+          <section className="relative py-40 select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
+            <div 
+              ref={scrollRef}
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseLeave}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              className="overflow-x-auto scrollbar-hide flex items-center relative py-20 cursor-grab active:cursor-grabbing"
+            >
+              {/* Added padding to sides to give more room at start/end */}
+              <div className="relative flex items-center gap-40 min-w-max px-[25vw]">
+                {/* The Level Line Base - Inside the scrollable area to move with nodes */}
+                <div className="absolute top-1/2 left-0 w-full h-[12px] bg-slate-900 -translate-y-1/2 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                  <div 
+                    className="h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]"
+                    style={{ width: `${Math.min(100, (currentInstData.points / 10000) * 100)}%` }}
+                  />
+                </div>
 
-            {/* Path Nodes */}
-            <div className="flex justify-between items-center relative z-10 max-w-6xl mx-auto">
-              {RANKS.map((rank, i) => {
-                const isReached = currentInstData.points >= rank.min;
-                const isCurrent = currentInstData.rank.name === rank.name;
-                
-                return (
-                  <div key={i} className="flex flex-col items-center group relative">
-                    {/* Node Visual */}
-                    <div className="relative">
+                {/* Path Nodes */}
+                {RANKS.map((rank, i) => {
+                  const isReached = currentInstData.points >= rank.min;
+                  const isCurrent = currentInstData.rank.name === rank.name;
+                  
+                  return (
+                    <div key={i} className="flex flex-col items-center group relative w-32">
+                      {/* Node Visual */}
+                      <div className="relative">
+                        {isCurrent && (
+                          <>
+                            <div className="absolute inset-0 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
+                            <div className="absolute inset-[-25px] rounded-[3.5rem] border-2 border-accent/20 animate-ping [animation-duration:5s]" />
+                          </>
+                        )}
+                        
+                        <div className={cn(
+                          "w-32 h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl",
+                          isReached 
+                            ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
+                            : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
+                        )}>
+                          <span className="text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">{rank.icon}</span>
+                          <div className="text-[10px] font-black uppercase tracking-tighter opacity-70">SECTOR {i + 1}</div>
+                        </div>
+                      </div>
+
+                      {/* Rank Label (Bottom) */}
+                      <div className={cn(
+                        "absolute -bottom-24 w-40 text-center transition-all duration-700",
+                        isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
+                      )}>
+                        <p className={cn(
+                          "font-black text-sm uppercase tracking-[0.25em] mb-2 drop-shadow-sm",
+                          isCurrent ? "text-accent" : "text-slate-500"
+                        )}>{rank.name}</p>
+                        <div className={cn(
+                          "inline-block px-4 py-1.5 rounded-xl border-2 text-[9px] font-black tracking-widest",
+                          isReached ? "border-white/10 bg-white/5 text-white" : "border-slate-800 text-slate-700"
+                        )}>
+                          {rank.min === 0 ? "INIT" : `${rank.min} PTS`}
+                        </div>
+                      </div>
+
+                      {/* Student Marker (Top) */}
                       {isCurrent && (
-                        <>
-                          <div className="absolute inset-0 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
-                          <div className="absolute inset-[-25px] rounded-[3.5rem] border-2 border-accent/20 animate-ping [animation-duration:5s]" />
-                        </>
+                        <div className="absolute -top-44 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
+                          <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
+                            <Avatar className="w-20 h-20 rounded-[1.8rem] border-2 border-accent/20">
+                              {currentStudent?.photoUrl ? (
+                                <AvatarImage src={getDirectImageUrl(currentStudent.photoUrl)} className="object-cover" />
+                              ) : (
+                                <AvatarImage src={`https://picsum.photos/seed/${currentStudent?.avatarSeed || currentStudent?.id}/150`} />
+                              )}
+                              <AvatarFallback className="bg-slate-800 text-white font-black text-2xl">{currentStudent?.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <div className="absolute inset-0 bg-accent/20 opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
+                          </div>
+                          <div className="mt-4 flex items-center gap-2 bg-slate-950 border-2 border-accent text-accent px-6 py-2.5 rounded-2xl shadow-2xl font-black text-sm tabular-nums tracking-wider whitespace-nowrap">
+                            <Flame className="w-4 h-4 animate-bounce" />
+                            {currentInstData.points} EXP
+                          </div>
+                          <div className="w-1 h-12 bg-gradient-to-b from-accent to-transparent mt-1 rounded-full shadow-[0_0_10px_#FF8B7A]" />
+                        </div>
                       )}
-                      
-                      <div className={cn(
-                        "w-16 h-16 md:w-32 md:h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl",
-                        isReached 
-                          ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
-                          : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
-                      )}>
-                        <span className="text-3xl md:text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">{rank.icon}</span>
-                        <div className="text-[7px] md:text-[10px] font-black uppercase tracking-tighter opacity-70">SECTOR {i + 1}</div>
-                      </div>
                     </div>
-
-                    {/* Rank Label (Bottom) */}
-                    <div className={cn(
-                      "absolute -bottom-24 w-40 text-center transition-all duration-700",
-                      isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
-                    )}>
-                      <p className={cn(
-                        "font-black text-[10px] md:text-sm uppercase tracking-[0.25em] mb-2 drop-shadow-sm",
-                        isCurrent ? "text-accent" : "text-slate-500"
-                      )}>{rank.name}</p>
-                      <div className={cn(
-                        "inline-block px-4 py-1.5 rounded-xl border-2 text-[9px] font-black tracking-widest",
-                        isReached ? "border-white/10 bg-white/5 text-white" : "border-slate-800 text-slate-700"
-                      )}>
-                        {rank.min === 0 ? "INIT" : `${rank.min} PTS`}
-                      </div>
-                    </div>
-
-                    {/* Student Marker (Top) */}
-                    {isCurrent && (
-                      <div className="absolute -top-44 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
-                        <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
-                          <Avatar className="w-20 h-20 rounded-[1.8rem] border-2 border-accent/20">
-                            {currentStudent?.photoUrl ? (
-                              <AvatarImage src={getDirectImageUrl(currentStudent.photoUrl)} className="object-cover" />
-                            ) : (
-                              <AvatarImage src={`https://picsum.photos/seed/${currentStudent?.avatarSeed || currentStudent?.id}/150`} />
-                            )}
-                            <AvatarFallback className="bg-slate-800 text-white font-black text-2xl">{currentStudent?.name?.[0]}</AvatarFallback>
-                          </Avatar>
-                          <div className="absolute inset-0 bg-accent/20 opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
-                        </div>
-                        <div className="mt-4 flex items-center gap-2 bg-slate-950 border-2 border-accent text-accent px-6 py-2.5 rounded-2xl shadow-2xl font-black text-sm tabular-nums tracking-wider">
-                          <Flame className="w-4 h-4 animate-bounce" />
-                          {currentInstData.points} EXP
-                        </div>
-                        <div className="w-1 h-12 bg-gradient-to-b from-accent to-transparent mt-1 rounded-full shadow-[0_0_10px_#FF8B7A]" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Scroll Indicator Hint */}
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 text-slate-600 animate-pulse pointer-events-none">
+              <ChevronRight className="w-4 h-4 rotate-180" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em]">Arrastra para explorar el mapa</span>
+              <ChevronRight className="w-4 h-4" />
             </div>
           </section>
 
