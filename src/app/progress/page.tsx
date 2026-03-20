@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
@@ -543,8 +544,8 @@ function ProgressContent() {
               </div>
             </div>
             
-            {/* Scroll Indicator Hint (Positioned clearly below the map and its labels) */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 text-slate-600 animate-pulse pointer-events-none bg-slate-900/40 px-6 py-2 rounded-full border border-white/5 backdrop-blur-sm">
+            {/* Scroll Indicator Hint (Repositioned to be truly below the scrollbar) */}
+            <div className="mt-8 flex items-center justify-center gap-3 text-slate-600 animate-pulse pointer-events-none">
               <ChevronRight className="w-4 h-4 rotate-180" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em]">Arrastra para explorar el mapa</span>
               <ChevronRight className="w-4 h-4" />
