@@ -607,7 +607,8 @@ export default function SettingsPage() {
                     <Textarea value={termsContent} onChange={(e) => setTermsContent(e.target.value)} className="min-h-[300px] rounded-2xl border-2 font-bold p-6 focus:border-accent text-foreground bg-card text-sm leading-relaxed" />
                   </div>
                 </CardContent>
-              </>
+              </Card>
+            </>
           )}
         </div>
 
