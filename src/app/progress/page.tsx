@@ -500,30 +500,28 @@ function ProgressContent() {
                     const isCurrent = currentInstData.rank.name === rank.name;
                     
                     return (
-                      <div key={i} className="flex flex-col items-center group relative w-0">
+                      <div key={i} className="relative flex items-center justify-center w-0 h-0 group">
                         {/* Anchor point for visual centering */}
-                        <div className="relative flex items-center justify-center w-0 h-0">
-                          {isCurrent && (
-                            <>
-                              <div className="absolute w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
-                              <div className="absolute w-32 h-32 sm:w-40 sm:h-40 rounded-[3.5rem] border-2 border-accent/20 animate-ping [animation-duration:5s]" />
-                            </>
-                          )}
-                          
-                          <div className={cn(
-                            "w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl shrink-0",
-                            isReached 
-                              ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
-                              : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
-                          )}>
-                            <span className="text-4xl sm:text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">{rank.icon}</span>
-                            <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-tighter opacity-70">SECTOR {i + 1}</div>
-                          </div>
+                        {isCurrent && (
+                          <>
+                            <div className="absolute w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
+                            <div className="absolute w-32 h-32 sm:w-40 sm:h-40 rounded-[3.5rem] border-2 border-accent/20 animate-ping [animation-duration:5s]" />
+                          </>
+                        )}
+                        
+                        <div className={cn(
+                          "w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl shrink-0",
+                          isReached 
+                            ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
+                            : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
+                        )}>
+                          <span className="text-4xl sm:text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">{rank.icon}</span>
+                          <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-tighter opacity-70">SECTOR {i + 1}</div>
                         </div>
 
-                        {/* Rank Label (Bottom) - Repositioned closer */}
+                        {/* Rank Label (Bottom) */}
                         <div className={cn(
-                          "absolute top-20 sm:top-24 w-64 text-center transition-all duration-700 flex flex-col items-center -translate-x-1/2 px-4",
+                          "absolute top-28 sm:top-36 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
                         )}>
                           <p className={cn(
@@ -533,7 +531,7 @@ function ProgressContent() {
                           
                           {rank.min > 0 && (
                             <div className={cn(
-                              "inline-block px-4 py-1.5 rounded-xl border-2 text-[9px] sm:text-[10px] font-black tracking-widest transition-all shadow-sm",
+                              "inline-block px-5 py-2 rounded-xl border-2 text-[9px] sm:text-[10px] font-black tracking-widest transition-all shadow-sm",
                               isReached 
                                 ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" 
                                 : "border-slate-800 bg-slate-900/50 text-slate-500"
