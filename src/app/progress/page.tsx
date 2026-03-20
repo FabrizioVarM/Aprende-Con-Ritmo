@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
@@ -447,7 +448,7 @@ function ProgressContent() {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative py-20 cursor-grab active:cursor-grabbing"
+              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative py-64 cursor-grab active:cursor-grabbing"
             >
               <div className="relative flex items-center gap-40 min-w-[150%] px-[25vw]">
                 {/* The Level Line Base */}
