@@ -95,7 +95,7 @@ const calculateDuration = (timeStr: string): number => {
 
 const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
 
-// Componente para animar los números de porcentaje
+// Componente para animar los números de porcentaje con 2 dígitos
 const AnimatedNumber = ({ value }: { value: number }) => {
   const [current, setCurrent] = useState(0);
 
@@ -119,6 +119,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
     return () => cancelAnimationFrame(frame);
   }, [value]);
 
+  // Mostrar 2 dígitos siempre (ej: 05%) a menos que sea 100%
   const displayValue = current === 100 ? "100" : current.toString().padStart(2, '0');
   return <>{displayValue}%</>;
 };
@@ -276,6 +277,7 @@ function ProgressContent() {
     return totalProgress * 100;
   }, [currentInstData.points]);
 
+  // Centrado automático de la vista cada vez que cambian los puntos o el instrumento
   useEffect(() => {
     if (isMounted && scrollRef.current && pathProgress !== undefined) {
       const timer = setTimeout(() => {
@@ -283,7 +285,7 @@ function ProgressContent() {
         const container = scrollRef.current;
         const contentWidth = container.scrollWidth;
         const viewportWidth = container.clientWidth;
-        const padding = viewportWidth * 0.25;
+        const padding = viewportWidth * 0.25; 
         const pathWidth = contentWidth - (padding * 2);
         const markerX = padding + (pathWidth * (pathProgress / 100));
         const targetScroll = markerX - (viewportWidth / 2);
@@ -403,7 +405,7 @@ function ProgressContent() {
                             <div className="space-y-2.5">
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
-                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Materiales (+150):</span> Validar recursos en biblioteca.</p>
+                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Materiales (+150):</span> Al completar recursos de biblioteca.</p>
                               </div>
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
@@ -411,7 +413,7 @@ function ProgressContent() {
                               </div>
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
-                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Habilidades (+10):</span> Por cada % en biometría técnica.</p>
+                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Habilidades (+10):</span> Por cada % de avance técnico.</p>
                               </div>
                             </div>
                           </div>
@@ -426,7 +428,7 @@ function ProgressContent() {
                             </div>
                           </div>
                         </div>
-                        <p className="text-[8px] font-black uppercase text-slate-500 text-center pt-2 border-t border-white/5">Los puntos se sincronizan en tiempo real.</p>
+                        <p className="text-[8px] font-black uppercase text-slate-500 text-center pt-2 border-t border-white/5">Sincronización en tiempo real.</p>
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -465,16 +467,16 @@ function ProgressContent() {
                   <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
                     <LayoutGrid className="w-3.5 h-3.5 text-blue-400 ml-3" />
                     <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                      <SelectTrigger className="w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
+                      <SelectTrigger className="w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none [&>span]:w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white min-w-[240px] p-1">
                         {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => {
                           const pts = instrumentStats[inst]?.points || 0;
                           return (
-                            <SelectItem key={inst} value={inst} className="font-bold text-[10px] py-3 uppercase tracking-widest rounded-xl cursor-pointer">
+                            <SelectItem key={inst} value={inst} className="font-bold text-[10px] py-3 uppercase tracking-widest rounded-xl cursor-pointer [&>span]:w-full">
                               <div className="flex items-center justify-between w-full pr-2">
-                                <span className="flex-1 truncate">{inst}</span>
+                                <span className="flex-1 truncate text-left">{inst}</span>
                                 <Badge variant="secondary" className="bg-accent/20 text-accent border-none text-[8px] px-2 h-5 font-black shrink-0 ml-4 tabular-nums">
                                   {pts.toLocaleString()} XP
                                 </Badge>
@@ -591,7 +593,7 @@ function ProgressContent() {
                         </div>
 
                         <div className={cn(
-                          "absolute top-20 sm:top-24 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
+                          "absolute top-24 sm:top-28 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
                         )}>
                           <p className={cn(
