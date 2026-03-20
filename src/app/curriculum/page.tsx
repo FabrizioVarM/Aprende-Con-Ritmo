@@ -453,7 +453,7 @@ export default function CurriculumPage() {
                       key={i} 
                       className={cn(
                         "flex flex-col items-center text-center space-y-6 transition-all duration-500 cursor-pointer group",
-                        isCompleted && "opacity-40 scale-90 hover:opacity-100",
+                        isCompleted && "opacity-80 scale-95 hover:opacity-100",
                         isFuture && "opacity-60 grayscale-[0.5] hover:grayscale-0 hover:opacity-100"
                       )}
                       onClick={() => {
@@ -474,7 +474,7 @@ export default function CurriculumPage() {
                           isCurrent 
                             ? "bg-accent text-white ring-8 ring-accent/20 scale-110" 
                             : isCompleted 
-                              ? "bg-emerald-50 text-white" 
+                              ? "bg-emerald-500 text-white" 
                               : "bg-white dark:bg-slate-800 text-muted-foreground border-4 border-primary/10"
                         )}>
                           {isCompleted ? <CheckCircle2 className="w-10 h-10" /> : step.originalIndex + 1}
