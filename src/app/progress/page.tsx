@@ -215,7 +215,6 @@ function ProgressContent() {
 
   /**
    * Calculates the precise visual progress percentage (0-100) across all ranks.
-   * Ensures the student marker and the line fill sync perfectly.
    */
   const pathProgress = useMemo(() => {
     const points = currentInstData.points;
@@ -432,7 +431,7 @@ function ProgressContent() {
               </div>
             </div>
 
-            {/* Right: Technical Evolution (Minimalist HUD overlay) */}
+            {/* Right: Technical Evolution */}
             <div className="lg:col-span-5 flex justify-end">
               <div className="w-full max-w-sm space-y-6 bg-slate-900/30 border border-white/5 backdrop-blur-3xl rounded-[3rem] p-8 shadow-2xl relative group hover:border-white/10 transition-colors">
                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
@@ -480,7 +479,7 @@ function ProgressContent() {
             </div>
           </div>
 
-          {/* MAIN PILAR: THE LEVEL PATH (IMMERSIVE EXPERIENCE) */}
+          {/* MAIN PILAR: THE LEVEL PATH */}
           <section className="relative select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
             <div 
               ref={scrollRef}
@@ -491,7 +490,7 @@ function ProgressContent() {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative pt-64 pb-40 cursor-grab active:cursor-grabbing"
+              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative pt-48 pb-32 cursor-grab active:cursor-grabbing h-[500px]"
             >
               <div className="relative flex items-center min-w-[300%] px-[25vw] h-12">
                 {/* The Level Line Base */}
@@ -502,7 +501,7 @@ function ProgressContent() {
                   />
                 </div>
 
-                {/* Rank Nodes (Fixed positions) */}
+                {/* Rank Nodes */}
                 <div className="absolute left-[25vw] right-[25vw] top-1/2 -translate-y-1/2 flex justify-between items-center">
                   {RANKS.map((rank, i) => {
                     const isReached = currentInstData.points >= rank.min;
@@ -510,17 +509,17 @@ function ProgressContent() {
                     
                     return (
                       <div key={i} className="flex flex-col items-center group relative w-0">
-                        {/* Node Visual */}
-                        <div className="relative">
+                        {/* Anchor point for visual centering */}
+                        <div className="relative flex items-center justify-center w-0 h-0">
                           {isCurrent && (
                             <>
-                              <div className="absolute inset-0 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
-                              <div className="absolute inset-[-25px] rounded-[3.5rem] border-2 border-accent/20 animate-ping [animation-duration:5s]" />
+                              <div className="absolute w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
+                              <div className="absolute w-32 h-32 sm:w-40 sm:h-40 rounded-[3.5rem] border-2 border-accent/20 animate-ping [animation-duration:5s]" />
                             </>
                           )}
                           
                           <div className={cn(
-                            "w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl -translate-x-1/2",
+                            "w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl shrink-0",
                             isReached 
                               ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
                               : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
@@ -532,7 +531,7 @@ function ProgressContent() {
 
                         {/* Rank Label (Bottom) */}
                         <div className={cn(
-                          "absolute -bottom-32 w-48 text-center transition-all duration-700 flex flex-col items-center -translate-x-1/2",
+                          "absolute -bottom-24 w-48 text-center transition-all duration-700 flex flex-col items-center -translate-x-1/2",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
                         )}>
                           <p className={cn(
@@ -556,7 +555,7 @@ function ProgressContent() {
                   })}
                 </div>
 
-                {/* DYNAMIC STUDENT MARKER (Floating based on precise EXP) */}
+                {/* DYNAMIC STUDENT MARKER */}
                 <div 
                   className="absolute top-1/2 left-[25vw] right-[25vw] pointer-events-none z-20"
                   style={{ transform: 'translateY(-50%)' }}
@@ -565,7 +564,7 @@ function ProgressContent() {
                     className="absolute transition-all duration-1000 ease-out flex flex-col items-center"
                     style={{ left: `${pathProgress}%`, transform: 'translateX(-50%)' }}
                   >
-                    <div className="relative -top-44 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
+                    <div className="relative -top-40 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
                       <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
                         <Avatar className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.8rem] border-2 border-accent/20">
                           {currentStudent?.photoUrl ? (
@@ -589,14 +588,14 @@ function ProgressContent() {
             </div>
             
             {/* Scroll Indicator Hint */}
-            <div className="mt-8 flex items-center justify-center gap-3 text-slate-600 animate-pulse pointer-events-none">
+            <div className="mt-4 flex items-center justify-center gap-3 text-slate-600 animate-pulse pointer-events-none relative z-30">
               <ChevronRight className="w-4 h-4 rotate-180" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em]">Arrastra para explorar el mapa</span>
               <ChevronRight className="w-4 h-4" />
             </div>
           </section>
 
-          {/* Trayectoria Tray (Bottom Inmersive Section) */}
+          {/* Trayectoria Tray */}
           <section className="space-y-12 pt-12 animate-in fade-in slide-in-from-bottom-4 duration-700 [animation-delay:800ms]">
             <div className="flex items-center justify-between border-b border-white/5 pb-8">
               <div className="flex items-center gap-6">
