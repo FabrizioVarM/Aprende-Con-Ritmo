@@ -482,7 +482,7 @@ function ProgressContent() {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative pt-48 pb-32 cursor-grab active:cursor-grabbing h-[500px]"
+              className="overflow-x-auto overflow-y-hidden immersive-scrollbar flex items-center relative pt-48 pb-32 cursor-grab active:cursor-grabbing h-[500px]"
             >
               <div className="relative flex items-center min-w-[300%] px-[25vw] h-12">
                 {/* The Level Line Base */}
