@@ -88,6 +88,37 @@ const calculateDuration = (timeStr: string): number => {
 
 const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
 
+// Componente para animar los números de porcentaje
+const AnimatedNumber = ({ value }: { value: number }) => {
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    let frame: number;
+    const startTime = performance.now();
+    const duration = 1500; // 1.5 segundos de animación
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Función de aceleración: easeOutExpo para un conteo más natural al final
+      const easedProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      
+      const nextValue = Math.floor(easedProgress * value);
+      setCurrent(nextValue);
+
+      if (progress < 1) {
+        frame = requestAnimationFrame(animate);
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [value]);
+
+  return <>{current.toString().padStart(3, '0')}%</>;
+};
+
 function ProgressContent() {
   const { user, allUsers } = useAuth();
   const { completions } = useCompletionStore();
@@ -213,6 +244,7 @@ function ProgressContent() {
     return instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: RANKS[0], nextRank: RANKS[1] };
   }, [instrumentStats, selectedInstrument]);
 
+  // Cálculo de posición precisa del marcador del alumno en la línea
   const pathProgress = useMemo(() => {
     const points = currentInstData.points;
     const totalNodes = RANKS.length;
@@ -441,7 +473,9 @@ function ProgressContent() {
                     <div key={i} className="space-y-2">
                       <div className="flex justify-between items-center px-1">
                         <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{skill.name}</span>
-                        <span className="text-accent text-[10px] font-mono font-bold tracking-tighter">{skill.level.toString().padStart(3, '0')}%</span>
+                        <span className="text-accent text-[10px] font-mono font-bold tracking-tighter">
+                          <AnimatedNumber value={skill.level} />
+                        </span>
                       </div>
                       {isStaff ? (
                         <div className="flex items-center gap-3 group/slider">
@@ -658,6 +692,11 @@ function ProgressContent() {
             </div>
           </section>
         </div>
+      </div>
+
+      {/* Versión de la Aplicación */}
+      <div className="absolute bottom-4 right-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pointer-events-none select-none">
+        v2.1.20
       </div>
 
       <Dialog open={isMDialogOpen} onOpenChange={setIsMDialogOpen}>
