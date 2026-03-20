@@ -94,6 +94,7 @@ export default function CurriculumPage() {
   const [isMeshOpen, setIsMeshOpen] = useState(false);
   const [viewingStep, setViewingStep] = useState<(CurriculumStep & { originalIndex: number }) | null>(null);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  const [itemsToShow, setItemsToShow] = useState(4);
   
   const [isHeroEditing, setIsHeroEditing] = useState(false);
   const [tempHero, setTempHero] = useState({
@@ -124,6 +125,15 @@ export default function CurriculumPage() {
   });
 
   useEffect(() => {
+    const handleResize = () => {
+      setItemsToShow(window.innerWidth >= 768 ? 4 : 1);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 300) {
         setShowScrollArrow(false);
@@ -145,19 +155,6 @@ export default function CurriculumPage() {
   [curriculums, selectedInstrument]);
 
   const teacherImg = settings.curriculumHeroImageUrl || PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl || "https://picsum.photos/seed/teacher/600/400";
-
-  const visibleSteps = useMemo(() => {
-    if (!currentPlan) return [];
-    let start = Math.max(0, currentStepIdx - 1);
-    let end = Math.min(currentPlan.steps.length, start + 4);
-    if (end - start < 4 && start > 0) {
-      start = Math.max(0, end - 4);
-    }
-    return currentPlan.steps.slice(start, end).map((step, i) => ({
-      ...step,
-      originalIndex: start + i
-    }));
-  }, [currentPlan, currentStepIdx]);
 
   const openAddStep = () => {
     setStepFormMode('add');
@@ -202,7 +199,6 @@ export default function CurriculumPage() {
     setIsSavingStep(true);
 
     if (!currentPlan) {
-      // Create first plan if none exists
       const newPlan: CurriculumPlan = {
         id: selectedInstrument.toLowerCase(),
         instrument: selectedInstrument,
@@ -230,7 +226,6 @@ export default function CurriculumPage() {
     setIsStepFormOpen(false);
     setViewingStep(null);
     
-    // Reset loader after a small delay to prevent rapid double-clicks if modal closing flickers
     setTimeout(() => setIsSavingStep(false), 500);
   };
 
@@ -278,10 +273,12 @@ export default function CurriculumPage() {
     return <AppLayout><div className="p-20 text-center">No tienes permiso para ver esta sección.</div></AppLayout>;
   }
 
+  // Calculate sliding offset
+  const offset = currentPlan ? Math.max(0, Math.min(currentPlan.steps.length - itemsToShow, currentStepIdx - Math.floor(itemsToShow / 2))) : 0;
+
   return (
     <AppLayout>
       <div className="space-y-12 relative">
-        {/* Flecha Flotante de Desplazamiento */}
         {showScrollArrow && (
           <Button 
             onClick={scrollToTimeline}
@@ -292,7 +289,6 @@ export default function CurriculumPage() {
           </Button>
         )}
 
-        {/* Presentación de la Sección */}
         <section className="relative overflow-hidden rounded-[3rem] bg-gradient-to-br from-accent to-accent/80 p-8 md:p-12 text-white shadow-2xl shadow-accent/20 group">
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
           
@@ -355,7 +351,6 @@ export default function CurriculumPage() {
           </div>
         </section>
 
-        {/* Selección de Instrumento y Mallas */}
         <div className="space-y-8 px-4">
           <div className="space-y-6">
             <h2 className="text-2xl font-black text-foreground flex items-center gap-2">
@@ -374,7 +369,7 @@ export default function CurriculumPage() {
                       className={cn(
                         "rounded-[1.5rem] h-20 font-black border-2 transition-all flex flex-col items-center justify-center p-2 gap-1",
                         isSelected 
-                          ? "bg-accent border-accent text-white shadow-xl scale-105 z-10" 
+                          ? "bg-accent border-accent text-white shadow-xl scale-105" 
                           : "bg-card border-primary/10 hover:border-accent/40 text-muted-foreground shadow-sm"
                       )}
                       onClick={() => {
@@ -410,8 +405,7 @@ export default function CurriculumPage() {
           </div>
         </div>
 
-        {/* Línea de Tiempo Interactiva */}
-        <section ref={timelineRef} className="space-y-8 px-2">
+        <section ref={timelineRef} className="space-y-8 px-2 overflow-hidden">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-2 h-8 bg-accent rounded-full" />
@@ -434,31 +428,38 @@ export default function CurriculumPage() {
           {loading ? (
             <div className="py-20 text-center"><div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto" /></div>
           ) : currentPlan && currentPlan.steps.length > 0 ? (
-            <div className="relative pt-10 pb-20">
-              {/* Línea conectora de fondo */}
-              <div className="absolute top-1/2 left-0 w-full h-1 bg-muted -translate-y-1/2 z-0 rounded-full" />
+            <div className="relative pt-10 pb-20 overflow-hidden">
+              {/* Sliding Container */}
               <div 
-                className="absolute top-1/2 left-0 h-1 bg-accent -translate-y-1/2 z-0 rounded-full transition-all duration-700" 
-                style={{ width: `${(currentStepIdx / (currentPlan.steps.length - 1)) * 100}%` }}
-              />
+                className="flex transition-transform duration-700 ease-in-out px-4 relative"
+                style={{ 
+                  transform: `translateX(-${offset * (100 / itemsToShow)}%)` 
+                }}
+              >
+                {/* Linea conectora de fondo (Moved inside sliding container to stay synced) */}
+                <div className="absolute top-[40px] left-0 w-full h-1 bg-muted -translate-y-1/2 z-0 rounded-full opacity-30" />
+                <div 
+                  className="absolute top-[40px] left-0 h-1 bg-accent -translate-y-1/2 z-0 rounded-full transition-all duration-700 opacity-50" 
+                  style={{ width: `${(currentStepIdx / (currentPlan.steps.length - 1)) * 100}%` }}
+                />
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
-                {visibleSteps.map((step, i) => {
-                  const isCompleted = step.originalIndex < currentStepIdx;
-                  const isCurrent = step.originalIndex === currentStepIdx;
-                  const isFuture = step.originalIndex > currentStepIdx;
+                {currentPlan.steps.map((step, i) => {
+                  const isCompleted = i < currentStepIdx;
+                  const isCurrent = i === currentStepIdx;
+                  const isFuture = i > currentStepIdx;
 
                   return (
                     <div 
                       key={i} 
                       className={cn(
-                        "flex flex-col items-center text-center space-y-6 transition-all duration-500 cursor-pointer group",
+                        "flex flex-col items-center text-center space-y-6 transition-all duration-500 cursor-pointer group shrink-0",
+                        itemsToShow === 1 ? "w-full" : "w-1/4",
                         isCompleted && "opacity-80 scale-95 hover:opacity-100",
                         isFuture && "opacity-60 grayscale-[0.5] hover:grayscale-0 hover:opacity-100"
                       )}
                       onClick={() => {
-                        setViewingStep({ ...step, originalIndex: step.originalIndex });
-                        setCurrentStepIdx(step.originalIndex);
+                        setViewingStep({ ...step, originalIndex: i });
+                        setCurrentStepIdx(i);
                       }}
                     >
                       {/* Indicador Numérico con efecto de ondas */}
@@ -477,13 +478,13 @@ export default function CurriculumPage() {
                               ? "bg-emerald-500 text-white" 
                               : "bg-white dark:bg-slate-800 text-muted-foreground border-4 border-primary/10"
                         )}>
-                          {isCompleted ? <CheckCircle2 className="w-10 h-10" /> : step.originalIndex + 1}
+                          {isCompleted ? <CheckCircle2 className="w-10 h-10" /> : i + 1}
                         </div>
                       </div>
                       
-                      <div className="space-y-2">
+                      <div className="space-y-2 px-2">
                         <h3 className={cn(
-                          "font-black text-lg leading-tight",
+                          "font-black text-lg leading-tight line-clamp-2",
                           isCurrent ? "text-accent" : "text-foreground"
                         )}>
                           {step.title}
