@@ -528,7 +528,6 @@ function ProgressContent() {
                         </span>
                         <span className="text-[6px] font-black text-emerald-500/50 uppercase tracking-[0.2em]">Stream Online</span>
                       </div>
-                      <span className="text-[8px] font-mono text-slate-600 tracking-tighter leading-none">LVL_MAP_V2.1.20</span>
                     </div>
                   </div>
                 </div>
