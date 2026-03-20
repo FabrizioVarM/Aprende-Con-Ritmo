@@ -105,7 +105,7 @@ function ProgressContent() {
   const [mDate, setMDate] = useState('');
   const [mAchieved, setMAchieved] = useState(false);
 
-  // Drag-to-scroll logic for Level Path
+  // Drag-to-scroll logic
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -145,7 +145,9 @@ function ProgressContent() {
     }
   }, [currentStudent, selectedInstrument]);
 
-  // Center the scroll on the current rank after mount or instrument change
+  // Centering logic on initial load or instrument change
+  const hasScrolledRef = useRef(false);
+
   useEffect(() => {
     if (isMounted && scrollRef.current && currentStudent) {
       // Find current rank index to scroll to it
@@ -158,12 +160,31 @@ function ProgressContent() {
         }
       }
       
-      // Approximate scroll to rank center (fixed gap-40 = 160px + node width 128px)
-      const scrollPos = rankIdx * 288; 
-      scrollRef.current.scrollTo({ left: scrollPos, behavior: 'smooth' });
+      const timer = setTimeout(() => {
+        if (!scrollRef.current) return;
+        const container = scrollRef.current;
+        const contentWidth = container.scrollWidth;
+        const viewportWidth = container.clientWidth;
+        
+        // Approximate calculation based on node positioning
+        const nodeX = (rankIdx / (RANKS.length - 1)) * (contentWidth - viewportWidth) + (viewportWidth / 2);
+        const centerOffset = nodeX - (viewportWidth / 2);
+        
+        container.scrollTo({
+          left: Math.max(0, centerOffset),
+          behavior: 'smooth'
+        });
+        hasScrolledRef.current = true;
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, [isMounted, selectedInstrument, currentStudent]);
 
+  useEffect(() => {
+    hasScrolledRef.current = false;
+  }, [selectedInstrument, selectedStudentId]);
+
+  // Mouse drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
     setIsDragging(true);
@@ -183,8 +204,27 @@ function ProgressContent() {
     if (!isDragging || !scrollRef.current) return;
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2; // scroll-fast multiplier
+    const walk = (x - startX) * 2;
     scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  // Touch drag handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
   };
 
   const instrumentStats = useMemo(() => {
@@ -397,18 +437,20 @@ function ProgressContent() {
           </div>
 
           {/* MAIN PILAR: THE LEVEL PATH (IMMERSIVE EXPERIENCE) */}
-          <section className="relative py-40 select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
+          <section className="relative pt-64 pb-40 select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
             <div 
               ref={scrollRef}
               onMouseDown={handleMouseDown}
               onMouseLeave={handleMouseLeave}
               onMouseUp={handleMouseUp}
               onMouseMove={handleMouseMove}
-              className="overflow-x-auto scrollbar-hide flex items-center relative py-20 cursor-grab active:cursor-grabbing"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative py-20 cursor-grab active:cursor-grabbing"
             >
-              {/* Added padding to sides to give more room at start/end */}
-              <div className="relative flex items-center gap-40 min-w-max px-[25vw]">
-                {/* The Level Line Base - Inside the scrollable area to move with nodes */}
+              <div className="relative flex items-center gap-40 min-w-[150%] px-[25vw]">
+                {/* The Level Line Base */}
                 <div className="absolute top-1/2 left-0 w-full h-[12px] bg-slate-900 -translate-y-1/2 rounded-full overflow-hidden border border-white/5 shadow-inner">
                   <div 
                     className="h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]"
@@ -422,7 +464,7 @@ function ProgressContent() {
                   const isCurrent = currentInstData.rank.name === rank.name;
                   
                   return (
-                    <div key={i} className="flex flex-col items-center group relative w-32">
+                    <div key={i} className="flex flex-col items-center group relative w-32 shrink-0">
                       {/* Node Visual */}
                       <div className="relative">
                         {isCurrent && (
@@ -472,7 +514,7 @@ function ProgressContent() {
                               )}
                               <AvatarFallback className="bg-slate-800 text-white font-black text-2xl">{currentStudent?.name?.[0]}</AvatarFallback>
                             </Avatar>
-                            <div className="absolute inset-0 bg-accent/20 opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
+                            <div className="absolute inset-0 bg-accent/20 opacity-0 group/avatar:hover:opacity-100 transition-opacity" />
                           </div>
                           <div className="mt-4 flex items-center gap-2 bg-slate-950 border-2 border-accent text-accent px-6 py-2.5 rounded-2xl shadow-2xl font-black text-sm tabular-nums tracking-wider whitespace-nowrap">
                             <Flame className="w-4 h-4 animate-bounce" />
