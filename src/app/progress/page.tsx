@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
@@ -122,7 +121,10 @@ const AnimatedNumber = ({ value }: { value: number }) => {
     return () => cancelAnimationFrame(frame);
   }, [value]);
 
-  return <>{current.toString().padStart(2, '0')}%</>;
+  // Formatear a dos dígitos, a menos que sea 100
+  const displayValue = current === 100 ? "100" : current.toString().padStart(2, '0');
+
+  return <>{displayValue}%</>;
 };
 
 function ProgressContent() {
@@ -486,10 +488,20 @@ function ProgressContent() {
                       <SelectTrigger className="w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white">
-                        {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => (
-                          <SelectItem key={inst} value={inst} className="font-bold text-xs">{inst}</SelectItem>
-                        ))}
+                      <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white min-w-[200px]">
+                        {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => {
+                          const pts = instrumentStats[inst]?.points || 0;
+                          return (
+                            <SelectItem key={inst} value={inst} className="font-bold text-xs py-3">
+                              <div className="flex items-center justify-between gap-4 w-full">
+                                <span>{inst}</span>
+                                <Badge variant="secondary" className="bg-accent/20 text-accent border-none text-[8px] px-1.5 h-4 font-black">
+                                  {pts.toLocaleString()} XP
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
@@ -565,7 +577,7 @@ function ProgressContent() {
               onMouseMove={handleMouseMove}
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
+              onTouchEnd={handleMouseUp}
               className="overflow-x-auto overflow-y-hidden immersive-scrollbar flex items-center relative pt-48 pb-32 cursor-grab active:cursor-grabbing h-[500px]"
             >
               <div className="relative flex items-center min-w-[300%] px-[25vw] h-12">
@@ -664,7 +676,7 @@ function ProgressContent() {
             {/* Scroll Indicator Hint - Positioned below the map */}
             <div className="mt-4 flex items-center justify-center gap-3 text-slate-600 animate-pulse pointer-events-none relative z-30">
               <ChevronRight className="w-4 h-4 rotate-180" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em]">Arrastra para explorar el mapa</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">Arrastra para explorar el mapa</span>
               <ChevronRight className="w-4 h-4" />
             </div>
           </section>
