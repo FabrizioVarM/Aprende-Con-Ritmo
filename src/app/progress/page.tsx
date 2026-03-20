@@ -531,17 +531,17 @@ function ProgressContent() {
 
                         {/* Rank Label (Bottom) */}
                         <div className={cn(
-                          "absolute -bottom-24 w-48 text-center transition-all duration-700 flex flex-col items-center -translate-x-1/2",
+                          "absolute -bottom-28 w-64 text-center transition-all duration-700 flex flex-col items-center -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
                         )}>
                           <p className={cn(
-                            "font-black text-xs sm:text-sm uppercase tracking-[0.25em] mb-2 sm:mb-3 drop-shadow-sm",
+                            "font-black text-xs sm:text-sm uppercase tracking-[0.2em] mb-3 drop-shadow-md leading-tight",
                             isCurrent ? "text-accent" : "text-slate-500"
                           )}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
                           
                           {rank.min > 0 && (
                             <div className={cn(
-                              "inline-block px-4 py-1.5 sm:px-5 sm:py-2 rounded-xl border-2 text-[10px] sm:text-xs font-black tracking-widest transition-all",
+                              "inline-block px-5 py-2 rounded-xl border-2 text-[10px] sm:text-xs font-black tracking-widest transition-all shadow-sm",
                               isReached 
                                 ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" 
                                 : "border-slate-800 bg-slate-900/50 text-slate-400"
