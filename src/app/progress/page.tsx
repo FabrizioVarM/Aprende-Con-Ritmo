@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
@@ -55,7 +56,8 @@ import {
   Activity, 
   Cpu,
   Sparkles,
-  HelpCircle
+  HelpCircle,
+  Shapes
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -100,18 +102,14 @@ const AnimatedNumber = ({ value }: { value: number }) => {
   useEffect(() => {
     let frame: number;
     const startTime = performance.now();
-    const duration = 1500; // 1.5 segundos de animación
+    const duration = 1500;
 
     const animate = (now: number) => {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
-      // Función de aceleración: easeOutExpo para un conteo más natural al final
       const easedProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      
       const nextValue = Math.floor(easedProgress * value);
       setCurrent(nextValue);
-
       if (progress < 1) {
         frame = requestAnimationFrame(animate);
       }
@@ -121,9 +119,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
     return () => cancelAnimationFrame(frame);
   }, [value]);
 
-  // Formatear a dos dígitos, a menos que sea 100
   const displayValue = current === 100 ? "100" : current.toString().padStart(2, '0');
-
   return <>{displayValue}%</>;
 };
 
@@ -252,7 +248,6 @@ function ProgressContent() {
     return instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: RANKS[0], nextRank: RANKS[1] };
   }, [instrumentStats, selectedInstrument]);
 
-  // Cálculo de posición precisa del marcador del alumno en la línea
   const pathProgress = useMemo(() => {
     const points = currentInstData.points;
     const totalNodes = RANKS.length;
@@ -281,7 +276,6 @@ function ProgressContent() {
     return totalProgress * 100;
   }, [currentInstData.points]);
 
-  // Auto-scroll effect to center the student marker whenever the data or instrument changes
   useEffect(() => {
     if (isMounted && scrollRef.current && pathProgress !== undefined) {
       const timer = setTimeout(() => {
@@ -289,15 +283,9 @@ function ProgressContent() {
         const container = scrollRef.current;
         const contentWidth = container.scrollWidth;
         const viewportWidth = container.clientWidth;
-        
-        // El área del camino está entre el padding inicial y el final (25vw)
         const padding = viewportWidth * 0.25;
         const pathWidth = contentWidth - (padding * 2);
-        
-        // markerX es la posición absoluta en píxeles del marcador en el contenedor de scroll
         const markerX = padding + (pathWidth * (pathProgress / 100));
-        
-        // targetScroll posiciona markerX en el centro del viewport
         const targetScroll = markerX - (viewportWidth / 2);
         
         container.scrollTo({
@@ -316,13 +304,8 @@ function ProgressContent() {
     setScrollLeft(scrollRef.current.scrollLeft);
   };
 
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  const handleMouseLeave = () => { setIsDragging(false); };
+  const handleMouseUp = () => { setIsDragging(false); };
 
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !scrollRef.current) return;
@@ -344,10 +327,6 @@ function ProgressContent() {
     const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
     const walk = (x - startX) * 2;
     scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
   };
 
   const totalGlobalPoints = useMemo(() => {
@@ -389,7 +368,6 @@ function ProgressContent() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-[#020617] -m-4 md:-m-8 lg:-m-12 p-4 md:p-12 relative overflow-hidden text-slate-100 selection:bg-accent selection:text-white">
-        {/* Futuristic Background Elements */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
           <div className="absolute top-[-10%] left-[-5%] w-[60%] h-[60%] bg-accent/5 rounded-full blur-[150px] animate-pulse" />
           <div className="absolute bottom-[-10%] right-[-5%] w-[60%] h-[60%] bg-blue-600/5 rounded-full blur-[150px] animate-pulse [animation-delay:2s]" />
@@ -398,15 +376,12 @@ function ProgressContent() {
 
         <div className="relative z-10 max-w-7xl mx-auto space-y-12">
           
-          {/* Header HUB Bar */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start animate-in fade-in slide-in-from-top-4 duration-700">
-            {/* Left: Global Points & Selection */}
             <div className="lg:col-span-7 flex flex-col md:flex-row items-center gap-10">
               <div className="relative group shrink-0">
                 <div className="absolute inset-0 bg-accent rounded-[3.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity animate-pulse" />
                 <div className="rounded-[3.5rem] bg-slate-900/40 border border-white/10 backdrop-blur-3xl px-10 py-8 flex items-center gap-6 shadow-2xl relative overflow-hidden">
                   
-                  {/* Botón de Información Popover */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <button className="absolute top-6 left-6 text-slate-500 hover:text-accent transition-colors outline-none">
@@ -414,39 +389,43 @@ function ProgressContent() {
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-80 rounded-[2.5rem] bg-slate-900 border-white/10 text-slate-200 p-8 shadow-2xl z-50">
-                      <div className="space-y-5">
+                      <div className="space-y-6">
                         <h4 className="font-black text-sm uppercase tracking-widest text-accent flex items-center gap-3">
-                          <Sparkles className="w-4 h-4" /> ¿Cómo ganar EXP?
+                          <Sparkles className="w-4 h-4" /> Protocolo de EXP
                         </h4>
+                        
                         <div className="space-y-4">
-                          <div className="flex gap-4 items-start">
-                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-                            <p className="text-[11px] font-bold leading-relaxed">
-                              <span className="text-white">Materiales (+150):</span> Por cada recurso de la biblioteca completado y validado en clase.
+                          <div className="space-y-3">
+                            <p className="text-[9px] font-black uppercase text-blue-400 tracking-widest border-b border-white/5 pb-1 flex items-center gap-2">
+                              <Music className="w-2.5 h-2.5" /> Puntos por Instrumento
                             </p>
+                            <div className="space-y-2.5">
+                              <div className="flex gap-3 items-start">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
+                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Materiales (+150):</span> Biblioteca.</p>
+                              </div>
+                              <div className="flex gap-3 items-start">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
+                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Clases (+20/h):</span> Asistencia.</p>
+                              </div>
+                              <div className="flex gap-3 items-start">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
+                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Habilidades (+10):</span> Biometría %.</p>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex gap-4 items-start">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                            <p className="text-[11px] font-bold leading-relaxed">
-                              <span className="text-white">Clases (+20):</span> Por cada hora de lección asistida y marcada como completada en tu agenda.
+
+                          <div className="space-y-3">
+                            <p className="text-[9px] font-black uppercase text-accent tracking-widest border-b border-white/5 pb-1 flex items-center gap-2">
+                              <Trophy className="w-2.5 h-2.5" /> Puntos Globales
                             </p>
-                          </div>
-                          <div className="flex gap-4 items-start">
-                            <div className="w-2 h-2 rounded-full bg-orange-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
-                            <p className="text-[11px] font-bold leading-relaxed">
-                              <span className="text-white">Habilidades (+10):</span> Por cada punto porcentual en tus barras de biometría técnica personalizada.
-                            </p>
-                          </div>
-                          <div className="flex gap-4 items-start">
-                            <div className="w-2 h-2 rounded-full bg-accent mt-1.5 shrink-0 shadow-[0_0_8px_rgba(255,139,122,0.6)]" />
-                            <p className="text-[11px] font-bold leading-relaxed">
-                              <span className="text-white">Hitos (+200):</span> Al obtener medallas o logros históricos asignados por el profesor o administración.
-                            </p>
+                            <div className="flex gap-3 items-start">
+                              <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1 shadow-[0_0_5px_#FF8B7A]" />
+                              <p className="text-[10px] font-bold leading-snug"><span className="text-white">Hitos (+200):</span> Logros Históricos.</p>
+                            </div>
                           </div>
                         </div>
-                        <div className="pt-2 border-t border-white/5">
-                          <p className="text-[9px] font-black uppercase text-slate-500 italic">Los puntos se actualizan en tiempo real.</p>
-                        </div>
+                        <p className="text-[8px] font-black uppercase text-slate-500 italic pt-2 border-t border-white/5">Los puntos de instrumento también suman al global.</p>
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -488,14 +467,14 @@ function ProgressContent() {
                       <SelectTrigger className="w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white min-w-[200px]">
+                      <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white min-w-[240px] p-1">
                         {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => {
                           const pts = instrumentStats[inst]?.points || 0;
                           return (
-                            <SelectItem key={inst} value={inst} className="font-bold text-xs py-3">
-                              <div className="flex items-center justify-between gap-4 w-full">
-                                <span>{inst}</span>
-                                <Badge variant="secondary" className="bg-accent/20 text-accent border-none text-[8px] px-1.5 h-4 font-black">
+                            <SelectItem key={inst} value={inst} className="font-bold text-[10px] py-3 uppercase tracking-widest rounded-xl cursor-pointer">
+                              <div className="flex items-center justify-between w-full pr-2">
+                                <span className="flex-1 truncate">{inst}</span>
+                                <Badge variant="secondary" className="bg-accent/20 text-accent border-none text-[8px] px-2 h-5 font-black shrink-0 ml-4 tabular-nums">
                                   {pts.toLocaleString()} XP
                                 </Badge>
                               </div>
@@ -517,7 +496,6 @@ function ProgressContent() {
               </div>
             </div>
 
-            {/* Right: Technical Evolution */}
             <div className="lg:col-span-5 flex justify-end">
               <div className="w-full max-sm space-y-6 bg-slate-900/30 border border-white/5 backdrop-blur-3xl rounded-[3rem] p-8 shadow-2xl relative group hover:border-white/10 transition-colors">
                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
@@ -567,7 +545,6 @@ function ProgressContent() {
             </div>
           </div>
 
-          {/* MAIN PILAR: THE LEVEL PATH */}
           <section className="relative select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
             <div 
               ref={scrollRef}
@@ -581,7 +558,6 @@ function ProgressContent() {
               className="overflow-x-auto overflow-y-hidden immersive-scrollbar flex items-center relative pt-48 pb-32 cursor-grab active:cursor-grabbing h-[500px]"
             >
               <div className="relative flex items-center min-w-[300%] px-[25vw] h-12">
-                {/* The Level Line Base */}
                 <div className="absolute top-1/2 left-[25vw] right-[25vw] h-[12px] bg-slate-900 -translate-y-1/2 rounded-full overflow-hidden border border-white/5 shadow-inner">
                   <div 
                     className="h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]"
@@ -589,7 +565,6 @@ function ProgressContent() {
                   />
                 </div>
 
-                {/* Rank Nodes */}
                 <div className="absolute left-[25vw] right-[25vw] top-1/2 -translate-y-1/2 flex justify-between items-center">
                   {RANKS.map((rank, i) => {
                     const isReached = currentInstData.points >= rank.min;
@@ -597,7 +572,6 @@ function ProgressContent() {
                     
                     return (
                       <div key={i} className="relative flex items-center justify-center w-0 h-0 group">
-                        {/* Anchor point for visual centering */}
                         {isCurrent && (
                           <>
                             <div className="absolute w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
@@ -615,7 +589,6 @@ function ProgressContent() {
                           <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-tighter opacity-70">SECTOR {i + 1}</div>
                         </div>
 
-                        {/* Rank Label (Bottom) */}
                         <div className={cn(
                           "absolute top-28 sm:top-32 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
@@ -641,7 +614,6 @@ function ProgressContent() {
                   })}
                 </div>
 
-                {/* DYNAMIC STUDENT MARKER */}
                 <div 
                   className="absolute top-1/2 left-[25vw] right-[25vw] pointer-events-none z-20"
                   style={{ transform: 'translateY(-50%)' }}
@@ -673,7 +645,6 @@ function ProgressContent() {
               </div>
             </div>
             
-            {/* Scroll Indicator Hint - Positioned below the map */}
             <div className="mt-4 flex items-center justify-center gap-3 text-slate-600 animate-pulse pointer-events-none relative z-30">
               <ChevronRight className="w-4 h-4 rotate-180" />
               <span className="text-[10px] font-black uppercase tracking-widest">Arrastra para explorar el mapa</span>
@@ -681,7 +652,6 @@ function ProgressContent() {
             </div>
           </section>
 
-          {/* Trayectoria Tray */}
           <section className="space-y-12 pt-12 animate-in fade-in slide-in-from-bottom-4 duration-700 [animation-delay:800ms]">
             <div className="flex items-center justify-between border-b border-white/5 pb-8">
               <div className="flex items-center gap-6">
@@ -756,7 +726,6 @@ function ProgressContent() {
         </div>
       </div>
 
-      {/* Versión de la Aplicación */}
       <div className="absolute bottom-4 right-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pointer-events-none select-none">
         v2.1.20
       </div>
