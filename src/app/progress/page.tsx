@@ -447,7 +447,7 @@ function ProgressContent() {
           </div>
 
           {/* MAIN PILAR: THE LEVEL PATH (IMMERSIVE EXPERIENCE) */}
-          <section className="relative pt-8 pb-8 select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
+          <section className="relative select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
             <div 
               ref={scrollRef}
               onMouseDown={handleMouseDown}
@@ -497,18 +497,21 @@ function ProgressContent() {
 
                       {/* Rank Label (Bottom) */}
                       <div className={cn(
-                        "absolute -bottom-24 w-48 text-center transition-all duration-700",
+                        "absolute -bottom-32 w-48 text-center transition-all duration-700 flex flex-col items-center",
                         isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
                       )}>
                         <p className={cn(
-                          "font-black text-sm uppercase tracking-[0.25em] mb-2 drop-shadow-sm",
+                          "font-black text-sm uppercase tracking-[0.25em] mb-3 drop-shadow-sm",
                           isCurrent ? "text-accent" : "text-slate-500"
                         )}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
+                        
                         <div className={cn(
-                          "inline-block px-4 py-1.5 rounded-xl border-2 text-[9px] font-black tracking-widest",
-                          isReached ? "border-white/10 bg-white/5 text-white" : "border-slate-800 text-slate-700"
+                          "inline-block px-5 py-2 rounded-xl border-2 text-xs font-black tracking-widest transition-all",
+                          isReached 
+                            ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" 
+                            : "border-slate-800 bg-slate-900/50 text-slate-400"
                         )}>
-                          {rank.min === 0 ? "INIT" : `${rank.min} PTS`}
+                          {rank.min === 0 ? "START" : `${rank.min.toLocaleString()} PTS`}
                         </div>
                       </div>
 
