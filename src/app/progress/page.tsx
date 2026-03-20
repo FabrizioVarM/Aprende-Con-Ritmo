@@ -456,7 +456,7 @@ function ProgressContent() {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative pt-64 pb-40 cursor-grab active:cursor-grabbing"
+              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative pt-64 pb-48 cursor-grab active:cursor-grabbing"
             >
               <div className="relative flex items-center gap-40 min-w-[150%] px-[25vw]">
                 {/* The Level Line Base */}
@@ -543,8 +543,8 @@ function ProgressContent() {
               </div>
             </div>
             
-            {/* Scroll Indicator Hint */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 text-slate-600 animate-pulse pointer-events-none">
+            {/* Scroll Indicator Hint (Positioned clearly below the map and its labels) */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 text-slate-600 animate-pulse pointer-events-none bg-slate-900/40 px-6 py-2 rounded-full border border-white/5 backdrop-blur-sm">
               <ChevronRight className="w-4 h-4 rotate-180" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em]">Arrastra para explorar el mapa</span>
               <ChevronRight className="w-4 h-4" />
@@ -627,7 +627,7 @@ function ProgressContent() {
       </div>
 
       <Dialog open={isMDialogOpen} onOpenChange={setIsMDialogOpen}>
-        <DialogContent className="rounded-[3.5rem] max-w-md border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white">
+        <DialogContent className="rounded-[3.5rem] max-md border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white">
           <DialogHeader className="bg-white/5 p-12 border-b border-white/10 text-center">
             <div className="mx-auto w-24 h-24 bg-accent rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-accent/30">
               <Trophy className="w-12 h-12 text-white" />
