@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
@@ -212,6 +211,40 @@ function ProgressContent() {
   const currentInstData = useMemo(() => {
     return instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: RANKS[0], nextRank: RANKS[1] };
   }, [instrumentStats, selectedInstrument]);
+
+  /**
+   * Calculates the precise visual progress percentage (0-100) across all ranks.
+   * Ensures the student marker and the line fill sync perfectly.
+   */
+  const pathProgress = useMemo(() => {
+    const points = currentInstData.points;
+    const totalNodes = RANKS.length;
+    
+    // Find current segment
+    let segmentIndex = 0;
+    for (let i = 0; i < totalNodes - 1; i++) {
+      if (points >= RANKS[i].min && points < RANKS[i+1].min) {
+        segmentIndex = i;
+        break;
+      }
+      if (i === totalNodes - 2 && points >= RANKS[totalNodes - 1].min) {
+        segmentIndex = totalNodes - 1; // At or beyond max rank
+      }
+    }
+
+    if (segmentIndex >= totalNodes - 1) {
+      return 100; // Cap at end
+    }
+
+    const segmentStart = RANKS[segmentIndex].min;
+    const segmentEnd = RANKS[segmentIndex + 1].min;
+    const segmentRange = segmentEnd - segmentStart;
+    const segmentProgress = (points - segmentStart) / segmentRange;
+    
+    // Total progress is (current_node_index + progress_to_next) / total_segments
+    const totalProgress = (segmentIndex + segmentProgress) / (totalNodes - 1);
+    return totalProgress * 100;
+  }, [currentInstData.points]);
 
   // Centering logic
   const hasScrolledRef = useRef(false);
@@ -457,94 +490,104 @@ function ProgressContent() {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative pt-64 pb-48 cursor-grab active:cursor-grabbing"
+              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative pt-64 pb-40 cursor-grab active:cursor-grabbing"
             >
-              <div className="relative flex items-center gap-40 min-w-[150%] px-[25vw]">
+              <div className="relative flex items-center min-w-[150%] px-[25vw] h-12">
                 {/* The Level Line Base */}
-                <div className="absolute top-1/2 left-0 w-full h-[12px] bg-slate-900 -translate-y-1/2 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                <div className="absolute top-1/2 left-[25vw] right-[25vw] h-[12px] bg-slate-900 -translate-y-1/2 rounded-full overflow-hidden border border-white/5 shadow-inner">
                   <div 
                     className="h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]"
-                    style={{ width: `${Math.min(100, (currentInstData.points / 10000) * 100)}%` }}
+                    style={{ width: `${pathProgress}%` }}
                   />
                 </div>
 
-                {/* Path Nodes */}
-                {RANKS.map((rank, i) => {
-                  const isReached = currentInstData.points >= rank.min;
-                  const isCurrent = currentInstData.rank.name === rank.name;
-                  
-                  return (
-                    <div key={i} className="flex flex-col items-center group relative w-32 shrink-0">
-                      {/* Node Visual */}
-                      <div className="relative">
-                        {isCurrent && (
-                          <>
-                            <div className="absolute inset-0 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
-                            <div className="absolute inset-[-25px] rounded-[3.5rem] border-2 border-accent/20 animate-ping [animation-duration:5s]" />
-                          </>
-                        )}
-                        
-                        <div className={cn(
-                          "w-32 h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl",
-                          isReached 
-                            ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
-                            : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
-                        )}>
-                          <span className="text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">{rank.icon}</span>
-                          <div className="text-[10px] font-black uppercase tracking-tighter opacity-70">SECTOR {i + 1}</div>
-                        </div>
-                      </div>
-
-                      {/* Rank Label (Bottom) */}
-                      <div className={cn(
-                        "absolute -bottom-32 w-48 text-center transition-all duration-700 flex flex-col items-center",
-                        isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
-                      )}>
-                        <p className={cn(
-                          "font-black text-sm uppercase tracking-[0.25em] mb-3 drop-shadow-sm",
-                          isCurrent ? "text-accent" : "text-slate-500"
-                        )}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
-                        
-                        {rank.min > 0 && (
+                {/* Rank Nodes (Fixed positions) */}
+                <div className="absolute left-[25vw] right-[25vw] top-1/2 -translate-y-1/2 flex justify-between items-center">
+                  {RANKS.map((rank, i) => {
+                    const isReached = currentInstData.points >= rank.min;
+                    const isCurrent = currentInstData.rank.name === rank.name;
+                    
+                    return (
+                      <div key={i} className="flex flex-col items-center group relative w-0">
+                        {/* Node Visual */}
+                        <div className="relative">
+                          {isCurrent && (
+                            <>
+                              <div className="absolute inset-0 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
+                              <div className="absolute inset-[-25px] rounded-[3.5rem] border-2 border-accent/20 animate-ping [animation-duration:5s]" />
+                            </>
+                          )}
+                          
                           <div className={cn(
-                            "inline-block px-5 py-2 rounded-xl border-2 text-xs font-black tracking-widest transition-all",
+                            "w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl -translate-x-1/2",
                             isReached 
-                              ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" 
-                              : "border-slate-800 bg-slate-900/50 text-slate-400"
+                              ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
+                              : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
                           )}>
-                            {rank.min.toLocaleString()} PTS
+                            <span className="text-4xl sm:text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">{rank.icon}</span>
+                            <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-tighter opacity-70">SECTOR {i + 1}</div>
                           </div>
-                        )}
-                      </div>
-
-                      {/* Student Marker (Top) */}
-                      {isCurrent && (
-                        <div className="absolute -top-44 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
-                          <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
-                            <Avatar className="w-20 h-20 rounded-[1.8rem] border-2 border-accent/20">
-                              {currentStudent?.photoUrl ? (
-                                <AvatarImage src={getDirectImageUrl(currentStudent.photoUrl)} className="object-cover" />
-                              ) : (
-                                <AvatarImage src={`https://picsum.photos/seed/${currentStudent?.avatarSeed || currentStudent?.id}/150`} />
-                              )}
-                              <AvatarFallback className="bg-slate-800 text-white font-black text-2xl">{currentStudent?.name?.[0]}</AvatarFallback>
-                            </Avatar>
-                            <div className="absolute inset-0 bg-accent/20 opacity-0 group/avatar:hover:opacity-100 transition-opacity" />
-                          </div>
-                          <div className="mt-4 flex items-center gap-2 bg-slate-950 border-2 border-accent text-accent px-6 py-2.5 rounded-2xl shadow-2xl font-black text-sm tabular-nums tracking-wider whitespace-nowrap">
-                            <Flame className="w-4 h-4 animate-bounce" />
-                            {currentInstData.points} EXP
-                          </div>
-                          <div className="w-1 h-12 bg-gradient-to-b from-accent to-transparent mt-1 rounded-full shadow-[0_0_10px_#FF8B7A]" />
                         </div>
-                      )}
+
+                        {/* Rank Label (Bottom) */}
+                        <div className={cn(
+                          "absolute -bottom-32 w-48 text-center transition-all duration-700 flex flex-col items-center -translate-x-1/2",
+                          isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
+                        )}>
+                          <p className={cn(
+                            "font-black text-xs sm:text-sm uppercase tracking-[0.25em] mb-2 sm:mb-3 drop-shadow-sm",
+                            isCurrent ? "text-accent" : "text-slate-500"
+                          )}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
+                          
+                          {rank.min > 0 && (
+                            <div className={cn(
+                              "inline-block px-4 py-1.5 sm:px-5 sm:py-2 rounded-xl border-2 text-[10px] sm:text-xs font-black tracking-widest transition-all",
+                              isReached 
+                                ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" 
+                                : "border-slate-800 bg-slate-900/50 text-slate-400"
+                            )}>
+                              {rank.min.toLocaleString()} PTS
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* DYNAMIC STUDENT MARKER (Floating based on precise EXP) */}
+                <div 
+                  className="absolute top-1/2 left-[25vw] right-[25vw] pointer-events-none z-20"
+                  style={{ transform: 'translateY(-50%)' }}
+                >
+                  <div 
+                    className="absolute transition-all duration-1000 ease-out flex flex-col items-center"
+                    style={{ left: `${pathProgress}%`, transform: 'translateX(-50%)' }}
+                  >
+                    <div className="relative -top-44 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
+                      <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
+                        <Avatar className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.8rem] border-2 border-accent/20">
+                          {currentStudent?.photoUrl ? (
+                            <AvatarImage src={getDirectImageUrl(currentStudent.photoUrl)} className="object-cover" />
+                          ) : (
+                            <AvatarImage src={`https://picsum.photos/seed/${currentStudent?.avatarSeed || currentStudent?.id}/150`} />
+                          )}
+                          <AvatarFallback className="bg-slate-800 text-white font-black text-2xl">{currentStudent?.name?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="absolute inset-0 bg-accent/20 opacity-0 group/avatar:hover:opacity-100 transition-opacity" />
+                      </div>
+                      <div className="mt-4 flex items-center gap-2 bg-slate-950 border-2 border-accent text-accent px-4 py-2 sm:px-6 sm:py-2.5 rounded-2xl shadow-2xl font-black text-xs sm:text-sm tabular-nums tracking-wider whitespace-nowrap">
+                        <Flame className="w-3 h-3 sm:w-4 sm:h-4 animate-bounce" />
+                        {currentInstData.points.toLocaleString()} EXP
+                      </div>
+                      <div className="w-1 h-12 bg-gradient-to-b from-accent to-transparent mt-1 rounded-full shadow-[0_0_10px_#FF8B7A]" />
                     </div>
-                  );
-                })}
+                  </div>
+                </div>
               </div>
             </div>
             
-            {/* Scroll Indicator Hint (Repositioned to be truly below the scrollbar) */}
+            {/* Scroll Indicator Hint */}
             <div className="mt-8 flex items-center justify-center gap-3 text-slate-600 animate-pulse pointer-events-none">
               <ChevronRight className="w-4 h-4 rotate-180" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em]">Arrastra para explorar el mapa</span>
