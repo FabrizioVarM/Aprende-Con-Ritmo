@@ -76,7 +76,7 @@ const calculateDuration = (timeStr: string): number => {
   } catch (e) { return 1; }
 };
 
-const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300./u036f]/g, "").toLowerCase().trim() : "";
+const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
 
 function ProgressContent() {
   const { user, allUsers } = useAuth();
@@ -207,9 +207,9 @@ function ProgressContent() {
   const hasScrolledRef = useRef(false);
 
   useEffect(() => {
-    if (isMounted && scrollRef.current && currentInstData.rank) {
+    if (isMounted && scrollRef.current && currentInstData.rank && !hasScrolledRef.current) {
       const rankIndex = RANKS.findIndex(r => r.name === currentInstData.rank.name);
-      if (rankIndex !== -1 && !hasScrolledRef.current) {
+      if (rankIndex !== -1) {
         const timer = setTimeout(() => {
           if (!scrollRef.current) return;
           const container = scrollRef.current;
@@ -318,7 +318,7 @@ function ProgressContent() {
           <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto space-y-16">
+        <div className="relative z-10 max-w-7xl mx-auto space-y-12">
           
           {/* Header HUB Bar */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start animate-in fade-in slide-in-from-top-4 duration-700">
@@ -417,7 +417,7 @@ function ProgressContent() {
                       ) : (
                         <div className="h-1 w-full bg-slate-800/40 rounded-full overflow-hidden border border-white/5">
                           <div 
-                            className={cn("h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(255,255,255,0.1)]", skill.color || "bg-accent")} 
+                            className={cn("h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(255,139,122,0.1)]", skill.color || "bg-accent")} 
                             style={{ width: `${skill.level}%` }}
                           />
                         </div>
@@ -432,7 +432,7 @@ function ProgressContent() {
           </div>
 
           {/* MAIN PILAR: THE LEVEL PATH (IMMERSIVE EXPERIENCE) */}
-          <section className="relative pt-64 pb-40 select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
+          <section className="relative pt-8 pb-8 select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
             <div 
               ref={scrollRef}
               onMouseDown={handleMouseDown}
@@ -442,7 +442,7 @@ function ProgressContent() {
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
-              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative py-64 cursor-grab active:cursor-grabbing"
+              className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative pt-56 pb-24 cursor-grab active:cursor-grabbing"
             >
               <div className="relative flex items-center gap-40 min-w-[150%] px-[25vw]">
                 {/* The Level Line Base */}
@@ -525,7 +525,7 @@ function ProgressContent() {
             </div>
             
             {/* Scroll Indicator Hint */}
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-3 text-slate-600 animate-pulse pointer-events-none">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 text-slate-600 animate-pulse pointer-events-none">
               <ChevronRight className="w-4 h-4 rotate-180" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em]">Arrastra para explorar el mapa</span>
               <ChevronRight className="w-4 h-4" />
@@ -533,7 +533,7 @@ function ProgressContent() {
           </section>
 
           {/* Trayectoria Tray (Bottom Inmersive Section) */}
-          <section className="space-y-12 pt-20 animate-in fade-in slide-in-from-bottom-4 duration-700 [animation-delay:800ms]">
+          <section className="space-y-12 pt-12 animate-in fade-in slide-in-from-bottom-4 duration-700 [animation-delay:800ms]">
             <div className="flex items-center justify-between border-b border-white/5 pb-8">
               <div className="flex items-center gap-6">
                 <div className="p-5 rounded-[2rem] bg-white/5 text-accent border border-white/10 shadow-2xl group">
