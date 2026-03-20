@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -50,7 +51,8 @@ import {
   Lightbulb,
   CheckSquare,
   Images,
-  Trash
+  Trash,
+  Loader2
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import { useCurriculumStore, CurriculumPlan, CurriculumStep } from '@/lib/curriculum-store';
@@ -104,6 +106,7 @@ export default function CurriculumPage() {
 
   // Individual Step Editing/Adding states
   const [isStepFormOpen, setIsStepFormOpen] = useState(false);
+  const [isSavingStep, setIsSavingStep] = useState(false);
   const [stepFormMode, setStepFormMode] = useState<'add' | 'edit'>('add');
   const [targetStepIdx, setTargetStepIdx] = useState<number | null>(null);
   const [insertPosition, setInsertPosition] = useState<string>('end');
@@ -180,11 +183,13 @@ export default function CurriculumPage() {
     setIsStepFormOpen(true);
   };
 
-  const handleSaveStep = async () => {
+  const handleSaveStep = () => {
     if (!stepForm.title) {
       toast({ variant: "destructive", title: "Título obligatorio" });
       return;
     }
+
+    setIsSavingStep(true);
 
     if (!currentPlan) {
       // Create first plan if none exists
@@ -194,7 +199,7 @@ export default function CurriculumPage() {
         description: `Plan de estudios para ${selectedInstrument}`,
         steps: [stepForm]
       };
-      await saveCurriculum(newPlan);
+      saveCurriculum(newPlan);
     } else {
       let newSteps = [...currentPlan.steps];
       if (stepFormMode === 'add') {
@@ -208,12 +213,15 @@ export default function CurriculumPage() {
         newSteps[targetStepIdx] = stepForm;
       }
       
-      await saveCurriculum({ ...currentPlan, steps: newSteps }, currentPlan.id);
+      saveCurriculum({ ...currentPlan, steps: newSteps }, currentPlan.id);
     }
 
     toast({ title: stepFormMode === 'add' ? "Paso añadido ✨" : "Paso actualizado ✨" });
     setIsStepFormOpen(false);
     setViewingStep(null);
+    
+    // Reset loader after a small delay to prevent rapid double-clicks if modal closing flickers
+    setTimeout(() => setIsSavingStep(false), 500);
   };
 
   const handleAddStepImage = () => {
@@ -937,9 +945,14 @@ export default function CurriculumPage() {
           </ScrollArea>
 
           <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3 shrink-0">
-            <Button variant="outline" onClick={() => setIsStepFormOpen(false)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
-            <Button onClick={handleSaveStep} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 gap-2">
-              <Save className="w-5 h-5" /> {stepFormMode === 'add' ? 'Confirmar Nuevo Paso' : 'Guardar Cambios'}
+            <Button variant="outline" disabled={isSavingStep} onClick={() => setIsStepFormOpen(false)} className="rounded-xl flex-1 h-14 font-black">Cancelar</Button>
+            <Button 
+              onClick={handleSaveStep} 
+              disabled={!stepForm.title || isSavingStep}
+              className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 gap-2"
+            >
+              {isSavingStep ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+              {stepFormMode === 'add' ? 'Confirmar Nuevo Paso' : 'Guardar Cambios'}
             </Button>
           </DialogFooter>
         </DialogContent>
