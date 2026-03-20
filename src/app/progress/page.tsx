@@ -122,7 +122,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
     return () => cancelAnimationFrame(frame);
   }, [value]);
 
-  return <>{current.toString().padStart(3, '0')}%</>;
+  return <>{current.toString().padStart(2, '0')}%</>;
 };
 
 function ProgressContent() {
@@ -288,22 +288,21 @@ function ProgressContent() {
         const contentWidth = container.scrollWidth;
         const viewportWidth = container.clientWidth;
         
-        // The path area is between 25vw and 300% - 25vw
-        // viewportWidth * 0.25 represents the side padding (25vw)
+        // El área del camino está entre el padding inicial y el final (25vw)
         const padding = viewportWidth * 0.25;
         const pathWidth = contentWidth - (padding * 2);
         
-        // markerX is the absolute pixel position of the student marker in the scroll container
+        // markerX es la posición absoluta en píxeles del marcador en el contenedor de scroll
         const markerX = padding + (pathWidth * (pathProgress / 100));
         
-        // targetScroll is the scrollLeft value that places markerX at the center of the viewport
+        // targetScroll posiciona markerX en el centro del viewport
         const targetScroll = markerX - (viewportWidth / 2);
         
         container.scrollTo({
           left: Math.max(0, targetScroll),
           behavior: 'smooth'
         });
-      }, 600); // Wait for animations and layout to settle
+      }, 600);
       return () => clearTimeout(timer);
     }
   }, [isMounted, selectedInstrument, selectedStudentId, pathProgress]);
