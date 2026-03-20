@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -391,33 +390,41 @@ export default function CurriculumPage() {
               </div>
             </div>
           </div>
-
-          <div className="space-y-3 max-w-xs pt-4 border-t border-primary/10">
-            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">Filtrar Línea Interactiva</Label>
-            <Select value={selectedInstrument} onValueChange={(v) => {
-              setSelectedInstrument(v);
-              setCurrentStepIdx(0);
-            }}>
-              <SelectTrigger className="h-14 rounded-2xl border-2 font-black bg-card shadow-sm w-full focus:ring-accent">
-                <SelectValue placeholder="Elegir Instrumento" />
-              </SelectTrigger>
-              <SelectContent className="rounded-2xl">
-                {INSTRUMENTS_LIST.map(inst => (
-                  <SelectItem key={inst} value={inst} className="font-bold py-3">{inst}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
 
         <section ref={timelineRef} className="space-y-8 px-2 overflow-hidden">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-8 bg-accent rounded-full" />
-              <h2 className="text-2xl font-black text-foreground">Ruta de Aprendizaje Interactiva: {selectedInstrument}</h2>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-8 bg-accent rounded-full" />
+                <h2 className="text-2xl font-black text-foreground">Ruta de Aprendizaje Interactiva: {selectedInstrument}</h2>
+              </div>
+              
+              <div className="space-y-2 max-w-xs animate-in fade-in slide-in-from-left-2 duration-500">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Cambiar Instrumento de la Ruta</Label>
+                <Select value={selectedInstrument} onValueChange={(v) => {
+                  setSelectedInstrument(v);
+                  setCurrentStepIdx(0);
+                }}>
+                  <SelectTrigger className="h-12 rounded-xl border-2 font-black bg-card shadow-sm w-full focus:ring-accent">
+                    <SelectValue placeholder="Elegir Instrumento" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {INSTRUMENTS_LIST.map(inst => (
+                      <SelectItem key={inst} value={inst} className="font-bold py-3">
+                        <div className="flex items-center gap-2">
+                          <span>{INSTRUMENT_EMOJIS[inst]}</span>
+                          <span>{inst}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
             {isAdmin && (
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <Button onClick={openAddStep} className="bg-accent text-white rounded-xl shadow-lg font-black gap-2 h-12 px-6">
                   <Plus className="w-5 h-5" /> Añadir Paso
                 </Button>
