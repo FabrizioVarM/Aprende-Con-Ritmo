@@ -397,35 +397,36 @@ function ProgressContent() {
                         <div className="space-y-4">
                           <div className="space-y-3">
                             <p className="text-[9px] font-black uppercase text-blue-400 tracking-widest border-b border-white/5 pb-1 flex items-center gap-2">
-                              <Music className="w-2.5 h-2.5" /> Puntos por Instrumento
+                              <Music className="w-2.5 h-2.5" /> Puntos por Especialidad
                             </p>
+                            <p className="text-[8px] font-black text-slate-500 uppercase italic">Estos puntos suman al instrumento Y al global.</p>
                             <div className="space-y-2.5">
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
-                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Materiales (+150):</span> Biblioteca.</p>
+                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Materiales (+150):</span> Validar recursos en biblioteca.</p>
                               </div>
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
-                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Clases (+20/h):</span> Asistencia.</p>
+                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Clases (+20/h):</span> Por cada hora de lección asistida.</p>
                               </div>
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
-                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Habilidades (+10):</span> Biometría %.</p>
+                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Habilidades (+10):</span> Por cada % en biometría técnica.</p>
                               </div>
                             </div>
                           </div>
 
-                          <div className="space-y-3">
+                          <div className="space-y-3 pt-2">
                             <p className="text-[9px] font-black uppercase text-accent tracking-widest border-b border-white/5 pb-1 flex items-center gap-2">
-                              <Trophy className="w-2.5 h-2.5" /> Puntos Globales
+                              <Trophy className="w-2.5 h-2.5" /> Puntos Globales Únicos
                             </p>
                             <div className="flex gap-3 items-start">
                               <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1 shadow-[0_0_5px_#FF8B7A]" />
-                              <p className="text-[10px] font-bold leading-snug"><span className="text-white">Hitos (+200):</span> Logros Históricos.</p>
+                              <p className="text-[10px] font-bold leading-snug"><span className="text-white">Hitos (+200):</span> Logros históricos de trayectoria.</p>
                             </div>
                           </div>
                         </div>
-                        <p className="text-[8px] font-black uppercase text-slate-500 italic pt-2 border-t border-white/5">Los puntos de instrumento también suman al global.</p>
+                        <p className="text-[8px] font-black uppercase text-slate-500 text-center pt-2 border-t border-white/5">Los puntos se sincronizan en tiempo real.</p>
                       </div>
                     </PopoverContent>
                   </Popover>
@@ -590,7 +591,7 @@ function ProgressContent() {
                         </div>
 
                         <div className={cn(
-                          "absolute top-28 sm:top-32 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
+                          "absolute top-20 sm:top-24 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
                         )}>
                           <p className={cn(
