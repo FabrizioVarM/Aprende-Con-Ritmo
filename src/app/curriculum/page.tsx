@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -436,11 +435,23 @@ export default function CurriculumPage() {
                   transform: `translateX(-${offset * (100 / itemsToShow)}%)` 
                 }}
               >
-                {/* Linea conectora de fondo (Moved inside sliding container to stay synced) */}
-                <div className="absolute top-[40px] left-0 w-full h-1 bg-muted -translate-y-1/2 z-0 rounded-full opacity-30" />
+                {/* Background line (muted) */}
                 <div 
-                  className="absolute top-[40px] left-0 h-1 bg-accent -translate-y-1/2 z-0 rounded-full transition-all duration-700 opacity-50" 
-                  style={{ width: `${(currentStepIdx / (currentPlan.steps.length - 1)) * 100}%` }}
+                  className="absolute top-[40px] bg-muted -translate-y-1/2 z-0 rounded-full opacity-30" 
+                  style={{ 
+                    left: `${(0.5 / currentPlan.steps.length) * 100}%`,
+                    width: `${((currentPlan.steps.length - 1) / currentPlan.steps.length) * 100}%`,
+                    height: '4px'
+                  }} 
+                />
+                {/* Progress line (accent) */}
+                <div 
+                  className="absolute top-[40px] bg-accent -translate-y-1/2 z-0 rounded-full transition-all duration-700 opacity-50" 
+                  style={{ 
+                    left: `${(0.5 / currentPlan.steps.length) * 100}%`,
+                    width: `${(currentStepIdx / currentPlan.steps.length) * 100}%`,
+                    height: '4px'
+                  }}
                 />
 
                 {currentPlan.steps.map((step, i) => {
