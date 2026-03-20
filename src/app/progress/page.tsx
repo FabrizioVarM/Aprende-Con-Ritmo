@@ -65,6 +65,16 @@ const RANKS = [
   { name: 'Maestro', min: 9000, icon: '👑', color: 'from-purple-500 to-purple-700', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)]' },
 ];
 
+const INSTRUMENT_TITLES: Record<string, string> = {
+  'Guitarra': 'Guitarrista',
+  'Piano': 'Tecladista',
+  'Bajo': 'Bajista',
+  'Violín': 'Violinista',
+  'Batería': 'Baterista',
+  'Canto': 'Cantante',
+  'Teoría': 'Teórico',
+};
+
 const calculateDuration = (timeStr: string): number => {
   try {
     const [start, end] = timeStr.split(' - ');
@@ -306,6 +316,11 @@ function ProgressContent() {
     setIsMDialogOpen(false);
   };
 
+  const getRankDisplayName = (baseName: string, instrument: string) => {
+    const title = INSTRUMENT_TITLES[instrument] || 'Músico';
+    return `${title} ${baseName}`;
+  };
+
   if (!isMounted || !user) return null;
 
   return (
@@ -377,7 +392,7 @@ function ProgressContent() {
                   <h1 className="text-4xl font-black text-white font-headline tracking-tight leading-none">Mi Viaje Musical 🚀</h1>
                   <div className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.4em] mt-3 flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_#FF8B7A]" />
-                    Status Operativo: <span className="text-accent">{currentInstData.rank.name}</span>
+                    Status Operativo: <span className="text-accent">{getRankDisplayName(currentInstData.rank.name, selectedInstrument)}</span>
                   </div>
                 </div>
               </div>
@@ -424,7 +439,7 @@ function ProgressContent() {
                       )}
                     </div>
                   )) : (
-                    <p className="text-center italic text-slate-700 text-[9px] py-4 uppercase font-black tracking-[0.3em]">No Data Stream</p>
+                    <div className="text-center italic text-slate-700 text-[9px] py-4 uppercase font-black tracking-[0.3em]">No Data Stream</div>
                   )}
                 </div>
               </div>
@@ -482,13 +497,13 @@ function ProgressContent() {
 
                       {/* Rank Label (Bottom) */}
                       <div className={cn(
-                        "absolute -bottom-24 w-40 text-center transition-all duration-700",
+                        "absolute -bottom-24 w-48 text-center transition-all duration-700",
                         isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
                       )}>
                         <p className={cn(
                           "font-black text-sm uppercase tracking-[0.25em] mb-2 drop-shadow-sm",
                           isCurrent ? "text-accent" : "text-slate-500"
-                        )}>{rank.name}</p>
+                        )}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
                         <div className={cn(
                           "inline-block px-4 py-1.5 rounded-xl border-2 text-[9px] font-black tracking-widest",
                           isReached ? "border-white/10 bg-white/5 text-white" : "border-slate-800 text-slate-700"
