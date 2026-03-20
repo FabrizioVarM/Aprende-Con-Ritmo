@@ -76,7 +76,7 @@ const calculateDuration = (timeStr: string): number => {
   } catch (e) { return 1; }
 };
 
-const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
+const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300./u036f]/g, "").toLowerCase().trim() : "";
 
 function ProgressContent() {
   const { user, allUsers } = useAuth();
@@ -146,88 +146,6 @@ function ProgressContent() {
     }
   }, [currentStudent, selectedInstrument]);
 
-  // Centering logic on initial load or instrument change
-  const hasScrolledRef = useRef(false);
-
-  useEffect(() => {
-    if (isMounted && scrollRef.current && currentStudent) {
-      // Find current rank index to scroll to it
-      const points = instrumentStats[selectedInstrument]?.points || 0;
-      let rankIdx = 0;
-      for (let i = RANKS.length - 1; i >= 0; i--) {
-        if (points >= RANKS[i].min) {
-          rankIdx = i;
-          break;
-        }
-      }
-      
-      const timer = setTimeout(() => {
-        if (!scrollRef.current) return;
-        const container = scrollRef.current;
-        const contentWidth = container.scrollWidth;
-        const viewportWidth = container.clientWidth;
-        
-        // Approximate calculation based on node positioning
-        const nodeX = (rankIdx / (RANKS.length - 1)) * (contentWidth - viewportWidth) + (viewportWidth / 2);
-        const centerOffset = nodeX - (viewportWidth / 2);
-        
-        container.scrollTo({
-          left: Math.max(0, centerOffset),
-          behavior: 'smooth'
-        });
-        hasScrolledRef.current = true;
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [isMounted, selectedInstrument, currentStudent]);
-
-  useEffect(() => {
-    hasScrolledRef.current = false;
-  }, [selectedInstrument, selectedStudentId]);
-
-  // Mouse drag handlers
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!scrollRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  // Touch drag handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!scrollRef.current) return;
-    setIsDragging(true);
-    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
-    setScrollLeft(scrollRef.current.scrollLeft);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = scrollLeft - walk;
-  };
-
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-  };
-
   const instrumentStats = useMemo(() => {
     if (!currentStudent) return {};
     const stats: Record<string, { points: number; completedHours: number; rank: typeof RANKS[0], nextRank: typeof RANKS[0] | null }> = {};
@@ -281,6 +199,84 @@ function ProgressContent() {
     return stats;
   }, [completions, availabilities, currentStudent, getSkillLevel, resources]);
 
+  const currentInstData = useMemo(() => {
+    return instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: RANKS[0], nextRank: RANKS[1] };
+  }, [instrumentStats, selectedInstrument]);
+
+  // Centering logic
+  const hasScrolledRef = useRef(false);
+
+  useEffect(() => {
+    if (isMounted && scrollRef.current && currentInstData.rank) {
+      const rankIndex = RANKS.findIndex(r => r.name === currentInstData.rank.name);
+      if (rankIndex !== -1 && !hasScrolledRef.current) {
+        const timer = setTimeout(() => {
+          if (!scrollRef.current) return;
+          const container = scrollRef.current;
+          const contentWidth = container.scrollWidth;
+          const viewportWidth = container.clientWidth;
+          
+          const nodeX = (rankIndex / (RANKS.length - 1)) * (contentWidth - 200) + 100;
+          const centerOffset = nodeX - (viewportWidth / 2);
+          
+          container.scrollTo({
+            left: Math.max(0, centerOffset),
+            behavior: 'smooth'
+          });
+          hasScrolledRef.current = true;
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isMounted, currentInstData.rank, selectedInstrument]);
+
+  useEffect(() => {
+    hasScrolledRef.current = false;
+  }, [selectedInstrument, selectedStudentId]);
+
+  // Mouse drag handlers
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  // Touch drag handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setStartX(e.touches[0].pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    const x = e.touches[0].pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+  };
+
   const totalGlobalPoints = useMemo(() => {
     const basePoints = Object.values(instrumentStats).reduce((sum, s) => sum + (s?.points || 0), 0);
     const milestonePoints = currentStudent ? getAchievedCount(currentStudent.id) * 200 : 0;
@@ -311,8 +307,6 @@ function ProgressContent() {
   };
 
   if (!isMounted || !user) return null;
-
-  const currentInstData = instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: RANKS[0], nextRank: RANKS[1] };
 
   return (
     <AppLayout>
@@ -381,10 +375,10 @@ function ProgressContent() {
                 
                 <div className="px-1">
                   <h1 className="text-4xl font-black text-white font-headline tracking-tight leading-none">Mi Viaje Musical 🚀</h1>
-                  <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.4em] mt-3 flex items-center gap-3">
+                  <div className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.4em] mt-3 flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_#FF8B7A]" />
                     Status Operativo: <span className="text-accent">{currentInstData.rank.name}</span>
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -395,7 +389,7 @@ function ProgressContent() {
                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-accent/10 rounded-xl">
-                      <Cpu className="w-4 h-4 text-accent animate-spin-slow" />
+                      <Cpu className="w-4 h-4 text-accent" />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/60">Biometría de Datos</span>
                   </div>
@@ -547,9 +541,9 @@ function ProgressContent() {
                 </div>
                 <div>
                   <h2 className="text-3xl font-black text-white tracking-tight uppercase tracking-[0.2em]">Expediente de Logros</h2>
-                  <p className="text-xs font-bold text-slate-600 uppercase tracking-widest mt-2 flex items-center gap-2">
+                  <div className="text-xs font-bold text-slate-600 uppercase tracking-widest mt-2 flex items-center gap-2">
                     <Info className="w-3.5 h-3.5" /> Bitácora oficial de trayectoria académica
-                  </p>
+                  </div>
                 </div>
               </div>
               {isAdmin && (
