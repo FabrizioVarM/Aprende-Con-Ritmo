@@ -425,7 +425,7 @@ function ProgressContent() {
 
             {/* Right: Technical Evolution */}
             <div className="lg:col-span-5 flex justify-end">
-              <div className="w-full max-w-sm space-y-6 bg-slate-900/30 border border-white/5 backdrop-blur-3xl rounded-[3rem] p-8 shadow-2xl relative group hover:border-white/10 transition-colors">
+              <div className="w-full max-sm space-y-6 bg-slate-900/30 border border-white/5 backdrop-blur-3xl rounded-[3rem] p-8 shadow-2xl relative group hover:border-white/10 transition-colors">
                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-accent/10 rounded-xl">
@@ -521,7 +521,7 @@ function ProgressContent() {
 
                         {/* Rank Label (Bottom) */}
                         <div className={cn(
-                          "absolute top-28 sm:top-36 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
+                          "absolute top-20 sm:top-24 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
                         )}>
                           <p className={cn(
