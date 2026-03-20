@@ -183,6 +183,16 @@ export default function CurriculumPage() {
     setIsStepFormOpen(true);
   };
 
+  const handleDeleteIndividualStep = (index: number) => {
+    if (!currentPlan) return;
+    
+    const newSteps = currentPlan.steps.filter((_, i) => i !== index);
+    saveCurriculum({ ...currentPlan, steps: newSteps }, currentPlan.id);
+    
+    toast({ title: "Paso Eliminado 🗑️", description: "La malla curricular ha sido actualizada." });
+    setViewingStep(null);
+  };
+
   const handleSaveStep = () => {
     if (!stepForm.title) {
       toast({ variant: "destructive", title: "Título obligatorio" });
@@ -540,14 +550,24 @@ export default function CurriculumPage() {
                     </span>
                   </div>
                   {isAdmin && (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="rounded-xl border-2 font-black gap-2 h-10 px-4 hover:bg-accent hover:text-white transition-all"
-                      onClick={() => openEditIndividualStep(viewingStep, viewingStep.originalIndex)}
-                    >
-                      <Edit2 className="w-4 h-4" /> Editar Paso
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="rounded-xl border-2 font-black gap-2 h-10 px-4 hover:bg-accent hover:text-white transition-all"
+                        onClick={() => openEditIndividualStep(viewingStep, viewingStep.originalIndex)}
+                      >
+                        <Edit2 className="w-4 h-4" /> Editar Paso
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="rounded-xl border-2 border-destructive/20 text-destructive font-black gap-2 h-10 px-4 hover:bg-destructive hover:text-white transition-all"
+                        onClick={() => handleDeleteIndividualStep(viewingStep.originalIndex)}
+                      >
+                        <Trash2 className="w-4 h-4" /> Eliminar Paso
+                      </Button>
+                    </div>
                   )}
                 </div>
                 <DialogTitle className="text-3xl font-black text-foreground leading-tight">
