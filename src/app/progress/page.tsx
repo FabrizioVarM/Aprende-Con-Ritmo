@@ -504,7 +504,6 @@ function ProgressContent() {
                     <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/60">Biometría de Datos</span>
                   </div>
                   
-                  {/* Decoración Futurista Reemplazando el Badge simple */}
                   <div className="flex items-center gap-4 animate-in fade-in duration-1000">
                     <div className="hidden sm:flex gap-1 h-4 items-center">
                       {[1, 2, 3, 4].map((i) => (
@@ -748,10 +747,6 @@ function ProgressContent() {
             </div>
           </section>
         </div>
-      </div>
-
-      <div className="absolute bottom-4 right-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pointer-events-none select-none">
-        v2.1.20
       </div>
 
       <Dialog open={isMDialogOpen} onOpenChange={setIsMDialogOpen}>
