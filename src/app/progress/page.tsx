@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -29,9 +28,28 @@ import { useResourceStore } from '@/lib/resource-store';
 import { useMilestonesStore, UserMilestone } from '@/lib/milestones-store';
 import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
 import { 
-  Star, TrendingUp, Music, CheckCircle2, Trophy, Clock, 
-  ShieldCheck, Star as StarIcon, Plus, Edit2, Trash2, 
-  Zap, Flame, Crown, GraduationCap, ChevronRight, LayoutGrid, Info, Search, Activity, Cpu
+  Star, 
+  TrendingUp, 
+  Music, 
+  CheckCircle2, 
+  Trophy, 
+  Clock, 
+  ShieldCheck, 
+  Star as StarIcon, 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  Zap, 
+  Flame, 
+  Crown, 
+  GraduationCap, 
+  ChevronRight, 
+  LayoutGrid, 
+  Info, 
+  Search, 
+  Activity, 
+  Cpu,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -69,7 +87,6 @@ function ProgressContent() {
     addMilestone, 
     updateMilestone, 
     deleteMilestone, 
-    toggleMilestoneAchieved, 
     getStudentMilestones, 
     getAchievedCount 
   } = useMilestonesStore();
