@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
@@ -492,7 +493,7 @@ function ProgressContent() {
               onTouchEnd={handleTouchEnd}
               className="overflow-x-auto overflow-y-visible immersive-scrollbar flex items-center relative pt-64 pb-40 cursor-grab active:cursor-grabbing"
             >
-              <div className="relative flex items-center min-w-[150%] px-[25vw] h-12">
+              <div className="relative flex items-center min-w-[300%] px-[25vw] h-12">
                 {/* The Level Line Base */}
                 <div className="absolute top-1/2 left-[25vw] right-[25vw] h-[12px] bg-slate-900 -translate-y-1/2 rounded-full overflow-hidden border border-white/5 shadow-inner">
                   <div 
