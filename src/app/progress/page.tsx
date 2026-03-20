@@ -95,7 +95,6 @@ const calculateDuration = (timeStr: string): number => {
 
 const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
 
-// Componente para animar los números de porcentaje con 2 dígitos
 const AnimatedNumber = ({ value }: { value: number }) => {
   const [current, setCurrent] = useState(0);
 
@@ -119,7 +118,6 @@ const AnimatedNumber = ({ value }: { value: number }) => {
     return () => cancelAnimationFrame(frame);
   }, [value]);
 
-  // Mostrar 2 dígitos siempre (ej: 05%) a menos que sea 100%
   const displayValue = current === 100 ? "100" : current.toString().padStart(2, '0');
   return <>{displayValue}%</>;
 };
@@ -145,14 +143,12 @@ function ProgressContent() {
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
 
-  // Milestone Dialog State
   const [isMDialogOpen, setIsMDialogOpen] = useState(false);
   const [editingM, setEditingM] = useState<UserMilestone | null>(null);
   const [mTitle, setMTitle] = useState('');
   const [mDate, setMDate] = useState('');
   const [mAchieved, setMAchieved] = useState(false);
 
-  // Drag-to-scroll logic
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -277,7 +273,6 @@ function ProgressContent() {
     return totalProgress * 100;
   }, [currentInstData.points]);
 
-  // Centrado automático de la vista cada vez que cambian los puntos o el instrumento
   useEffect(() => {
     if (isMounted && scrollRef.current && pathProgress !== undefined) {
       const timer = setTimeout(() => {
@@ -508,7 +503,34 @@ function ProgressContent() {
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/60">Biometría de Datos</span>
                   </div>
-                  <Badge variant="ghost" className="text-[8px] font-mono text-slate-600 p-0 tracking-tighter">LVL_MAP_V3</Badge>
+                  
+                  {/* Decoración Futurista Reemplazando el Badge simple */}
+                  <div className="flex items-center gap-4 animate-in fade-in duration-1000">
+                    <div className="hidden sm:flex gap-1 h-4 items-center">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div 
+                          key={i} 
+                          className={cn(
+                            "w-0.5 rounded-full bg-slate-800 animate-pulse",
+                            i === 1 && "delay-75 h-2",
+                            i === 2 && "delay-150 h-4",
+                            i === 3 && "delay-300 h-3",
+                            i === 4 && "delay-500 h-2"
+                          )} 
+                        />
+                      ))}
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-1.5">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                        </span>
+                        <span className="text-[6px] font-black text-emerald-500/50 uppercase tracking-[0.2em]">Stream Online</span>
+                      </div>
+                      <span className="text-[8px] font-mono text-slate-600 tracking-tighter leading-none">LVL_MAP_V2.1.20</span>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="space-y-5">
@@ -593,7 +615,7 @@ function ProgressContent() {
                         </div>
 
                         <div className={cn(
-                          "absolute top-24 sm:top-28 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
+                          "absolute top-[88px] sm:top-[104px] w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
                         )}>
                           <p className={cn(
