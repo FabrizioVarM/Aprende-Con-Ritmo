@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect, useMemo, Suspense, useRef } from 'react';
@@ -505,14 +504,16 @@ function ProgressContent() {
                           isCurrent ? "text-accent" : "text-slate-500"
                         )}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
                         
-                        <div className={cn(
-                          "inline-block px-5 py-2 rounded-xl border-2 text-xs font-black tracking-widest transition-all",
-                          isReached 
-                            ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" 
-                            : "border-slate-800 bg-slate-900/50 text-slate-400"
-                        )}>
-                          {rank.min === 0 ? "START" : `${rank.min.toLocaleString()} PTS`}
-                        </div>
+                        {rank.min > 0 && (
+                          <div className={cn(
+                            "inline-block px-5 py-2 rounded-xl border-2 text-xs font-black tracking-widest transition-all",
+                            isReached 
+                              ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" 
+                              : "border-slate-800 bg-slate-900/50 text-slate-400"
+                          )}>
+                            {rank.min.toLocaleString()} PTS
+                          </div>
+                        )}
                       </div>
 
                       {/* Student Marker (Top) */}
