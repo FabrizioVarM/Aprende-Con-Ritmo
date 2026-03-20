@@ -22,7 +22,7 @@ export interface CurriculumStep {
   activities: string;
   interactiveMaterial?: string;
   criteria: string;
-  durationClasses: number;
+  durationClasses: string | number;
   resourceId?: number;
   images?: string[];
 }

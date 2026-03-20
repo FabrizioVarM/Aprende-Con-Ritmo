@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -49,7 +48,7 @@
               "activities": { "type": "string", "description": "Ejercicios o actividades prácticas." },
               "interactiveMaterial": { "type": "string", "description": "Sugerencias de material interactivo." },
               "criteria": { "type": "string", "description": "Criterios para validar el avance al siguiente paso." },
-              "durationClasses": { "type": "number", "minimum": 1, "maximum": 3 },
+              "durationClasses": { "type": "string", "description": "Duración estimada del paso (ej: '1', '1-2', '2-3')." },
               "resourceId": { "type": "number", "description": "ID opcional de un recurso de la biblioteca." },
               "images": { "type": "array", "items": { "type": "string" }, "description": "Enlaces a imágenes explicativas para el paso." }
             }

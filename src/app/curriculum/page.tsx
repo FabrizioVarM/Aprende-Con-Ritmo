@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -77,6 +78,15 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Teoría': '📖'
 };
 
+const DURATION_OPTIONS = [
+  { value: '1', label: '1 Sesión' },
+  { value: '2', label: '2 Sesiones' },
+  { value: '3', label: '3 Sesiones' },
+  { value: '1-2', label: '1 a 2 Sesiones' },
+  { value: '1-3', label: '1 a 3 Sesiones' },
+  { value: '2-3', label: '2 a 3 Sesiones' },
+];
+
 export default function CurriculumPage() {
   const { user } = useAuth();
   const { curriculums, saveCurriculum, deleteCurriculum, loading } = useCurriculumStore();
@@ -118,7 +128,7 @@ export default function CurriculumPage() {
     activities: '',
     interactiveMaterial: '',
     criteria: '',
-    durationClasses: 1,
+    durationClasses: '1',
     images: [],
     resourceId: undefined
   });
@@ -164,7 +174,7 @@ export default function CurriculumPage() {
       activities: '',
       interactiveMaterial: '',
       criteria: '',
-      durationClasses: 1,
+      durationClasses: '1',
       images: [],
       resourceId: undefined
     });
@@ -515,7 +525,7 @@ export default function CurriculumPage() {
                           {step.title}
                         </h3>
                         <Badge variant="secondary" className="rounded-full px-3 py-0.5 text-[9px] font-black uppercase tracking-widest">
-                          {step.durationClasses} {step.durationClasses === 1 ? 'Clase' : 'Clases'}
+                          {step.durationClasses} {String(step.durationClasses) === '1' ? 'Sesión' : 'Sesiones'}
                         </Badge>
                       </div>
                     </div>
@@ -572,7 +582,7 @@ export default function CurriculumPage() {
                       Paso {viewingStep.originalIndex + 1}
                     </Badge>
                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> Duración: {viewingStep.durationClasses} Sesiones
+                      <Clock className="w-3 h-3" /> Duración: {viewingStep.durationClasses} {String(viewingStep.durationClasses) === '1' ? 'Sesión' : 'Sesiones'}
                     </span>
                   </div>
                   {isAdmin && (
@@ -773,7 +783,7 @@ export default function CurriculumPage() {
                       <p className="text-xs font-bold text-accent uppercase tracking-widest">{step.objective}</p>
                       <div className="flex gap-3 pt-2">
                         <Badge variant="outline" className="rounded-lg text-[10px] font-black uppercase px-2 py-0.5 border-primary/20">
-                          {step.durationClasses} Clases
+                          {step.durationClasses} {String(step.durationClasses) === '1' ? 'Sesión' : 'Sesiones'}
                         </Badge>
                         {step.resourceId && (
                           <Badge variant="outline" className="rounded-lg text-[10px] font-black uppercase px-2 py-0.5 border-accent/20 text-accent">
@@ -907,13 +917,13 @@ export default function CurriculumPage() {
                 </div>
                 <div className="md:col-span-4 space-y-2">
                   <Label className="text-[10px] font-black uppercase text-muted-foreground">Duración (Sesiones)</Label>
-                  <Select value={String(stepForm.durationClasses)} onValueChange={(v) => setStepForm(p => ({...p, durationClasses: parseInt(v)}))}>
+                  <Select value={String(stepForm.durationClasses)} onValueChange={(v) => setStepForm(p => ({...p, durationClasses: v}))}>
                     <SelectTrigger className="h-12 rounded-xl border-2 font-bold">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {[1, 2, 3].map(n => (
-                        <SelectItem key={n} value={String(n)} className="font-bold">{n} {n === 1 ? 'Clase' : 'Clases'}</SelectItem>
+                      {DURATION_OPTIONS.map(opt => (
+                        <SelectItem key={opt.value} value={opt.value} className="font-bold">{opt.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
