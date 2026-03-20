@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -272,8 +273,13 @@ export default function CurriculumPage() {
     return <AppLayout><div className="p-20 text-center">No tienes permiso para ver esta sección.</div></AppLayout>;
   }
 
-  // Calculate sliding offset
-  const offset = currentPlan ? Math.max(0, Math.min(currentPlan.steps.length - itemsToShow, currentStepIdx - Math.floor(itemsToShow / 2))) : 0;
+  // Calculate sliding layout properties
+  const stepCount = currentPlan?.steps.length || 0;
+  const containerWidthPercent = currentPlan ? Math.max(100, (stepCount / itemsToShow) * 100) : 100;
+  
+  // Calculate offset to keep the active step centered as much as possible
+  const offset = currentPlan && stepCount > itemsToShow ? Math.max(0, Math.min(stepCount - itemsToShow, currentStepIdx - Math.floor(itemsToShow / 2))) : 0;
+  const translatePercent = currentPlan && stepCount > 0 ? (offset * (100 / stepCount)) : 0;
 
   return (
     <AppLayout>
@@ -426,21 +432,22 @@ export default function CurriculumPage() {
 
           {loading ? (
             <div className="py-20 text-center"><div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto" /></div>
-          ) : currentPlan && currentPlan.steps.length > 0 ? (
+          ) : currentPlan && stepCount > 0 ? (
             <div className="relative pt-10 pb-20 overflow-hidden">
               {/* Sliding Container */}
               <div 
                 className="flex transition-transform duration-700 ease-in-out px-4 relative"
                 style={{ 
-                  transform: `translateX(-${offset * (100 / itemsToShow)}%)` 
+                  width: `${containerWidthPercent}%`,
+                  transform: `translateX(-${translatePercent}%)` 
                 }}
               >
                 {/* Background line (muted) */}
                 <div 
                   className="absolute top-[40px] bg-muted -translate-y-1/2 z-0 rounded-full opacity-30" 
                   style={{ 
-                    left: `${(0.5 / currentPlan.steps.length) * 100}%`,
-                    width: `${((currentPlan.steps.length - 1) / currentPlan.steps.length) * 100}%`,
+                    left: `${(0.5 / stepCount) * 100}%`,
+                    width: `${((stepCount - 1) / stepCount) * 100}%`,
                     height: '4px'
                   }} 
                 />
@@ -448,8 +455,8 @@ export default function CurriculumPage() {
                 <div 
                   className="absolute top-[40px] bg-accent -translate-y-1/2 z-0 rounded-full transition-all duration-700 opacity-50" 
                   style={{ 
-                    left: `${(0.5 / currentPlan.steps.length) * 100}%`,
-                    width: `${(currentStepIdx / currentPlan.steps.length) * 100}%`,
+                    left: `${(0.5 / stepCount) * 100}%`,
+                    width: `${(currentStepIdx / stepCount) * 100}%`,
                     height: '4px'
                   }}
                 />
@@ -462,9 +469,9 @@ export default function CurriculumPage() {
                   return (
                     <div 
                       key={i} 
+                      style={{ width: `${100 / stepCount}%` }}
                       className={cn(
                         "flex flex-col items-center text-center space-y-6 transition-all duration-500 cursor-pointer group shrink-0",
-                        itemsToShow === 1 ? "w-full" : "w-1/4",
                         isCompleted && "opacity-80 scale-95 hover:opacity-100",
                         isFuture && "opacity-60 grayscale-[0.5] hover:grayscale-0 hover:opacity-100"
                       )}
@@ -521,9 +528,9 @@ export default function CurriculumPage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  disabled={currentStepIdx === currentPlan.steps.length - 1}
+                  disabled={currentStepIdx === stepCount - 1}
                   className="rounded-full w-14 h-14 border-2"
-                  onClick={() => setCurrentStepIdx(prev => Math.min(currentPlan.steps.length - 1, prev + 1))}
+                  onClick={() => setCurrentStepIdx(prev => Math.min(stepCount - 1, prev + 1))}
                 >
                   <ChevronRight className="w-6 h-6" />
                 </Button>
@@ -719,11 +726,11 @@ export default function CurriculumPage() {
                 )}
               </div>
 
-              <DialogFooter className="p-6 bg-muted/30 border-t">
+              <div className="p-6 bg-muted/30 border-t">
                 <Button className="w-full bg-accent text-white rounded-2xl h-14 font-black shadow-lg shadow-accent/20" onClick={() => setViewingStep(null)}>
                   Entendido, ¡A clase!
                 </Button>
-              </DialogFooter>
+              </div>
             </>
           )}
         </DialogContent>
@@ -867,7 +874,7 @@ export default function CurriculumPage() {
           
           <ScrollArea className="flex-1 bg-card">
             <div className="p-8 space-y-8">
-              {stepFormMode === 'add' && currentPlan && currentPlan.steps.length > 0 && (
+              {stepFormMode === 'add' && currentPlan && stepCount > 0 && (
                 <div className="space-y-3 p-6 bg-accent/5 rounded-3xl border-2 border-accent/10 border-dashed">
                   <Label className="text-xs font-black uppercase tracking-widest text-accent flex items-center gap-2">
                     <LayoutGrid className="w-4 h-4" /> Ubicación del nuevo paso
