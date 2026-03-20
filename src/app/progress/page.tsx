@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Dialog, 
   DialogContent, 
@@ -30,10 +29,22 @@ import { useResourceStore } from '@/lib/resource-store';
 import { useMilestonesStore, UserMilestone } from '@/lib/milestones-store';
 import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
 import { 
-  Star, TrendingUp, Music, CheckCircle2, Trophy, Target, Clock, 
-  ShieldCheck, Star as StarIcon, Info, Plus, Edit2, Trash2 
+  Star, TrendingUp, Music, CheckCircle2, Trophy, Clock, 
+  ShieldCheck, Star as StarIcon, Plus, Edit2, Trash2, 
+  Zap, Flame, Crown, GraduationCap, ChevronRight, LayoutGrid, Info, Search, Activity, Cpu
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { getDirectImageUrl } from '@/lib/utils/images';
+
+const RANKS = [
+  { name: 'Aprendiz', min: 0, icon: '🌱', color: 'from-slate-500 to-slate-600', glow: 'shadow-[0_0_20px_rgba(148,163,184,0.3)]' },
+  { name: 'Entusiasta', min: 1000, icon: '✨', color: 'from-blue-500 to-blue-700', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.3)]' },
+  { name: 'En Formación', min: 2300, icon: '📚', color: 'from-emerald-500 to-emerald-700', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]' },
+  { name: 'Preparado', min: 4000, icon: '🎓', color: 'from-amber-500 to-amber-700', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]' },
+  { name: 'Virtuoso', min: 6200, icon: '🔥', color: 'from-rose-500 to-rose-700', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.3)]' },
+  { name: 'Maestro', min: 9000, icon: '👑', color: 'from-purple-500 to-purple-700', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)]' },
+];
 
 const calculateDuration = (timeStr: string): number => {
   try {
@@ -43,37 +54,10 @@ const calculateDuration = (timeStr: string): number => {
     const startMinutes = h1 * 60 + m1;
     const endMinutes = h2 * 60 + m2;
     return (endMinutes - startMinutes) / 60;
-  } catch (e) {
-    return 1;
-  }
+  } catch (e) { return 1; }
 };
 
 const normalizeStr = (s: string) => s ? s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
-
-const getLevelInfo = (inst: string, points: number) => {
-  const getBaseName = (p: number, i: string) => {
-    if (i === 'Teoría') {
-      if (p >= 9000) return 'Sabio de la Composición';
-      if (p >= 6200) return 'Virtuoso de la Estructura';
-      if (p >= 4000) return 'Maestro del Solfeo';
-      if (p >= 2300) return 'Arquitecto de Sonidos';
-      if (p >= 1000) return 'Explorador del Pentagrama';
-      return 'Aprendiz de Armonía';
-    }
-    const suffix = i === 'Batería' ? 'ista' : i === 'Piano' ? 'ista' : i === 'Guitarra' ? 'ista' : i === 'Violín' ? 'ista' : i === 'Canto' ? 'ante' : 'ista';
-    const artist = i.replace(/a$|o$/, '') + suffix;
-
-    if (p >= 9000) return 'Maestro joven';
-    if (p >= 6200) return `Virtuoso con la ${i}`;
-    if (p >= 4000) return `${artist} Preparado`;
-    if (p >= 2300) return `${artist} en formación`;
-    if (p >= 1000) return `Entusiasta de ${i}`;
-    return `Aprendiz de ${i}`;
-  };
-
-  const levelNum = points >= 9000 ? 6 : points >= 6200 ? 5 : points >= 4000 ? 4 : points >= 2300 ? 3 : points >= 1000 ? 2 : 1;
-  return { name: getBaseName(points, inst), level: levelNum };
-};
 
 function ProgressContent() {
   const { user, allUsers } = useAuth();
@@ -126,92 +110,72 @@ function ProgressContent() {
 
   const currentStudent = useMemo(() => {
     if (isStaff) return students.find(s => s.id === selectedStudentId);
-    return user ? { id: user.id, name: user.name, instruments: user.instruments || [] } : null;
+    return user ? { ...user } : null;
   }, [selectedStudentId, isStaff, user, students]);
 
   useEffect(() => {
     if (currentStudent) {
-      if (currentStudent.instruments && currentStudent.instruments.length > 0) {
-        if (!selectedInstrument || !currentStudent.instruments.includes(selectedInstrument)) {
-          setSelectedInstrument(currentStudent.instruments[0]);
-        }
-      } else {
-        setSelectedInstrument('Teoría');
+      const studentInstruments = Array.from(new Set([...(currentStudent.instruments || []), 'Teoría']));
+      if (!selectedInstrument || !studentInstruments.includes(selectedInstrument)) {
+        setSelectedInstrument(studentInstruments[0]);
       }
     }
   }, [currentStudent, selectedInstrument]);
 
   const instrumentStats = useMemo(() => {
     if (!currentStudent) return {};
-    const stats: Record<string, { points: number; completedHours: number; levelName: string; levelNum: number }> = {};
+    const stats: Record<string, { points: number; completedHours: number; rank: typeof RANKS[0], nextRank: typeof RANKS[0] | null }> = {};
     
-    const studentInstruments = [...(currentStudent.instruments || []), 'Teoría'];
-    const uniqueInstruments = Array.from(new Set(studentInstruments));
+    const studentInstruments = Array.from(new Set([...(currentStudent.instruments || []), 'Teoría']));
 
-    uniqueInstruments.forEach(cat => {
+    studentInstruments.forEach(cat => {
       let points = 0;
       let completedHours = 0;
 
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(currentStudent.id)) {
           const resource = resources.find(r => r.id === comp.resourceId);
-          if (resource) {
-            const isTarget = normalizeStr(resource.category) === normalizeStr(cat);
-            if (isTarget) {
-              points += 150;
-            }
-          }
+          if (resource && normalizeStr(resource.category) === normalizeStr(cat)) points += 150;
         }
       });
 
-      if (Array.isArray(availabilities)) {
-        availabilities.forEach(avail => {
-          if (avail.slots && Array.isArray(avail.slots)) {
-            avail.slots.forEach(slot => {
-              if (slot.isBooked && slot.status === 'completed') {
-                const isSameId = slot.studentId && String(slot.studentId) === String(currentStudent.id);
-                const isSameName = slot.bookedBy && normalizeStr(slot.bookedBy) === normalizeStr(currentStudent.name || '');
-                
-                if (isSameId || isSameName) {
-                  const slotInst = slot.instrument || 'Música';
-                  const normSlotInst = normalizeStr(slotInst);
-                  const normCat = normalizeStr(cat);
-                  
-                  let matchesInstrument = normSlotInst === normCat;
-                  
-                  if (!matchesInstrument && (normSlotInst === 'musica' || normSlotInst === 'música')) {
-                    const primaryInst = currentStudent.instruments?.[0] || 'Teoría';
-                    if (normalizeStr(primaryInst) === normCat) {
-                      matchesInstrument = true;
-                    }
-                  }
-
-                  if (matchesInstrument) {
-                    const duration = calculateDuration(slot.time);
-                    points += Math.round(duration * 20);
-                    completedHours += duration;
-                  }
-                }
-              }
-            });
+      availabilities.forEach(avail => {
+        avail.slots.forEach(slot => {
+          if (slot.isBooked && slot.status === 'completed' && (String(slot.studentId) === String(currentStudent.id) || normalizeStr(slot.bookedBy || '') === normalizeStr(currentStudent.name || ''))) {
+            const slotInst = slot.instrument || 'Música';
+            let matches = normalizeStr(slotInst) === normalizeStr(cat);
+            if (!matches && (normalizeStr(slotInst) === 'musica' || normalizeStr(slotInst) === 'música')) {
+              if (normalizeStr(currentStudent.instruments?.[0] || 'Teoría') === normalizeStr(cat)) matches = true;
+            }
+            if (matches) {
+              const duration = calculateDuration(slot.time);
+              points += Math.round(duration * 20);
+              completedHours += duration;
+            }
           }
         });
-      }
-
-      const skillConfigs = DEFAULT_SKILLS_CONFIG[cat] || [];
-      skillConfigs.forEach(sc => {
-        const level = getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel);
-        points += (level * 10);
       });
 
-      const levelInfo = getLevelInfo(cat, points);
-      stats[cat] = { points, completedHours, levelName: levelInfo.name, levelNum: levelInfo.level };
-    });
+      const skillConfigs = DEFAULT_SKILLS_CONFIG[cat] || DEFAULT_SKILLS_CONFIG['Teoría'] || [];
+      skillConfigs.forEach(sc => {
+        points += (getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel) * 10);
+      });
 
+      let currentRank = RANKS[0];
+      let nextRank = null;
+      for (let i = RANKS.length - 1; i >= 0; i--) {
+        if (points >= RANKS[i].min) {
+          currentRank = RANKS[i];
+          nextRank = RANKS[i + 1] || null;
+          break;
+        }
+      }
+      stats[cat] = { points, completedHours, rank: currentRank, nextRank };
+    });
     return stats;
   }, [completions, availabilities, currentStudent, getSkillLevel, resources]);
 
-  const totalAchievementPoints = useMemo(() => {
+  const totalGlobalPoints = useMemo(() => {
     const basePoints = Object.values(instrumentStats).reduce((sum, s) => sum + (s?.points || 0), 0);
     const milestonePoints = currentStudent ? getAchievedCount(currentStudent.id) * 200 : 0;
     return basePoints + milestonePoints;
@@ -219,7 +183,7 @@ function ProgressContent() {
 
   const currentSkills = useMemo(() => {
     if (!currentStudent || !selectedInstrument) return [];
-    const configs = DEFAULT_SKILLS_CONFIG[selectedInstrument] || DEFAULT_SKILLS_CONFIG['Teoría'];
+    const configs = DEFAULT_SKILLS_CONFIG[selectedInstrument] || DEFAULT_SKILLS_CONFIG['Teoría'] || [];
     return configs.map(sc => ({
       ...sc,
       level: getSkillLevel(currentStudent.id, selectedInstrument, sc.name, sc.defaultLevel)
@@ -229,26 +193,6 @@ function ProgressContent() {
   const studentMilestones = useMemo(() => {
     return currentStudent ? getStudentMilestones(currentStudent.id) : [];
   }, [currentStudent, getStudentMilestones]);
-
-  const achievedMilestonesCount = useMemo(() => {
-    return currentStudent ? getAchievedCount(currentStudent.id) : 0;
-  }, [currentStudent, getAchievedCount]);
-
-  const openAddM = () => {
-    setEditingM(null);
-    setMTitle('');
-    setMDate('');
-    setMAchieved(false);
-    setIsMDialogOpen(true);
-  };
-
-  const openEditM = (m: UserMilestone) => {
-    setEditingM(m);
-    setMTitle(m.milestoneTitle);
-    setMDate(m.date || '');
-    setMAchieved(m.achieved);
-    setIsMDialogOpen(true);
-  };
 
   const handleSaveM = () => {
     if (!currentStudent) return;
@@ -262,307 +206,327 @@ function ProgressContent() {
 
   if (!isMounted || !user) return null;
 
+  const currentInstData = instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: RANKS[0], nextRank: RANKS[1] };
+
   return (
     <AppLayout>
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <h1 className="text-4xl font-black text-foreground font-headline tracking-tight">
-              {isStaff ? 'Seguimiento del Alumno 👩‍🏫' : 'Mi Viaje de Aprendizaje 🚀'}
-            </h1>
-            <p className="text-muted-foreground mt-1 text-lg font-medium">Visualizando el crecimiento musical y logros.</p>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            {isStaff && (
-              <Card className="rounded-[2rem] border-2 border-accent/20 p-2 pl-4 flex items-center gap-4 bg-card shadow-sm">
-                <ShieldCheck className="w-8 h-8 text-accent shrink-0" />
-                <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                  <SelectTrigger className="w-64 h-12 rounded-xl border-none font-black text-xl text-foreground focus:ring-0">
-                    <SelectValue placeholder="Seleccionar Alumno" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    {students.map(s => (
-                      <SelectItem key={s.id} value={s.id} className="font-bold text-lg">{s.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Card>
-            )}
-            
-            <Card className="rounded-[2rem] border-none shadow-xl bg-accent text-white px-8 py-4 flex items-center gap-4 shrink-0">
-              <Trophy className="w-8 h-8" />
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Puntos Globales</p>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Info className="w-3 h-3 text-white/70 cursor-help hover:text-white transition-colors" />
-                      </TooltipTrigger>
-                      <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-card text-foreground border-2 border-accent/20 shadow-xl">
-                        <p className="font-black text-xs mb-2 uppercase tracking-widest text-accent">Tu Puntuación Total</p>
-                        <ul className="text-[11px] font-bold space-y-2 text-muted-foreground">
-                          <li className="flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
-                            <span><b>Puntos de Instrumentos:</b> La suma de tus logros en todas tus clases.</span>
-                          </li>
-                          <li className="flex items-start gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
-                            <span><b>Hitos desbloqueados:</b> +200 pts por cada Hito de Carrera que un docente te asigne.</span>
-                          </li>
-                        </ul>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                <h2 className="text-2xl font-black">{totalAchievementPoints.toLocaleString()} pts</h2>
-              </div>
-            </Card>
-          </div>
+      <div className="min-h-screen bg-[#020617] -m-4 md:-m-8 lg:-m-12 p-4 md:p-12 relative overflow-hidden text-slate-100 selection:bg-accent selection:text-white">
+        {/* Futuristic Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+          <div className="absolute top-[-10%] left-[-5%] w-[60%] h-[60%] bg-accent/5 rounded-full blur-[150px] animate-pulse" />
+          <div className="absolute bottom-[-10%] right-[-5%] w-[60%] h-[60%] bg-blue-600/5 rounded-full blur-[150px] animate-pulse [animation-delay:2s]" />
+          <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-8 space-y-8">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-8 bg-accent rounded-full" />
-                <h2 className="text-2xl font-black text-foreground">Habilidades y Nivel</h2>
-              </div>
-              
-              <div className="w-full md:w-64">
-                <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                  <SelectTrigger className="h-12 rounded-2xl border-2 font-black text-foreground bg-card shadow-sm">
-                    <SelectValue placeholder="Instrumento" />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl">
-                    {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => (
-                      <SelectItem key={inst} value={inst} className="font-bold py-3">{inst}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="rounded-[2.5rem] border-none shadow-sm bg-secondary/20 dark:bg-secondary/10 p-8 flex flex-col items-center text-center space-y-4">
-                <Target className="w-10 h-10 text-foreground" />
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Rango en {selectedInstrument}</p>
-                  <h4 className="font-black text-xl text-foreground mt-1">
-                    {instrumentStats[selectedInstrument]?.levelName || 'Aprendiz'} (Nv. {instrumentStats[selectedInstrument]?.levelNum || 1})
-                  </h4>
-                </div>
-              </Card>
-
-              <Card className="rounded-[2.5rem] border-none shadow-sm bg-accent/5 dark:bg-accent/10 p-8 flex flex-col items-center text-center space-y-4">
-                <div className="flex flex-col items-center w-full">
-                  <Music className="w-10 h-10 text-accent mb-2" />
-                  <p className="text-[10px] font-black uppercase tracking-widest text-accent/70">Puntos de {selectedInstrument}</p>
-                  <h4 className="font-black text-2xl text-accent mt-1">{(instrumentStats[selectedInstrument]?.points || 0).toLocaleString()} pts</h4>
-                  
-                  <div className="mt-4">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="w-7 h-7 text-accent/50 cursor-help hover:text-accent transition-colors" />
-                        </TooltipTrigger>
-                        <TooltipContent className="rounded-[1.5rem] p-4 max-w-xs bg-card border-2 border-accent/20 shadow-xl">
-                          <p className="font-black text-xs text-foreground mb-2 uppercase tracking-widest">¿Cómo sumas puntos?</p>
-                          <ul className="text-[11px] font-bold space-y-2 text-muted-foreground text-left">
-                            <li className="flex items-start gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
-                              <span><b>Recursos:</b> +150 pts por material completado en la biblioteca.</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
-                              <span><b>Clases:</b> +20 pts por cada hora de clase asistida y validada.</span>
-                            </li>
-                            <li className="flex items-start gap-2">
-                              <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0 mt-1" />
-                              <span><b>Habilidades:</b> +10 pts por cada punto porcentual de evolución técnica.</span>
-                            </li>
-                          </ul>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="rounded-[2.5rem] border-none shadow-sm bg-blue-50 dark:bg-blue-950/20 p-8 flex flex-col items-center text-center space-y-4">
-                <Clock className="w-10 h-10 text-blue-600 dark:text-blue-400" />
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-blue-700/70 dark:text-blue-400/70">Horas de Clase con {selectedInstrument}</p>
-                  <h4 className="font-black text-2xl text-blue-800 dark:text-blue-300 mt-1">{(instrumentStats[selectedInstrument]?.completedHours || 0).toFixed(1)} h</h4>
-                </div>
-              </Card>
-            </div>
-
-            <Card className="rounded-[2.5rem] border-none shadow-md overflow-hidden bg-card">
-              <CardHeader className="bg-primary/5 p-8 border-b">
-                <CardTitle className="flex items-center gap-3 font-black text-xl text-foreground">
-                  <TrendingUp className="w-6 h-6 text-accent" />
-                  Evolución Técnica: {selectedInstrument}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-10">
-                {currentSkills.map((skill, i) => (
-                  <div key={i} className="space-y-4">
-                    <div className="flex justify-between items-center font-black">
-                      <span className="text-lg text-foreground">{skill.name}</span>
-                      <span className="text-accent bg-accent/10 px-4 py-1 rounded-full text-sm font-black">{skill.level}%</span>
+        <div className="relative z-10 max-w-7xl mx-auto space-y-16">
+          
+          {/* Header HUB Bar */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start animate-in fade-in slide-in-from-top-4 duration-700">
+            {/* Left: Global Points & Selection */}
+            <div className="lg:col-span-7 flex flex-col md:flex-row items-center gap-10">
+              <div className="relative group shrink-0">
+                <div className="absolute inset-0 bg-accent rounded-[3.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity animate-pulse" />
+                <div className="rounded-[3.5rem] bg-slate-900/40 border border-white/10 backdrop-blur-3xl px-10 py-8 flex items-center gap-6 shadow-2xl relative">
+                  <div className="relative">
+                    <Trophy className="w-14 h-14 text-accent drop-shadow-[0_0_15px_rgba(255,139,122,0.6)]" />
+                    <div className="absolute -top-2 -right-2 bg-white text-accent rounded-full p-1 shadow-lg border-2 border-accent">
+                      <Sparkles className="w-3 h-3" />
                     </div>
-                    
-                    {isStaff ? (
-                      <div className="flex items-center gap-6">
-                        <Slider 
-                          value={[skill.level]} 
-                          max={100} 
-                          step={1} 
-                          className="flex-1"
-                          onValueChange={(vals) => updateSkill(currentStudent!.id, selectedInstrument, skill.name, vals[0])}
-                        />
-                        <span className="text-[10px] font-black text-accent w-10 uppercase tracking-widest">Editar</span>
-                      </div>
-                    ) : (
-                      <Progress value={skill.level} className="h-4 rounded-full bg-primary/10" />
-                    )}
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500 mb-1">Global Experience</p>
+                    <h2 className="text-6xl font-black tabular-nums tracking-tighter leading-none text-white">{totalGlobalPoints.toLocaleString()}</h2>
+                  </div>
+                </div>
+              </div>
 
-          <div className="lg:col-span-4 space-y-8">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-8 bg-accent rounded-full" />
-              <h2 className="text-2xl font-black text-foreground">Trayectoria</h2>
-            </div>
-
-            <Card className="rounded-[2.5rem] border-none shadow-md bg-card">
-              <CardHeader className="p-8 border-b bg-muted/30 flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-3 font-black text-xl text-foreground">
-                  <StarIcon className="w-8 h-8 text-accent fill-accent" />
-                  Hitos de Carrera
-                </CardTitle>
-                <div className="flex items-center gap-3">
-                  {isAdmin && (
-                    <Button 
-                      size="icon" 
-                      className="rounded-full bg-accent text-white h-10 w-10 shadow-md hover:scale-110 transition-transform"
-                      onClick={openAddM}
-                    >
-                      <Plus className="w-5 h-5" />
-                    </Button>
+              <div className="space-y-6 flex-1">
+                <div className="flex flex-wrap gap-2">
+                  {isStaff && (
+                    <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
+                      <Search className="w-3.5 h-3.5 text-accent ml-3" />
+                      <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+                        <SelectTrigger className="w-40 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[9px] uppercase tracking-widest">
+                          <SelectValue placeholder="Alumno" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white">
+                          {students.map(s => (
+                            <SelectItem key={s.id} value={s.id} className="font-bold text-xs">{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                  <Badge className="bg-accent text-white rounded-full font-black px-6 py-3 text-xl shadow-lg shadow-accent/20">
-                    {achievedMilestonesCount}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="p-8 space-y-8">
-                {studentMilestones.length > 0 ? studentMilestones.map((m, i) => (
-                  <div key={m.id} className="flex gap-5 items-start group">
-                    <div className={cn(
-                      "mt-1 w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border-2 transition-all",
-                      m.achieved 
-                        ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 shadow-sm" 
-                        : "bg-muted/30 border-dashed border-muted-foreground/20 text-muted-foreground/40"
-                    )}>
-                      {m.achieved ? <CheckCircle2 className="w-6 h-6" /> : <div className="w-2.5 h-2.5 rounded-full bg-current" />}
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <div className={cn(
-                          "font-black text-lg leading-tight",
-                          m.achieved ? "text-foreground" : "text-muted-foreground/60"
-                        )}>
-                          {m.milestoneTitle}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {isAdmin && (
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-accent" onClick={() => openEditM(m)}>
-                                <Edit2 className="w-4 h-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive" onClick={() => deleteMilestone(m.id)}>
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          )}
-                          {isStaff && currentStudent && (
-                            <Switch 
-                              checked={m.achieved}
-                              onCheckedChange={() => toggleMilestoneAchieved(m.id)}
-                              className="scale-75 data-[state=checked]:bg-emerald-500"
-                            />
-                          )}
-                        </div>
-                      </div>
-                      <div className="text-sm font-bold text-muted-foreground">{m.achieved ? (m.date || 'Sin fecha') : 'Pendiente de asignación'}</div>
-                    </div>
+
+                  <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
+                    <LayoutGrid className="w-3.5 h-3.5 text-blue-400 ml-3" />
+                    <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
+                      <SelectTrigger className="w-40 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[9px] uppercase tracking-widest">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white">
+                        {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => (
+                          <SelectItem key={inst} value={inst} className="font-bold text-xs">{inst}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                )) : (
-                  <div className="text-center py-10">
-                    <StarIcon className="w-12 h-12 text-muted-foreground/20 mx-auto mb-3" />
-                    <p className="text-muted-foreground font-bold italic">No hay hitos asignados todavía.</p>
-                    {isAdmin && (
-                      <Button variant="link" className="text-accent font-black mt-2 underline" onClick={openAddM}>
-                        Asignar primer hito
-                      </Button>
+                </div>
+                
+                <div className="px-1">
+                  <h1 className="text-4xl font-black text-white font-headline tracking-tight leading-none">Mi Viaje Musical 🚀</h1>
+                  <p className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.4em] mt-3 flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_#FF8B7A]" />
+                    Status Operativo: <span className="text-accent">{currentInstData.rank.name}</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Technical Evolution (Minimalist HUD overlay) */}
+            <div className="lg:col-span-5 flex justify-end">
+              <div className="w-full max-w-sm space-y-6 bg-slate-900/30 border border-white/5 backdrop-blur-3xl rounded-[3rem] p-8 shadow-2xl relative group hover:border-white/10 transition-colors">
+                <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-accent/10 rounded-xl">
+                      <Cpu className="w-4 h-4 text-accent animate-spin-slow" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/60">Biometría de Datos</span>
+                  </div>
+                  <Badge variant="ghost" className="text-[8px] font-mono text-slate-600 p-0 tracking-tighter">LVL_MAP_V3</Badge>
+                </div>
+                
+                <div className="space-y-5">
+                  {currentSkills.length > 0 ? currentSkills.map((skill, i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="flex justify-between items-center px-1">
+                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{skill.name}</span>
+                        <span className="text-accent text-[10px] font-mono font-bold tracking-tighter">{skill.level.toString().padStart(3, '0')}%</span>
+                      </div>
+                      {isStaff ? (
+                        <div className="flex items-center gap-3 group/slider">
+                          <Slider 
+                            value={[skill.level]} 
+                            max={100} 
+                            step={1} 
+                            className="h-1 flex-1"
+                            onValueChange={(vals) => updateSkill(currentStudent!.id, selectedInstrument, skill.name, vals[0])}
+                          />
+                          <div className="w-2 h-2 rounded-full bg-slate-800 group-hover/slider:bg-accent transition-colors" />
+                        </div>
+                      ) : (
+                        <div className="h-1 w-full bg-slate-800/40 rounded-full overflow-hidden border border-white/5">
+                          <div 
+                            className={cn("h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(255,255,255,0.1)]", skill.color || "bg-accent")} 
+                            style={{ width: `${skill.level}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )) : (
+                    <p className="text-center italic text-slate-700 text-[9px] py-4 uppercase font-black tracking-[0.3em]">No Data Stream</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* MAIN PILAR: THE LEVEL PATH (IMMERSIVE EXPERIENCE) */}
+          <section className="relative py-32 px-4 animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
+            {/* The Level Line Base */}
+            <div className="absolute top-1/2 left-0 w-full h-[12px] bg-slate-900 -translate-y-1/2 rounded-full overflow-hidden border border-white/5 shadow-inner">
+              <div 
+                className="h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]"
+                style={{ width: `${Math.min(100, (currentInstData.points / 10000) * 100)}%` }}
+              />
+            </div>
+
+            {/* Path Nodes */}
+            <div className="flex justify-between items-center relative z-10 max-w-6xl mx-auto">
+              {RANKS.map((rank, i) => {
+                const isReached = currentInstData.points >= rank.min;
+                const isCurrent = currentInstData.rank.name === rank.name;
+                
+                return (
+                  <div key={i} className="flex flex-col items-center group relative">
+                    {/* Node Visual */}
+                    <div className="relative">
+                      {isCurrent && (
+                        <>
+                          <div className="absolute inset-0 rounded-[2.5rem] bg-accent blur-3xl opacity-40 animate-pulse" />
+                          <div className="absolute inset-[-25px] rounded-[3.5rem] border-2 border-accent/20 animate-ping [animation-duration:5s]" />
+                        </>
+                      )}
+                      
+                      <div className={cn(
+                        "w-16 h-16 md:w-32 md:h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl",
+                        isReached 
+                          ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
+                          : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
+                      )}>
+                        <span className="text-3xl md:text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">{rank.icon}</span>
+                        <div className="text-[7px] md:text-[10px] font-black uppercase tracking-tighter opacity-70">SECTOR {i + 1}</div>
+                      </div>
+                    </div>
+
+                    {/* Rank Label (Bottom) */}
+                    <div className={cn(
+                      "absolute -bottom-24 w-40 text-center transition-all duration-700",
+                      isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
+                    )}>
+                      <p className={cn(
+                        "font-black text-[10px] md:text-sm uppercase tracking-[0.25em] mb-2 drop-shadow-sm",
+                        isCurrent ? "text-accent" : "text-slate-500"
+                      )}>{rank.name}</p>
+                      <div className={cn(
+                        "inline-block px-4 py-1.5 rounded-xl border-2 text-[9px] font-black tracking-widest",
+                        isReached ? "border-white/10 bg-white/5 text-white" : "border-slate-800 text-slate-700"
+                      )}>
+                        {rank.min === 0 ? "INIT" : `${rank.min} PTS`}
+                      </div>
+                    </div>
+
+                    {/* Student Marker (Top) */}
+                    {isCurrent && (
+                      <div className="absolute -top-44 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
+                        <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
+                          <Avatar className="w-20 h-20 rounded-[1.8rem] border-2 border-accent/20">
+                            {currentStudent?.photoUrl ? (
+                              <AvatarImage src={getDirectImageUrl(currentStudent.photoUrl)} className="object-cover" />
+                            ) : (
+                              <AvatarImage src={`https://picsum.photos/seed/${currentStudent?.avatarSeed || currentStudent?.id}/150`} />
+                            )}
+                            <AvatarFallback className="bg-slate-800 text-white font-black text-2xl">{currentStudent?.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <div className="absolute inset-0 bg-accent/20 opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
+                        </div>
+                        <div className="mt-4 flex items-center gap-2 bg-slate-950 border-2 border-accent text-accent px-6 py-2.5 rounded-2xl shadow-2xl font-black text-sm tabular-nums tracking-wider">
+                          <Flame className="w-4 h-4 animate-bounce" />
+                          {currentInstData.points} EXP
+                        </div>
+                        <div className="w-1 h-12 bg-gradient-to-b from-accent to-transparent mt-1 rounded-full shadow-[0_0_10px_#FF8B7A]" />
+                      </div>
                     )}
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* Trayectoria Tray (Bottom Inmersive Section) */}
+          <section className="space-y-12 pt-20 animate-in fade-in slide-in-from-bottom-4 duration-700 [animation-delay:800ms]">
+            <div className="flex items-center justify-between border-b border-white/5 pb-8">
+              <div className="flex items-center gap-6">
+                <div className="p-5 rounded-[2rem] bg-white/5 text-accent border border-white/10 shadow-2xl group">
+                  <StarIcon className="w-8 h-8 fill-current group-hover:scale-110 group-hover:rotate-12 transition-all" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-black text-white tracking-tight uppercase tracking-[0.2em]">Expediente de Logros</h2>
+                  <p className="text-xs font-bold text-slate-600 uppercase tracking-widest mt-2 flex items-center gap-2">
+                    <Info className="w-3.5 h-3.5" /> Bitácora oficial de trayectoria académica
+                  </p>
+                </div>
+              </div>
+              {isAdmin && (
+                <Button className="rounded-2xl bg-accent hover:bg-accent/90 text-white font-black h-14 px-10 shadow-xl shadow-accent/30 gap-3 hover:scale-105 transition-all" onClick={() => { setEditingM(null); setMTitle(''); setMDate(''); setMAchieved(false); setIsMDialogOpen(true); }}>
+                  <Plus className="w-5 h-5" /> Iniciar Protocolo de Hito
+                </Button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {studentMilestones.length > 0 ? studentMilestones.map((m) => (
+                <div key={m.id} className={cn(
+                  "p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden",
+                  m.achieved 
+                    ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" 
+                    : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40"
+                )}>
+                  {m.achieved && <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-accent/5 rounded-full blur-3xl" />}
+                  <div className="flex items-start gap-8 relative z-10">
+                    <div className={cn(
+                      "w-16 h-16 rounded-[1.8rem] flex items-center justify-center shrink-0 shadow-inner border-2 transition-all group-hover:rotate-6",
+                      m.achieved ? "bg-accent/10 border-accent/30 text-accent" : "bg-slate-800/50 border-white/5 text-slate-800"
+                    )}>
+                      {m.achieved ? <Crown className="w-8 h-8" /> : <StarIcon className="w-7 h-7" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-4">
+                        <h4 className={cn("font-black text-base truncate uppercase tracking-[0.1em]", m.achieved ? "text-white" : "text-slate-700")}>{m.milestoneTitle}</h4>
+                        {isStaff && (
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-accent" onClick={() => { setEditingM(m); setMTitle(m.milestoneTitle); setMDate(m.date || ''); setMAchieved(m.achieved); setIsMDialogOpen(true); }}>
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-destructive" onClick={() => deleteMilestone(m.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 mt-4">
+                        {m.achieved ? (
+                          <>
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                            <p className="text-[10px] font-black text-emerald-500/70 uppercase tracking-[0.2em]">{m.date || 'LOGRO VALIDADO'}</p>
+                          </>
+                        ) : (
+                          <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">PENDIENTE DE ASIGNACIÓN</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="col-span-full py-28 text-center bg-white/5 rounded-[5rem] border-2 border-dashed border-white/5">
+                  <StarIcon className="w-20 h-20 text-white/5 mx-auto mb-8" />
+                  <p className="text-slate-700 font-black uppercase tracking-[0.4em] text-[11px]">Sistema de Trayectoria Vacío</p>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
       </div>
 
       <Dialog open={isMDialogOpen} onOpenChange={setIsMDialogOpen}>
-        <DialogContent className="rounded-[2rem] max-w-md border-none shadow-2xl p-0 overflow-hidden">
-          <DialogHeader className="bg-primary/10 p-8 border-b">
-            <DialogTitle className="text-2xl font-black flex items-center gap-3">
-              <Trophy className="w-6 h-6 text-accent" />
-              {editingM ? 'Editar Hito' : 'Nuevo Hito'}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground font-medium">Define un logro para la carrera musical del alumno.</DialogDescription>
+        <DialogContent className="rounded-[3.5rem] max-w-md border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white">
+          <DialogHeader className="bg-white/5 p-12 border-b border-white/10 text-center">
+            <div className="mx-auto w-24 h-24 bg-accent rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-accent/30">
+              <Trophy className="w-12 h-12 text-white" />
+            </div>
+            <DialogTitle className="text-3xl font-black">Asignación de Logro</DialogTitle>
+            <DialogDescription className="text-slate-500 font-black uppercase text-[10px] tracking-[0.3em] mt-3">Base de Datos de Trayectoria</DialogDescription>
           </DialogHeader>
-          <div className="p-8 space-y-6 bg-card">
-            <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Título del Hito</Label>
+          <div className="p-12 space-y-8">
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 px-1">Descriptor del Hito</Label>
               <Input 
                 value={mTitle} 
                 onChange={(e) => setMTitle(e.target.value)}
-                placeholder="Ej: Nivel 1 Completado"
-                className="h-12 rounded-xl border-2 font-bold focus:border-accent text-foreground bg-card"
+                className="h-16 rounded-[1.5rem] border-white/10 bg-slate-800 text-white font-black focus:border-accent text-xl uppercase"
+                placeholder="CONCEPTO DEL LOGRO"
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Fecha (opcional)</Label>
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 px-1">Ciclo Cronológico</Label>
               <Input 
                 value={mDate} 
                 onChange={(e) => setMDate(e.target.value)}
-                placeholder="Ej: Oct 2023"
-                className="h-12 rounded-xl border-2 font-bold focus:border-accent text-foreground bg-card"
+                className="h-16 rounded-[1.5rem] border-white/10 bg-slate-800 text-white font-black focus:border-accent uppercase"
+                placeholder="EJ: VERANO 2024"
               />
             </div>
-            <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border-2 border-primary/10">
-              <div className="space-y-0.5">
-                <Label className="text-sm font-black text-foreground">Estado del Hito</Label>
-                <p className="text-[10px] text-muted-foreground font-bold uppercase">¿Ya ha sido alcanzado?</p>
+            <div className="flex items-center justify-between p-8 bg-white/5 rounded-[2.5rem] border border-white/10">
+              <div className="space-y-1">
+                <Label className="text-sm font-black uppercase tracking-widest">Activación</Label>
+                <p className="text-[9px] text-slate-600 font-black uppercase tracking-tighter">¿Validar inmediatamente?</p>
               </div>
-              <Switch 
-                checked={mAchieved} 
-                onCheckedChange={setMAchieved}
-                className="data-[state=checked]:bg-emerald-500"
-              />
+              <Switch checked={mAchieved} onCheckedChange={setMAchieved} className="scale-150 data-[state=checked]:bg-accent" />
             </div>
           </div>
-          <DialogFooter className="p-8 bg-muted/30 border-t flex gap-3">
-            <Button variant="outline" className="rounded-xl flex-1 h-12 font-black text-foreground" onClick={() => setIsMDialogOpen(false)}>Cancelar</Button>
-            <Button className="bg-accent text-white rounded-xl flex-1 h-12 font-black shadow-lg shadow-accent/20" onClick={handleSaveM}>Guardar Hito</Button>
+          <DialogFooter className="p-12 bg-slate-950/50 border-t border-white/10 flex gap-5">
+            <Button variant="ghost" className="rounded-2xl flex-1 h-16 font-black text-slate-600 uppercase text-xs tracking-widest" onClick={() => setIsMDialogOpen(false)}>Abortar</Button>
+            <Button className="bg-accent text-white rounded-2xl flex-1 h-16 font-black shadow-2xl shadow-accent/20 uppercase text-xs tracking-widest" onClick={handleSaveM}>Sincronizar Datos</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
