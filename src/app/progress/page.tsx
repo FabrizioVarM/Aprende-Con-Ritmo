@@ -386,7 +386,7 @@ function ProgressContent() {
                     <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
                       <Search className="w-3.5 h-3.5 text-accent ml-3" />
                       <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                        <SelectTrigger className="w-40 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[9px] uppercase tracking-widest">
+                        <SelectTrigger className="w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
                           <SelectValue placeholder="Alumno" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white">
@@ -401,7 +401,7 @@ function ProgressContent() {
                   <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
                     <LayoutGrid className="w-3.5 h-3.5 text-blue-400 ml-3" />
                     <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                      <SelectTrigger className="w-40 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[9px] uppercase tracking-widest">
+                      <SelectTrigger className="w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white">
@@ -521,11 +521,11 @@ function ProgressContent() {
 
                         {/* Rank Label (Bottom) */}
                         <div className={cn(
-                          "absolute top-20 sm:top-24 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
+                          "absolute top-24 sm:top-32 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
                         )}>
                           <p className={cn(
-                            "font-black text-[10px] sm:text-xs uppercase tracking-[0.25em] mb-2 drop-shadow-md leading-tight",
+                            "font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] mb-2 drop-shadow-md leading-tight",
                             isCurrent ? "text-accent" : "text-slate-400"
                           )}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
                           
