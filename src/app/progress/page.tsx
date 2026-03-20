@@ -18,6 +18,11 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from '@/components/ui/button';
@@ -50,7 +55,8 @@ import {
   Search, 
   Activity, 
   Cpu,
-  Sparkles
+  Sparkles,
+  HelpCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -397,7 +403,53 @@ function ProgressContent() {
             <div className="lg:col-span-7 flex flex-col md:flex-row items-center gap-10">
               <div className="relative group shrink-0">
                 <div className="absolute inset-0 bg-accent rounded-[3.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity animate-pulse" />
-                <div className="rounded-[3.5rem] bg-slate-900/40 border border-white/10 backdrop-blur-3xl px-10 py-8 flex items-center gap-6 shadow-2xl relative">
+                <div className="rounded-[3.5rem] bg-slate-900/40 border border-white/10 backdrop-blur-3xl px-10 py-8 flex items-center gap-6 shadow-2xl relative overflow-hidden">
+                  
+                  {/* Botón de Información Popover */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="absolute top-6 left-6 text-slate-500 hover:text-accent transition-colors outline-none">
+                        <HelpCircle className="w-4 h-4" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 rounded-[2.5rem] bg-slate-900 border-white/10 text-slate-200 p-8 shadow-2xl z-50">
+                      <div className="space-y-5">
+                        <h4 className="font-black text-sm uppercase tracking-widest text-accent flex items-center gap-3">
+                          <Sparkles className="w-4 h-4" /> ¿Cómo ganar EXP?
+                        </h4>
+                        <div className="space-y-4">
+                          <div className="flex gap-4 items-start">
+                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                            <p className="text-[11px] font-bold leading-relaxed">
+                              <span className="text-white">Materiales (+150):</span> Por cada recurso de la biblioteca completado y validado en clase.
+                            </p>
+                          </div>
+                          <div className="flex gap-4 items-start">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                            <p className="text-[11px] font-bold leading-relaxed">
+                              <span className="text-white">Clases (+20):</span> Por cada hora de lección asistida y marcada como completada en tu agenda.
+                            </p>
+                          </div>
+                          <div className="flex gap-4 items-start">
+                            <div className="w-2 h-2 rounded-full bg-orange-500 mt-1.5 shrink-0 shadow-[0_0_8px_rgba(249,115,22,0.6)]" />
+                            <p className="text-[11px] font-bold leading-relaxed">
+                              <span className="text-white">Habilidades (+10):</span> Por cada punto porcentual en tus barras de biometría técnica personalizada.
+                            </p>
+                          </div>
+                          <div className="flex gap-4 items-start">
+                            <div className="w-2 h-2 rounded-full bg-accent mt-1.5 shrink-0 shadow-[0_0_8px_rgba(255,139,122,0.6)]" />
+                            <p className="text-[11px] font-bold leading-relaxed">
+                              <span className="text-white">Hitos (+200):</span> Al obtener medallas o logros históricos asignados por el profesor o administración.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="pt-2 border-t border-white/5">
+                          <p className="text-[9px] font-black uppercase text-slate-500 italic">Los puntos se actualizan en tiempo real.</p>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+
                   <div className="relative">
                     <Trophy className="w-14 h-14 text-accent drop-shadow-[0_0_15px_rgba(255,139,122,0.6)]" />
                     <div className="absolute -top-2 -right-2 bg-white text-accent rounded-full p-1 shadow-lg border-2 border-accent">
@@ -554,7 +606,7 @@ function ProgressContent() {
 
                         {/* Rank Label (Bottom) */}
                         <div className={cn(
-                          "absolute top-24 sm:top-32 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
+                          "absolute top-28 sm:top-32 w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
                         )}>
                           <p className={cn(
