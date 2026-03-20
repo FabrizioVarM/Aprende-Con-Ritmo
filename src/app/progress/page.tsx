@@ -213,14 +213,10 @@ function ProgressContent() {
     return instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: RANKS[0], nextRank: RANKS[1] };
   }, [instrumentStats, selectedInstrument]);
 
-  /**
-   * Calculates the precise visual progress percentage (0-100) across all ranks.
-   */
   const pathProgress = useMemo(() => {
     const points = currentInstData.points;
     const totalNodes = RANKS.length;
     
-    // Find current segment
     let segmentIndex = 0;
     for (let i = 0; i < totalNodes - 1; i++) {
       if (points >= RANKS[i].min && points < RANKS[i+1].min) {
@@ -228,12 +224,12 @@ function ProgressContent() {
         break;
       }
       if (i === totalNodes - 2 && points >= RANKS[totalNodes - 1].min) {
-        segmentIndex = totalNodes - 1; // At or beyond max rank
+        segmentIndex = totalNodes - 1;
       }
     }
 
     if (segmentIndex >= totalNodes - 1) {
-      return 100; // Cap at end
+      return 100;
     }
 
     const segmentStart = RANKS[segmentIndex].min;
@@ -241,12 +237,10 @@ function ProgressContent() {
     const segmentRange = segmentEnd - segmentStart;
     const segmentProgress = (points - segmentStart) / segmentRange;
     
-    // Total progress is (current_node_index + progress_to_next) / total_segments
     const totalProgress = (segmentIndex + segmentProgress) / (totalNodes - 1);
     return totalProgress * 100;
   }, [currentInstData.points]);
 
-  // Centering logic
   const hasScrolledRef = useRef(false);
 
   useEffect(() => {
@@ -277,7 +271,6 @@ function ProgressContent() {
     hasScrolledRef.current = false;
   }, [selectedInstrument, selectedStudentId]);
 
-  // Mouse drag handlers
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
     setIsDragging(true);
@@ -301,7 +294,6 @@ function ProgressContent() {
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
 
-  // Touch drag handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     if (!scrollRef.current) return;
     setIsDragging(true);
@@ -529,22 +521,22 @@ function ProgressContent() {
                           </div>
                         </div>
 
-                        {/* Rank Label (Bottom) */}
+                        {/* Rank Label (Bottom) - Repositioned closer */}
                         <div className={cn(
-                          "absolute -bottom-28 w-64 text-center transition-all duration-700 flex flex-col items-center -translate-x-1/2 px-4",
-                          isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-8"
+                          "absolute top-20 sm:top-24 w-64 text-center transition-all duration-700 flex flex-col items-center -translate-x-1/2 px-4",
+                          isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
                         )}>
                           <p className={cn(
-                            "font-black text-xs sm:text-sm uppercase tracking-[0.2em] mb-3 drop-shadow-md leading-tight",
-                            isCurrent ? "text-accent" : "text-slate-500"
+                            "font-black text-[10px] sm:text-xs uppercase tracking-[0.25em] mb-2 drop-shadow-md leading-tight",
+                            isCurrent ? "text-accent" : "text-slate-400"
                           )}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
                           
                           {rank.min > 0 && (
                             <div className={cn(
-                              "inline-block px-5 py-2 rounded-xl border-2 text-[10px] sm:text-xs font-black tracking-widest transition-all shadow-sm",
+                              "inline-block px-4 py-1.5 rounded-xl border-2 text-[9px] sm:text-[10px] font-black tracking-widest transition-all shadow-sm",
                               isReached 
                                 ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" 
-                                : "border-slate-800 bg-slate-900/50 text-slate-400"
+                                : "border-slate-800 bg-slate-900/50 text-slate-500"
                             )}>
                               {rank.min.toLocaleString()} PTS
                             </div>
@@ -587,7 +579,7 @@ function ProgressContent() {
               </div>
             </div>
             
-            {/* Scroll Indicator Hint */}
+            {/* Scroll Indicator Hint - Positioned below the map */}
             <div className="mt-4 flex items-center justify-center gap-3 text-slate-600 animate-pulse pointer-events-none relative z-30">
               <ChevronRight className="w-4 h-4 rotate-180" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em]">Arrastra para explorar el mapa</span>
