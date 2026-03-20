@@ -273,35 +273,34 @@ function ProgressContent() {
     return totalProgress * 100;
   }, [currentInstData.points]);
 
-  const hasScrolledRef = useRef(false);
-
+  // Auto-scroll effect to center the student marker whenever the data or instrument changes
   useEffect(() => {
-    if (isMounted && scrollRef.current && currentInstData.rank && !hasScrolledRef.current) {
-      const rankIndex = RANKS.findIndex(r => r.name === currentInstData.rank.name);
-      if (rankIndex !== -1) {
-        const timer = setTimeout(() => {
-          if (!scrollRef.current) return;
-          const container = scrollRef.current;
-          const contentWidth = container.scrollWidth;
-          const viewportWidth = container.clientWidth;
-          
-          const nodeX = (rankIndex / (RANKS.length - 1)) * (contentWidth - 200) + 100;
-          const centerOffset = nodeX - (viewportWidth / 2);
-          
-          container.scrollTo({
-            left: Math.max(0, centerOffset),
-            behavior: 'smooth'
-          });
-          hasScrolledRef.current = true;
-        }, 500);
-        return () => clearTimeout(timer);
-      }
+    if (isMounted && scrollRef.current && pathProgress !== undefined) {
+      const timer = setTimeout(() => {
+        if (!scrollRef.current) return;
+        const container = scrollRef.current;
+        const contentWidth = container.scrollWidth;
+        const viewportWidth = container.clientWidth;
+        
+        // The path area is between 25vw and 300% - 25vw
+        // viewportWidth * 0.25 represents the side padding (25vw)
+        const padding = viewportWidth * 0.25;
+        const pathWidth = contentWidth - (padding * 2);
+        
+        // markerX is the absolute pixel position of the student marker in the scroll container
+        const markerX = padding + (pathWidth * (pathProgress / 100));
+        
+        // targetScroll is the scrollLeft value that places markerX at the center of the viewport
+        const targetScroll = markerX - (viewportWidth / 2);
+        
+        container.scrollTo({
+          left: Math.max(0, targetScroll),
+          behavior: 'smooth'
+        });
+      }, 600); // Wait for animations and layout to settle
+      return () => clearTimeout(timer);
     }
-  }, [isMounted, currentInstData.rank, selectedInstrument]);
-
-  useEffect(() => {
-    hasScrolledRef.current = false;
-  }, [selectedInstrument, selectedStudentId]);
+  }, [isMounted, selectedInstrument, selectedStudentId, pathProgress]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
