@@ -138,9 +138,17 @@ function ProgressContent() {
   const searchParams = useSearchParams();
   const queryStudentId = searchParams.get('studentId');
   
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
-  const [selectedInstrument, setSelectedInstrument] = useState<string>('');
+  // Initialize state immediately from user profile or query to avoid "jumps" on mount
+  const [selectedStudentId, setSelectedStudentId] = useState<string>(() => {
+    return queryStudentId || (user?.role === 'student' ? user.id : '');
+  });
+
+  const [selectedInstrument, setSelectedInstrument] = useState<string>(() => {
+    return user?.instruments?.[0] || 'Teoría';
+  });
+
   const [isMounted, setIsMounted] = useState(false);
+  const [enableTransitions, setEnableTransitions] = useState(false);
 
   const [isRanksDialogOpen, setIsRanksDialogOpen] = useState(false);
   const [tempRanks, setTempRanks] = useState<RankConfig[]>([]);
@@ -170,18 +178,17 @@ function ProgressContent() {
 
   useEffect(() => {
     setIsMounted(true);
-    if (user) {
-      if (isStaff) {
-        if (queryStudentId) {
-          setSelectedStudentId(queryStudentId);
-        } else if (!selectedStudentId && students.length > 0) {
-          setSelectedStudentId(students[0].id);
-        }
-      } else {
-        setSelectedStudentId(user.id);
-      }
+    // Small delay to allow the layout to settle before enabling smooth transitions
+    const timer = setTimeout(() => setEnableTransitions(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Staff logic to pick the first student if none selected
+  useEffect(() => {
+    if (isStaff && !selectedStudentId && students.length > 0) {
+      setSelectedStudentId(students[0].id);
     }
-  }, [user, isStaff, students, selectedStudentId, queryStudentId]);
+  }, [isStaff, selectedStudentId, students]);
 
   useEffect(() => {
     if (isRanksDialogOpen) {
@@ -242,7 +249,6 @@ function ProgressContent() {
         points += (getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel) * 10);
       });
 
-      // Obtener los rangos correctos para el cálculo de este instrumento específico
       const ranksForInst = (settings.instrumentRanks && settings.instrumentRanks[cat]) ? settings.instrumentRanks[cat] : (settings.ranks || DEFAULT_RANKS);
 
       let currentRank = ranksForInst[0];
@@ -374,7 +380,6 @@ function ProgressContent() {
   };
 
   const handleSaveRanks = () => {
-    // Guardar rangos independientes para el instrumento seleccionado
     const updatedInstrumentRanks = { ...(settings.instrumentRanks || {}) };
     updatedInstrumentRanks[selectedInstrument] = tempRanks;
     
@@ -622,7 +627,10 @@ function ProgressContent() {
               <div className="relative flex items-center min-w-[300%] px-[25vw] h-12">
                 <div className="absolute top-1/2 left-[25vw] right-[25vw] h-2 bg-slate-900/50 -translate-y-1/2 rounded-full overflow-hidden shadow-inner">
                   <div 
-                    className="h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]"
+                    className={cn(
+                      "h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]",
+                      enableTransitions ? "transition-all duration-1000" : "transition-none"
+                    )}
                     style={{ width: `${pathProgress}%` }}
                   />
                 </div>
