@@ -115,6 +115,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
     return () => cancelAnimationFrame(frame);
   }, [value]);
 
+  // Se asegura de mostrar 2 dígitos (05%) a menos que sea 100%
   const displayValue = current === 100 ? "100" : current.toString().padStart(2, '0');
   return <>{displayValue}%</>;
 };
@@ -171,8 +172,8 @@ function ProgressContent() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Start animation only after component has fully hydrated and listeners are active
-    const timer = setTimeout(() => setIsAnimationActive(true), 600);
+    // Demora de 1 segundo para estabilizar datos antes de mostrar la animación de crecimiento
+    const timer = setTimeout(() => setIsAnimationActive(true), 1000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -609,7 +610,7 @@ function ProgressContent() {
             </div>
           </div>
 
-          <section className="relative select-none animate-in fade-in zoom-in duration-1000 [animation-delay:400ms]">
+          <section className="relative select-none">
             <div 
               ref={scrollRef}
               onMouseDown={handleMouseDown}
@@ -622,11 +623,14 @@ function ProgressContent() {
               className="overflow-x-auto overflow-y-hidden immersive-scrollbar flex items-center relative pt-48 pb-32 cursor-grab active:cursor-grabbing h-[500px]"
             >
               <div className="relative flex items-center min-w-[300%] px-[25vw] h-12">
-                <div className="absolute top-1/2 left-[25vw] right-[25vw] h-2 bg-slate-900/50 -translate-y-1/2 rounded-full overflow-hidden shadow-inner">
+                <div className={cn(
+                  "absolute top-1/2 left-[25vw] right-[25vw] h-2 bg-slate-900/50 -translate-y-1/2 rounded-full overflow-hidden shadow-inner transition-opacity duration-1000",
+                  isAnimationActive ? "opacity-100" : "opacity-0"
+                )}>
                   <div 
                     className={cn(
-                      "h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]",
-                      isAnimationActive ? "transition-all duration-1000" : "transition-none"
+                      "h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 shadow-[0_0_30px_rgba(255,139,122,0.5)]",
+                      isAnimationActive ? "transition-all duration-[2000ms] ease-out" : "transition-none"
                     )}
                     style={{ width: `${isAnimationActive ? pathProgress : 0}%` }}
                   />
@@ -700,10 +704,16 @@ function ProgressContent() {
                   style={{ transform: 'translateY(-50%)' }}
                 >
                   <div 
-                    className="absolute transition-all duration-1000 ease-out flex flex-col items-center"
+                    className={cn(
+                      "absolute flex flex-col items-center",
+                      isAnimationActive ? "transition-all duration-[2000ms] ease-out" : "transition-none"
+                    )}
                     style={{ left: `${isAnimationActive ? pathProgress : 0}%`, transform: 'translateX(-50%)' }}
                   >
-                    <div className="relative -top-40 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
+                    <div className={cn(
+                      "relative -top-40 flex flex-col items-center transition-opacity duration-1000",
+                      isAnimationActive ? "opacity-100" : "opacity-0"
+                    )}>
                       <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
                         <Avatar className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.8rem] border-2 border-accent/20">
                           {currentStudent?.photoUrl ? (
