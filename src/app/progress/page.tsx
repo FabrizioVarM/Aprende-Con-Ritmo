@@ -34,6 +34,7 @@ import { useResourceStore } from '@/lib/resource-store';
 import { useMilestonesStore, UserMilestone } from '@/lib/milestones-store';
 import { useSettingsStore, DEFAULT_RANKS, RankConfig } from '@/lib/settings-store';
 import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Star, 
   TrendingUp, 
@@ -125,6 +126,7 @@ function ProgressContent() {
   const { updateSkill, getSkillLevel } = useSkillsStore();
   const { resources } = useResourceStore();
   const { settings, updateSettings } = useSettingsStore();
+  const { toast } = useToast();
   const { 
     addMilestone, 
     updateMilestone, 
@@ -426,15 +428,15 @@ function ProgressContent() {
                             <div className="space-y-2.5">
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
-                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Materiales (+150):</span> Al completar recursos de biblioteca.</p>
+                                <p className="text-10px font-bold leading-snug"><span className="text-white">Materiales (+150):</span> Al completar recursos de biblioteca.</p>
                               </div>
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
-                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Clases (+20/h):</span> Por cada hora de lección asistida.</p>
+                                <p className="text-10px font-bold leading-snug"><span className="text-white">Clases (+20/h):</span> Por cada hora de lección asistida.</p>
                               </div>
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
-                                <p className="text-[10px] font-bold leading-snug"><span className="text-white">Habilidades (+10):</span> Por cada % de avance técnico.</p>
+                                <p className="text-10px font-bold leading-snug"><span className="text-white">Habilidades (+10):</span> Por cada % de avance técnico.</p>
                               </div>
                             </div>
                           </div>
@@ -445,7 +447,7 @@ function ProgressContent() {
                             </p>
                             <div className="flex gap-3 items-start">
                               <div className="w-1.5 h-1.5 rounded-full bg-accent mt-1 shadow-[0_0_5px_#FF8B7A]" />
-                              <p className="text-[10px] font-bold leading-snug"><span className="text-white">Hitos (+200):</span> Logros históricos de trayectoria.</p>
+                              <p className="text-10px font-bold leading-snug"><span className="text-white">Hitos (+200):</span> Logros históricos de trayectoria.</p>
                             </div>
                           </div>
                         </div>
