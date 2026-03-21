@@ -140,7 +140,6 @@ function ProgressContent() {
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
 
-  // Admin Ranks Editing State
   const [isRanksDialogOpen, setIsRanksDialogOpen] = useState(false);
   const [tempRanks, setTempRanks] = useState<RankConfig[]>([]);
 
@@ -160,7 +159,12 @@ function ProgressContent() {
   
   const students = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
 
-  const currentRanks = useMemo(() => settings.ranks || DEFAULT_RANKS, [settings.ranks]);
+  const currentRanks = useMemo(() => {
+    if (selectedInstrument && settings.instrumentRanks?.[selectedInstrument]) {
+      return settings.instrumentRanks[selectedInstrument];
+    }
+    return settings.ranks || DEFAULT_RANKS;
+  }, [settings.ranks, settings.instrumentRanks, selectedInstrument]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -236,19 +240,22 @@ function ProgressContent() {
         points += (getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel) * 10);
       });
 
-      let currentRank = currentRanks[0];
+      // Obtener los rangos correctos para el cálculo de este instrumento específico
+      const ranksForInst = (settings.instrumentRanks && settings.instrumentRanks[cat]) ? settings.instrumentRanks[cat] : (settings.ranks || DEFAULT_RANKS);
+
+      let currentRank = ranksForInst[0];
       let nextRank = null;
-      for (let i = currentRanks.length - 1; i >= 0; i--) {
-        if (points >= currentRanks[i].min) {
-          currentRank = currentRanks[i];
-          nextRank = currentRanks[i + 1] || null;
+      for (let i = ranksForInst.length - 1; i >= 0; i--) {
+        if (points >= ranksForInst[i].min) {
+          currentRank = ranksForInst[i];
+          nextRank = ranksForInst[i + 1] || null;
           break;
         }
       }
       stats[cat] = { points, completedHours, rank: currentRank, nextRank };
     });
     return stats;
-  }, [completions, availabilities, currentStudent, getSkillLevel, resources, currentRanks]);
+  }, [completions, availabilities, currentStudent, getSkillLevel, resources, settings.ranks, settings.instrumentRanks]);
 
   const currentInstData = useMemo(() => {
     return instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: currentRanks[0], nextRank: currentRanks[1] };
@@ -365,9 +372,13 @@ function ProgressContent() {
   };
 
   const handleSaveRanks = () => {
-    updateSettings({ ranks: tempRanks });
+    // Guardar rangos independientes para el instrumento seleccionado
+    const updatedInstrumentRanks = { ...(settings.instrumentRanks || {}) };
+    updatedInstrumentRanks[selectedInstrument] = tempRanks;
+    
+    updateSettings({ instrumentRanks: updatedInstrumentRanks });
     setIsRanksDialogOpen(false);
-    toast({ title: "Sectores Actualizados ✨", description: "La configuración de niveles ha sido guardada." });
+    toast({ title: "Sectores Actualizados ✨", description: `Configuración guardada para ${selectedInstrument}.` });
   };
 
   const getRankDisplayName = (baseName: string, instrument: string) => {
@@ -789,15 +800,14 @@ function ProgressContent() {
         </div>
       </div>
 
-      {/* ADMIN: DIALOGO PARA CONFIGURAR SECTORES / RANGOS */}
       <Dialog open={isRanksDialogOpen} onOpenChange={setIsRanksDialogOpen}>
         <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white flex flex-col max-h-[90vh]">
           <DialogHeader className="bg-white/5 p-8 border-b border-white/10 shrink-0">
             <DialogTitle className="text-2xl font-black flex items-center gap-3 text-accent">
               <Settings className="w-6 h-6" />
-              Configuración de Sectores
+              Configuración de Sectores: {selectedInstrument}
             </DialogTitle>
-            <DialogDescription className="text-slate-400 font-medium">Define los nombres, puntajes mínimos e iconos de cada nivel de progreso.</DialogDescription>
+            <DialogDescription className="text-slate-400 font-medium">Define los nombres, puntajes mínimos e iconos independientes para este instrumento.</DialogDescription>
           </DialogHeader>
           
           <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-900 custom-scrollbar">
@@ -866,7 +876,7 @@ function ProgressContent() {
           <DialogFooter className="p-8 bg-slate-950/50 border-t border-white/10 shrink-0">
             <Button variant="ghost" onClick={() => setIsRanksDialogOpen(false)} className="rounded-xl flex-1 h-14 font-black text-slate-400">Cancelar</Button>
             <Button onClick={handleSaveRanks} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 gap-2">
-              <Save className="w-5 h-5" /> Guardar Cambios
+              <Save className="w-5 h-5" /> Guardar para {selectedInstrument}
             </Button>
           </DialogFooter>
         </DialogContent>

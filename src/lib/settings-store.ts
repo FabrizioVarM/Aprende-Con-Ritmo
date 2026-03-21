@@ -84,6 +84,8 @@ export interface AppSettings {
   termsContent?: string;
   // Configuración de Rangos/Sectores
   ranks?: RankConfig[];
+  // Mapeo de rangos por instrumento (Independientes)
+  instrumentRanks?: Record<string, RankConfig[]>;
 }
 
 export const FALLBACK_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
@@ -97,7 +99,6 @@ export const DEFAULT_RANKS: RankConfig[] = [
   { name: 'Maestro', min: 9000, icon: '👑', color: 'from-purple-500 to-purple-700', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)]' },
 ];
 
-// Placeholder estable que no cambia aleatoriamente (SVG de nota musical en color acento)
 const BRAND_PLACEHOLDER_LOGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF8B7A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5l12-2v13'%3E%3C/path%3E%3Ccircle cx='6' cy='18' r='3'%3E%3C/circle%3E%3Ccircle cx='18' cy='16' r='3'%3E%3C/circle%3E%3C/svg%3E";
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -112,7 +113,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   enableMarket: false,
   showPostulations: true,
   enablePostulations: false,
-  showCurriculum: false, // Oculto por defecto hasta terminarlo
+  showCurriculum: false,
   enableCurriculum: false,
   zones: FALLBACK_ZONES,
   heroTitle: 'Tu aventura musical continúa aquí 🎼',
@@ -136,7 +137,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   moduleFooterInfo: 'Administración trabaja en pasarelas de pago y sistemas de recompensas.',
   moduleSectionIcon: 'Zap',
   ranks: DEFAULT_RANKS,
-  // Valores por defecto para Sobre Nosotros
+  instrumentRanks: {},
   aboutHeroTitle: 'Aprende con Ritmo',
   aboutHeroSubtitle: 'Somos más que una escuela; somos una comunidad apasionada por la educación musical moderna.',
   aboutHeroBadge: 'Nuestra Identidad',
@@ -159,7 +160,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   ],
   aboutFooterTitle: '¿Listo para empezar?',
   aboutFooterSubtitle: 'Tu viaje musical es único. Utiliza cada una de estas herramientas para sacar el mayor provecho a tus clases.',
-  // Plan de Estudios defaults
   curriculumHeroTitle: 'Plan de Estudios',
   curriculumHeroSubtitle: 'Estandarizado',
   curriculumHeroDescription: 'Bienvenido al núcleo académico de Aprende con Ritmo. Aquí encontrarás la ruta estructurada que garantiza que cada alumno, sin importar su profesor, reciba una formación técnica y musical de excelencia.',
@@ -179,9 +179,7 @@ export function useSettingsStore() {
       try {
         const parsed = JSON.parse(cached);
         setSettings(prev => ({ ...prev, ...parsed }));
-      } catch (e) {
-        console.error("Error cargando ajustes cacheados:", e);
-      }
+      } catch (e) {}
     }
 
     const docRef = doc(db, 'settings', 'global');
