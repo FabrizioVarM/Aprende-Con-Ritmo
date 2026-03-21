@@ -756,44 +756,49 @@ export default function CurriculumPage() {
       {/* MODAL: MALLA CURRICULAR (VERSIÓN ESCRITA) */}
       <Dialog open={isMeshOpen} onOpenChange={setIsMeshOpen}>
         <DialogContent className="rounded-[3rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col h-[85vh]">
-          <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
+          <DialogHeader className="bg-slate-50 dark:bg-slate-900 p-8 border-b space-y-2 shrink-0">
             <DialogTitle className="text-3xl font-black text-foreground flex items-center gap-3">
-              <LayoutList className="w-8 h-8 text-accent" />
+              <LayoutList className="w-8 h-8 text-slate-400" />
               Malla Curricular: {selectedInstrument}
             </DialogTitle>
             <DialogDescription className="font-medium text-muted-foreground">Vista panorámica de todos los pasos académicos del instrumento.</DialogDescription>
           </DialogHeader>
           
-          <ScrollArea className="flex-1 bg-card">
-            <div className="p-8 space-y-6">
-              <div className="p-6 bg-accent/5 rounded-[2rem] border-2 border-dashed border-accent/20 mb-8">
-                <p className="text-sm font-bold text-accent italic leading-relaxed text-center">
+          <ScrollArea className="flex-1 bg-white dark:bg-slate-950">
+            <div className="p-8 space-y-10">
+              <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-[2rem] border-2 border-slate-100 dark:border-slate-800 mb-4">
+                <p className="text-sm font-bold text-slate-600 dark:text-slate-400 italic leading-relaxed text-center">
                   "{currentPlan?.description || 'Plan estandarizado de la academia.'}"
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-0">
                 {currentPlan?.steps.map((step, idx) => (
-                  <div key={idx} className="flex gap-6 items-start">
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center font-black text-accent shrink-0 shadow-sm">
+                  <div key={idx} className="group flex gap-8 items-start relative py-6 px-4 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors rounded-3xl">
+                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 flex items-center justify-center font-black text-slate-400 shrink-0 shadow-sm group-hover:border-accent group-hover:text-accent transition-all duration-300">
                       {idx + 1}
                     </div>
-                    <div className="flex-1 space-y-2 pb-6 border-b border-primary/5 last:border-0">
-                      <h4 className="font-black text-lg text-foreground">{step.title}</h4>
-                      <p className="text-xs font-bold text-accent uppercase tracking-widest">{step.objective}</p>
-                      <div className="flex gap-3 pt-2">
-                        <Badge variant="outline" className="rounded-lg text-[10px] font-black uppercase px-2 py-0.5 border-primary/20">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between gap-4">
+                        <h4 className="font-black text-xl text-foreground group-hover:text-accent transition-colors">{step.title}</h4>
+                        <Badge variant="outline" className="rounded-full text-[10px] font-black uppercase px-3 py-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-muted-foreground shrink-0">
                           {step.durationClasses} {String(step.durationClasses) === '1' ? 'Sesión' : 'Sesiones'}
                         </Badge>
+                      </div>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed line-clamp-2">{step.objective}</p>
+                      
+                      <div className="flex flex-wrap gap-3 pt-2 opacity-60 group-hover:opacity-100 transition-opacity">
                         {step.resourceId && (
-                          <Badge variant="outline" className="rounded-lg text-[10px] font-black uppercase px-2 py-0.5 border-accent/20 text-accent">
-                            Recurso Enlazado
-                          </Badge>
+                          <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <BookOpenCheck className="w-3.5 h-3.5" />
+                            Recurso Vinculado
+                          </div>
                         )}
                         {step.images && step.images.length > 0 && (
-                          <Badge variant="outline" className="rounded-lg text-[10px] font-black uppercase px-2 py-0.5 border-blue-200 text-blue-600">
+                          <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <ImageIcon className="w-3.5 h-3.5" />
                             {step.images.length} Imagen(es)
-                          </Badge>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -803,8 +808,8 @@ export default function CurriculumPage() {
             </div>
           </ScrollArea>
 
-          <DialogFooter className="p-6 bg-muted/30 border-t shrink-0">
-            <Button variant="outline" onClick={() => setIsMeshOpen(false)} className="w-full rounded-2xl h-12 font-black border-2">Cerrar Malla</Button>
+          <DialogFooter className="p-6 bg-slate-50 dark:bg-slate-900 border-t shrink-0">
+            <Button variant="outline" onClick={() => setIsMeshOpen(false)} className="w-full rounded-2xl h-14 font-black border-2 hover:bg-slate-100 transition-all text-foreground">Cerrar Malla</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
