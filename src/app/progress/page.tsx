@@ -32,6 +32,7 @@ import { useBookingStore } from '@/lib/booking-store';
 import { useSkillsStore } from '@/lib/skills-store';
 import { useResourceStore } from '@/lib/resource-store';
 import { useMilestonesStore, UserMilestone } from '@/lib/milestones-store';
+import { useSettingsStore, DEFAULT_RANKS, RankConfig } from '@/lib/settings-store';
 import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
 import { 
   Star, 
@@ -57,20 +58,15 @@ import {
   Cpu,
   Sparkles,
   HelpCircle,
-  Shapes
+  Shapes,
+  Settings,
+  Save,
+  Image as ImageIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getDirectImageUrl } from '@/lib/utils/images';
-
-const RANKS = [
-  { name: 'Aprendiz', min: 0, icon: '🌱', color: 'from-slate-500 to-slate-600', glow: 'shadow-[0_0_20px_rgba(148,163,184,0.3)]' },
-  { name: 'Entusiasta', min: 1000, icon: '✨', color: 'from-blue-500 to-blue-700', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.3)]' },
-  { name: 'En Formación', min: 2300, icon: '📚', color: 'from-emerald-500 to-emerald-700', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]' },
-  { name: 'Preparado', min: 4000, icon: '🎓', color: 'from-amber-500 to-amber-700', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]' },
-  { name: 'Virtuoso', min: 6200, icon: '🔥', color: 'from-rose-500 to-rose-700', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.3)]' },
-  { name: 'Maestro', min: 9000, icon: '👑', color: 'from-purple-500 to-purple-700', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)]' },
-];
+import Image from 'next/image';
 
 const INSTRUMENT_TITLES: Record<string, string> = {
   'Guitarra': 'Guitarrista',
@@ -128,6 +124,7 @@ function ProgressContent() {
   const { availabilities } = useBookingStore();
   const { updateSkill, getSkillLevel } = useSkillsStore();
   const { resources } = useResourceStore();
+  const { settings, updateSettings } = useSettingsStore();
   const { 
     addMilestone, 
     updateMilestone, 
@@ -142,6 +139,10 @@ function ProgressContent() {
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [selectedInstrument, setSelectedInstrument] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
+
+  // Admin Ranks Editing State
+  const [isRanksDialogOpen, setIsRanksDialogOpen] = useState(false);
+  const [tempRanks, setTempRanks] = useState<RankConfig[]>([]);
 
   const [isMDialogOpen, setIsMDialogOpen] = useState(false);
   const [editingM, setEditingM] = useState<UserMilestone | null>(null);
@@ -159,6 +160,8 @@ function ProgressContent() {
   
   const students = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
 
+  const currentRanks = useMemo(() => settings.ranks || DEFAULT_RANKS, [settings.ranks]);
+
   useEffect(() => {
     setIsMounted(true);
     if (user) {
@@ -173,6 +176,12 @@ function ProgressContent() {
       }
     }
   }, [user, isStaff, students, selectedStudentId, queryStudentId]);
+
+  useEffect(() => {
+    if (isRanksDialogOpen) {
+      setTempRanks(JSON.parse(JSON.stringify(currentRanks)));
+    }
+  }, [isRanksDialogOpen, currentRanks]);
 
   const currentStudent = useMemo(() => {
     if (isStaff) return students.find(s => s.id === selectedStudentId);
@@ -190,7 +199,7 @@ function ProgressContent() {
 
   const instrumentStats = useMemo(() => {
     if (!currentStudent) return {};
-    const stats: Record<string, { points: number; completedHours: number; rank: typeof RANKS[0], nextRank: typeof RANKS[0] | null }> = {};
+    const stats: Record<string, { points: number; completedHours: number; rank: RankConfig, nextRank: RankConfig | null }> = {};
     
     const studentInstruments = Array.from(new Set([...(currentStudent.instruments || []), 'Teoría']));
 
@@ -227,35 +236,35 @@ function ProgressContent() {
         points += (getSkillLevel(currentStudent.id, cat, sc.name, sc.defaultLevel) * 10);
       });
 
-      let currentRank = RANKS[0];
+      let currentRank = currentRanks[0];
       let nextRank = null;
-      for (let i = RANKS.length - 1; i >= 0; i--) {
-        if (points >= RANKS[i].min) {
-          currentRank = RANKS[i];
-          nextRank = RANKS[i + 1] || null;
+      for (let i = currentRanks.length - 1; i >= 0; i--) {
+        if (points >= currentRanks[i].min) {
+          currentRank = currentRanks[i];
+          nextRank = currentRanks[i + 1] || null;
           break;
         }
       }
       stats[cat] = { points, completedHours, rank: currentRank, nextRank };
     });
     return stats;
-  }, [completions, availabilities, currentStudent, getSkillLevel, resources]);
+  }, [completions, availabilities, currentStudent, getSkillLevel, resources, currentRanks]);
 
   const currentInstData = useMemo(() => {
-    return instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: RANKS[0], nextRank: RANKS[1] };
-  }, [instrumentStats, selectedInstrument]);
+    return instrumentStats[selectedInstrument] || { points: 0, completedHours: 0, rank: currentRanks[0], nextRank: currentRanks[1] };
+  }, [instrumentStats, selectedInstrument, currentRanks]);
 
   const pathProgress = useMemo(() => {
     const points = currentInstData.points;
-    const totalNodes = RANKS.length;
+    const totalNodes = currentRanks.length;
     
     let segmentIndex = 0;
     for (let i = 0; i < totalNodes - 1; i++) {
-      if (points >= RANKS[i].min && points < RANKS[i+1].min) {
+      if (points >= currentRanks[i].min && points < currentRanks[i+1].min) {
         segmentIndex = i;
         break;
       }
-      if (i === totalNodes - 2 && points >= RANKS[totalNodes - 1].min) {
+      if (i === totalNodes - 2 && points >= currentRanks[totalNodes - 1].min) {
         segmentIndex = totalNodes - 1;
       }
     }
@@ -264,14 +273,14 @@ function ProgressContent() {
       return 100;
     }
 
-    const segmentStart = RANKS[segmentIndex].min;
-    const segmentEnd = RANKS[segmentIndex + 1].min;
+    const segmentStart = currentRanks[segmentIndex].min;
+    const segmentEnd = currentRanks[segmentIndex + 1].min;
     const segmentRange = segmentEnd - segmentStart;
     const segmentProgress = (points - segmentStart) / segmentRange;
     
     const totalProgress = (segmentIndex + segmentProgress) / (totalNodes - 1);
     return totalProgress * 100;
-  }, [currentInstData.points]);
+  }, [currentInstData.points, currentRanks]);
 
   useEffect(() => {
     if (isMounted && scrollRef.current && pathProgress !== undefined) {
@@ -353,6 +362,12 @@ function ProgressContent() {
       addMilestone(currentStudent.id, mTitle, mDate, mAchieved);
     }
     setIsMDialogOpen(false);
+  };
+
+  const handleSaveRanks = () => {
+    updateSettings({ ranks: tempRanks });
+    setIsRanksDialogOpen(false);
+    toast({ title: "Sectores Actualizados ✨", description: "La configuración de niveles ha sido guardada." });
   };
 
   const getRankDisplayName = (baseName: string, instrument: string) => {
@@ -442,7 +457,7 @@ function ProgressContent() {
               </div>
 
               <div className="space-y-6 flex-1">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 items-center">
                   {isStaff && (
                     <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
                       <Search className="w-3.5 h-3.5 text-accent ml-3" />
@@ -482,6 +497,17 @@ function ProgressContent() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {isAdmin && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-xl border-accent/20 text-accent hover:bg-accent/10 font-black h-9 text-[10px] uppercase"
+                      onClick={() => setIsRanksDialogOpen(true)}
+                    >
+                      <Settings className="w-3.5 h-3.5 mr-2" /> Sectores
+                    </Button>
+                  )}
                 </div>
                 
                 <div className="px-1">
@@ -581,7 +607,7 @@ function ProgressContent() {
               className="overflow-x-auto overflow-y-hidden immersive-scrollbar flex items-center relative pt-48 pb-32 cursor-grab active:cursor-grabbing h-[500px]"
             >
               <div className="relative flex items-center min-w-[300%] px-[25vw] h-12">
-                <div className="absolute top-1/2 left-[25vw] right-[25vw] h-[12px] bg-slate-900 -translate-y-1/2 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                <div className="absolute top-1/2 left-[25vw] right-[25vw] h-2 bg-slate-900/50 -translate-y-1/2 rounded-full overflow-hidden shadow-inner">
                   <div 
                     className="h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 transition-all duration-1000 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]"
                     style={{ width: `${pathProgress}%` }}
@@ -589,9 +615,10 @@ function ProgressContent() {
                 </div>
 
                 <div className="absolute left-[25vw] right-[25vw] top-1/2 -translate-y-1/2 flex justify-between items-center">
-                  {RANKS.map((rank, i) => {
+                  {currentRanks.map((rank, i) => {
                     const isReached = currentInstData.points >= rank.min;
                     const isCurrent = currentInstData.rank.name === rank.name;
+                    const isIconUrl = rank.icon.startsWith('http') || rank.icon.startsWith('data:') || rank.icon.startsWith('/');
                     
                     return (
                       <div key={i} className="relative flex items-center justify-center w-0 h-0 group">
@@ -608,7 +635,20 @@ function ProgressContent() {
                             ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
                             : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
                         )}>
-                          <span className="text-4xl sm:text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">{rank.icon}</span>
+                          {isIconUrl ? (
+                            <div className="relative w-12 h-12 sm:w-16 sm:h-16 mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">
+                              <Image 
+                                src={getDirectImageUrl(rank.icon)} 
+                                alt={rank.name} 
+                                fill 
+                                className="object-contain" 
+                              />
+                            </div>
+                          ) : (
+                            <span className="text-4xl sm:text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">
+                              {rank.icon}
+                            </span>
+                          )}
                           <div className="text-[8px] sm:text-[10px] font-black uppercase tracking-tighter opacity-70">SECTOR {i + 1}</div>
                         </div>
 
@@ -748,6 +788,89 @@ function ProgressContent() {
           </section>
         </div>
       </div>
+
+      {/* ADMIN: DIALOGO PARA CONFIGURAR SECTORES / RANGOS */}
+      <Dialog open={isRanksDialogOpen} onOpenChange={setIsRanksDialogOpen}>
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white flex flex-col max-h-[90vh]">
+          <DialogHeader className="bg-white/5 p-8 border-b border-white/10 shrink-0">
+            <DialogTitle className="text-2xl font-black flex items-center gap-3 text-accent">
+              <Settings className="w-6 h-6" />
+              Configuración de Sectores
+            </DialogTitle>
+            <DialogDescription className="text-slate-400 font-medium">Define los nombres, puntajes mínimos e iconos de cada nivel de progreso.</DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-900 custom-scrollbar">
+            {tempRanks.map((rank, i) => (
+              <div key={i} className="p-6 rounded-[2rem] bg-white/5 border border-white/10 space-y-4">
+                <div className="flex items-center justify-between mb-2">
+                  <Badge className="bg-accent/20 text-accent border-none font-black text-[10px] uppercase">Sector {i + 1}</Badge>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-slate-500">Nombre del Rango</Label>
+                    <Input 
+                      value={rank.name} 
+                      onChange={(e) => {
+                        const newRanks = [...tempRanks];
+                        newRanks[i].name = e.target.value;
+                        setTempRanks(newRanks);
+                      }}
+                      className="h-12 bg-slate-800 border-white/10 font-bold focus:border-accent text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-slate-500">Puntaje Mínimo</Label>
+                    <Input 
+                      type="number"
+                      value={rank.min} 
+                      onChange={(e) => {
+                        const newRanks = [...tempRanks];
+                        newRanks[i].min = parseInt(e.target.value) || 0;
+                        setTempRanks(newRanks);
+                      }}
+                      className="h-12 bg-slate-800 border-white/10 font-bold focus:border-accent text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase text-slate-500 flex items-center gap-2">
+                    <ImageIcon className="w-3 h-3" /> Icono (Emoji o URL de Imagen)
+                  </Label>
+                  <div className="flex gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-2xl shrink-0 border border-white/10 overflow-hidden">
+                      {rank.icon.startsWith('http') || rank.icon.startsWith('data:') || rank.icon.startsWith('/') ? (
+                        <div className="relative w-full h-full p-1">
+                          <Image src={getDirectImageUrl(rank.icon)} alt="Preview" fill className="object-contain" />
+                        </div>
+                      ) : rank.icon}
+                    </div>
+                    <Input 
+                      value={rank.icon} 
+                      onChange={(e) => {
+                        const newRanks = [...tempRanks];
+                        newRanks[i].icon = e.target.value;
+                        setTempRanks(newRanks);
+                      }}
+                      placeholder="Emoji ✨ o URL https://..."
+                      className="h-12 bg-slate-800 border-white/10 font-bold flex-1 focus:border-accent text-white text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <DialogFooter className="p-8 bg-slate-950/50 border-t border-white/10 shrink-0">
+            <Button variant="ghost" onClick={() => setIsRanksDialogOpen(false)} className="rounded-xl flex-1 h-14 font-black text-slate-400">Cancelar</Button>
+            <Button onClick={handleSaveRanks} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 gap-2">
+              <Save className="w-5 h-5" /> Guardar Cambios
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isMDialogOpen} onOpenChange={setIsMDialogOpen}>
         <DialogContent className="rounded-[3.5rem] max-md border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white">

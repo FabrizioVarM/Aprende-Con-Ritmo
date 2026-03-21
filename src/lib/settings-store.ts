@@ -23,6 +23,14 @@ export interface CommunityAd {
   isVisible: boolean;
 }
 
+export interface RankConfig {
+  name: string;
+  min: number;
+  icon: string; // Emoji o URL de imagen
+  color: string;
+  glow: string;
+}
+
 export interface AppSettings {
   appLogoUrl: string;
   darkMode: boolean;
@@ -74,9 +82,20 @@ export interface AppSettings {
   curriculumHeroImageUrl?: string;
   // Términos y Condiciones
   termsContent?: string;
+  // Configuración de Rangos/Sectores
+  ranks?: RankConfig[];
 }
 
 export const FALLBACK_ZONES = ['San Isidro', 'Miraflores', 'Surco', 'La Molina', 'Barranco', 'San Borja', 'Centro', 'Virtual'];
+
+export const DEFAULT_RANKS: RankConfig[] = [
+  { name: 'Aprendiz', min: 0, icon: '🌱', color: 'from-slate-500 to-slate-600', glow: 'shadow-[0_0_20px_rgba(148,163,184,0.3)]' },
+  { name: 'Entusiasta', min: 1000, icon: '✨', color: 'from-blue-500 to-blue-700', glow: 'shadow-[0_0_20px_rgba(59,130,246,0.3)]' },
+  { name: 'En Formación', min: 2300, icon: '📚', color: 'from-emerald-500 to-emerald-700', glow: 'shadow-[0_0_20px_rgba(16,185,129,0.3)]' },
+  { name: 'Preparado', min: 4000, icon: '🎓', color: 'from-amber-500 to-amber-700', glow: 'shadow-[0_0_20px_rgba(245,158,11,0.3)]' },
+  { name: 'Virtuoso', min: 6200, icon: '🔥', color: 'from-rose-500 to-rose-700', glow: 'shadow-[0_0_20px_rgba(244,63,94,0.3)]' },
+  { name: 'Maestro', min: 9000, icon: '👑', color: 'from-purple-500 to-purple-700', glow: 'shadow-[0_0_20px_rgba(168,85,247,0.3)]' },
+];
 
 // Placeholder estable que no cambia aleatoriamente (SVG de nota musical en color acento)
 const BRAND_PLACEHOLDER_LOGO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF8B7A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5l12-2v13'%3E%3C/path%3E%3Ccircle cx='6' cy='18' r='3'%3E%3C/circle%3E%3Ccircle cx='18' cy='16' r='3'%3E%3C/circle%3E%3C/svg%3E";
@@ -116,6 +135,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   moduleRewardsDesc: 'Canjea tus puntos',
   moduleFooterInfo: 'Administración trabaja en pasarelas de pago y sistemas de recompensas.',
   moduleSectionIcon: 'Zap',
+  ranks: DEFAULT_RANKS,
   // Valores por defecto para Sobre Nosotros
   aboutHeroTitle: 'Aprende con Ritmo',
   aboutHeroSubtitle: 'Somos más que una escuela; somos una comunidad apasionada por la educación musical moderna.',
