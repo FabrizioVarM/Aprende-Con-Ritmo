@@ -149,9 +149,8 @@ function ProgressContent() {
   const [mDate, setMDate] = useState('');
   const [mAchieved, setMAchieved] = useState(false);
 
-  // Animation stabilization states
-  const [visualProgress, setVisualProgress] = useState(0);
-  const [canAnimate, setCanAnimate] = useState(false);
+  // STABILIZATION: Control progress growth after mount
+  const [isAnimationActive, setIsAnimationActive] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -172,9 +171,11 @@ function ProgressContent() {
 
   useEffect(() => {
     setIsMounted(true);
+    // Start animation only after component has fully hydrated and listeners are active
+    const timer = setTimeout(() => setIsAnimationActive(true), 600);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Sync selectedStudentId when user profile or students list loads
   useEffect(() => {
     if (user && !selectedStudentId && !queryStudentId) {
       if (user.role === 'student') {
@@ -292,23 +293,9 @@ function ProgressContent() {
     return totalProgress * 100;
   }, [currentInstData.points, currentRanks]);
 
-  // STABILIZE ANIMATION: Only allow progress to be set once data is settled
-  useEffect(() => {
-    if (!loading && !settingsLoading && selectedStudentId && currentStudent) {
-      const timer = setTimeout(() => {
-        setVisualProgress(pathProgress);
-        setCanAnimate(true);
-      }, 400); // 400ms delay to ensure Firebase data has arrived and pathProgress is stable
-      return () => clearTimeout(timer);
-    } else {
-      setCanAnimate(false);
-      setVisualProgress(0);
-    }
-  }, [loading, settingsLoading, selectedStudentId, currentStudent, pathProgress]);
-
   // AUTO-SCROLL to center the student marker
   useEffect(() => {
-    if (isMounted && scrollRef.current && visualProgress !== undefined && canAnimate) {
+    if (isMounted && scrollRef.current && isAnimationActive) {
       const timer = setTimeout(() => {
         if (!scrollRef.current) return;
         const container = scrollRef.current;
@@ -316,17 +303,17 @@ function ProgressContent() {
         const viewportWidth = container.clientWidth;
         const padding = viewportWidth * 0.25; 
         const pathWidth = contentWidth - (padding * 2);
-        const markerX = padding + (pathWidth * (visualProgress / 100));
+        const markerX = padding + (pathWidth * (pathProgress / 100));
         const targetScroll = markerX - (viewportWidth / 2);
         
         container.scrollTo({
           left: Math.max(0, targetScroll),
           behavior: 'smooth'
         });
-      }, 600);
+      }, 800);
       return () => clearTimeout(timer);
     }
-  }, [isMounted, selectedInstrument, selectedStudentId, visualProgress, canAnimate]);
+  }, [isMounted, selectedInstrument, selectedStudentId, pathProgress, isAnimationActive]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
@@ -639,9 +626,9 @@ function ProgressContent() {
                   <div 
                     className={cn(
                       "h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]",
-                      canAnimate ? "transition-all duration-1000" : "transition-none"
+                      isAnimationActive ? "transition-all duration-1000" : "transition-none"
                     )}
-                    style={{ width: `${visualProgress}%` }}
+                    style={{ width: `${isAnimationActive ? pathProgress : 0}%` }}
                   />
                 </div>
 
@@ -714,7 +701,7 @@ function ProgressContent() {
                 >
                   <div 
                     className="absolute transition-all duration-1000 ease-out flex flex-col items-center"
-                    style={{ left: `${canAnimate ? visualProgress : 0}%`, transform: 'translateX(-50%)' }}
+                    style={{ left: `${isAnimationActive ? pathProgress : 0}%`, transform: 'translateX(-50%)' }}
                   >
                     <div className="relative -top-40 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
                       <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
