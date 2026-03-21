@@ -120,12 +120,12 @@ const AnimatedNumber = ({ value }: { value: number }) => {
 };
 
 function ProgressContent() {
-  const { user, allUsers } = useAuth();
+  const { user, allUsers, loading } = useAuth();
   const { completions } = useCompletionStore();
   const { availabilities } = useBookingStore();
   const { updateSkill, getSkillLevel } = useSkillsStore();
   const { resources } = useResourceStore();
-  const { settings, updateSettings } = useSettingsStore();
+  const { settings, updateSettings, loading: settingsLoading } = useSettingsStore();
   const { toast } = useToast();
   const { 
     addMilestone, 
@@ -138,26 +138,20 @@ function ProgressContent() {
   const searchParams = useSearchParams();
   const queryStudentId = searchParams.get('studentId');
   
-  // Initialize state immediately from user profile or query to avoid "jumps" on mount
-  const [selectedStudentId, setSelectedStudentId] = useState<string>(() => {
-    return queryStudentId || (user?.role === 'student' ? user.id : '');
-  });
-
-  const [selectedInstrument, setSelectedInstrument] = useState<string>(() => {
-    return user?.instruments?.[0] || 'Teoría';
-  });
-
+  const [selectedStudentId, setSelectedStudentId] = useState<string>(queryStudentId || '');
+  const [selectedInstrument, setSelectedInstrument] = useState<string>('');
   const [isMounted, setIsMounted] = useState(false);
-  const [enableTransitions, setEnableTransitions] = useState(false);
-
   const [isRanksDialogOpen, setIsRanksDialogOpen] = useState(false);
   const [tempRanks, setTempRanks] = useState<RankConfig[]>([]);
-
   const [isMDialogOpen, setIsMDialogOpen] = useState(false);
   const [editingM, setEditingM] = useState<UserMilestone | null>(null);
   const [mTitle, setMTitle] = useState('');
   const [mDate, setMDate] = useState('');
   const [mAchieved, setMAchieved] = useState(false);
+
+  // Animation stabilization states
+  const [visualProgress, setVisualProgress] = useState(0);
+  const [canAnimate, setCanAnimate] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -178,17 +172,18 @@ function ProgressContent() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Small delay to allow the layout to settle before enabling smooth transitions
-    const timer = setTimeout(() => setEnableTransitions(true), 500);
-    return () => clearTimeout(timer);
   }, []);
 
-  // Staff logic to pick the first student if none selected
+  // Sync selectedStudentId when user profile or students list loads
   useEffect(() => {
-    if (isStaff && !selectedStudentId && students.length > 0) {
-      setSelectedStudentId(students[0].id);
+    if (user && !selectedStudentId && !queryStudentId) {
+      if (user.role === 'student') {
+        setSelectedStudentId(user.id);
+      } else if (isStaff && students.length > 0) {
+        setSelectedStudentId(students[0].id);
+      }
     }
-  }, [isStaff, selectedStudentId, students]);
+  }, [user, selectedStudentId, queryStudentId, isStaff, students]);
 
   useEffect(() => {
     if (isRanksDialogOpen) {
@@ -297,8 +292,23 @@ function ProgressContent() {
     return totalProgress * 100;
   }, [currentInstData.points, currentRanks]);
 
+  // STABILIZE ANIMATION: Only allow progress to be set once data is settled
   useEffect(() => {
-    if (isMounted && scrollRef.current && pathProgress !== undefined) {
+    if (!loading && !settingsLoading && selectedStudentId && currentStudent) {
+      const timer = setTimeout(() => {
+        setVisualProgress(pathProgress);
+        setCanAnimate(true);
+      }, 400); // 400ms delay to ensure Firebase data has arrived and pathProgress is stable
+      return () => clearTimeout(timer);
+    } else {
+      setCanAnimate(false);
+      setVisualProgress(0);
+    }
+  }, [loading, settingsLoading, selectedStudentId, currentStudent, pathProgress]);
+
+  // AUTO-SCROLL to center the student marker
+  useEffect(() => {
+    if (isMounted && scrollRef.current && visualProgress !== undefined && canAnimate) {
       const timer = setTimeout(() => {
         if (!scrollRef.current) return;
         const container = scrollRef.current;
@@ -306,7 +316,7 @@ function ProgressContent() {
         const viewportWidth = container.clientWidth;
         const padding = viewportWidth * 0.25; 
         const pathWidth = contentWidth - (padding * 2);
-        const markerX = padding + (pathWidth * (pathProgress / 100));
+        const markerX = padding + (pathWidth * (visualProgress / 100));
         const targetScroll = markerX - (viewportWidth / 2);
         
         container.scrollTo({
@@ -316,7 +326,7 @@ function ProgressContent() {
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [isMounted, selectedInstrument, selectedStudentId, pathProgress]);
+  }, [isMounted, selectedInstrument, selectedStudentId, visualProgress, canAnimate]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!scrollRef.current) return;
@@ -629,9 +639,9 @@ function ProgressContent() {
                   <div 
                     className={cn(
                       "h-full bg-gradient-to-r from-accent via-blue-500 to-indigo-600 ease-out shadow-[0_0_30px_rgba(255,139,122,0.5)]",
-                      enableTransitions ? "transition-all duration-1000" : "transition-none"
+                      canAnimate ? "transition-all duration-1000" : "transition-none"
                     )}
-                    style={{ width: `${pathProgress}%` }}
+                    style={{ width: `${visualProgress}%` }}
                   />
                 </div>
 
@@ -704,7 +714,7 @@ function ProgressContent() {
                 >
                   <div 
                     className="absolute transition-all duration-1000 ease-out flex flex-col items-center"
-                    style={{ left: `${pathProgress}%`, transform: 'translateX(-50%)' }}
+                    style={{ left: `${canAnimate ? visualProgress : 0}%`, transform: 'translateX(-50%)' }}
                   >
                     <div className="relative -top-40 flex flex-col items-center animate-in slide-in-from-bottom-12 duration-1000">
                       <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
