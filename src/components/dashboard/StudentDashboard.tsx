@@ -268,7 +268,7 @@ export default function StudentDashboard() {
     slotStartTime.setHours(h, m, 0, 0);
 
     const isNearFuture = currentTime && (slotStartTime.getTime() - currentTime.getTime() < 3600000);
-    if (isNearFuture && teacher.currentZone && teacher.currentZone !== selectedZone && teacher.currentZone !== 'Virtual') {
+    if (isToday && isNearFuture && teacher.currentZone && teacher.currentZone !== selectedZone && teacher.currentZone !== 'Virtual') {
       return `Margen de viaje: El profesor se encuentra actualmente en ${teacher.currentZone}. No llegará a tiempo a ${selectedZone}.`;
     }
 
@@ -456,6 +456,8 @@ export default function StudentDashboard() {
     });
     return availableDates;
   }, [weekDaysNav, availabilities, selectedTeacherId, selectedModality, currentTime, todayTimestamp]);
+
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
 
   if (!isMounted) return null;
 
@@ -745,73 +747,79 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
-        <Card className={cn("rounded-[2rem] border-2 shadow-sm p-4 sm:p-5", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
-          <CardHeader className="p-0 pb-2 sm:pb-3">
+      {/* Secciones Principales */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className={cn("rounded-[2rem] border-2 shadow-sm p-6", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
+          <CardHeader className="p-0 pb-4">
             <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-2", topInstConfig.color)}>
               <Star className="w-4 h-4 fill-current" />
               Tu Instrumento Principal
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className={cn("text-2xl sm:text-3xl font-black truncate", topInstConfig.color)}>{topInstrument}</div>
-            <p className={cn("text-[10px] font-bold mt-0.5 opacity-60", topInstConfig.color)}>Máximo Progreso</p>
+            <div className={cn("text-3xl font-black truncate", topInstConfig.color)}>{topInstrument}</div>
+            <p className={cn("text-[10px] font-bold mt-1 opacity-60", topInstConfig.color)}>Máximo Progreso Acumulado</p>
           </CardContent>
         </Card>
         
-        <Card className="rounded-[2rem] border-2 border-emerald-500 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-4 sm:p-5">
-          <CardHeader className="p-0 pb-2 sm:pb-3">
-            <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2")}>
+        <Card className="rounded-[2rem] border-2 border-emerald-500 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6">
+          <CardHeader className="p-0 pb-4">
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
               <CalendarIcon className="w-4 h-4 text-accent" />
-              CLASE MÁS PROXIMA
+              CLASE MÁS PRÓXIMA
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-xl sm:text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">{nextLesson ? nextLesson.time.split(' ')[0] : 'aún no hay 😴'}</div>
-            <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-0.5">{nextLesson ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con ${nextLesson.teacherName}` : '¡Despierta y reserva una sesión! 😴'}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] border-2 border-primary/20 shadow-sm bg-card p-4 sm:p-5">
-          <CardHeader className="p-0 pb-2 sm:pb-3">
-            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <Ticket className="w-4 h-4 text-accent" />
-              CLASES PAGADAS
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="text-3xl sm:text-4xl font-black text-foreground">{user?.paidClasses || 0}</div>
-            <p className="text-[10px] text-muted-foreground font-bold mt-0.5">Disponibles en cuenta</p>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-[2rem] border-2 border-primary/20 shadow-sm bg-card p-4 sm:p-5">
-          <CardHeader className="p-0 pb-2 sm:pb-3">
-            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-emerald-600" />
-              SALDO DISPONIBLE
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="text-3xl sm:text-4xl font-black text-foreground">S/ {(user?.availableBalance || 0).toLocaleString()}</div>
-            <p className="text-[10px] text-muted-foreground font-bold mt-0.5">Crédito para futuras clases</p>
+            <div className="text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">
+              {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin sesiones activas'}
+            </div>
+            <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-1">
+              {nextLesson 
+                ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con Prof. ${nextLesson.teacherName}` 
+                : 'Reserva una sesión para verla aquí 😴'}
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="rounded-2xl border-2 border-orange-500 shadow-sm bg-orange-50 dark:bg-orange-950/20 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-widest text-orange-600">En Agenda</p>
-              <h3 className="text-2xl font-black text-orange-900 dark:text-orange-300">{myUpcomingLessons.length}</h3>
+      {/* Secciones Secundarias Condicionales */}
+      {(user?.showPaidClasses || user?.showAvailableBalance || myUpcomingLessons.length > 0) && (
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="rounded-2xl border-2 border-orange-500 shadow-sm bg-orange-50 dark:bg-orange-950/20 p-4 flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="text-[9px] font-black uppercase tracking-widest text-orange-600 truncate">En Agenda</p>
+              <h3 className="text-xl font-black text-orange-900 dark:text-orange-300">{myUpcomingLessons.length}</h3>
             </div>
-            <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
-              <CalendarCheck className="w-5 h-5 text-orange-500" />
+            <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm shrink-0">
+              <CalendarCheck className="w-4 h-4 text-orange-500" />
             </div>
-          </div>
-        </Card>
-      </div>
+          </Card>
+
+          {user?.showPaidClasses && (
+            <Card className="rounded-2xl border-2 border-primary/20 shadow-sm bg-card p-4 flex items-center justify-between">
+              <div className="min-w-0">
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground truncate">Clases Pagadas</p>
+                <h3 className="text-xl font-black text-foreground">{user?.paidClasses || 0}</h3>
+              </div>
+              <div className="p-2 bg-primary/10 rounded-xl shrink-0">
+                <Ticket className="w-4 h-4 text-accent" />
+              </div>
+            </Card>
+          )}
+
+          {user?.showAvailableBalance && (
+            <Card className="rounded-2xl border-2 border-emerald-500/20 shadow-sm bg-card p-4 flex items-center justify-between">
+              <div className="min-w-0">
+                <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600 truncate">Saldo Disponible</p>
+                <h3 className="text-xl font-black text-emerald-700">S/ {(user?.availableBalance || 0).toLocaleString()}</h3>
+              </div>
+              <div className="p-2 bg-emerald-50 rounded-xl shrink-0">
+                <CreditCard className="w-4 h-4 text-emerald-600" />
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md overflow-hidden bg-card">

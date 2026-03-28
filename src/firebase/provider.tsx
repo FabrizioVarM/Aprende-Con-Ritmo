@@ -31,6 +31,8 @@ export interface UserProfile {
   lastSeen?: string; // Última conexión
   paidClasses?: number; // Clases pagadas pendientes de usar
   availableBalance?: number; // Saldo disponible en cuenta
+  showPaidClasses?: boolean; // Si el alumno ve sus clases pagadas
+  showAvailableBalance?: boolean; // Si el alumno ve su saldo disponible
   photoTransform?: {
     scale: number;
     x: number;

@@ -70,7 +70,8 @@ import {
   Library, 
   Clock,
   CreditCard,
-  Ticket
+  Ticket,
+  Eye
 } from 'lucide-react';
 import { 
   DropdownMenu,
@@ -142,6 +143,8 @@ function UsersContent() {
   const [editCanManageLibrary, setEditCanManageLibrary] = useState(false);
   const [editPaidClasses, setEditPaidClasses] = useState(0);
   const [editAvailableBalance, setEditAvailableBalance] = useState(0);
+  const [editShowPaidClasses, setEditShowPaidClasses] = useState(false);
+  const [editShowAvailableBalance, setEditShowAvailableBalance] = useState(false);
   const [editPhotoTransform, setEditPhotoTransform] = useState<{scale: number, x: number, y: number} | undefined>(undefined);
 
   // Create State
@@ -186,6 +189,8 @@ function UsersContent() {
     setEditCanManageLibrary(u.canManageLibrary || false);
     setEditPaidClasses(u.paidClasses || 0);
     setEditAvailableBalance(u.availableBalance || 0);
+    setEditShowPaidClasses(u.showPaidClasses || false);
+    setEditShowAvailableBalance(u.showAvailableBalance || false);
     setEditPhotoTransform(u.photoTransform);
   };
 
@@ -202,6 +207,8 @@ function UsersContent() {
         canManageLibrary: editCanManageLibrary,
         paidClasses: editPaidClasses,
         availableBalance: editAvailableBalance,
+        showPaidClasses: editShowPaidClasses,
+        showAvailableBalance: editShowAvailableBalance,
         photoTransform: editPhotoTransform
       });
       setEditingUser(null);
@@ -231,7 +238,9 @@ function UsersContent() {
       instruments: newInstruments,
       canManageLibrary: newCanManageLibrary,
       paidClasses: 0,
-      availableBalance: 0
+      availableBalance: 0,
+      showPaidClasses: false,
+      showAvailableBalance: false
     });
 
     setIsCreateDialogOpen(false);
@@ -713,29 +722,45 @@ function UsersContent() {
 
             {editRole === 'student' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10">
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <Ticket className="w-4 h-4 text-accent" /> Clases Pagadas
-                  </Label>
-                  <Input 
-                    type="number"
-                    value={editPaidClasses} 
-                    onChange={(e) => setEditPaidClasses(parseInt(e.target.value) || 0)}
-                    className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card"
-                  />
-                  <p className="text-[9px] font-bold text-muted-foreground italic">Clases disponibles para agendar.</p>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <Ticket className="w-4 h-4 text-accent" /> Clases Pagadas
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                        <Switch checked={editShowPaidClasses} onCheckedChange={setEditShowPaidClasses} size="sm" />
+                      </div>
+                    </div>
+                    <Input 
+                      type="number"
+                      value={editPaidClasses} 
+                      onChange={(e) => setEditPaidClasses(parseInt(e.target.value) || 0)}
+                      className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card"
+                    />
+                    <p className="text-[9px] font-bold text-muted-foreground italic">Cantidad de sesiones disponibles.</p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-emerald-600" /> Saldo Disponible
-                  </Label>
-                  <Input 
-                    type="number"
-                    value={editAvailableBalance} 
-                    onChange={(e) => setEditAvailableBalance(parseInt(e.target.value) || 0)}
-                    className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card"
-                  />
-                  <p className="text-[9px] font-bold text-muted-foreground italic">Crédito monetario en cuenta.</p>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-emerald-600" /> Saldo Disponible
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                        <Switch checked={editShowAvailableBalance} onCheckedChange={setEditShowAvailableBalance} size="sm" />
+                      </div>
+                    </div>
+                    <Input 
+                      type="number"
+                      value={editAvailableBalance} 
+                      onChange={(e) => setEditAvailableBalance(parseInt(e.target.value) || 0)}
+                      className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card"
+                    />
+                    <p className="text-[9px] font-bold text-muted-foreground italic">Crédito monetario en cuenta.</p>
+                  </div>
                 </div>
               </div>
             )}

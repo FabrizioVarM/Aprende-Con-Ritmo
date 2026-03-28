@@ -28,7 +28,9 @@
         "currentZone": { "type": "string", "description": "Ubicación actual del profesor para cálculo de márgenes." },
         "lastSeen": { "type": "string", "format": "date-time", "description": "Última vez que el usuario abrió la aplicación." },
         "paidClasses": { "type": "number", "description": "Cantidad de clases ya pagadas por el alumno para el futuro." },
-        "availableBalance": { "type": "number", "description": "Saldo monetario disponible en la cuenta del alumno." }
+        "availableBalance": { "type": "number", "description": "Saldo monetario disponible en la cuenta del alumno." },
+        "showPaidClasses": { "type": "boolean", "description": "Si el alumno puede ver sus clases pagadas en el panel." },
+        "showAvailableBalance": { "type": "boolean", "description": "Si el alumno puede ver su saldo disponible en el panel." }
       },
       "required": ["id", "name", "email", "role"]
     },
