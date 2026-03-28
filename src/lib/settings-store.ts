@@ -65,6 +65,9 @@ export interface AppSettings {
   moduleRewardsDesc?: string;
   moduleFooterInfo?: string;
   moduleSectionIcon?: string;
+  // Fondos de Dashboard (Instrumentos)
+  instrumentImages?: Record<string, string>;
+  nextClassDefaultImage?: string;
   // Página Sobre Nosotros
   aboutHeroTitle?: string;
   aboutHeroSubtitle?: string;
@@ -136,6 +139,16 @@ const DEFAULT_SETTINGS: AppSettings = {
   moduleRewardsDesc: 'Canjea tus puntos',
   moduleFooterInfo: 'Administración trabaja en pasarelas de pago y sistemas de recompensas.',
   moduleSectionIcon: 'Zap',
+  instrumentImages: {
+    'Guitarra': 'https://picsum.photos/seed/guitar1/600/400',
+    'Piano': 'https://picsum.photos/seed/piano1/600/400',
+    'Violín': 'https://picsum.photos/seed/violin1/600/400',
+    'Batería': 'https://picsum.photos/seed/drums1/600/400',
+    'Canto': 'https://picsum.photos/seed/vocal1/600/400',
+    'Bajo': 'https://picsum.photos/seed/guitar1/600/400',
+    'Teoría': 'https://picsum.photos/seed/theory1/600/400',
+  },
+  nextClassDefaultImage: 'https://picsum.photos/seed/teacher1/600/400',
   ranks: DEFAULT_RANKS,
   instrumentRanks: {},
   aboutHeroTitle: 'Aprende con Ritmo',

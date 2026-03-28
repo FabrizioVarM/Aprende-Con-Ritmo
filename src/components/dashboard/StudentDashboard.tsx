@@ -475,7 +475,14 @@ export default function StudentDashboard() {
 
   const topInstConfig = INSTRUMENT_CONFIG[topInstrument] || INSTRUMENT_CONFIG['Default'];
   const topInstImageId = INSTRUMENT_IMAGE_MAP[topInstrument] || 'app-logo';
-  const topInstImageUrl = PlaceHolderImages.find(img => img.id === topInstImageId)?.imageUrl || "https://picsum.photos/seed/music/600/400";
+  
+  // Priorizar imagen de configuración del admin si existe
+  const customTopInstImg = settings.instrumentImages?.[topInstrument];
+  const topInstImageUrl = customTopInstImg || PlaceHolderImages.find(img => img.id === topInstImageId)?.imageUrl || "https://picsum.photos/seed/music/600/400";
+
+  // Priorizar fondo genérico del admin para clases si existe
+  const customNextLessonImg = nextLesson ? (settings.instrumentImages?.[nextLesson.instrument]) : settings.nextClassDefaultImage;
+  const nextLessonBgUrl = customNextLessonImg || (nextLesson ? (PlaceHolderImages.find(img => img.id === INSTRUMENT_IMAGE_MAP[nextLesson.instrument])?.imageUrl || PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl) : PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl);
 
   return (
     <div className="space-y-8">
@@ -810,7 +817,7 @@ export default function StudentDashboard() {
               }}
             >
               <Image 
-                src={getDirectImageUrl(nextLesson ? (PlaceHolderImages.find(img => img.id === INSTRUMENT_IMAGE_MAP[nextLesson.instrument])?.imageUrl || PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl) : PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl)}
+                src={getDirectImageUrl(nextLessonBgUrl)}
                 alt="Próxima Clase"
                 fill
                 className="object-cover blur-[1px] opacity-50 dark:opacity-70"

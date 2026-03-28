@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useRef, useEffect, useMemo } from 'react';
@@ -61,7 +62,9 @@ import {
   Bell,
   BellRing,
   Globe,
-  BookOpenCheck
+  BookOpenCheck,
+  Images,
+  Music
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -76,6 +79,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+const INSTRUMENTS_LIST = ['Guitarra', 'Piano', 'Violín', 'Canto', 'Batería', 'Bajo', 'Teoría'];
 
 export default function SettingsPage() {
   const { user, allUsers, updateUser, loading: authLoading } = useAuth();
@@ -110,6 +115,10 @@ export default function SettingsPage() {
   const [localZones, setLocalZones] = useState<string[]>(settings.zones || []);
   const [newZoneName, setNewZoneName] = useState('');
 
+  // Dashboard Images State
+  const [localInstrumentImages, setLocalInstrumentImages] = useState<Record<string, string>>(settings.instrumentImages || {});
+  const [localNextClassImage, setLocalNextClassImage] = useState(settings.nextClassDefaultImage || '');
+
   // Notification Preference State
   const [notificationsEnabled, setNotificationsEnabled] = useState(!!user?.fcmToken);
   const lastManualToggleTime = useRef<number>(0);
@@ -141,6 +150,8 @@ export default function SettingsPage() {
     setEnableCurr(settings.enableCurriculum);
     setLocalZones(settings.zones || []);
     setTermsContent(settings.termsContent || '');
+    setLocalInstrumentImages(settings.instrumentImages || {});
+    setLocalNextClassImage(settings.nextClassDefaultImage || '');
   }, [settings]);
 
   useEffect(() => {
@@ -206,12 +217,18 @@ export default function SettingsPage() {
       showCurriculum: showCurr,
       enableCurriculum: enableCurr,
       zones: localZones,
-      termsContent: termsContent
+      termsContent: termsContent,
+      instrumentImages: localInstrumentImages,
+      nextClassDefaultImage: localNextClassImage
     });
     toast({
       title: "Configuración Guardada ✨",
       description: "Los cambios globales se han aplicado correctamente.",
     });
+  };
+
+  const updateInstrumentImage = (instrument: string, url: string) => {
+    setLocalInstrumentImages(prev => ({ ...prev, [instrument]: url }));
   };
 
   const handleToggleNotifications = (val: boolean) => {
@@ -424,6 +441,64 @@ export default function SettingsPage() {
                       <span className="text-xs font-bold text-muted-foreground">Habilitar Funciones</span>
                       <Switch checked={enableProd} onCheckedChange={setEnableProd} className="data-[state=checked]:bg-accent" />
                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* GALERÍA DE FONDOS (ADMIN ONLY) */}
+          {isAdmin && (
+            <Card className="rounded-[2.5rem] border-2 border-primary/20 shadow-md bg-white dark:bg-card overflow-hidden">
+              <CardHeader className="bg-primary/5 p-8 border-b">
+                <CardTitle className="text-2xl font-black flex items-center gap-3 text-foreground">
+                  <Images className="w-8 h-8 text-accent" />
+                  Galería de Multimedia (Dashboard)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-8 space-y-8">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-6 bg-accent rounded-full" />
+                    <h4 className="font-black text-lg text-foreground uppercase tracking-widest text-sm">Fondos por Instrumento</h4>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {INSTRUMENTS_LIST.map((inst) => (
+                      <div key={inst} className="space-y-2 p-4 bg-primary/5 rounded-2xl border border-primary/10">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[10px] font-black uppercase text-muted-foreground flex items-center gap-2">
+                            <Music className="w-3 h-3 text-accent" /> {inst}
+                          </Label>
+                          {localInstrumentImages[inst] && (
+                            <Badge variant="outline" className="text-[8px] font-black uppercase border-accent text-accent">Configurado</Badge>
+                          )}
+                        </div>
+                        <Input 
+                          value={localInstrumentImages[inst] || ''} 
+                          onChange={(e) => updateInstrumentImage(inst, e.target.value)}
+                          placeholder="URL de la imagen (600x400 recomendado)"
+                          className="h-10 rounded-xl border-2 font-bold text-xs bg-card"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-6 pt-6 border-t border-primary/10">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1.5 h-6 bg-emerald-500 rounded-full" />
+                    <h4 className="font-black text-lg text-foreground uppercase tracking-widest text-sm">Próxima Clase (Fondo Genérico)</h4>
+                  </div>
+                  <div className="space-y-2 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                    <Label className="text-[10px] font-black uppercase text-emerald-700 flex items-center gap-2">
+                      <CalendarDays className="w-3 h-3" /> Imagen para la tarjeta de clase
+                    </Label>
+                    <Input 
+                      value={localNextClassImage} 
+                      onChange={(e) => setLocalNextClassImage(e.target.value)}
+                      placeholder="URL de la imagen por defecto"
+                      className="h-12 rounded-xl border-2 font-bold text-xs bg-card focus:border-emerald-500"
+                    />
                   </div>
                 </div>
               </CardContent>
