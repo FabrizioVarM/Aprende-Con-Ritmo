@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useRef, useEffect, Suspense } from 'react';
@@ -726,7 +725,7 @@ function UsersContent() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                        <Ticket className="w-4 h-4 text-accent" /> Clases Pagadas
+                        <Ticket className="w-4 h-4 text-accent" /> Clases Pre-Pagadas
                       </Label>
                       <div className="flex items-center gap-2">
                         <Eye className="w-3.5 h-3.5 text-muted-foreground" />
@@ -824,7 +823,7 @@ function UsersContent() {
             </div>
             <div className="text-center space-y-2">
               <AlertDialogTitle className="text-2xl font-black text-foreground">¿Confirmar eliminación?</AlertDialogTitle>
-              <AlertDialogHeader className="text-base font-medium text-muted-foreground">
+              <div className="text-base font-medium text-muted-foreground">
                 Esta acción eliminará al usuario de los directorios y no se podrán reservar nuevas clases con él. 
                 <br /><br />
                 <span className="font-black text-destructive uppercase text-xs tracking-widest">Aviso Académico:</span>
@@ -833,7 +832,7 @@ function UsersContent() {
                   <li>Las clases reservadas seguirán activas para el administrador.</li>
                   <li>El usuario ya no tendrá acceso a la plataforma.</li>
                 </ul>
-              </AlertDialogHeader>
+              </div>
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8 gap-3 sm:space-x-0">

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -798,7 +797,7 @@ export default function StudentDashboard() {
           {user?.showPaidClasses && (
             <Card className="rounded-2xl border-2 border-primary/20 shadow-sm bg-card p-4 flex items-center justify-between">
               <div className="min-w-0">
-                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground truncate">Clases Pagadas</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground truncate">Clases Pre-Pagadas</p>
                 <h3 className="text-xl font-black text-foreground">{user?.paidClasses || 0}</h3>
               </div>
               <div className="p-2 bg-primary/10 rounded-xl shrink-0">
