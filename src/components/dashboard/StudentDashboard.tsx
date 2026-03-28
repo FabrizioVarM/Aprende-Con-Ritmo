@@ -52,6 +52,8 @@ import { useBookingStore } from '@/lib/booking-store';
 import { useAuth } from '@/lib/auth-store';
 import { useCompletionStore } from '@/lib/completion-store';
 import { useResourceStore } from '@/lib/resource-store';
+import { useSkillsStore } from '@/lib/skills-store';
+import { DEFAULT_SKILLS_CONFIG } from '@/lib/skills-config';
 import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { cn } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -167,6 +169,7 @@ export default function StudentDashboard() {
   const { getDayAvailability, bookSlot, availabilities } = useBookingStore();
   const { completions, getCompletionStatus } = useCompletionStore();
   const { resources } = useResourceStore();
+  const { getSkillLevel } = useSkillsStore();
 
   useEffect(() => {
     setIsMounted(true);
@@ -354,24 +357,29 @@ export default function StudentDashboard() {
 
   const topInstrument = useMemo(() => {
     if (!user) return 'Música';
-    const studentInstruments = [...(user.instruments || []), 'Teoría'];
+    const studentInstruments = Array.from(new Set([...(user.instruments || []), 'Teoría']));
     const stats: Record<string, number> = {};
+    
     studentInstruments.forEach(cat => {
       let points = 0;
+
+      // 1. Puntos por materiales (150 pts cada uno)
       completions.forEach(comp => {
         if (comp.isCompleted && String(comp.studentId) === String(user.id)) {
           const resource = resources.find(r => r.id === comp.resourceId);
-          if (resource) {
-            const isTarget = normalizeStr(resource.category) === normalizeStr(cat);
-            if (isTarget) points += 150;
+          if (resource && normalizeStr(resource.category) === normalizeStr(cat)) {
+            points += 150;
           }
         }
       });
+
+      // 2. Puntos por clases (20 pts por hora)
       availabilities.forEach(day => {
         day.slots.forEach(slot => {
           const isMyCompletedSlot = slot.isBooked && 
             slot.status === 'completed' && 
             (String(slot.studentId) === String(user.id) || slot.students?.some(st => String(st.id) === String(user.id)));
+          
           if (isMyCompletedSlot) {
             const slotInst = slot.instrument || 'Música';
             if (normalizeStr(slotInst) === normalizeStr(cat)) {
@@ -380,18 +388,28 @@ export default function StudentDashboard() {
           }
         });
       });
+
+      // 3. Puntos por habilidades (10 pts por cada % de nivel)
+      const skillConfigs = DEFAULT_SKILLS_CONFIG[cat] || DEFAULT_SKILLS_CONFIG['Teoría'] || [];
+      skillConfigs.forEach(sc => {
+        points += (getSkillLevel(user.id, cat, sc.name, sc.defaultLevel) * 10);
+      });
+
       stats[cat] = points;
     });
+
     let maxPts = -1;
     let bestInst = user.instruments?.[0] || 'Música';
+    
     Object.entries(stats).forEach(([inst, pts]) => {
       if (pts > maxPts) {
         maxPts = pts;
         bestInst = inst;
       }
     });
+    
     return bestInst;
-  }, [user, completions, availabilities, resources]);
+  }, [user, completions, availabilities, resources, getSkillLevel]);
 
   const recommendedResources = useMemo(() => {
     if (!user) return [];
