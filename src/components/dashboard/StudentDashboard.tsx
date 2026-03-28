@@ -762,13 +762,13 @@ export default function StudentDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className={cn("relative overflow-hidden rounded-[2rem] border-2 shadow-sm p-6 transition-all duration-500", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
           {/* Background modern art */}
-          <div className="absolute top-0 right-0 w-3/4 h-full pointer-events-none z-0">
+          <div className="absolute top-0 right-0 w-full h-full pointer-events-none z-0">
             <div 
               className="absolute inset-0 transition-opacity duration-1000"
               style={{
-                clipPath: 'polygon(0 100%, 25% 0, 100% 0, 100% 100%)',
-                maskImage: 'linear-gradient(to right, transparent, black 60%)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 60%)'
+                clipPath: 'polygon(75% 0, 100% 0, 100% 100%, 25% 100%)',
+                maskImage: 'linear-gradient(to right, transparent, black 80%)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent, black 80%)'
               }}
             >
               <Image 
