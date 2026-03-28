@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from 'react';
@@ -768,16 +769,16 @@ export default function StudentDashboard() {
             <div 
               className="absolute inset-0 transition-opacity duration-1000"
               style={{
-                clipPath: 'polygon(75% 0, 100% 0, 100% 100%, 25% 100%)',
-                maskImage: 'linear-gradient(to right, transparent, black 80%)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 80%)'
+                clipPath: 'polygon(25% 100%, 75% 0, 100% 0, 100% 100%)',
+                maskImage: 'linear-gradient(to right, transparent 25%, black 45%)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent 25%, black 45%)'
               }}
             >
               <Image 
                 src={getDirectImageUrl(topInstImageUrl)}
                 alt={topInstrument}
                 fill
-                className="object-cover blur-[0.5px] opacity-35 dark:opacity-55"
+                className="object-cover blur-[1px] opacity-50 dark:opacity-70"
                 data-ai-hint="musical instrument"
               />
             </div>
@@ -803,16 +804,16 @@ export default function StudentDashboard() {
             <div 
               className="absolute inset-0 transition-opacity duration-1000"
               style={{
-                clipPath: 'polygon(75% 0, 100% 0, 100% 100%, 25% 100%)',
-                maskImage: 'linear-gradient(to right, transparent, black 80%)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent, black 80%)'
+                clipPath: 'polygon(25% 100%, 75% 0, 100% 0, 100% 100%)',
+                maskImage: 'linear-gradient(to right, transparent 25%, black 45%)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent 25%, black 45%)'
               }}
             >
               <Image 
                 src={getDirectImageUrl(nextLesson ? (PlaceHolderImages.find(img => img.id === INSTRUMENT_IMAGE_MAP[nextLesson.instrument])?.imageUrl || PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl) : PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl)}
                 alt="Próxima Clase"
                 fill
-                className="object-cover blur-[0.5px] opacity-35 dark:opacity-55"
+                className="object-cover blur-[1px] opacity-50 dark:opacity-70"
                 data-ai-hint="music lesson"
               />
             </div>
