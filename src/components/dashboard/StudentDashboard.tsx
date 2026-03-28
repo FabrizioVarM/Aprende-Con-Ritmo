@@ -57,6 +57,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { errorEmitter } from '@/firebase/error-emitter';
 import Image from 'next/image';
 import { getDirectImageUrl } from '@/lib/utils/images';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -68,6 +69,16 @@ const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Bajo': '🎸',
   'Música': '🎵',
   'Tormenta de Oro': '⚡'
+};
+
+const INSTRUMENT_IMAGE_MAP: Record<string, string> = {
+  'Guitarra': 'guitar-lesson',
+  'Piano': 'piano-scales',
+  'Violín': 'violin-notes',
+  'Batería': 'drums-session',
+  'Canto': 'singing-mic',
+  'Teoría': 'theory-book',
+  'Bajo': 'guitar-lesson',
 };
 
 const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: string }> = {
@@ -82,7 +93,6 @@ const INSTRUMENT_CONFIG: Record<string, { color: string, bg: string, border: str
   'Default': { color: 'text-accent', bg: 'bg-accent/10', border: 'border-accent/40' }
 };
 
-// Configuración de colores por nivel (Suavizados para mejor contraste)
 const LEVEL_STYLE: Record<number, { bg: string }> = {
   1: { bg: 'bg-emerald-400' },
   2: { bg: 'bg-sky-400' },
@@ -461,6 +471,8 @@ export default function StudentDashboard() {
   if (!isMounted) return null;
 
   const topInstConfig = INSTRUMENT_CONFIG[topInstrument] || INSTRUMENT_CONFIG['Default'];
+  const topInstImageId = INSTRUMENT_IMAGE_MAP[topInstrument] || 'app-logo';
+  const topInstImageUrl = PlaceHolderImages.find(img => img.id === topInstImageId)?.imageUrl || "https://picsum.photos/seed/music/600/400";
 
   return (
     <div className="space-y-8">
@@ -486,7 +498,7 @@ export default function StudentDashboard() {
                 Agendar Nueva Lección
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[90vh]">
+            <DialogContent className="rounded-[2.5rem] max-w-4xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
               <DialogHeader className="bg-primary/10 p-8 border-b space-y-2 shrink-0">
                 <DialogTitle className="text-3xl font-black text-foreground flex items-center gap-3">
                   <Music className="w-8 h-8 text-accent" />
@@ -748,17 +760,39 @@ export default function StudentDashboard() {
 
       {/* Secciones Principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className={cn("rounded-[2rem] border-2 shadow-sm p-6", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
-          <CardHeader className="p-0 pb-4">
-            <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-2", topInstConfig.color)}>
-              <Star className="w-4 h-4 fill-current" />
-              Tu Instrumento Principal
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className={cn("text-3xl font-black truncate", topInstConfig.color)}>{topInstrument}</div>
-            <p className={cn("text-[10px] font-bold mt-1 opacity-60", topInstConfig.color)}>Máximo Progreso Acumulado</p>
-          </CardContent>
+        <Card className={cn("relative overflow-hidden rounded-[2rem] border-2 shadow-sm p-6 transition-all duration-500", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
+          {/* Background modern art */}
+          <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none z-0">
+            <div 
+              className="absolute inset-0 transition-opacity duration-1000"
+              style={{
+                clipPath: 'polygon(0 100%, 100% 0, 100% 100%)',
+                maskImage: 'linear-gradient(to right, transparent, black 60%)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent, black 60%)'
+              }}
+            >
+              <Image 
+                src={getDirectImageUrl(topInstImageUrl)}
+                alt={topInstrument}
+                fill
+                className="object-cover blur-[1px] opacity-20 dark:opacity-40"
+                data-ai-hint="musical instrument"
+              />
+            </div>
+          </div>
+
+          <div className="relative z-10">
+            <CardHeader className="p-0 pb-4">
+              <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-2", topInstConfig.color)}>
+                <Star className="w-4 h-4 fill-current" />
+                Tu Instrumento Principal
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className={cn("text-3xl font-black truncate", topInstConfig.color)}>{topInstrument}</div>
+              <p className={cn("text-[10px] font-bold mt-1 opacity-60", topInstConfig.color)}>Máximo Progreso Acumulado</p>
+            </CardContent>
+          </div>
         </Card>
         
         <Card className="rounded-[2rem] border-2 border-emerald-500 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6">
