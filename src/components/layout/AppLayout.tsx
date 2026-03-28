@@ -25,11 +25,15 @@ import {
   CheckCircle2,
   Clock,
   Search,
-  BookOpenCheck
+  BookOpenCheck,
+  MapPin,
+  CalendarCheck,
+  Info,
+  ChevronDown
 } from 'lucide-react';
 import { useAuth, UserRole } from '@/lib/auth-store';
 import { useSettingsStore, AppSettings } from '@/lib/settings-store';
-import { useNotificationStore } from '@/lib/notification-store';
+import { useNotificationStore, AppNotification } from '@/lib/notification-store';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -162,6 +166,52 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return groups;
   }, [notifications]);
 
+  /**
+   * Procesa el cuerpo de la notificación para resaltar nombres, instrumentos, fechas y lugares.
+   */
+  const renderFormattedBody = (body: string) => {
+    if (!body) return null;
+    
+    // Lista de palabras clave que suelen preceder a datos importantes
+    const markers = ['Prof.', 'para', 'el', 'en', 'reservó con', 'clase de'];
+    
+    // Expresión regular para encontrar los datos entre marcadores o al final
+    // Es una aproximación simple basada en la estructura de los mensajes generados en booking-store
+    let formattedText = body;
+    
+    // Dividir el texto en partes para poder estilar individualmente
+    // Buscamos patrones como "Mariela Quispe", "Guitarra", "jueves, 26 de marzo", etc.
+    const parts = body.split(/(Prof\.[^ ]+|para [^ ]+|el [^en]+|en [^.]+)/g);
+
+    return (
+      <span className="leading-relaxed">
+        {parts.map((part, i) => {
+          const isHighlighted = part.startsWith('Prof.') || 
+                               part.startsWith('para ') || 
+                               part.startsWith('el ') || 
+                               part.startsWith('en ');
+          
+          if (isHighlighted) {
+            const [marker, ...rest] = part.split(' ');
+            return (
+              <span key={i}>
+                <span className="text-muted-foreground/70 font-medium">{marker} </span>
+                <span className="text-foreground font-black">{rest.join(' ')} </span>
+              </span>
+            );
+          }
+          return <span key={i}>{part}</span>;
+        })}
+      </span>
+    );
+  };
+
+  const getNotificationIcon = (n: AppNotification) => {
+    if (n.type === 'booking' || n.type === 'admin_alert') return <CalendarCheck className="w-5 h-5" />;
+    if (n.type === 'info') return <Info className="w-5 h-5" />;
+    return <Bell className="w-5 h-5" />;
+  };
+
   if (!user) {
     return <>{children}</>;
   }
@@ -214,57 +264,81 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 rounded-[2rem] p-0 border-none shadow-2xl overflow-hidden" align="end">
-              <div className="bg-primary/10 p-4 border-b flex items-center justify-between">
-                <h4 className="font-black text-sm text-foreground flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-accent" /> Notificaciones
-                </h4>
+            <PopoverContent className="w-96 rounded-[2.5rem] p-0 border-none shadow-2xl overflow-hidden" align="end">
+              <div className="bg-primary/10 p-5 border-b flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+                    <Bell className="w-5 h-5 text-accent" />
+                  </div>
+                  <h4 className="font-black text-base text-foreground">Notificaciones</h4>
+                </div>
                 {unreadCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-7 text-[9px] font-black uppercase text-accent hover:bg-accent/10 rounded-lg">
+                  <Button variant="ghost" size="sm" onClick={markAllAsRead} className="h-8 text-[9px] font-black uppercase text-accent hover:bg-accent/10 rounded-lg border border-accent/20">
                     Marcar todo leído
                   </Button>
                 )}
               </div>
-              <ScrollArea className="h-[350px]">
+              <ScrollArea className="h-[450px]">
                 {groupedNotifications.length > 0 ? (
                   <div className="flex flex-col">
                     {groupedNotifications.map((group) => (
                       <div key={group.label} className="flex flex-col">
-                        <div className="bg-muted/30 px-4 py-2 sticky top-0 z-10 backdrop-blur-md border-b">
+                        <div className="bg-muted/40 px-5 py-2.5 sticky top-0 z-10 backdrop-blur-md border-b flex items-center gap-2">
+                          <Clock className="w-3 h-3 text-muted-foreground/60" />
                           <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
                             {group.label}
                           </span>
                         </div>
-                        <div className="divide-y dark:divide-white/5 border-b">
+                        <div className="divide-y dark:divide-white/5">
                           {group.items.map((n) => (
                             <div key={n.id} className={cn(
-                              "p-4 transition-colors group relative",
-                              n.read ? "opacity-60 bg-transparent" : "bg-accent/5"
+                              "p-5 transition-all duration-300 group relative border-l-4",
+                              n.read 
+                                ? "opacity-50 bg-transparent border-l-transparent" 
+                                : "bg-accent/[0.03] border-l-accent shadow-[inset_0_0_20px_rgba(255,139,122,0.02)]"
                             )}>
-                              <div className="flex gap-3">
+                              <div className="flex gap-4">
                                 <div className={cn(
-                                  "mt-1 w-2 h-2 rounded-full shrink-0",
-                                  n.read ? "bg-muted-foreground/30" : "bg-accent animate-pulse"
-                                )} />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-black text-foreground leading-tight mb-1">{n.title}</p>
-                                  <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{n.body}</p>
-                                  <div className="flex items-center gap-2 mt-2">
-                                    <Clock className="w-2.5 h-2.5 text-muted-foreground/50" />
-                                    <span className="text-[9px] font-bold text-muted-foreground/50 italic">
+                                  "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110",
+                                  n.read 
+                                    ? "bg-muted text-muted-foreground/50 border border-border" 
+                                    : "bg-white dark:bg-slate-800 text-accent border border-accent/10"
+                                )}>
+                                  {getNotificationIcon(n)}
+                                </div>
+                                <div className="flex-1 min-w-0 space-y-1">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <p className="text-xs font-black text-foreground leading-tight">{n.title}</p>
+                                    <span className="text-[9px] font-bold text-muted-foreground/40 italic whitespace-nowrap">
                                       {new Date(n.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                   </div>
+                                  <div className="text-[11px] text-muted-foreground/90 font-medium leading-relaxed">
+                                    {renderFormattedBody(n.body)}
+                                  </div>
                                 </div>
                               </div>
-                              <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              
+                              <div className="absolute right-3 bottom-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-y-1 group-hover:translate-y-0">
                                 {!n.read && (
-                                  <Button size="icon" variant="ghost" onClick={() => markAsRead(n.id)} className="h-6 w-6 rounded-full hover:bg-emerald-100 text-emerald-600">
-                                    <CheckCircle2 className="w-3 h-3" />
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    onClick={() => markAsRead(n.id)} 
+                                    className="h-8 w-8 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 shadow-sm"
+                                    title="Marcar como leída"
+                                  >
+                                    <CheckCircle2 className="w-4 h-4" />
                                   </Button>
                                 )}
-                                <Button size="icon" variant="ghost" onClick={() => clearNotification(n.id)} className="h-6 w-6 rounded-full hover:bg-destructive/10 text-destructive">
-                                  <Trash2 className="w-3 h-3" />
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost" 
+                                  onClick={() => clearNotification(n.id)} 
+                                  className="h-8 w-8 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 shadow-sm"
+                                  title="Eliminar notificación"
+                                >
+                                  <Trash2 className="w-4 h-4" />
                                 </Button>
                               </div>
                             </div>
@@ -274,12 +348,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     ))}
                   </div>
                 ) : (
-                  <div className="p-12 text-center space-y-3">
-                    <Bell className="w-10 h-10 text-muted-foreground/20 mx-auto" />
-                    <p className="text-xs text-muted-foreground font-bold italic">No tienes notificaciones pendientes.</p>
+                  <div className="p-16 text-center space-y-4">
+                    <div className="w-20 h-20 bg-muted/20 rounded-[2rem] flex items-center justify-center mx-auto">
+                      <Bell className="w-10 h-10 text-muted-foreground/20" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-black text-foreground">Bandeja Vacía</p>
+                      <p className="text-xs text-muted-foreground font-medium italic">No tienes notificaciones pendientes de revisar.</p>
+                    </div>
                   </div>
                 )}
               </ScrollArea>
+              {notifications.length > 0 && (
+                <div className="p-4 bg-muted/30 border-t text-center">
+                  <p className="text-[9px] font-black uppercase text-muted-foreground/50 tracking-widest">Fin de las actualizaciones recientes</p>
+                </div>
+              )}
             </PopoverContent>
           </Popover>
         </div>
@@ -558,7 +642,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                   )} />
                                   <div className="flex-1 min-w-0">
                                     <p className="text-xs font-black text-foreground leading-tight mb-1">{n.title}</p>
-                                    <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{n.body}</p>
+                                    <div className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                                      {renderFormattedBody(n.body)}
+                                    </div>
                                     <div className="flex items-center gap-2 mt-2">
                                       <Clock className="w-2.5 h-2.5 text-muted-foreground/50" />
                                       <span className="text-[9px] font-bold text-muted-foreground/50 italic">
