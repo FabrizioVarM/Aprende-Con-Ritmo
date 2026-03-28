@@ -62,7 +62,9 @@ import {
   Shapes,
   Settings,
   Save,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -149,6 +151,9 @@ function ProgressContent() {
   const [mTitle, setMTitle] = useState('');
   const [mDate, setMDate] = useState('');
   const [mAchieved, setMAchieved] = useState(false);
+
+  // Seguridad: Bloqueo de edición de habilidades para profesores
+  const [isSkillsLocked, setIsSkillsLocked] = useState(true);
 
   // STABILIZATION: Control progress growth after mount
   const [isAnimationActive, setIsAnimationActive] = useState(false);
@@ -547,6 +552,20 @@ function ProgressContent() {
                   </div>
                   
                   <div className="flex items-center gap-4 animate-in fade-in duration-1000">
+                    {isStaff && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className={cn(
+                          "h-8 w-8 rounded-xl transition-all",
+                          isSkillsLocked ? "text-slate-500 hover:text-accent bg-white/5" : "text-white bg-accent shadow-[0_0_15px_rgba(255,139,122,0.4)]"
+                        )}
+                        onClick={() => setIsSkillsLocked(!isSkillsLocked)}
+                        title={isSkillsLocked ? "Desbloquear edición" : "Bloquear edición"}
+                      >
+                        {isSkillsLocked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                      </Button>
+                    )}
                     <div className="hidden sm:flex gap-1 h-4 items-center">
                       {[1, 2, 3, 4].map((i) => (
                         <div 
@@ -582,8 +601,8 @@ function ProgressContent() {
                           <AnimatedNumber value={skill.level} />
                         </span>
                       </div>
-                      {isStaff ? (
-                        <div className="flex items-center gap-3 group/slider">
+                      {isStaff && !isSkillsLocked ? (
+                        <div className="flex items-center gap-3 group/slider animate-in zoom-in-95 duration-200">
                           <Slider 
                             value={[skill.level]} 
                             max={100} 
@@ -606,6 +625,12 @@ function ProgressContent() {
                     <div className="text-center italic text-slate-700 text-[9px] py-4 uppercase font-black tracking-[0.3em]">No Data Stream</div>
                   )}
                 </div>
+                
+                {isStaff && isSkillsLocked && (
+                  <p className="text-[8px] font-black text-slate-600 uppercase text-center tracking-widest italic animate-in fade-in duration-500">
+                    Pulsa el candado para modificar niveles
+                  </p>
+                )}
               </div>
             </div>
           </div>
