@@ -777,7 +777,7 @@ export default function StudentDashboard() {
                 src={getDirectImageUrl(topInstImageUrl)}
                 alt={topInstrument}
                 fill
-                className="object-cover blur-[1px] opacity-20 dark:opacity-40"
+                className="object-cover blur-[0.5px] opacity-35 dark:opacity-55"
                 data-ai-hint="musical instrument"
               />
             </div>
@@ -812,7 +812,7 @@ export default function StudentDashboard() {
                 src={getDirectImageUrl(nextLesson ? (PlaceHolderImages.find(img => img.id === INSTRUMENT_IMAGE_MAP[nextLesson.instrument])?.imageUrl || PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl) : PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl)}
                 alt="Próxima Clase"
                 fill
-                className="object-cover blur-[1px] opacity-20 dark:opacity-40"
+                className="object-cover blur-[0.5px] opacity-35 dark:opacity-55"
                 data-ai-hint="music lesson"
               />
             </div>
