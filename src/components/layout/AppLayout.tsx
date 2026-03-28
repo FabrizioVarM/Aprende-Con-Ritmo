@@ -133,6 +133,35 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [settings.darkMode]);
 
+  const groupedNotifications = useMemo(() => {
+    const groups: { label: string, items: typeof notifications }[] = [];
+    
+    notifications.forEach(n => {
+      const date = new Date(n.createdAt);
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+      
+      let dateLabel = "";
+      if (date.toDateString() === today.toDateString()) {
+        dateLabel = "Hoy";
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        dateLabel = "Ayer";
+      } else {
+        dateLabel = date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+      }
+      
+      const existingGroup = groups.find(g => g.label === dateLabel);
+      if (existingGroup) {
+        existingGroup.items.push(n);
+      } else {
+        groups.push({ label: dateLabel, items: [n] });
+      }
+    });
+    
+    return groups;
+  }, [notifications]);
+
   if (!user) {
     return <>{children}</>;
   }
@@ -197,38 +226,49 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
               </div>
               <ScrollArea className="h-[350px]">
-                {notifications.length > 0 ? (
-                  <div className="divide-y border-b dark:divide-white/5">
-                    {notifications.map((n) => (
-                      <div key={n.id} className={cn(
-                        "p-4 transition-colors group relative",
-                        n.read ? "opacity-60 bg-transparent" : "bg-accent/5"
-                      )}>
-                        <div className="flex gap-3">
-                          <div className={cn(
-                            "mt-1 w-2 h-2 rounded-full shrink-0",
-                            n.read ? "bg-muted-foreground/30" : "bg-accent animate-pulse"
-                          )} />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-black text-foreground leading-tight mb-1">{n.title}</p>
-                            <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{n.body}</p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <Clock className="w-2.5 h-2.5 text-muted-foreground/50" />
-                              <span className="text-[9px] font-bold text-muted-foreground/50 italic">
-                                {new Date(n.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                          </div>
+                {groupedNotifications.length > 0 ? (
+                  <div className="flex flex-col">
+                    {groupedNotifications.map((group) => (
+                      <div key={group.label} className="flex flex-col">
+                        <div className="bg-muted/30 px-4 py-2 sticky top-0 z-10 backdrop-blur-md border-b">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                            {group.label}
+                          </span>
                         </div>
-                        <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          {!n.read && (
-                            <Button size="icon" variant="ghost" onClick={() => markAsRead(n.id)} className="h-6 w-6 rounded-full hover:bg-emerald-100 text-emerald-600">
-                              <CheckCircle2 className="w-3 h-3" />
-                            </Button>
-                          )}
-                          <Button size="icon" variant="ghost" onClick={() => clearNotification(n.id)} className="h-6 w-6 rounded-full hover:bg-destructive/10 text-destructive">
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
+                        <div className="divide-y dark:divide-white/5 border-b">
+                          {group.items.map((n) => (
+                            <div key={n.id} className={cn(
+                              "p-4 transition-colors group relative",
+                              n.read ? "opacity-60 bg-transparent" : "bg-accent/5"
+                            )}>
+                              <div className="flex gap-3">
+                                <div className={cn(
+                                  "mt-1 w-2 h-2 rounded-full shrink-0",
+                                  n.read ? "bg-muted-foreground/30" : "bg-accent animate-pulse"
+                                )} />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-black text-foreground leading-tight mb-1">{n.title}</p>
+                                  <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{n.body}</p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <Clock className="w-2.5 h-2.5 text-muted-foreground/50" />
+                                    <span className="text-[9px] font-bold text-muted-foreground/50 italic">
+                                      {new Date(n.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {!n.read && (
+                                  <Button size="icon" variant="ghost" onClick={() => markAsRead(n.id)} className="h-6 w-6 rounded-full hover:bg-emerald-100 text-emerald-600">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                  </Button>
+                                )}
+                                <Button size="icon" variant="ghost" onClick={() => clearNotification(n.id)} className="h-6 w-6 rounded-full hover:bg-destructive/10 text-destructive">
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     ))}
@@ -489,17 +529,67 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   {unreadCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full" />}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-72 rounded-2xl">
-                {/* Contenido simplificado para móvil */}
-                <p className="text-xs font-black p-2 border-b">Notificaciones ({unreadCount})</p>
-                <div className="max-h-60 overflow-y-auto">
-                  {notifications.map(n => (
-                    <div key={n.id} className="p-3 border-b last:border-0 text-[10px]">
-                      <p className="font-bold">{n.title}</p>
-                      <p className="text-muted-foreground">{n.body}</p>
-                    </div>
-                  ))}
+              <PopoverContent className="w-80 rounded-[2rem] p-0 border-none shadow-2xl overflow-hidden" align="end">
+                <div className="bg-primary/10 p-4 border-b">
+                  <h4 className="font-black text-sm text-foreground flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-accent" /> Notificaciones
+                  </h4>
                 </div>
+                <ScrollArea className="h-[350px]">
+                  {groupedNotifications.length > 0 ? (
+                    <div className="flex flex-col">
+                      {groupedNotifications.map((group) => (
+                        <div key={group.label} className="flex flex-col">
+                          <div className="bg-muted/30 px-4 py-2 sticky top-0 z-10 backdrop-blur-md border-b">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                              {group.label}
+                            </span>
+                          </div>
+                          <div className="divide-y dark:divide-white/5 border-b">
+                            {group.items.map((n) => (
+                              <div key={n.id} className={cn(
+                                "p-4 transition-colors group relative",
+                                n.read ? "opacity-60 bg-transparent" : "bg-accent/5"
+                              )}>
+                                <div className="flex gap-3">
+                                  <div className={cn(
+                                    "mt-1 w-2 h-2 rounded-full shrink-0",
+                                    n.read ? "bg-muted-foreground/30" : "bg-accent animate-pulse"
+                                  )} />
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-black text-foreground leading-tight mb-1">{n.title}</p>
+                                    <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{n.body}</p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <Clock className="w-2.5 h-2.5 text-muted-foreground/50" />
+                                      <span className="text-[9px] font-bold text-muted-foreground/50 italic">
+                                        {new Date(n.createdAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="absolute right-2 top-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  {!n.read && (
+                                    <Button size="icon" variant="ghost" onClick={() => markAsRead(n.id)} className="h-6 w-6 rounded-full hover:bg-emerald-100 text-emerald-600">
+                                      <CheckCircle2 className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                  <Button size="icon" variant="ghost" onClick={() => clearNotification(n.id)} className="h-6 w-6 rounded-full hover:bg-destructive/10 text-destructive">
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-12 text-center space-y-3">
+                      <Bell className="w-10 h-10 text-muted-foreground/20 mx-auto" />
+                      <p className="text-xs text-muted-foreground font-bold italic">No tienes notificaciones pendientes.</p>
+                    </div>
+                  )}
+                </ScrollArea>
               </PopoverContent>
             </Popover>
             <Sheet>
