@@ -766,7 +766,7 @@ export default function StudentDashboard() {
             <div 
               className="absolute inset-0 transition-opacity duration-1000"
               style={{
-                clipPath: 'polygon(0 100%, 100% 0, 100% 100%)',
+                clipPath: 'polygon(0 100%, 25% 0, 100% 0, 100% 100%)',
                 maskImage: 'linear-gradient(to right, transparent, black 60%)',
                 WebkitMaskImage: 'linear-gradient(to right, transparent, black 60%)'
               }}
