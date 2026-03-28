@@ -277,6 +277,8 @@ export default function StudentDashboard() {
     slotStartTime.setHours(h, m, 0, 0);
 
     const isNearFuture = currentTime && (slotStartTime.getTime() - currentTime.getTime() < 3600000);
+    const isToday = selectedDate.toDateString() === (currentTime?.toDateString() || '');
+
     if (isToday && isNearFuture && teacher.currentZone && teacher.currentZone !== selectedZone && teacher.currentZone !== 'Virtual') {
       return `Margen de viaje: El profesor se encuentra actualmente en ${teacher.currentZone}. No llegará a tiempo a ${selectedZone}.`;
     }
@@ -761,7 +763,7 @@ export default function StudentDashboard() {
       {/* Secciones Principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className={cn("relative overflow-hidden rounded-[2rem] border-2 shadow-sm p-6 transition-all duration-500", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
-          {/* Background modern art */}
+          {/* Modern Background Image with Diagonal Cut */}
           <div className="absolute top-0 right-0 w-full h-full pointer-events-none z-0">
             <div 
               className="absolute inset-0 transition-opacity duration-1000"
@@ -795,23 +797,45 @@ export default function StudentDashboard() {
           </div>
         </Card>
         
-        <Card className="rounded-[2rem] border-2 border-emerald-500 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6">
-          <CardHeader className="p-0 pb-4">
-            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4 text-accent" />
-              CLASE MÁS PRÓXIMA
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">
-              {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin sesiones activas'}
+        <Card className="relative overflow-hidden rounded-[2rem] border-2 border-emerald-500 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6 transition-all duration-500">
+          {/* Modern Background Image with Diagonal Cut */}
+          <div className="absolute top-0 right-0 w-full h-full pointer-events-none z-0">
+            <div 
+              className="absolute inset-0 transition-opacity duration-1000"
+              style={{
+                clipPath: 'polygon(75% 0, 100% 0, 100% 100%, 25% 100%)',
+                maskImage: 'linear-gradient(to right, transparent, black 80%)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent, black 80%)'
+              }}
+            >
+              <Image 
+                src={getDirectImageUrl(nextLesson ? (PlaceHolderImages.find(img => img.id === INSTRUMENT_IMAGE_MAP[nextLesson.instrument])?.imageUrl || PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl) : PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl)}
+                alt="Próxima Clase"
+                fill
+                className="object-cover blur-[1px] opacity-20 dark:opacity-40"
+                data-ai-hint="music lesson"
+              />
             </div>
-            <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-1">
-              {nextLesson 
-                ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con Prof. ${nextLesson.teacherName}` 
-                : 'Reserva una sesión para verla aquí 😴'}
-            </p>
-          </CardContent>
+          </div>
+
+          <div className="relative z-10">
+            <CardHeader className="p-0 pb-4">
+              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4 text-accent" />
+                CLASE MÁS PRÓXIMA
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">
+                {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin sesiones activas'}
+              </div>
+              <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-1">
+                {nextLesson 
+                  ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con Prof. ${nextLesson.teacherName}` 
+                  : 'Reserva una sesión para verla aquí 😴'}
+              </p>
+            </CardContent>
+          </div>
         </Card>
       </div>
 
