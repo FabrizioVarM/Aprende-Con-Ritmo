@@ -806,7 +806,7 @@ function ProgressContent() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-4">
-                        <h4 className={cn("font-black text-base truncate uppercase tracking-[0.1em]", m.achieved ? "text-white" : "text-slate-700")}>{m.milestoneTitle}</h4>
+                        <h4 className={cn("font-black text-base uppercase tracking-[0.1em] leading-tight", m.achieved ? "text-white" : "text-slate-700")}>{m.milestoneTitle}</h4>
                         {isStaff && (
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
                             <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-accent" onClick={() => { setEditingM(m); setMTitle(m.milestoneTitle); setMDate(m.date || ''); setMAchieved(m.achieved); setIsMDialogOpen(true); }}>
