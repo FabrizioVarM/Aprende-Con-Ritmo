@@ -44,7 +44,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { MoreHorizontal, Search, UserPlus, Filter, Trash, Edit, TrendingUp, GraduationCap, Briefcase, User as UserIcon, AtSign, Music, Check, Camera, Upload, RefreshCw, X, AlertTriangle, Mail, Lock, Phone, ShieldCheck, Library, Clock } from 'lucide-react';
+import { 
+  MoreHorizontal, 
+  Search, 
+  UserPlus, 
+  Filter, 
+  Trash, 
+  Edit, 
+  TrendingUp, 
+  GraduationCap, 
+  Briefcase, 
+  User as UserIcon, 
+  AtSign, 
+  Music, 
+  Check, 
+  Camera, 
+  Upload, 
+  RefreshCw, 
+  X, 
+  AlertTriangle, 
+  Mail, 
+  Lock, 
+  Phone, 
+  ShieldCheck, 
+  Library, 
+  Clock,
+  CreditCard,
+  Ticket
+} from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -113,6 +140,8 @@ function UsersContent() {
   const [editPhotoUrl, setEditPhotoUrl] = useState<string | undefined>(undefined);
   const [editAvatarSeed, setEditAvatarSeed] = useState('');
   const [editCanManageLibrary, setEditCanManageLibrary] = useState(false);
+  const [editPaidClasses, setEditPaidClasses] = useState(0);
+  const [editAvailableBalance, setEditAvailableBalance] = useState(0);
   const [editPhotoTransform, setEditPhotoTransform] = useState<{scale: number, x: number, y: number} | undefined>(undefined);
 
   // Create State
@@ -155,6 +184,8 @@ function UsersContent() {
     setEditPhotoUrl(u.photoUrl);
     setEditAvatarSeed(u.avatarSeed || u.id);
     setEditCanManageLibrary(u.canManageLibrary || false);
+    setEditPaidClasses(u.paidClasses || 0);
+    setEditAvailableBalance(u.availableBalance || 0);
     setEditPhotoTransform(u.photoTransform);
   };
 
@@ -169,6 +200,8 @@ function UsersContent() {
         photoUrl: editPhotoUrl,
         avatarSeed: editAvatarSeed,
         canManageLibrary: editCanManageLibrary,
+        paidClasses: editPaidClasses,
+        availableBalance: editAvailableBalance,
         photoTransform: editPhotoTransform
       });
       setEditingUser(null);
@@ -196,7 +229,9 @@ function UsersContent() {
       username: newUsername,
       phone: newPhone,
       instruments: newInstruments,
-      canManageLibrary: newCanManageLibrary
+      canManageLibrary: newCanManageLibrary,
+      paidClasses: 0,
+      availableBalance: 0
     });
 
     setIsCreateDialogOpen(false);
@@ -676,6 +711,35 @@ function UsersContent() {
               </div>
             </div>
 
+            {editRole === 'student' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-primary/5 rounded-[2rem] border-2 border-primary/10">
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Ticket className="w-4 h-4 text-accent" /> Clases Pagadas
+                  </Label>
+                  <Input 
+                    type="number"
+                    value={editPaidClasses} 
+                    onChange={(e) => setEditPaidClasses(parseInt(e.target.value) || 0)}
+                    className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card"
+                  />
+                  <p className="text-[9px] font-bold text-muted-foreground italic">Clases disponibles para agendar.</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-emerald-600" /> Saldo Disponible
+                  </Label>
+                  <Input 
+                    type="number"
+                    value={editAvailableBalance} 
+                    onChange={(e) => setEditAvailableBalance(parseInt(e.target.value) || 0)}
+                    className="h-12 rounded-xl border-2 font-bold focus:border-accent bg-card"
+                  />
+                  <p className="text-[9px] font-bold text-muted-foreground italic">Crédito monetario en cuenta.</p>
+                </div>
+              </div>
+            )}
+
             {editRole === 'teacher' && (
               <div className="flex items-center justify-between p-4 bg-accent/5 rounded-2xl border-2 border-accent/10">
                 <div className="flex items-center gap-3">
@@ -735,7 +799,7 @@ function UsersContent() {
             </div>
             <div className="text-center space-y-2">
               <AlertDialogTitle className="text-2xl font-black text-foreground">¿Confirmar eliminación?</AlertDialogTitle>
-              <AlertDialogDescription className="text-base font-medium text-muted-foreground">
+              <AlertDialogHeader className="text-base font-medium text-muted-foreground">
                 Esta acción eliminará al usuario de los directorios y no se podrán reservar nuevas clases con él. 
                 <br /><br />
                 <span className="font-black text-destructive uppercase text-xs tracking-widest">Aviso Académico:</span>
@@ -744,7 +808,7 @@ function UsersContent() {
                   <li>Las clases reservadas seguirán activas para el administrador.</li>
                   <li>El usuario ya no tendrá acceso a la plataforma.</li>
                 </ul>
-              </AlertDialogDescription>
+              </AlertDialogHeader>
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-8 gap-3 sm:space-x-0">
@@ -758,7 +822,7 @@ function UsersContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppLayout>
+    </div>
   );
 }
 

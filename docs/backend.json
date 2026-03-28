@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -25,7 +26,9 @@
         "fcmToken": { "type": "string", "description": "Token para notificaciones push (FCM)." },
         "canManageLibrary": { "type": "boolean", "description": "Si el profesor tiene permiso para crear/editar materiales." },
         "currentZone": { "type": "string", "description": "Ubicación actual del profesor para cálculo de márgenes." },
-        "lastSeen": { "type": "string", "format": "date-time", "description": "Última vez que el usuario abrió la aplicación." }
+        "lastSeen": { "type": "string", "format": "date-time", "description": "Última vez que el usuario abrió la aplicación." },
+        "paidClasses": { "type": "number", "description": "Cantidad de clases ya pagadas por el alumno para el futuro." },
+        "availableBalance": { "type": "number", "description": "Saldo monetario disponible en la cuenta del alumno." }
       },
       "required": ["id", "name", "email", "role"]
     },

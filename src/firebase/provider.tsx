@@ -29,6 +29,8 @@ export interface UserProfile {
   canManageLibrary?: boolean;
   currentZone?: string; 
   lastSeen?: string; // Última conexión
+  paidClasses?: number; // Clases pagadas pendientes de usar
+  availableBalance?: number; // Saldo disponible en cuenta
   photoTransform?: {
     scale: number;
     x: number;

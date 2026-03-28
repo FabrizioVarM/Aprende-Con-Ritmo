@@ -33,7 +33,10 @@ import {
   Building2,
   Home,
   LayoutGrid,
-  TrendingUp
+  TrendingUp,
+  CreditCard,
+  Ticket,
+  CalendarCheck
 } from 'lucide-react';
 import {
   Dialog,
@@ -742,7 +745,7 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
         <Card className={cn("rounded-[2rem] border-2 shadow-sm p-4 sm:p-5", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
           <CardHeader className="p-0 pb-2 sm:pb-3">
             <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-2", topInstConfig.color)}>
@@ -769,17 +772,44 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="rounded-[2rem] border-2 border-orange-500 shadow-sm bg-orange-50 dark:bg-emerald-950/20 p-4 sm:p-5">
+        <Card className="rounded-[2rem] border-2 border-primary/20 shadow-sm bg-card p-4 sm:p-5">
           <CardHeader className="p-0 pb-2 sm:pb-3">
-            <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-2")}>
-              <Clock className="w-4 h-4 text-accent" />
-              TOTAL RESERVAS PENDIENTES
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <Ticket className="w-4 h-4 text-accent" />
+              CLASES PAGADAS
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="text-3xl sm:text-4xl font-black text-orange-900 dark:text-orange-300">{myUpcomingLessons.length}</div>
-            <p className="text-[10px] text-orange-600 dark:text-orange-400 font-bold mt-0.5">Clases programadas</p>
+            <div className="text-3xl sm:text-4xl font-black text-foreground">{user?.paidClasses || 0}</div>
+            <p className="text-[10px] text-muted-foreground font-bold mt-0.5">Disponibles en cuenta</p>
           </CardContent>
+        </Card>
+
+        <Card className="rounded-[2rem] border-2 border-primary/20 shadow-sm bg-card p-4 sm:p-5">
+          <CardHeader className="p-0 pb-2 sm:pb-3">
+            <CardTitle className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-emerald-600" />
+              SALDO DISPONIBLE
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="text-3xl sm:text-4xl font-black text-foreground">S/ {(user?.availableBalance || 0).toLocaleString()}</div>
+            <p className="text-[10px] text-muted-foreground font-bold mt-0.5">Crédito para futuras clases</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="rounded-2xl border-2 border-orange-500 shadow-sm bg-orange-50 dark:bg-orange-950/20 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-widest text-orange-600">En Agenda</p>
+              <h3 className="text-2xl font-black text-orange-900 dark:text-orange-300">{myUpcomingLessons.length}</h3>
+            </div>
+            <div className="p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm">
+              <CalendarCheck className="w-5 h-5 text-orange-500" />
+            </div>
+          </div>
         </Card>
       </div>
 
