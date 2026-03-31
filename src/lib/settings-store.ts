@@ -19,7 +19,8 @@ export interface AboutValue {
 }
 
 export interface CommunityAd {
-  imageUrl: string;
+  desktopImageUrl: string;
+  mobileImageUrl: string;
   isVisible: boolean;
 }
 
@@ -129,7 +130,11 @@ const DEFAULT_SETTINGS: AppSettings = {
   ],
   newsSectionTitle: 'Lo Último en Ritmo',
   communityAds: [
-    { imageUrl: 'https://picsum.photos/seed/promo1/1200/450', isVisible: true }
+    { 
+      desktopImageUrl: 'https://picsum.photos/seed/promo_web/400/600', 
+      mobileImageUrl: 'https://picsum.photos/seed/promo_mob/1200/450', 
+      isVisible: true 
+    }
   ],
   moduleMarketTitle: 'RitmoMarket',
   moduleMarketDesc: 'Tienda de accesorios',

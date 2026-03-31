@@ -195,7 +195,7 @@ export default function HomePage() {
   const handleAddCommunityAd = () => {
     setTempHero(prev => ({
       ...prev,
-      communityAds: [...prev.communityAds, { imageUrl: '', isVisible: true }]
+      communityAds: [...prev.communityAds, { desktopImageUrl: '', mobileImageUrl: '', isVisible: true }]
     }));
   };
 
@@ -310,13 +310,12 @@ export default function HomePage() {
           </div>
 
           {isAdmin && (
-            <Button 
-              size="icon" 
-              className="absolute top-4 right-4 z-20 bg-white/20 hover:bg-white/40 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            <button 
+              className="absolute top-4 right-4 z-20 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
               onClick={handleEditHero}
             >
               <Edit2 className="w-4 h-4" />
-            </Button>
+            </button>
           )}
           
           <div className="relative z-10 max-w-xl space-y-3 md:space-y-4">
@@ -504,19 +503,39 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Espacio Publicitario Dinámico */}
+            {/* Espacio Publicitario Dinámico Adaptativo */}
             <div className="space-y-4">
               {visibleAds.map((ad, idx) => (
-                <Card key={idx} className="rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative aspect-[16/6] bg-slate-900/5">
-                  <Image 
-                    src={getDirectImageUrl(ad.imageUrl)} 
-                    alt={`Publicidad ${idx + 1}`} 
-                    fill 
-                    className="object-contain transition-transform duration-700 group-hover/ad:scale-105"
-                    data-ai-hint="community advertisement"
-                  />
+                <Card 
+                  key={idx} 
+                  className={cn(
+                    "rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative bg-slate-900/5",
+                    "aspect-[16/6] md:aspect-[2/3]" // Horizontal en móvil, Vertical en Web
+                  )}
+                >
+                  {/* Imagen Móvil: 1200x450 */}
+                  <div className="block md:hidden h-full w-full relative">
+                    <Image 
+                      src={getDirectImageUrl(ad.mobileImageUrl)} 
+                      alt={`Publicidad Móvil ${idx + 1}`} 
+                      fill 
+                      className="object-cover transition-transform duration-700 group-hover/ad:scale-105"
+                      data-ai-hint="community horizontal advertisement"
+                    />
+                  </div>
+                  {/* Imagen Desktop: 400x600 */}
+                  <div className="hidden md:block h-full w-full relative">
+                    <Image 
+                      src={getDirectImageUrl(ad.desktopImageUrl)} 
+                      alt={`Publicidad Web ${idx + 1}`} 
+                      fill 
+                      className="object-cover transition-transform duration-700 group-hover/ad:scale-105"
+                      data-ai-hint="community vertical advertisement"
+                    />
+                  </div>
+
                   {isAdmin && (
-                    <div className="absolute top-3 right-3 opacity-0 group-hover/ad:opacity-100 transition-opacity">
+                    <div className="absolute top-3 right-3 opacity-0 group-hover/ad:opacity-100 transition-opacity z-20">
                       <Button 
                         size="icon" 
                         className="bg-white/80 hover:bg-white text-accent rounded-xl shadow-lg h-8 w-8"
@@ -810,7 +829,7 @@ export default function HomePage() {
                 <div className="space-y-4 border-b border-primary/10 pb-6">
                   <div className="flex items-center justify-between">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                      <ImageIcon className="w-3 h-3 text-accent" /> Gestión de Publicidades (Banner 16:6)
+                      <ImageIcon className="w-3 h-3 text-accent" /> Gestión de Publicidades Adaptativas
                     </Label>
                     <Button 
                       type="button" 
@@ -848,12 +867,26 @@ export default function HomePage() {
                             </Button>
                           </div>
                         </div>
-                        <Input 
-                          value={ad.imageUrl} 
-                          onChange={(e) => handleUpdateCommunityAd(index, 'imageUrl', e.target.value)}
-                          className="h-10 rounded-xl border-2 font-bold focus:border-accent bg-card text-foreground text-xs"
-                          placeholder="URL de la imagen (aspecto 16:6 recomendado)"
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <Label className="text-[8px] font-black uppercase text-muted-foreground">URL Web (Vertical 400x600)</Label>
+                            <Input 
+                              value={ad.desktopImageUrl} 
+                              onChange={(e) => handleUpdateCommunityAd(index, 'desktopImageUrl', e.target.value)}
+                              className="h-10 rounded-xl border-2 font-bold text-xs bg-card"
+                              placeholder="Imagen vertical para computadoras"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <Label className="text-[8px] font-black uppercase text-muted-foreground">URL Móvil (Horizontal 1200x450)</Label>
+                            <Input 
+                              value={ad.mobileImageUrl} 
+                              onChange={(e) => handleUpdateCommunityAd(index, 'mobileImageUrl', e.target.value)}
+                              className="h-10 rounded-xl border-2 font-bold text-xs bg-card"
+                              placeholder="Imagen horizontal para celulares"
+                            />
+                          </div>
+                        </div>
                       </div>
                     ))}
                     {tempHero.communityAds.length === 0 && (
