@@ -72,6 +72,10 @@ const ICON_OPTIONS = [
   { id: 'Flame', icon: Flame },
 ];
 
+const FALLBACK_NEWS_IMAGE = "https://picsum.photos/seed/news/800/400";
+const FALLBACK_AD_WEB = "https://picsum.photos/seed/ad-web/400/600";
+const FALLBACK_AD_MOB = "https://picsum.photos/seed/ad-mob/1200/450";
+
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
   const { settings, updateSettings } = useSettingsStore();
@@ -288,23 +292,27 @@ export default function HomePage() {
         <section className="relative overflow-hidden rounded-[2rem] md:rounded-[2.5rem] bg-accent p-6 md:p-10 text-white shadow-xl shadow-accent/20 group min-h-[300px] flex flex-col justify-center">
           {/* Background Image Carousel */}
           <div className="absolute inset-0 z-0 overflow-hidden">
-            {heroImages.length > 0 ? heroImages.map((img, idx) => (
-              <div 
-                key={idx}
-                className={cn(
-                  "absolute inset-0 transition-opacity duration-1000 ease-in-out",
-                  idx === currentHeroImageIndex ? "opacity-100" : "opacity-0"
-                )}
-              >
-                <Image 
-                  src={getDirectImageUrl(img)} 
-                  alt={`Hero ${idx}`}
-                  fill
-                  className="object-cover brightness-[0.4]"
-                  priority={idx === 0}
-                />
-              </div>
-            )) : (
+            {heroImages.length > 0 ? heroImages.map((img, idx) => {
+              const url = getDirectImageUrl(img);
+              if (!url) return <div key={idx} className="absolute inset-0 bg-accent" />;
+              return (
+                <div 
+                  key={idx}
+                  className={cn(
+                    "absolute inset-0 transition-opacity duration-1000 ease-in-out",
+                    idx === currentHeroImageIndex ? "opacity-100" : "opacity-0"
+                  )}
+                >
+                  <Image 
+                    src={url} 
+                    alt={`Hero ${idx}`}
+                    fill
+                    className="object-cover brightness-[0.4]"
+                    priority={idx === 0}
+                  />
+                </div>
+              );
+            }) : (
               <div className="absolute inset-0 bg-accent" />
             )}
           </div>
@@ -399,6 +407,7 @@ export default function HomePage() {
               ) : articles.length > 0 ? articles.map((item) => {
                 const isLiked = item.likes?.includes(user.id);
                 const likeCount = item.likes?.length || 0;
+                const newsImgUrl = getDirectImageUrl(item.image) || FALLBACK_NEWS_IMAGE;
 
                 return (
                   <Card 
@@ -409,7 +418,7 @@ export default function HomePage() {
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
                       <div className="md:col-span-2 relative h-64 md:h-full min-h-[200px] overflow-hidden">
                         <Image 
-                          src={getDirectImageUrl(item.image)} 
+                          src={newsImgUrl} 
                           alt={item.title} 
                           fill 
                           className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -516,20 +525,20 @@ export default function HomePage() {
                   {/* Imagen Móvil: 1200x450 */}
                   <div className="block md:hidden h-full w-full relative">
                     <Image 
-                      src={getDirectImageUrl(ad.mobileImageUrl)} 
+                      src={getDirectImageUrl(ad.mobileImageUrl) || FALLBACK_AD_MOB} 
                       alt={`Publicidad Móvil ${idx + 1}`} 
                       fill 
-                      className="object-cover transition-transform duration-700 group-hover/ad:scale-105"
+                      className="object-contain transition-transform duration-700 group-hover/ad:scale-105"
                       data-ai-hint="community horizontal advertisement"
                     />
                   </div>
                   {/* Imagen Desktop: 400x600 */}
                   <div className="hidden md:block h-full w-full relative">
                     <Image 
-                      src={getDirectImageUrl(ad.desktopImageUrl)} 
+                      src={getDirectImageUrl(ad.desktopImageUrl) || FALLBACK_AD_WEB} 
                       alt={`Publicidad Web ${idx + 1}`} 
                       fill 
-                      className="object-cover transition-transform duration-700 group-hover/ad:scale-105"
+                      className="object-contain transition-transform duration-700 group-hover/ad:scale-105"
                       data-ai-hint="community vertical advertisement"
                     />
                   </div>
@@ -619,7 +628,7 @@ export default function HomePage() {
             <>
               <div className="relative h-48 md:h-64 w-full shrink-0">
                 <Image 
-                  src={getDirectImageUrl(selectedNews.image)} 
+                  src={getDirectImageUrl(selectedNews.image) || FALLBACK_NEWS_IMAGE} 
                   alt={selectedNews.title} 
                   fill 
                   className="object-cover"
@@ -674,16 +683,20 @@ export default function HomePage() {
                       <h4 className="text-sm font-black uppercase tracking-widest text-foreground">Galería del Evento</h4>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
-                      {selectedNews.extraImages.map((img, i) => (
-                        <div key={i} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-primary/10 shadow-sm group/img">
-                          <Image 
-                            src={getDirectImageUrl(img)} 
-                            alt={`Imagen ${i + 1}`} 
-                            fill 
-                            className="object-cover transition-transform duration-500 group-hover/img:scale-110"
-                          />
-                        </div>
-                      ))}
+                      {selectedNews.extraImages.map((img, i) => {
+                        const extraUrl = getDirectImageUrl(img);
+                        if (!extraUrl) return null;
+                        return (
+                          <div key={i} className="relative aspect-video rounded-2xl overflow-hidden border-2 border-primary/10 shadow-sm group/img">
+                            <Image 
+                              src={extraUrl} 
+                              alt={`Imagen ${i + 1}`} 
+                              fill 
+                              className="object-cover transition-transform duration-500 group-hover/img:scale-110"
+                            />
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
