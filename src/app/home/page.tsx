@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useEffect } from 'react';
@@ -853,6 +852,24 @@ export default function HomePage() {
                     >
                       <Plus className="w-3 h-3 mr-1" /> Nuevo Anuncio
                     </Button>
+                  </div>
+
+                  {/* Guía de Dimensiones para el Admin */}
+                  <div className="bg-blue-50 dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100 dark:border-blue-900/20 flex gap-3 items-start">
+                    <Info className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black uppercase text-blue-700 dark:text-blue-400">Guía de Dimensiones</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase">Vista Web (Vertical)</p>
+                          <p className="text-[10px] font-black text-foreground">400 x 600 px</p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-bold text-muted-foreground uppercase">Vista Móvil (Horizontal)</p>
+                          <p className="text-[10px] font-black text-foreground">1200 x 450 px</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="space-y-4">
