@@ -449,7 +449,7 @@ export default function HomePage() {
                         <h3 className="text-lg md:text-xl font-black text-foreground leading-tight group-hover:text-accent transition-colors">
                           {item.title}
                         </h3>
-                        <p className="text-muted-foreground text-sm font-medium leading-relaxed line-clamp-2">
+                        <p className="text-muted-foreground text-sm font-medium leading-relaxed">
                           {item.content}
                         </p>
                         <div className="flex items-center justify-between pt-2">
@@ -507,12 +507,12 @@ export default function HomePage() {
             {/* Espacio Publicitario Dinámico */}
             <div className="space-y-4">
               {visibleAds.map((ad, idx) => (
-                <Card key={idx} className="rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative aspect-[16/6]">
+                <Card key={idx} className="rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative aspect-[16/6] bg-slate-900/5">
                   <Image 
                     src={getDirectImageUrl(ad.imageUrl)} 
                     alt={`Publicidad ${idx + 1}`} 
                     fill 
-                    className="object-cover transition-transform duration-700 group-hover/ad:scale-105"
+                    className="object-contain transition-transform duration-700 group-hover/ad:scale-105"
                     data-ai-hint="community advertisement"
                   />
                   {isAdmin && (
