@@ -73,7 +73,7 @@ const ICON_OPTIONS = [
 
 const FALLBACK_NEWS_IMAGE = "https://picsum.photos/seed/news/800/400";
 const FALLBACK_AD_WEB = "https://picsum.photos/seed/ad-web/704/1408";
-const FALLBACK_AD_MOB = "https://picsum.photos/seed/ad-mob/1200/450";
+const FALLBACK_AD_MOB = "https://picsum.photos/seed/ad-mob/1536/1024";
 
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
@@ -520,10 +520,10 @@ export default function HomePage() {
                   key={idx} 
                   className={cn(
                     "rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative bg-slate-900/5",
-                    "aspect-[16/6] md:aspect-[1/2]" // Horizontal en móvil, Vertical en Web (1:2)
+                    "aspect-[3/2] md:aspect-[1/2]" // Horizontal en móvil (3:2), Vertical en Web (1:2)
                   )}
                 >
-                  {/* Imagen Móvil: 1200x450 */}
+                  {/* Imagen Móvil: 1536x1024 */}
                   <div className="block md:hidden h-full w-full relative">
                     {ad.mobileImageUrl ? (
                       <Image 
@@ -882,7 +882,7 @@ export default function HomePage() {
                         </div>
                         <div>
                           <p className="text-[9px] font-bold text-muted-foreground uppercase">Vista Móvil (Horizontal)</p>
-                          <p className="text-[10px] font-black text-foreground">1200 x 450 px</p>
+                          <p className="text-[10px] font-black text-foreground">1536 x 1024 px</p>
                         </div>
                       </div>
                     </div>
@@ -924,7 +924,7 @@ export default function HomePage() {
                             />
                           </div>
                           <div className="space-y-1">
-                            <Label className="text-[8px] font-black uppercase text-muted-foreground">URL Móvil (Horizontal 1200x450)</Label>
+                            <Label className="text-[8px] font-black uppercase text-muted-foreground">URL Móvil (Horizontal 1536x1024)</Label>
                             <Input 
                               value={ad.mobileImageUrl} 
                               onChange={(e) => handleUpdateCommunityAd(index, 'mobileImageUrl', e.target.value)}
