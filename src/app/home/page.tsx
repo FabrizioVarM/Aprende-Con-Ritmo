@@ -27,7 +27,7 @@ import {
   X,
   Share2,
   Plus,
-  Edit2,
+  Edit2, 
   Trash2,
   Save,
   Image as ImageIcon,
@@ -72,7 +72,7 @@ const ICON_OPTIONS = [
 ];
 
 const FALLBACK_NEWS_IMAGE = "https://picsum.photos/seed/news/800/400";
-const FALLBACK_AD_WEB = "https://picsum.photos/seed/ad-web/400/600";
+const FALLBACK_AD_WEB = "https://picsum.photos/seed/ad-web/704/1408";
 const FALLBACK_AD_MOB = "https://picsum.photos/seed/ad-mob/1200/450";
 
 export default function HomePage() {
@@ -416,13 +416,15 @@ export default function HomePage() {
                   >
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
                       <div className="md:col-span-2 relative h-64 md:h-full min-h-[200px] overflow-hidden">
-                        <Image 
-                          src={newsImgUrl} 
-                          alt={item.title} 
-                          fill 
-                          className="object-cover transition-transform duration-700 group-hover:scale-110"
-                          data-ai-hint="musical event"
-                        />
+                        {newsImgUrl && (
+                          <Image 
+                            src={newsImgUrl} 
+                            alt={item.title} 
+                            fill 
+                            className="object-cover transition-transform duration-700 group-hover:scale-110"
+                            data-ai-hint="musical event"
+                          />
+                        )}
                         <div className="absolute top-3 left-3 md:top-4 md:left-4 flex flex-col gap-2">
                           <Badge className="bg-white/95 text-accent rounded-full font-black px-2 py-0.5 shadow-sm border-none text-[10px]">
                             {item.tag}
@@ -518,28 +520,40 @@ export default function HomePage() {
                   key={idx} 
                   className={cn(
                     "rounded-[1.5rem] overflow-hidden border-2 border-primary/20 shadow-sm group/ad relative bg-slate-900/5",
-                    "aspect-[16/6] md:aspect-[2/3]" // Horizontal en móvil, Vertical en Web
+                    "aspect-[16/6] md:aspect-[1/2]" // Horizontal en móvil, Vertical en Web (1:2)
                   )}
                 >
                   {/* Imagen Móvil: 1200x450 */}
                   <div className="block md:hidden h-full w-full relative">
-                    <Image 
-                      src={getDirectImageUrl(ad.mobileImageUrl) || FALLBACK_AD_MOB} 
-                      alt={`Publicidad Móvil ${idx + 1}`} 
-                      fill 
-                      className="object-contain transition-transform duration-700 group-hover/ad:scale-105"
-                      data-ai-hint="community horizontal advertisement"
-                    />
+                    {ad.mobileImageUrl ? (
+                      <Image 
+                        src={getDirectImageUrl(ad.mobileImageUrl) || FALLBACK_AD_MOB} 
+                        alt={`Publicidad Móvil ${idx + 1}`} 
+                        fill 
+                        className="object-contain transition-transform duration-700 group-hover/ad:scale-105"
+                        data-ai-hint="community horizontal advertisement"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-muted/20 flex items-center justify-center">
+                        <ImageIcon className="w-8 h-8 text-muted-foreground/20" />
+                      </div>
+                    )}
                   </div>
-                  {/* Imagen Desktop: 400x600 */}
+                  {/* Imagen Desktop: 704x1408 */}
                   <div className="hidden md:block h-full w-full relative">
-                    <Image 
-                      src={getDirectImageUrl(ad.desktopImageUrl) || FALLBACK_AD_WEB} 
-                      alt={`Publicidad Web ${idx + 1}`} 
-                      fill 
-                      className="object-contain transition-transform duration-700 group-hover/ad:scale-105"
-                      data-ai-hint="community vertical advertisement"
-                    />
+                    {ad.desktopImageUrl ? (
+                      <Image 
+                        src={getDirectImageUrl(ad.desktopImageUrl) || FALLBACK_AD_WEB} 
+                        alt={`Publicidad Web ${idx + 1}`} 
+                        fill 
+                        className="object-contain transition-transform duration-700 group-hover/ad:scale-105"
+                        data-ai-hint="community vertical advertisement"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-muted/20 flex items-center justify-center">
+                        <ImageIcon className="w-12 h-12 text-muted-foreground/20" />
+                      </div>
+                    )}
                   </div>
 
                   {isAdmin && (
@@ -626,12 +640,14 @@ export default function HomePage() {
           {selectedNews && (
             <>
               <div className="relative h-48 md:h-64 w-full shrink-0">
-                <Image 
-                  src={getDirectImageUrl(selectedNews.image) || FALLBACK_NEWS_IMAGE} 
-                  alt={selectedNews.title} 
-                  fill 
-                  className="object-cover"
-                />
+                {selectedNews.image && (
+                  <Image 
+                    src={getDirectImageUrl(selectedNews.image) || FALLBACK_NEWS_IMAGE} 
+                    alt={selectedNews.title} 
+                    fill 
+                    className="object-cover"
+                  />
+                )}
                 <div className="absolute top-4 left-4">
                   <Badge className="bg-white/95 text-accent rounded-full font-black px-3 py-1 shadow-md border-none text-[10px] uppercase tracking-widest">
                     {selectedNews.tag}
@@ -862,7 +878,7 @@ export default function HomePage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-[9px] font-bold text-muted-foreground uppercase">Vista Web (Vertical)</p>
-                          <p className="text-[10px] font-black text-foreground">400 x 600 px</p>
+                          <p className="text-[10px] font-black text-foreground">704 x 1408 px</p>
                         </div>
                         <div>
                           <p className="text-[9px] font-bold text-muted-foreground uppercase">Vista Móvil (Horizontal)</p>
@@ -899,7 +915,7 @@ export default function HomePage() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <Label className="text-[8px] font-black uppercase text-muted-foreground">URL Web (Vertical 400x600)</Label>
+                            <Label className="text-[8px] font-black uppercase text-muted-foreground">URL Web (Vertical 704x1408)</Label>
                             <Input 
                               value={ad.desktopImageUrl} 
                               onChange={(e) => handleUpdateCommunityAd(index, 'desktopImageUrl', e.target.value)}
