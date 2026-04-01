@@ -494,11 +494,9 @@ export default function StudentDashboard() {
   const topInstConfig = INSTRUMENT_CONFIG[topInstrument] || INSTRUMENT_CONFIG['Default'];
   const topInstImageId = INSTRUMENT_IMAGE_MAP[topInstrument] || 'app-logo';
   
-  // Priorizar imagen de configuración del admin si existe
   const customTopInstImg = settings.instrumentImages?.[topInstrument];
   const topInstImageUrl = customTopInstImg || PlaceHolderImages.find(img => img.id === topInstImageId)?.imageUrl || "https://picsum.photos/seed/music/600/400";
 
-  // Priorizar fondo genérico del admin para clases si existe
   const customNextLessonImg = nextLesson ? (settings.instrumentImages?.[nextLesson.instrument]) : settings.nextClassDefaultImage;
   const nextLessonBgUrl = customNextLessonImg || (nextLesson ? (PlaceHolderImages.find(img => img.id === INSTRUMENT_IMAGE_MAP[nextLesson.instrument])?.imageUrl || PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl) : PlaceHolderImages.find(img => img.id === 'teacher-curriculum')?.imageUrl);
 
@@ -758,7 +756,7 @@ export default function StudentDashboard() {
                               <div className="flex flex-col items-start min-w-0 flex-1">
                                   <div className="flex flex-wrap items-center gap-2">
                                     <span className={cn("text-lg leading-none", (conflict || travelError) && "text-orange-700")}>{slot.time}</span>
-                                    <span className={cn("text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border", isSelected ? "bg-white/20 border-white/30 text-white" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`))}>{conflict ? 'Conflicto' : (travelError ? 'Sin Margen' : period.label)}</span>
+                                    <span className={cn("text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border", isSelected ? "bg-white/20 border-white/30" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`))}>{conflict ? 'Conflicto' : (travelError ? 'Sin Margen' : period.label)}</span>
                                   </div>
                                   {travelError ? <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">{travelError}</p> : conflict ? <p className="text-[8px] font-bold text-orange-600 mt-1 leading-tight text-left">Ya reservaste en este horario con otro profesor</p> : <span className={cn("text-[9px] font-black uppercase flex items-center gap-1 mt-1", slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500"))}>{slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}{slot.type === 'virtual' ? 'Online' : (slot.zone || 'Presencial')}</span>}
                               </div>
@@ -789,14 +787,13 @@ export default function StudentDashboard() {
       {/* Secciones Principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className={cn("relative overflow-hidden rounded-[2rem] border-2 shadow-sm p-6 transition-all duration-500", topInstConfig.bg.replace('/10', '/30'), topInstConfig.border)}>
-          {/* Modern Background Image with Diagonal Cut */}
           <div className="absolute top-0 right-0 w-full h-full pointer-events-none z-0">
             <div 
               className="absolute inset-0 transition-opacity duration-1000"
               style={{
-                clipPath: 'polygon(25% 100%, 75% 0, 100% 0, 100% 100%)',
-                maskImage: 'linear-gradient(to right, transparent 25%, black 45%)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent 25%, black 45%)'
+                clipPath: 'polygon(45% 100%, 95% 0, 100% 0, 100% 100%)',
+                maskImage: 'linear-gradient(to right, transparent 45%, black 65%)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent 45%, black 65%)'
               }}
             >
               <Image 
@@ -811,27 +808,26 @@ export default function StudentDashboard() {
 
           <div className="relative z-10">
             <CardHeader className="p-0 pb-4">
-              <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-2", topInstConfig.color)}>
+              <CardTitle className={cn("text-[10px] font-black uppercase tracking-widest flex items-center gap-2 drop-shadow-sm", topInstConfig.color)}>
                 <Star className="w-4 h-4 fill-current" />
                 Tu Instrumento Principal
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className={cn("text-3xl font-black truncate", topInstConfig.color)}>{topInstrument}</div>
+              <div className={cn("text-3xl font-black line-clamp-2 drop-shadow-md leading-tight", topInstConfig.color)}>{topInstrument}</div>
               <p className={cn("text-[10px] font-bold mt-1 opacity-60", topInstConfig.color)}>Máximo Progreso Acumulado</p>
             </CardContent>
           </div>
         </Card>
         
         <Card className="relative overflow-hidden rounded-[2rem] border-2 border-emerald-500 shadow-sm bg-emerald-50 dark:bg-emerald-950/20 p-6 transition-all duration-500">
-          {/* Modern Background Image with Diagonal Cut */}
           <div className="absolute top-0 right-0 w-full h-full pointer-events-none z-0">
             <div 
               className="absolute inset-0 transition-opacity duration-1000"
               style={{
-                clipPath: 'polygon(25% 100%, 75% 0, 100% 0, 100% 100%)',
-                maskImage: 'linear-gradient(to right, transparent 25%, black 45%)',
-                WebkitMaskImage: 'linear-gradient(to right, transparent 25%, black 45%)'
+                clipPath: 'polygon(45% 100%, 95% 0, 100% 0, 100% 100%)',
+                maskImage: 'linear-gradient(to right, transparent 45%, black 65%)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent 45%, black 65%)'
               }}
             >
               <Image 
@@ -846,16 +842,16 @@ export default function StudentDashboard() {
 
           <div className="relative z-10">
             <CardHeader className="p-0 pb-4">
-              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
+              <CardTitle className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 flex items-center gap-2 drop-shadow-sm">
                 <CalendarIcon className="w-4 h-4 text-accent" />
                 CLASE MÁS PRÓXIMA
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight">
+              <div className="text-2xl font-black text-emerald-900 dark:text-emerald-300 leading-tight drop-shadow-md">
                 {nextLesson ? nextLesson.time.split(' ')[0] : 'Sin sesiones activas'}
               </div>
-              <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-1">
+              <p className="text-[10px] text-emerald-700/60 dark:text-emerald-400/60 font-bold mt-1 drop-shadow-sm">
                 {nextLesson 
                   ? `${new Date(nextLesson.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long' })} con Prof. ${nextLesson.teacherName}` 
                   : 'Reserva una sesión para verla aquí 😴'}
