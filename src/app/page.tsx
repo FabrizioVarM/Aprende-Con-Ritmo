@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-store';
 import { useSettingsStore } from '@/lib/settings-store';
-import { ArrowRight, Music, Music2, Music3, Music4 } from 'lucide-react';
+import { ArrowRight, Music, Music2, Music3, Music4, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -21,7 +21,7 @@ interface DecorativeNote {
 }
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { settings, loading: settingsLoading } = useSettingsStore();
   const router = useRouter();
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
@@ -42,6 +42,21 @@ export default function Home() {
     }));
     setNotes(generatedNotes);
   }, [user, router]);
+
+  // Pantalla de carga inteligente mientras se restaura la sesión previa
+  if (authLoading) {
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-300">
+        <div className="bg-card p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4 border-2 border-primary/20">
+          <Loader2 className="w-10 h-10 text-accent animate-spin" />
+          <div className="space-y-1 text-center">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Iniciando Ritmo</p>
+            <p className="text-[8px] font-bold text-muted-foreground uppercase">Restaurando tu sesión musical...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (user) {
     return null;
