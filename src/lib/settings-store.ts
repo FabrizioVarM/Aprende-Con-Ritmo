@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -251,7 +251,7 @@ export function useSettingsStore() {
           views[userId] = (views[userId] || 0) + 1;
           ads[adIndex] = { ...ads[adIndex], views };
           
-          setDoc(docRef, { communityAds: ads }, { merge: true }).catch(err => {
+          updateDoc(docRef, { communityAds: ads }).catch(err => {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
               path: docRef.path,
               operation: 'update',

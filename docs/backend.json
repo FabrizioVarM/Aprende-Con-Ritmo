@@ -34,6 +34,19 @@
       },
       "required": ["id", "name", "email", "role"]
     },
+    "AppSettings": {
+      "title": "AppSettings",
+      "type": "object",
+      "description": "Configuración global de la aplicación y contenidos dinámicos.",
+      "properties": {
+        "appLogoUrl": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "zones": { "type": "array", "items": { "type": "string" } },
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "communityAds": { "type": "array", "items": { "type": "object" } }
+      }
+    },
     "CurriculumPlan": {
       "title": "CurriculumPlan",
       "type": "object",
@@ -240,6 +253,10 @@
     "/redemptions/{redemptionId}": {
       "schema": { "$ref": "#/backend/entities/RewardRedemption" },
       "description": "Historial de canjes realizados."
+    },
+    "/settings/{docId}": {
+      "schema": { "$ref": "#/backend/entities/AppSettings" },
+      "description": "Configuraciones globales del sistema."
     }
   }
 }

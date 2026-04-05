@@ -72,7 +72,7 @@ service cloud.firestore {
     
     match /settings/{docId} {
       allow read: if true;
-      allow update: if isSignedIn(); // Permitir registro de vistas de publicidad
+      allow update: if isSignedIn(); // Permitir registro de vistas de publicidad y ajustes menores
       allow create, delete: if isAdmin();
     }
 
@@ -88,7 +88,6 @@ service cloud.firestore {
     }
     
     match /redemptions/{redemptionId} {
-      // Alumnos pueden ver sus propios canjes, Admins todos.
       allow read: if isSignedIn() && (isAdmin() || resource.data.studentId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
       allow update, delete: if isAdmin();
