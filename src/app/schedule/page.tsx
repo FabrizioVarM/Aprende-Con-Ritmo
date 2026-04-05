@@ -189,6 +189,7 @@ function ScheduleContent() {
 
   const isTeacher = user?.role === 'teacher';
   const isAdmin = user?.role === 'admin';
+  const isStaff = isTeacher || isAdmin;
   const teachersList = useMemo(() => allUsers.filter(u => u.role === 'teacher'), [allUsers]);
   const studentsList = useMemo(() => allUsers.filter(u => u.role === 'student'), [allUsers]);
   const otherTeachersList = useMemo(() => allUsers.filter(u => u.role === 'teacher'), [allUsers]);
@@ -331,6 +332,9 @@ function ScheduleContent() {
       if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
       if (selectedModality === 'sede') return false;
 
+      // Si es profesor o admin, permitimos ver horarios pasados para registro retroactivo
+      if (isStaff) return true;
+
       const startTimeStr = s.time.split(' - ')[0];
       const [h, m] = startTimeStr.split(':').map(Number);
       const slotStartTime = new Date(date);
@@ -343,7 +347,7 @@ function ScheduleContent() {
       const dateStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
       return dateStart >= todayTimestamp;
     });
-  }, [allDaySlots, date, currentTime, todayTimestamp, selectedModality]);
+  }, [allDaySlots, date, currentTime, todayTimestamp, selectedModality, isStaff]);
 
   const allBookings = useMemo(() => {
     if (!isAdmin) return [];
@@ -549,6 +553,51 @@ function ScheduleContent() {
     });
     return stats;
   }, [availabilities, isAdmin]);
+
+  const daysWithAvailability = useMemo(() => {
+    if (!selectedTeacherId || !currentTime) return new Set<string>();
+    const availableDates = new Set<string>();
+    
+    // Generar 14 días para el modal de reserva (semana previa y semana siguiente)
+    const startOfNav = new Date(selectedDate);
+    startOfNav.setDate(selectedDate.getDate() - selectedDate.getDay() + 1);
+    
+    const navDays = Array.from({ length: 14 }, (_, i) => {
+      const d = new Date(startOfNav);
+      d.setDate(startOfNav.getDate() + i - 7);
+      return d;
+    });
+
+    navDays.forEach(d => {
+      const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const isToday = d.toDateString() === currentTime.toDateString();
+      const dateStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      
+      // Estudiantes no ven días pasados
+      if (!isStaff && dateStart < todayTimestamp && !isToday) return;
+      
+      const dayData = availabilities.find(a => a.teacherId === selectedTeacherId && a.date === dStr);
+      if (dayData) {
+        const hasFree = dayData.slots.some(s => {
+          if (!s.isAvailable || s.isBooked) return false;
+          if (selectedModality === 'virtual' && s.type !== 'virtual') return false;
+          if (selectedModality === 'domicilio' && s.type !== 'presencial') return false;
+          if (selectedModality === 'sede' && s.type !== 'presencial') return false;
+          
+          if (isToday && !isStaff) {
+            const startTimeStr = s.time.split(' - ')[0];
+            const [h, m] = startTimeStr.split(':').map(Number);
+            const slotStartTime = new Date(d);
+            slotStartTime.setHours(h, m, 0, 0);
+            return currentTime.getTime() < slotStartTime.getTime();
+          }
+          return true;
+        });
+        if (hasFree) availableDates.add(dStr);
+      }
+    });
+    return availableDates;
+  }, [availabilities, selectedTeacherId, selectedModality, currentTime, todayTimestamp, selectedDate, isStaff]);
 
   if (!isMounted || loading || !user) return null;
 
@@ -1550,6 +1599,308 @@ function ScheduleContent() {
           </div>
         </div>
       </div>
+
+      {/* DIÁLOGO DE RESERVA - REFACTORIZADO PARA SOPORTAR PASADO */}
+      <Dialog 
+        open={isBookingOpen} 
+        onOpenChange={(open) => {
+          setIsBookingOpen(open);
+          if (!open) {
+            setSelectedSlotId(null);
+            setBookingInstrument('');
+            setSelectedStudentIdForBooking('');
+          }
+        }}
+      >
+        <DialogContent className="rounded-[2.5rem] max-md border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+          <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
+            <div className="flex items-center gap-3">
+              <DialogTitle className="text-2xl font-black text-foreground">
+                {date.toDateString() === new Date().toDateString() ? 'Reserva para Hoy ⚡' : 
+                 new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() < todayTimestamp ? 'Registro de Clase Pasada 📚' : 
+                 'Agendar Clase 🗓️'}
+              </DialogTitle>
+              {date.toDateString() === new Date().toDateString() && (
+                <Badge className="bg-accent text-white rounded-full px-3 py-0.5 text-[10px] font-black animate-pulse uppercase tracking-widest border-none">
+                  Hoy
+                </Badge>
+              )}
+              {isStaff && new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() < todayTimestamp && (
+                <Badge className="bg-blue-500 text-white rounded-full px-3 py-0.5 text-[10px] font-black uppercase tracking-widest border-none">
+                  Historial
+                </Badge>
+              )}
+            </div>
+            <DialogDescription className="space-y-1">
+              <span className="block text-base text-foreground/70 font-medium">
+                {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </span>
+              {isStaff && new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() < todayTimestamp && (
+                <span className="block text-xs font-bold text-blue-600 italic">
+                  Modo Registro Retroactivo: Registra una sesión que ya fue realizada en esta fecha.
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-card">
+            {(isTeacher || isAdmin) && (
+              <div className="space-y-3 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                  <Users className="w-3 h-3" /> 0. Seleccionar Alumno
+                </Label>
+                <Select value={selectedStudentIdForBooking} onValueChange={setSelectedStudentIdForBooking}>
+                  <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
+                    <SelectValue placeholder="Elegir un alumno..." />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-2">
+                    {studentsList.map(s => (
+                      <SelectItem key={s.id} value={s.id} className="font-bold py-3">
+                        {s.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-3 pb-4 border-b border-accent/10">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                <UserIcon className="w-3 h-3" /> 1. Profesor a cargo
+              </Label>
+              <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
+                <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
+                  <SelectValue placeholder="Seleccionar profesor" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-2">
+                  {teachersList.map(t => (
+                    <SelectItem key={t.id} value={t.id} className="font-bold py-3">
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3 pb-4 border-b border-accent/10">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                <MousePointerClick className="w-3 h-3" /> 2. Modalidad
+              </Label>
+              <Select value={selectedModality} onValueChange={(val: any) => setSelectedModality(val)}>
+                <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
+                  <SelectValue placeholder="Seleccionar modalidad" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-2">
+                  <SelectItem value="domicilio" className="font-bold py-3">
+                    <div className="flex items-center gap-2">
+                      <Home className="w-4 h-4 text-accent" />
+                      <span>A domicilio</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="virtual" className="font-bold py-3">
+                    <div className="flex items-center gap-2">
+                      <Video className="w-4 h-4 text-blue-500" />
+                      <span>Virtual (Online)</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="cualquiera" className="font-bold py-3">
+                    <div className="flex items-center gap-2">
+                      <LayoutGrid className="w-4 h-4 text-muted-foreground" />
+                      <span>Cualquiera</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') && (
+              <div className="space-y-3 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1 duration-300">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                  <MapPinIcon className="w-3 h-3" /> 3. Zona
+                </Label>
+                <Select value={selectedZone} onValueChange={handleZoneChange}>
+                  <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-accent/5 font-black text-foreground focus:ring-accent">
+                    <SelectValue placeholder="Seleccionar zona" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-2">
+                    {activeZones.filter(z => z !== 'Virtual').map(z => (
+                      <SelectItem key={z} value={z} className="font-bold py-3">
+                        {z}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '4.' : '3.'} Selecciona el Día
+                </Label>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => { const newDate = new Date(date); newDate.setDate(date.getDate() - 7); setDate(newDate); }} 
+                    className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => { const newDate = new Date(date); newDate.setDate(date.getDate() + 7); setDate(newDate); }} 
+                    className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-7 gap-2">
+                {weekDays.map((d, i) => {
+                  const isSelected = d.toDateString() === date.toDateString();
+                  const isToday = d.toDateString() === todayStr;
+                  const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                  const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
+                  const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                  const hasAvailability = daysWithAvailability.has(dStr);
+
+                  return (
+                    <button
+                      key={i}
+                      // Alumnos no ven pasado, Profesores/Admin SI pueden para registrar clases
+                      disabled={!isStaff && isPast}
+                      onClick={() => setDate(d)}
+                      className={cn(
+                        "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
+                        isSelected ? "bg-accent border-accent text-white shadow-md" : "bg-muted/30 border-primary/10 hover:border-accent/20",
+                        isToday && !isSelected && "border-accent/30",
+                        !isStaff && isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border",
+                        isStaff && isPast && !isSelected && "bg-blue-50/30 border-blue-100"
+                      )}
+                    >
+                      <span className={cn("text-[8px] font-black uppercase", isSelected ? "text-white" : "text-muted-foreground")}>{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
+                      <span className={cn("text-lg font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
+                      {hasAvailability && (
+                        <div className={cn("absolute bottom-1.5 w-1 h-1 rounded-full shadow-sm", isSelected ? "bg-white" : "bg-emerald-500 animate-pulse")} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-accent/10">
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
+                {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '5.' : '4.'} Horarios Disponibles
+              </Label>
+              
+              <div className="grid grid-cols-1 gap-2">
+                {otherAvailableSlots.length > 0 ? (
+                  otherAvailableSlots.map((slot) => {
+                    const isSelected = selectedSlotId === slot.id;
+                    const period = getTimePeriod(slot.time);
+                    const conflict = hasConflict(slot.time);
+                    const travelError = getSlotTravelMarginError(slot);
+
+                    return (
+                      <div 
+                        key={slot.id} 
+                        className={cn(
+                          "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
+                          isSelected 
+                            ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
+                            : "bg-card border-primary/10 hover:border-accent/30",
+                          (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed"
+                        )}
+                        onClick={() => {
+                          if (conflict) { toast({ variant: "destructive", title: "Horario Ocupado", description: "El alumno ya tiene otra reserva en este horario." }); return; }
+                          if (travelError) { toast({ variant: "destructive", title: "Margen de Viaje", description: travelError }); return; }
+                          setSelectedSlotId(slot.id);
+                          if (!bookingInstrument) {
+                            const targetId = (isTeacher || isAdmin) ? selectedStudentIdForBooking : user?.id;
+                            const targetStudent = allUsers.find(u => u.id === targetId);
+                            if (targetStudent?.instruments?.length) {
+                              setBookingInstrument(targetStudent.instruments[0]);
+                            } else if (teacherInstruments.length > 0) {
+                              setBookingInstrument(teacherInstruments[0]);
+                            }
+                          }
+                        }}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center gap-4">
+                            <div className={cn(
+                              "p-2.5 rounded-2xl border shadow-inner",
+                              isSelected ? "bg-accent text-white border-accent" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`),
+                            )}>
+                              {conflict || travelError ? <AlertTriangle className="w-5 h-5 shrink-0" /> : <period.icon className="w-5 h-5 shrink-0" />}
+                            </div>
+                            <div className="flex flex-col items-start min-w-0">
+                              <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground", (conflict || travelError) && "text-orange-700")}>
+                                {formatToAmPm(slot.time)}
+                              </span>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className={cn(
+                                  "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-1",
+                                  isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
+                                )}>
+                                  <period.icon className="w-2.5 h-2.5" />
+                                  {period.label}
+                                </span>
+                                <span className={cn("text-[9px] font-black uppercase flex items-center gap-1", slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-500") : (isSelected ? "text-white/80" : "text-red-500"))}>
+                                  {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                  {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
+                        </div>
+
+                        {isSelected && (
+                          <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                              <Music className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '6.' : '5.'} Instrumento
+                            </Label>
+                            <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
+                              <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">
+                                <SelectValue placeholder="Seleccionar instrumento" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-2xl border-2">
+                                {teacherInstruments.map(inst => (
+                                  <SelectItem key={inst} value={inst} className="font-bold py-3">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
+                                      <span>{inst}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10 space-y-3">
+                    <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30" />
+                    <p className="text-sm font-bold text-muted-foreground">No hay turnos habilitados en este día para el profesor seleccionado.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-8 bg-muted/30 flex gap-3 border-t shrink-0 mt-auto">
+            <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
+            <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
