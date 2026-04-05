@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useMemo, Suspense } from 'react';
@@ -53,7 +54,9 @@ import {
   Info,
   GraduationCap,
   X,
-  BarChart
+  BarChart,
+  TrendingUp,
+  Clock
 } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -64,13 +67,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Resource } from '@/lib/resources';
 import { AvatarPreviewContent } from '@/components/AvatarPreviewContent';
 import { getDirectImageUrl, getDriveDownloadUrl } from '@/lib/utils/images';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ALL_CATEGORIES = ['Todos', 'Guitarra', 'Piano', 'Bajo', 'Violín', 'Batería', 'Canto', 'Teoría'];
 const CONTENT_TYPES = ['PDF', 'Video', 'Libro', 'Audio', 'Clase', 'Partitura'];
 const LEVELS = [1, 2, 3, 4, 5];
 const FALLBACK_IMAGE = "https://picsum.photos/seed/fallback/600/400";
 
-// Configuración de colores por nivel (Mate/Sutíl para mejor contraste)
 const LEVEL_STYLE: Record<number, { bg: string, text: string, border: string, hover: string }> = {
   1: { bg: 'bg-emerald-400', text: 'text-white', border: 'border-emerald-500', hover: 'hover:border-emerald-300' },
   2: { bg: 'bg-sky-400', text: 'text-white', border: 'border-sky-500', hover: 'hover:border-sky-300' },
@@ -90,7 +93,8 @@ function LibraryContent() {
     updateLibraryDescription,
     toggleStudentVisibility,
     toggleGlobalVisibility,
-    toggleEnabledStatus
+    toggleEnabledStatus,
+    recordView
   } = useResourceStore();
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -105,6 +109,7 @@ function LibraryContent() {
   const [selectedStudentId, setSelectedStudentId] = useState(''); 
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [viewingResource, setViewingResource] = useState<Resource | null>(null);
+  const [statsResource, setStatsResource] = useState<Resource | null>(null);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tempDescription, setTempDescription] = useState(libraryDescription);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -144,7 +149,7 @@ function LibraryContent() {
     if (isMounted && targetResourceId && resources.length > 0 && targetResourceId !== autoOpenedId) {
       const res = resources.find(r => String(r.id) === targetResourceId);
       if (res) {
-        setViewingResource(res);
+        handleViewResource(res);
         setAutoOpenedId(targetResourceId);
       }
     }
@@ -184,6 +189,13 @@ function LibraryContent() {
       setEnableInteractInForm(editingResource.interactUrl !== '#' && !!editingResource.interactUrl);
     }
   }, [editingResource]);
+
+  const handleViewResource = (res: Resource) => {
+    setViewingResource(res);
+    if (user) {
+      recordView(res.id, user.id);
+    }
+  };
 
   const toggleFilter = (cat: string) => {
     if (cat === 'Todos') {
@@ -309,6 +321,12 @@ function LibraryContent() {
       const newUrl = params.toString() ? `${window.location.pathname}?${params.toString()}` : window.location.pathname;
       router.replace(newUrl, { scroll: false });
     }
+  };
+
+  const formatLastSeenDate = (iso?: string) => {
+    if (!iso) return "Nunca";
+    const d = new Date(iso);
+    return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   };
 
   if (!isMounted || loading || !user) return null;
@@ -511,7 +529,7 @@ function LibraryContent() {
                 )}
                 onClick={() => {
                   if (isLockedForStudent) return;
-                  setViewingResource(res);
+                  handleViewResource(res);
                 }}
               >
                 <div className="relative aspect-video overflow-hidden bg-muted">
@@ -550,17 +568,26 @@ function LibraryContent() {
                   </div>
 
                   {canManage && (
-                    <div className="absolute top-16 left-4 flex flex-col gap-2 items-start">
+                    <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
                       <Button 
                         size="icon" 
-                        variant="secondary" 
-                        className="rounded-full w-10 h-10 shadow-lg bg-white/90 dark:bg-slate-900/90 hover:bg-accent hover:text-white transition-all"
+                        className="rounded-full w-10 h-10 shadow-lg bg-white/90 dark:bg-slate-900/90 text-accent hover:bg-accent hover:text-white transition-all opacity-0 group-hover:opacity-100"
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingResource(res);
                         }}
                       >
                         <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        className="rounded-full w-10 h-10 shadow-lg bg-white/90 dark:bg-slate-900/90 text-blue-500 hover:bg-blue-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStatsResource(res);
+                        }}
+                      >
+                        <TrendingUp className="w-4 h-4" />
                       </Button>
                     </div>
                   )}
@@ -577,7 +604,6 @@ function LibraryContent() {
                   )}
                 </div>
 
-                {/* Level Indicator: Lower position, absolute to edge, aligned with text header height */}
                 <div className={cn(
                   "absolute right-0 top-[42%] flex flex-col items-center justify-center w-8 h-12 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/20 z-20 transition-transform duration-300 group-hover:scale-110",
                   levelStyle.bg
@@ -750,6 +776,71 @@ function LibraryContent() {
         </div>
       </div>
 
+      {/* DIÁLOGO: ESTADÍSTICAS DE MATERIAL (ADMIN) */}
+      <Dialog open={!!statsResource} onOpenChange={(open) => !open && setStatsResource(null)}>
+        <DialogContent className="rounded-[2.5rem] max-w-md border-none shadow-2xl p-0 overflow-hidden bg-card flex flex-col max-h-[80vh]">
+          {statsResource && (
+            <>
+              <DialogHeader className="bg-blue-500/10 p-8 border-b">
+                <DialogTitle className="text-xl font-black text-foreground flex items-center gap-3">
+                  <BarChart className="w-6 h-6 text-blue-500" />
+                  Analítica de Material
+                </DialogTitle>
+                <DialogDescription className="font-medium text-muted-foreground">
+                  Alumnos que han consultado "{statsResource.title}"
+                </DialogDescription>
+              </DialogHeader>
+              
+              <ScrollArea className="flex-1 p-6">
+                <div className="space-y-4">
+                  {Object.entries(statsResource.views || {}).length > 0 ? (
+                    Object.entries(statsResource.views || {}).map(([uid, stats]) => {
+                      const viewer = allUsers.find(u => u.id === uid);
+                      return (
+                        <div key={uid} className="flex flex-col p-4 rounded-2xl bg-primary/5 border border-primary/10 gap-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10 border-2 border-white">
+                                {viewer?.photoUrl ? (
+                                  <AvatarImage src={getDirectImageUrl(viewer.photoUrl)} className="object-cover" />
+                                ) : (
+                                  <AvatarImage src={`https://picsum.photos/seed/${viewer?.avatarSeed || uid}/100`} />
+                                )}
+                                <AvatarFallback>{viewer?.name?.[0] || 'U'}</AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-black text-foreground truncate">{viewer?.name || 'Usuario Eliminado'}</p>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase">{viewer?.role || 'Estudiante'}</p>
+                              </div>
+                            </div>
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-none font-black text-[10px] shrink-0">
+                              {stats.count} {stats.count === 1 ? 'Acceso' : 'Accesos'}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 pt-2 border-t border-primary/5 text-[9px] font-black uppercase text-muted-foreground tracking-widest">
+                            <Clock className="w-3 h-3 text-accent" />
+                            Visto por última vez: <span className="text-foreground">{formatLastSeenDate(stats.lastSeen)}</span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="py-10 text-center space-y-2">
+                      <Eye className="w-10 h-10 text-muted-foreground/20 mx-auto" />
+                      <p className="text-sm font-bold text-muted-foreground italic">Nadie ha consultado este material aún.</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+              
+              <DialogFooter className="p-6 bg-muted/30 border-t">
+                <Button variant="outline" className="w-full rounded-xl font-black" onClick={() => setStatsResource(null)}>Cerrar Reporte</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* DIÁLOGO: VISTA DE DETALLES DEL MATERIAL */}
       <Dialog open={!!viewingResource} onOpenChange={(open) => !open && closeViewingResource()}>
         <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
@@ -788,7 +879,6 @@ function LibraryContent() {
 
               <div className="flex-1 overflow-y-auto min-h-0 bg-card custom-scrollbar">
                 <div className="p-6 space-y-6 relative">
-                  {/* Level semi-circle badge in Dialog Body Content Area */}
                   <div className={cn(
                     "absolute right-0 top-6 flex flex-col items-center justify-center w-10 h-16 rounded-l-full shadow-lg text-white font-black border-y-2 border-l-2 border-white/30 z-10",
                     LEVEL_STYLE[viewingResource.level || 1]?.bg

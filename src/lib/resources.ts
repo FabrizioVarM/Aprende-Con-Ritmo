@@ -23,6 +23,7 @@ export interface Resource {
   isVisibleGlobally?: boolean;
   isEnabled?: boolean;
   assignedStudentIds?: string[];
+  views?: Record<string, { count: number, lastSeen: string }>;
 }
 
 export const INITIAL_RESOURCES: Resource[] = [
@@ -107,7 +108,7 @@ export const INITIAL_RESOURCES: Resource[] = [
     type: 'PDF', 
     img: { imageUrl: "https://picsum.photos/seed/drums1/600/400", imageHint: "drums instrument" }, 
     length: '15 págs',
-    description: 'Los 40 rudimentos internacionales explicados con notación clara. Enfoque especial en single strokes, double strokes y paradiddles.',
+    description: 'Los 40 rudimentos internacionales explicados con notación clara. Enfoque especial en single strokes, double strokes y paraiddles.',
     objective: 'Mejorar el control de baquetas y la independencia de manos necesaria para ritmos complejos.',
     tip: 'Utiliza el rebote natural del parche; no fuerces el golpe hacia abajo, deja que la baqueta respire.',
     downloadUrl: '#', 

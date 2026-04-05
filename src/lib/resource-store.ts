@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import { collection, onSnapshot, doc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -80,6 +80,29 @@ export function useResourceStore() {
     });
   }, [db]);
 
+  const recordView = useCallback(async (resourceId: number, userId: string) => {
+    const docRef = doc(db, 'resources', String(resourceId));
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data() as Resource;
+      const views = { ...(data.views || {}) };
+      const current = views[userId] || { count: 0, lastSeen: '' };
+      
+      views[userId] = {
+        count: current.count + 1,
+        lastSeen: new Date().toISOString()
+      };
+
+      return updateDoc(docRef, { views }).catch((err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: { views }
+        }));
+      });
+    }
+  }, [db]);
+
   const updateLibraryDescription = useCallback((newDesc: string) => {
     const docRef = doc(db, 'settings', 'library');
     setDoc(docRef, { description: newDesc }, { merge: true }).catch((err) => {
@@ -126,6 +149,7 @@ export function useResourceStore() {
     updateLibraryDescription,
     toggleStudentVisibility,
     toggleGlobalVisibility,
-    toggleEnabledStatus
+    toggleEnabledStatus,
+    recordView
   };
 }
