@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -22,6 +22,7 @@ export interface CommunityAd {
   desktopImageUrl: string;
   mobileImageUrl: string;
   isVisible: boolean;
+  views?: Record<string, number>; // Mapping: uid -> viewCount
 }
 
 export interface RankConfig {
@@ -131,9 +132,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   newsSectionTitle: 'Lo Último en Ritmo',
   communityAds: [
     { 
-      desktopImageUrl: 'https://picsum.photos/seed/promo_web/400/600', 
-      mobileImageUrl: 'https://picsum.photos/seed/promo_mob/1200/450', 
-      isVisible: true 
+      desktopImageUrl: 'https://picsum.photos/seed/promo_web/704/1408', 
+      mobileImageUrl: 'https://picsum.photos/seed/promo_mob/1536/1024', 
+      isVisible: true,
+      views: {}
     }
   ],
   moduleMarketTitle: 'RitmoMarket',
@@ -183,7 +185,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   curriculumHeroDescription: 'Bienvenido al núcleo académico de Aprende con Ritmo. Aquí encontrarás la ruta estructurada que garantiza que cada alumno, sin importar su profesor, reciba una formación técnica y musical de excelencia.',
   curriculumHeroBadge: 'Guía Docente Maestra',
   curriculumHeroImageUrl: 'https://picsum.photos/seed/teacher1/600/400',
-  termsContent: `1. Identidad y Propósito\nLa plataforma Aprende con Ritmo es una herramienta de gestión académica musical diseñada para facilitar la interacción entre alumnos, profesores y administración. El registro implica el uso de datos personales para fines exclusivamente educativos y de coordinación institucional.\n\n2. Usuarios y Menores de Edad\nEn caso de que el estudiante sea menor de edad, el registro y la operación de la aplicación deben ser realizados por el padre, madre o tutor legal, quien asume la responsabilidad total de la cuenta y la veracidad de la información proporcionada.\n\n3. Propiedad Intelectual y Material Didáctico\nTodo el material proporcionado en la Biblioteca (partituras, videos, audios, textos) es propiedad intelectual de la academia o cuenta con las licencias correspondientes para uso educativo.\n\nQueda estrictamente PROHIBIDA la descarga, reproducción, distribución, venta o uso de cualquier material didáctico fuera de la plataforma con fines de lucro sin la autorización expresa y por escrito de la dirección de Aprende con Ritmo.\n\n4. Código de Conducta y Uso Correcto\nEl usuario se compromete a:\n- Proporcionar información veraz y mantenerla actualizada.\n- Mantener un trato respetuoso y profesional con los docentes y personal administrativo.\n- Utilizar la agenda de clases de forma responsable, respetando los tiempos de los profesores.\n- No intentar vulnerar la seguridad de la plataforma ni acceder a perfiles ajenos.\n\n5. Incumplimiento y Sanciones\nEl incumplimiento de cualquiera de estos términos podrá resultar en:\n- Amonestaciones verbales o escritas enviadas al perfil del alumno.\n- Suspensión temporal del acceso a la plataforma y materiales.\n- Expulsión Definitiva de la academia y eliminación permanente de la cuenta sin derecho a reembolso en caso de faltas graves a la moral o mal uso de la propiedad intelectual.\n- Acciones legales pertinentes en caso de lucro indebido con materiales de la academia.\n\n6. Tratamiento de Datos\nAl registrarse, usted autoriza la recopilación y almacenamiento de:\n- Nombres, correos electrónicos y números de teléfono.\n- Instrumentos de interés y niveles de progreso técnico.\n- Fotografías de perfil y evidencias de aprendizaje.\n- Historial de asistencia y calificaciones.`
+  termsContent: `1. Identidad y Propósito\nLa plataforma Aprende con Ritmo es una herramienta de gestión académica musical diseñada para facilitar la interacción entre alumnos, profesores y administración. El registro implica el uso de datos personales para fines exclusivamente educativos y de coordinación institucional.\n\n2. Usuarios y Menores de Edad\nEn caso de que el estudiante sea menor de edad, el registro y la operación de la aplicación deben ser realizados por el padre, madre o tutor legal, quien asume la responsabilidad total de la cuenta y la veracidad de la información proporcionada.\n\n3. Propiedad Intelectual y Material Didáctico\nTodo el material proporcionado en la Biblioteca (partituras, videos, audios, textos) es propiedad intelectual de la academia o cuenta con las licencias correspondientes para uso educativo.\n\nQueda estrictamente PROHIBIDA la descarga, reproducción, distribución, venta o uso de cualquier material didáctico fuera de la plataforma con fines de lucro sin la autorización expresa y por escrito de la dirección de Aprende con Ritmo.\n\n4. Código de Conducta y Uso Correcto\nEl usuario se compromete a:\n- Proporcionar información veraz y mantenerla actualizada.\n- Mantener un trato respetuoso y profesional con los docentes y personal administrativo.\n- Utilizar la agenda de clases de forma responsable, respetando los tiempos de los profesores.\n- No intentar vulnerar la seguridad de la plataforma ni acceder a perfiles ajenos.\n\n5. Incumplimiento y Sanciones\nEl incumplimiento de cualquiera de estos términos podrá resultar en:\n- Amonestaciones verbales o escritas enviadas al perfil del alumno.\n- Suspensión temporal del acceso a la plataforma y materiales.\n- Expulsión Definitiva de la academia y eliminación permanente de la cuenta sin derecho a reembolso en caso de faltas graves a la moral o mal uso de la propiedad intelectual.\n- Acciones legales pertinentes en caso de lucro indebido con materiales de la academia.\n\n6. Treatment of Data\nAl registrarse, usted autoriza la recopilación y almacenamiento de:\n- Nombres, correos electrónicos y números de teléfono.\n- Instrumentos de interés y niveles de progreso técnico.\n- Fotografías de perfil y evidencias de aprendizaje.\n- Historial de asistencia y calificaciones.`
 };
 
 export function useSettingsStore() {
@@ -237,5 +239,29 @@ export function useSettingsStore() {
     });
   }, [db]);
 
-  return { settings, updateSettings, loading };
+  const recordAdView = useCallback((adIndex: number, userId: string) => {
+    const docRef = doc(db, 'settings', 'global');
+    
+    getDoc(docRef).then((snap) => {
+      if (snap.exists()) {
+        const currentData = snap.data() as AppSettings;
+        const ads = [...(currentData.communityAds || [])];
+        if (ads[adIndex]) {
+          const views = { ...(ads[adIndex].views || {}) };
+          views[userId] = (views[userId] || 0) + 1;
+          ads[adIndex] = { ...ads[adIndex], views };
+          
+          setDoc(docRef, { communityAds: ads }, { merge: true }).catch(err => {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+              path: docRef.path,
+              operation: 'update',
+              requestResourceData: { communityAds: ads }
+            }));
+          });
+        }
+      }
+    });
+  }, [db]);
+
+  return { settings, updateSettings, recordAdView, loading };
 }

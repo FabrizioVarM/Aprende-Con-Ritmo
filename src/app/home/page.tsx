@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +42,9 @@ import {
   Target,
   Flame,
   Eye,
-  EyeOff
+  EyeOff,
+  BarChart,
+  TrendingUp
 } from 'lucide-react';
 import {
   Dialog,
@@ -58,6 +60,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getDirectImageUrl } from '@/lib/utils/images';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const ICON_OPTIONS = [
   { id: 'Zap', icon: Zap },
@@ -77,18 +80,21 @@ const FALLBACK_AD_WEB = "https://picsum.photos/seed/ad-web/704/1408";
 const FALLBACK_AD_MOB = "https://picsum.photos/seed/ad-mob/1536/1024";
 
 export default function HomePage() {
-  const { user, loading: authLoading } = useAuth();
-  const { settings, updateSettings } = useSettingsStore();
+  const { user, allUsers, loading: authLoading } = useAuth();
+  const { settings, updateSettings, recordAdView } = useSettingsStore();
   const { articles, addArticle, updateArticle, deleteArticle, toggleLike, loading: newsLoading } = useNewsStore();
   const router = useRouter();
   const { toast } = useToast();
   
   const [isMounted, setIsMounted] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsArticle | null>(null);
+  const [statsAdIndex, setStatsAdIndex] = useState<number | null>(null);
   
   // Carousel logic for Hero background
   const [currentHeroImageIndex, setCurrentHeroImageIndex] = useState(0);
   const heroImages = settings.heroImages || [];
+
+  const reportedAds = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     setIsMounted(true);
@@ -101,6 +107,21 @@ export default function HomePage() {
     }, 5000);
     return () => clearInterval(interval);
   }, [heroImages]);
+
+  // View tracking logic
+  useEffect(() => {
+    if (user && settings.communityAds && settings.communityAds.length > 0) {
+      settings.communityAds.forEach((ad, idx) => {
+        if (ad.isVisible && !reportedAds.current.has(idx)) {
+          const timer = setTimeout(() => {
+            recordAdView(idx, user.id);
+            reportedAds.current.add(idx);
+          }, 2000); // Record after 2 seconds of exposure
+          return () => clearTimeout(timer);
+        }
+      });
+    }
+  }, [settings.communityAds, user, recordAdView]);
 
   const isAdmin = user?.role === 'admin';
 
@@ -199,7 +220,7 @@ export default function HomePage() {
   const handleAddCommunityAd = () => {
     setTempHero(prev => ({
       ...prev,
-      communityAds: [...prev.communityAds, { desktopImageUrl: '', mobileImageUrl: '', isVisible: true }]
+      communityAds: [...prev.communityAds, { desktopImageUrl: '', mobileImageUrl: '', isVisible: true, views: {} }]
     }));
   };
 
@@ -903,6 +924,17 @@ export default function HomePage() {
                                 className="scale-75 data-[state=checked]:bg-blue-500"
                               />
                             </div>
+                            {/* Analytics Button */}
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-blue-500 hover:bg-blue-100 rounded-lg"
+                              onClick={() => setStatsAdIndex(index)}
+                              title="Ver estadísticas de visualización"
+                            >
+                              <TrendingUp className="w-4 h-4" />
+                            </Button>
                             <Button 
                               type="button" 
                               variant="ghost" 
@@ -1028,6 +1060,65 @@ export default function HomePage() {
               <Save className="w-4 h-4 mr-2" /> Guardar Todos los Cambios
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Estadísticas de Anuncio */}
+      <Dialog open={statsAdIndex !== null} onOpenChange={(open) => !open && setStatsAdIndex(null)}>
+        <DialogContent className="rounded-[2.5rem] max-w-md border-none shadow-2xl p-0 overflow-hidden bg-card flex flex-col max-h-[80vh]">
+          {statsAdIndex !== null && settings.communityAds?.[statsAdIndex] && (
+            <>
+              <DialogHeader className="bg-blue-500/10 p-8 border-b">
+                <DialogTitle className="text-xl font-black text-foreground flex items-center gap-3">
+                  <BarChart className="w-6 h-6 text-blue-500" />
+                  Estadísticas de Visualización
+                </DialogTitle>
+                <DialogDescription className="font-medium text-muted-foreground">
+                  Personas que han interactuado con el anuncio #{statsAdIndex + 1}
+                </DialogDescription>
+              </DialogHeader>
+              
+              <ScrollArea className="flex-1 p-6">
+                <div className="space-y-4">
+                  {Object.entries(settings.communityAds[statsAdIndex].views || {}).length > 0 ? (
+                    Object.entries(settings.communityAds[statsAdIndex].views || {}).map(([uid, count]) => {
+                      const viewer = allUsers.find(u => u.id === uid);
+                      return (
+                        <div key={uid} className="flex items-center justify-between p-3 rounded-2xl bg-primary/5 border border-primary/10">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10 border-2 border-white">
+                              {viewer?.photoUrl ? (
+                                <AvatarImage src={getDirectImageUrl(viewer.photoUrl)} className="object-cover" />
+                              ) : (
+                                <AvatarImage src={`https://picsum.photos/seed/${viewer?.avatarSeed || uid}/100`} />
+                              )}
+                              <AvatarFallback>{viewer?.name?.[0] || 'U'}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-black text-foreground truncate">{viewer?.name || 'Usuario Eliminado'}</p>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase">{viewer?.role || 'Visitante'}</p>
+                            </div>
+                          </div>
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-none font-black text-[10px] shrink-0">
+                            {count} {count === 1 ? 'Vista' : 'Vistas'}
+                          </Badge>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="py-10 text-center space-y-2">
+                      <Eye className="w-10 h-10 text-muted-foreground/20 mx-auto" />
+                      <p className="text-sm font-bold text-muted-foreground italic">Nadie ha visto este anuncio aún.</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+              
+              <DialogFooter className="p-6 bg-muted/30 border-t">
+                <Button variant="outline" className="w-full rounded-xl font-black" onClick={() => setStatsAdIndex(null)}>Cerrar Reporte</Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 
