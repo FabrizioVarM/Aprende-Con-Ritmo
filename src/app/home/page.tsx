@@ -82,13 +82,14 @@ const FALLBACK_AD_MOB = "https://picsum.photos/seed/ad-mob/1536/1024";
 export default function HomePage() {
   const { user, allUsers, loading: authLoading } = useAuth();
   const { settings, updateSettings, recordAdView } = useSettingsStore();
-  const { articles, addArticle, updateArticle, deleteArticle, toggleLike, loading: newsLoading } = useNewsStore();
+  const { articles, addArticle, updateArticle, deleteArticle, toggleLike, recordView, loading: newsLoading } = useNewsStore();
   const router = useRouter();
   const { toast } = useToast();
   
   const [isMounted, setIsMounted] = useState(false);
   const [selectedNews, setSelectedNews] = useState<NewsArticle | null>(null);
   const [statsAdIndex, setStatsAdIndex] = useState<number | null>(null);
+  const [statsNewsId, setStatsNewsId] = useState<string | null>(null);
   
   // Carousel logic for Hero background
   const [currentHeroImageIndex, setCurrentHeroImageIndex] = useState(0);
@@ -434,7 +435,10 @@ export default function HomePage() {
                   <Card 
                     key={item.id} 
                     className="rounded-[1.5rem] md:rounded-[2rem] border-2 border-primary/20 shadow-sm hover:shadow-lg hover:border-accent/40 transition-all duration-500 group overflow-hidden bg-card cursor-pointer"
-                    onClick={() => setSelectedNews(item)}
+                    onClick={() => {
+                      setSelectedNews(item);
+                      recordView(item.id, user.id);
+                    }}
                   >
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
                       <div className="md:col-span-2 relative h-64 md:h-full min-h-[200px] overflow-hidden">
@@ -461,6 +465,16 @@ export default function HomePage() {
                               onClick={(e) => openEditArticle(item, e)}
                             >
                               <Edit2 className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              className="bg-white text-blue-500 rounded-xl shadow-lg h-8 w-8 hover:bg-blue-500 hover:text-white"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setStatsNewsId(item.id);
+                              }}
+                            >
+                              <TrendingUp className="w-3.5 h-3.5" />
                             </Button>
                             <Button 
                               size="icon" 
@@ -1116,6 +1130,65 @@ export default function HomePage() {
               
               <DialogFooter className="p-6 bg-muted/30 border-t">
                 <Button variant="outline" className="w-full rounded-xl font-black" onClick={() => setStatsAdIndex(null)}>Cerrar Reporte</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Estadísticas de Noticias */}
+      <Dialog open={statsNewsId !== null} onOpenChange={(open) => !open && setStatsNewsId(null)}>
+        <DialogContent className="rounded-[2.5rem] max-w-md border-none shadow-2xl p-0 overflow-hidden bg-card flex flex-col max-h-[80vh]">
+          {statsNewsId !== null && (
+            <>
+              <DialogHeader className="bg-accent/10 p-8 border-b">
+                <DialogTitle className="text-xl font-black text-foreground flex items-center gap-3">
+                  <BarChart className="w-6 h-6 text-accent" />
+                  Estadísticas de Lectura
+                </DialogTitle>
+                <DialogDescription className="font-medium text-muted-foreground">
+                  Alumnos que han leído "{articles.find(a => a.id === statsNewsId)?.title}"
+                </DialogDescription>
+              </DialogHeader>
+              
+              <ScrollArea className="flex-1 p-6">
+                <div className="space-y-4">
+                  {Object.entries(articles.find(a => a.id === statsNewsId)?.views || {}).length > 0 ? (
+                    Object.entries(articles.find(a => a.id === statsNewsId)?.views || {}).map(([uid, count]) => {
+                      const viewer = allUsers.find(u => u.id === uid);
+                      return (
+                        <div key={uid} className="flex items-center justify-between p-3 rounded-2xl bg-primary/5 border border-primary/10">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-10 h-10 border-2 border-white">
+                              {viewer?.photoUrl ? (
+                                <AvatarImage src={getDirectImageUrl(viewer.photoUrl)} className="object-cover" />
+                              ) : (
+                                <AvatarImage src={`https://picsum.photos/seed/${viewer?.avatarSeed || uid}/100`} />
+                              )}
+                              <AvatarFallback>{viewer?.name?.[0] || 'U'}</AvatarFallback>
+                            </Avatar>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-black text-foreground truncate">{viewer?.name || 'Usuario Eliminado'}</p>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase">{viewer?.role || 'Estudiante'}</p>
+                            </div>
+                          </div>
+                          <Badge variant="secondary" className="bg-accent/10 text-accent border-none font-black text-[10px] shrink-0">
+                            {count} {count === 1 ? 'Lectura' : 'Lecturas'}
+                          </Badge>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="py-10 text-center space-y-2">
+                      <Eye className="w-10 h-10 text-muted-foreground/20 mx-auto" />
+                      <p className="text-sm font-bold text-muted-foreground italic">Nadie ha leído esta noticia aún.</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+              
+              <DialogFooter className="p-6 bg-muted/30 border-t">
+                <Button variant="outline" className="w-full rounded-xl font-black" onClick={() => setStatsNewsId(null)}>Cerrar Reporte</Button>
               </DialogFooter>
             </>
           )}

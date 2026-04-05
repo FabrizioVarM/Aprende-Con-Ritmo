@@ -10,7 +10,8 @@ import {
   deleteDoc, 
   query, 
   orderBy,
-  updateDoc
+  updateDoc,
+  getDoc
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -28,6 +29,7 @@ export interface NewsArticle {
   type: 'news' | 'event' | 'update';
   createdAt?: string;
   likes?: string[];
+  views?: Record<string, number>; // Mapping: uid -> viewCount
 }
 
 export function useNewsStore() {
@@ -60,7 +62,8 @@ export function useNewsStore() {
       ...article,
       id,
       createdAt: new Date().toISOString(),
-      likes: []
+      likes: [],
+      views: {}
     };
 
     return setDoc(docRef, data).catch((err) => {
@@ -104,7 +107,6 @@ export function useNewsStore() {
       : [...currentLikes, userId];
 
     const docRef = doc(db, 'news', articleId);
-    // Usamos updateDoc para actualizar específicamente el campo de likes
     return updateDoc(docRef, { likes: newLikes }).catch((err) => {
       errorEmitter.emit('permission-error', new FirestorePermissionError({
         path: docRef.path,
@@ -114,5 +116,22 @@ export function useNewsStore() {
     });
   }, [db, articles]);
 
-  return { articles, loading, addArticle, updateArticle, deleteArticle, toggleLike };
+  const recordView = useCallback(async (articleId: string, userId: string) => {
+    const docRef = doc(db, 'news', articleId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      const data = snap.data() as NewsArticle;
+      const views = { ...(data.views || {}) };
+      views[userId] = (views[userId] || 0) + 1;
+      return updateDoc(docRef, { views }).catch((err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: { views }
+        }));
+      });
+    }
+  }, [db]);
+
+  return { articles, loading, addArticle, updateArticle, deleteArticle, toggleLike, recordView };
 }
