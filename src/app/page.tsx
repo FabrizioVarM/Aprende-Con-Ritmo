@@ -27,10 +27,12 @@ export default function Home() {
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
 
   useEffect(() => {
+    // Si se detecta un usuario cargado, redirigir al home
     if (user) {
       router.push('/home');
     }
 
+    // Generar notas musicales decorativas de inmediato
     const generatedNotes = Array.from({ length: 18 }).map((_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -43,32 +45,29 @@ export default function Home() {
     setNotes(generatedNotes);
   }, [user, router]);
 
-  // Pantalla de carga inteligente: SOLO si hay un firebaseUser (sesión detectada) pero el perfil aún no carga
-  // Si no hay firebaseUser (usuario invitado o no logueado), permitimos que vea la presentación directamente
-  if (authLoading && firebaseUser) {
-    return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-300">
-        <div className="bg-card p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4 border-2 border-primary/20">
-          <Loader2 className="w-10 h-10 text-accent animate-spin" />
-          <div className="space-y-1 text-center">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Iniciando Ritmo</p>
-            <p className="text-[8px] font-bold text-muted-foreground uppercase">Restaurando tu sesión musical...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Si ya cargó el perfil y hay usuario, no mostramos nada (el useEffect redirigirá a /home)
-  if (user) {
-    return null;
-  }
-
   const icons = [Music, Music2, Music3, Music4];
+
+  // Placeholder para el logo si settings aún no carga
+  const logoPlaceholder = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF8B7A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18V5l12-2v13'%3E%3C/path%3E%3Ccircle cx='6' cy='18' r='3'%3E%3C/circle%3E%3Ccircle cx='18' cy='16' r='3'%3E%3C/circle%3E%3C/svg%3E";
+  const finalLogoUrl = settings.appLogoUrl || logoPlaceholder;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary via-background to-background relative overflow-hidden">
       
+      {/* Pantalla de carga inteligente (Overlay solo si hay sesión detectada) */}
+      {authLoading && firebaseUser && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-300">
+          <div className="bg-card p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4 border-2 border-primary/20">
+            <Loader2 className="w-10 h-10 text-accent animate-spin" />
+            <div className="space-y-1 text-center">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground">Iniciando Ritmo</p>
+              <p className="text-[8px] font-bold text-muted-foreground uppercase">Restaurando tu sesión musical...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notas flotantes decorativas (Se muestran de inmediato) */}
       <div className="absolute inset-0 pointer-events-none opacity-30 overflow-hidden">
         {notes.map((note) => {
           const Icon = icons[note.iconIndex];
@@ -89,14 +88,18 @@ export default function Home() {
         })}
       </div>
 
-      <div className="max-w-3xl text-center space-y-8 relative z-10">
+      {/* Contenido de presentación (Carga automática) */}
+      <div className={cn(
+        "max-w-3xl text-center space-y-8 relative z-10 transition-all duration-700",
+        user ? "opacity-0 scale-95" : "opacity-100 scale-100"
+      )}>
         <div className="flex justify-center">
           <div className="relative w-24 h-24 p-1 bg-white rounded-[2rem] shadow-2xl shadow-accent/20 animate-bounce overflow-hidden border-4 border-accent">
             <Image 
-              src={getDirectImageUrl(settings.appLogoUrl)} 
+              src={getDirectImageUrl(finalLogoUrl)} 
               alt="Logo" 
               fill 
-              className={cn("object-cover transition-opacity duration-500", settingsLoading ? "opacity-0" : "opacity-100")}
+              className="object-cover"
               data-ai-hint="academy logo"
               priority 
             />
