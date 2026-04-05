@@ -56,7 +56,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { useBookingStore, TimeSlot } from '@/lib/booking-store';
+import { useBookingStore, TimeSlot, INITIAL_SLOTS } from '@/lib/booking-store';
 import { useSettingsStore, FALLBACK_ZONES } from '@/lib/settings-store';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
@@ -559,8 +559,8 @@ function ScheduleContent() {
     const availableDates = new Set<string>();
     
     // Generar 14 días para el modal de reserva (semana previa y semana siguiente)
-    const startOfNav = new Date(selectedDate);
-    startOfNav.setDate(selectedDate.getDate() - selectedDate.getDay() + 1);
+    const startOfNav = new Date(date);
+    startOfNav.setDate(date.getDate() - date.getDay() + 1);
     
     const navDays = Array.from({ length: 14 }, (_, i) => {
       const d = new Date(startOfNav);
@@ -597,7 +597,7 @@ function ScheduleContent() {
       }
     });
     return availableDates;
-  }, [availabilities, selectedTeacherId, selectedModality, currentTime, todayTimestamp, selectedDate, isStaff]);
+  }, [availabilities, selectedTeacherId, selectedModality, currentTime, todayTimestamp, date, isStaff]);
 
   if (!isMounted || loading || !user) return null;
 
@@ -820,7 +820,7 @@ function ScheduleContent() {
                     <Users className="w-5 h-5" /> Nueva Clase Grupal
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="rounded-[2.5rem] max-w-2xl border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                <DialogContent className="rounded-[2.5rem] max-w-2xl border-none p-0 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
                   <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
                     <DialogTitle className="text-2xl font-black text-foreground flex items-center gap-3">
                       <GraduationCap className="w-8 h-8 text-accent" />
