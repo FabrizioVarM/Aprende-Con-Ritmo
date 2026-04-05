@@ -21,7 +21,7 @@ interface DecorativeNote {
 }
 
 export default function Home() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, firebaseUser, loading: authLoading } = useAuth();
   const { settings, loading: settingsLoading } = useSettingsStore();
   const router = useRouter();
   const [notes, setNotes] = useState<DecorativeNote[]>([]);
@@ -43,8 +43,9 @@ export default function Home() {
     setNotes(generatedNotes);
   }, [user, router]);
 
-  // Pantalla de carga inteligente mientras se restaura la sesión previa
-  if (authLoading) {
+  // Pantalla de carga inteligente: SOLO si hay un firebaseUser (sesión detectada) pero el perfil aún no carga
+  // Si no hay firebaseUser (usuario invitado o no logueado), permitimos que vea la presentación directamente
+  if (authLoading && firebaseUser) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-300">
         <div className="bg-card p-8 rounded-[2.5rem] shadow-2xl flex flex-col items-center gap-4 border-2 border-primary/20">
@@ -58,6 +59,7 @@ export default function Home() {
     );
   }
 
+  // Si ya cargó el perfil y hay usuario, no mostramos nada (el useEffect redirigirá a /home)
   if (user) {
     return null;
   }
