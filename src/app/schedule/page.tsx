@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect, Suspense, useRef } from 'react';
@@ -31,7 +32,9 @@ import {
   AlertTriangle, 
   Building2, 
   Home, 
-  LayoutGrid 
+  LayoutGrid,
+  FileText,
+  UserPlus
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth-store';
 import {
@@ -67,6 +70,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { useSearchParams } from 'next/navigation';
+import { Textarea } from '@/components/ui/textarea';
 
 const INSTRUMENT_EMOJIS: Record<string, string> = {
   'Guitarra': '🎸',
@@ -147,6 +151,8 @@ function ScheduleContent() {
   const [bookingInstrument, setBookingInstrument] = useState<string>('');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
   const [selectedStudentIdForBooking, setSelectedStudentIdForBooking] = useState<string>('');
+  const [externalStudentName, setExternalStudentName] = useState<string>('');
+  const [bookingNotes, setBookingNotes] = useState<string>('');
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [selectedModality, setSelectedModality] = useState<'sede' | 'virtual' | 'domicilio' | 'cualquiera'>('domicilio');
   
@@ -233,7 +239,7 @@ function ScheduleContent() {
 
   const hasConflict = (slotTime: string) => {
     const targetId = (isTeacher || isAdmin) ? selectedStudentIdForBooking : user?.id;
-    if (!targetId) return false;
+    if (!targetId || targetId === 'external') return false;
     
     return availabilities.some(day => 
       day.date === dateStrKey && 
@@ -393,22 +399,28 @@ function ScheduleContent() {
     if (!selectedSlotId || !date || !user || !selectedTeacherId) return;
 
     if ((isTeacher || isAdmin) && !selectedStudentIdForBooking) {
-      toast({ variant: "destructive", title: "Selecciona un alumno", description: "Debes elegir un alumno para agendar la clase." });
+      toast({ variant: "destructive", title: "Selecciona un alumno", description: "Debes elegir un alumno o marcar como externo." });
       return;
     }
 
-    const targetStudentId = (isTeacher || isAdmin) ? selectedStudentIdForBooking : user.id;
-    const targetStudent = allUsers.find(u => u.id === targetStudentId) || user;
+    if (selectedStudentIdForBooking === 'external' && !externalStudentName) {
+      toast({ variant: "destructive", title: "Nombre requerido", description: "Ingresa el nombre del alumno no matriculado." });
+      return;
+    }
+
+    const isExternal = selectedStudentIdForBooking === 'external';
+    const targetStudentId = isExternal ? null : ((isTeacher || isAdmin) ? selectedStudentIdForBooking : user.id);
+    const targetStudentName = isExternal ? externalStudentName : (allUsers.find(u => u.id === targetStudentId)?.name || user.name);
     
     const targetSlot = otherAvailableSlots.find(s => s.id === selectedSlotId);
     if (!targetSlot) return;
 
-    if (hasConflict(targetSlot.time)) {
+    if (targetStudentId && hasConflict(targetSlot.time)) {
       toast({
         variant: "destructive",
         title: "Conflicto de Horario",
         description: (isTeacher || isAdmin) 
-          ? `El alumno ${targetStudent.name} ya tiene otra clase en este mismo horario.` 
+          ? `El alumno ya tiene otra clase en este mismo horario.` 
           : "Ya tienes una clase reservada en este horario con otro profesor."
       });
       return;
@@ -424,18 +436,25 @@ function ScheduleContent() {
       return;
     }
 
-    const instrument = bookingInstrument || targetStudent.instruments?.[0] || DEFAULT_TEACHER_INSTRUMENT;
+    const instrument = bookingInstrument || (isExternal ? 'Música' : allUsers.find(u => u.id === targetStudentId)?.instruments?.[0]) || DEFAULT_TEACHER_INSTRUMENT;
     const teacherName = currentTeacherProfile?.name || DEFAULT_TEACHER_NAME;
     const finalZone = (selectedModality === 'virtual' || (selectedModality === 'cualquiera' && targetSlot.type === 'virtual')) 
       ? 'Virtual' 
       : (selectedZone || activeZones[0]);
     
-    bookSlot(selectedTeacherId, date, selectedSlotId, targetStudent.name, targetStudent.id, instrument, teacherName, adminIds, finalZone);
-    toast({ title: "¡Reserva Exitosa! 🎸", description: (isTeacher || isAdmin) ? `Clase agendada para ${targetStudent.name}.` : "Tu clase ha sido agendada con éxito." });
+    bookSlot(selectedTeacherId, date, selectedSlotId, targetStudentName, targetStudentId, instrument, teacherName, adminIds, finalZone, bookingNotes, isExternal);
+    
+    toast({ 
+      title: "¡Reserva Exitosa! 🎸", 
+      description: isExternal ? `Clase externa registrada para ${targetStudentName}.` : "La clase ha sido agendada con éxito." 
+    });
+    
     setIsBookingOpen(false);
     setSelectedSlotId(null);
     setBookingInstrument('');
     setSelectedStudentIdForBooking('');
+    setExternalStudentName('');
+    setBookingNotes('');
 
     errorEmitter.emit('request-notification-permission', undefined);
   };
@@ -558,7 +577,6 @@ function ScheduleContent() {
     if (!selectedTeacherId || !currentTime) return new Set<string>();
     const availableDates = new Set<string>();
     
-    // Generar 14 días para el modal de reserva (semana previa y semana siguiente)
     const startOfNav = new Date(date);
     startOfNav.setDate(date.getDate() - date.getDay() + 1);
     
@@ -573,7 +591,6 @@ function ScheduleContent() {
       const isToday = d.toDateString() === currentTime.toDateString();
       const dateStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
       
-      // Estudiantes no ven días pasados
       if (!isStaff && dateStart < todayTimestamp && !isToday) return;
       
       const dayData = availabilities.find(a => a.teacherId === selectedTeacherId && a.date === dStr);
@@ -618,180 +635,196 @@ function ScheduleContent() {
           ? (isCompleted ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/50' : (isPast && isMine ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/50' : 'bg-accent/5 dark:bg-accent/10 border-accent shadow-lg shadow-accent/10')) 
           : 'bg-card border-primary/10 hover:border-accent/20'
       )}>
-        <CardContent className="p-4 sm:p-5 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-            <div className={cn(
-              "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[95px] h-16 sm:h-20 rounded-2xl shrink-0 shadow-inner",
-              isMine || isStaffView ? (isCompleted ? "bg-emerald-500 text-white" : (isPast && isMine ? "bg-orange-500 text-white" : "bg-accent text-white")) : "bg-primary/10 text-foreground"
-            )}>
-              <span className="text-sm sm:text-base font-black leading-none text-center">{displayTime}</span>
-            </div>
-            
-            <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
-              {slot.isBooked ? (
-                <div className="space-y-2">
-                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 flex items-center justify-center text-xl rounded-xl border shadow-sm bg-primary/5 dark:bg-white/5">
-                      {slot.isGroup ? '🎓' : emoji}
+        <CardContent className="p-4 sm:p-5 flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 sm:gap-6 min-w-0">
+              <div className={cn(
+                "flex flex-col items-center justify-center min-w-[75px] sm:min-w-[95px] h-16 sm:h-20 rounded-2xl shrink-0 shadow-inner",
+                isMine || isStaffView ? (isCompleted ? "bg-emerald-500 text-white" : (isPast && isMine ? "bg-orange-500 text-white" : "bg-accent text-white")) : "bg-primary/10 text-foreground"
+              )}>
+                <span className="text-sm sm:text-base font-black leading-none text-center">{displayTime}</span>
+              </div>
+              
+              <div className="min-w-0 flex-1 space-y-0.5 sm:space-y-1">
+                {slot.isBooked ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 flex items-center justify-center text-xl rounded-xl border shadow-sm bg-primary/5 dark:bg-white/5">
+                        {slot.isGroup ? '🎓' : emoji}
+                      </div>
+                      <span className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                        {slot.isGroup ? `${slot.instrument}` : `Clase de ${slot.instrument || 'Música'}`}
+                        {slot.isExternalStudent && <Badge className="bg-blue-500 text-white border-none text-[7px] h-4">Externo</Badge>}
+                      </span>
                     </div>
-                    <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                      {slot.isGroup ? `${slot.instrument}` : `Clase de ${slot.instrument || 'Música'}`}
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <div className="text-xl font-black text-accent flex items-center gap-2">
-                      <UserIcon className="w-5 h-5" />
-                      {slot.isGroup ? (
-                        <span className="truncate">Profesores: {[slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME), ...(slot.teachers?.map((t: any) => t.name) || [])].join(', ')}</span>
-                      ) : (
-                        <span>Prof. {slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME)}</span>
-                      )}
-                    </div>
-                    <div className="text-lg font-black text-foreground flex items-center gap-2">
-                      < GraduationCap className="w-5 h-5" />
-                      {slot.isGroup ? (
-                        <span className="truncate">Participantes: {slot.students?.map((s: any) => s.name).join(', ')}</span>
-                      ) : (
-                        <span>Alumno: {slot.bookedBy}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
-                    <span className={cn(
-                        "flex items-center gap-1 shrink-0",
-                        slot.type === 'virtual' ? "text-blue-500 dark:text-blue-400" : "text-red-500 dark:text-red-400"
-                    )}>
-                      {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                      {slot.type === 'virtual' ? 'Online' : (slot.zone || 'Presencial')}
-                    </span>
-                    <span className={cn(
-                      "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
-                      `${period.bg} ${period.border} ${period.color}`
-                    )}>
-                      <period.icon className="w-2.5 h-2.5" />
-                      {period.label}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <h4 className={cn(
-                    "text-base sm:text-lg font-black tracking-tight truncate flex items-center gap-2",
-                    (isMine || isStaffView) ? (isCompleted ? "text-emerald-700 dark:text-emerald-400" : (isPast && isMine ? "text-orange-700 dark:text-orange-400" : "text-accent")) : "text-foreground"
-                  )}>
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
-                      <div className="flex items-center gap-2 truncate p-1">
-                        {teacherInstrumentsList.map((inst, idx) => {
-                          const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
-                          return (
-                            <TooltipProvider key={idx}>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div className="text-2xl hover:scale-125 transition-transform cursor-help">
-                                    {emoji}
-                                  </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
-                                  {inst}
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          );
-                        })}
+                    <div className="flex flex-col gap-1">
+                      <div className="text-xl font-black text-accent flex items-center gap-2">
+                        <UserIcon className="w-5 h-5" />
+                        {slot.isGroup ? (
+                          <span className="truncate">Profesores: {[slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME), ...(slot.teachers?.map((t: any) => t.name) || [])].join(', ')}</span>
+                        ) : (
+                          <span>Prof. {slot.teacherName || (teacherProfile?.name || DEFAULT_TEACHER_NAME)}</span>
+                        )}
+                      </div>
+                      <div className="text-lg font-black text-foreground flex items-center gap-2">
+                        < GraduationCap className="w-5 h-5" />
+                        {slot.isGroup ? (
+                          <span className="truncate">Participantes: {slot.students?.map((s: any) => s.name).join(', ')}</span>
+                        ) : (
+                          <span className="truncate">Alumno: {slot.bookedBy}</span>
+                        )}
                       </div>
                     </div>
-                  </h4>
-                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
-                    <span className="flex items-center gap-1 shrink-0 text-foreground">
-                      <UserIcon className="w-3 h-3 text-accent" /> 
-                      {teacherProfile?.name || DEFAULT_TEACHER_NAME}
-                    </span>
-                    <span className={cn(
-                        "flex items-center gap-1 shrink-0",
-                        slot.type === 'virtual' ? "text-blue-500 dark:text-blue-400" : "text-red-500 dark:text-red-400"
+                    <div className="flex flex-wrap items-center gap-3 text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-1">
+                      <span className={cn(
+                          "flex items-center gap-1 shrink-0",
+                          slot.type === 'virtual' ? "text-blue-500 dark:text-blue-400" : "text-red-500 dark:text-red-400"
+                      )}>
+                        {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                        {slot.type === 'virtual' ? 'Online' : (slot.zone || 'Presencial')}
+                      </span>
+                      <span className={cn(
+                        "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
+                        `${period.bg} ${period.border} ${period.color}`
+                      )}>
+                        <period.icon className="w-2.5 h-2.5" />
+                        {period.label}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h4 className={cn(
+                      "text-base sm:text-lg font-black tracking-tight truncate flex items-center gap-2",
+                      (isMine || isStaffView) ? (isCompleted ? "text-emerald-700 dark:text-emerald-400" : (isPast && isMine ? "text-orange-700 dark:text-orange-400" : "text-accent")) : "text-foreground"
                     )}>
-                      {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
-                      {slot.type === 'virtual' ? 'Online' : 'Presencial'}
-                    </span>
-                    <span className={cn(
-                      "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
-                      `${period.bg} ${period.border} ${period.color}`
-                    )}>
-                      <period.icon className="w-2.5 h-2.5" />
-                      {period.label}
-                    </span>
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <span className="text-muted-foreground shrink-0 text-xs font-black uppercase tracking-widest">Disponible:</span>
+                        <div className="flex items-center gap-2 truncate p-1">
+                          {teacherInstrumentsList.map((inst, idx) => {
+                            const emoji = INSTRUMENT_EMOJIS[inst] || '🎵';
+                            return (
+                              <TooltipProvider key={idx}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <div className="text-2xl hover:scale-125 transition-transform cursor-help">
+                                      {emoji}
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="rounded-xl font-black text-[10px] py-1 uppercase tracking-widest">
+                                    {inst}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                      <span className="flex items-center gap-1 shrink-0 text-foreground">
+                        <UserIcon className="w-3 h-3 text-accent" /> 
+                        {teacherProfile?.name || DEFAULT_TEACHER_NAME}
+                      </span>
+                      <span className={cn(
+                          "flex items-center gap-1 shrink-0",
+                          slot.type === 'virtual' ? "text-blue-500 dark:text-blue-400" : "text-red-500 dark:text-red-400"
+                      )}>
+                        {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                        {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                      </span>
+                      <span className={cn(
+                        "flex items-center gap-1 shrink-0 px-2 py-0.5 rounded-full border shadow-sm",
+                        `${period.bg} ${period.border} ${period.color}`
+                      )}>
+                        <period.icon className="w-2.5 h-2.5" />
+                        {period.label}
+                      </span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="shrink-0 flex items-center gap-2">
+              {(isStaffView || isTeacher || isAdmin) && slot.isBooked ? (
+                <div className="flex items-center gap-3">
+                  {isPast && (
+                    <div className="flex flex-col items-center gap-1.5 border-r border-primary/10 pr-3">
+                      <span className={cn("text-[9px] font-black uppercase", isCompleted ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400")}>
+                        {isCompleted ? 'Completado' : 'Pendiente'}
+                      </span>
+                      <Switch 
+                        checked={isCompleted} 
+                        onCheckedChange={() => handleToggleStatus(slot, customTeacherId)} 
+                      />
+                    </div>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => handleCancel(slot.id, customTeacherId)} 
+                    className="text-destructive hover:bg-destructive/10 rounded-full h-10 w-10 shrink-0"
+                    title="Eliminar reserva"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </Button>
+                </div>
+              ) : isMine ? (
+                <>
+                  {!isPast && (
+                    <Button variant="ghost" size="icon" onClick={() => handleCancel(slot.id, customTeacherId)} className="text-destructive hover:bg-destructive/10 rounded-full h-9 w-9 sm:h-10 sm:w-10">
+                      <Trash2 className="w-5 h-5" />
+                    </Button>
+                  )}
+                  <div className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all", 
+                    isCompleted ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : (isPast ? "bg-orange-100 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400" : "bg-accent/10 text-accent")
+                  )}>
+                    {isCompleted ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Completado</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-5 h-5" />
+                        {isPast && (
+                          <span className="text-[10px] font-black uppercase tracking-widest">Revisando</span>
+                        )}
+                      </>
+                    )}
                   </div>
                 </>
+              ) : (
+                !slot.isBooked && (
+                  <Button 
+                    size="sm" 
+                    className="bg-accent text-white rounded-xl font-black px-4 h-10 shadow-lg shadow-accent/20 hover:scale-105 transition-all"
+                    onClick={() => {
+                      setSelectedSlotId(slot.id);
+                      setIsBookingOpen(true);
+                    }}
+                  >
+                    Reservar
+                  </Button>
+                )
               )}
             </div>
           </div>
 
-          <div className="shrink-0 flex items-center gap-2">
-            {(isStaffView || isTeacher || isAdmin) && slot.isBooked ? (
-              <div className="flex items-center gap-3">
-                {isPast && (
-                  <div className="flex flex-col items-center gap-1.5 border-r border-primary/10 pr-3">
-                    <span className={cn("text-[9px] font-black uppercase", isCompleted ? "text-emerald-600 dark:text-emerald-400" : "text-orange-600 dark:text-orange-400")}>
-                      {isCompleted ? 'Completado' : 'Pendiente'}
-                    </span>
-                    <Switch 
-                      checked={isCompleted} 
-                      onCheckedChange={() => handleToggleStatus(slot, customTeacherId)} 
-                    />
-                  </div>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => handleCancel(slot.id, customTeacherId)} 
-                  className="text-destructive hover:bg-destructive/10 rounded-full h-10 w-10 shrink-0"
-                  title="Eliminar reserva"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </Button>
+          {/* Notas de Clase (Solo para Staff) */}
+          {isStaff && slot.isBooked && slot.notes && (
+            <div className="bg-white/40 dark:bg-black/20 p-4 rounded-2xl border border-primary/10 mt-2 animate-in fade-in duration-500">
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="w-3.5 h-3.5 text-accent" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Notas Pedagógicas / Guía</span>
               </div>
-            ) : isMine ? (
-              <>
-                {!isPast && (
-                  <Button variant="ghost" size="icon" onClick={() => handleCancel(slot.id, customTeacherId)} className="text-destructive hover:bg-destructive/10 rounded-full h-9 w-9 sm:h-10 sm:w-10">
-                    <Trash2 className="w-5 h-5" />
-                  </Button>
-                )}
-                <div className={cn(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-2xl transition-all", 
-                  isCompleted ? "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" : (isPast ? "bg-orange-100 dark:bg-orange-950/20 text-orange-700 dark:text-orange-400" : "bg-accent/10 text-accent")
-                )}>
-                  {isCompleted ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Completado</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-5 h-5" />
-                      {isPast && (
-                        <span className="text-[10px] font-black uppercase tracking-widest">Revisando</span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </>
-            ) : (
-              !slot.isBooked && (
-                <Button 
-                  size="sm" 
-                  className="bg-accent text-white rounded-xl font-black px-4 h-10 shadow-lg shadow-accent/20 hover:scale-105 transition-all"
-                  onClick={() => {
-                    setSelectedSlotId(slot.id);
-                    setIsBookingOpen(true);
-                  }}
-                >
-                  Reservar
-                </Button>
-              )
-            )}
-          </div>
+              <p className="text-xs font-medium text-foreground leading-relaxed whitespace-pre-wrap italic">
+                "{slot.notes}"
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -937,6 +970,8 @@ function ScheduleContent() {
                   setSelectedSlotId(null);
                   setBookingInstrument('');
                   setSelectedStudentIdForBooking('');
+                  setExternalStudentName('');
+                  setBookingNotes('');
                 }
               }}
             >
@@ -949,11 +984,13 @@ function ScheduleContent() {
                 <DialogHeader className="bg-primary/10 dark:bg-accent/10 p-8 border-b space-y-2 shrink-0">
                   <div className="flex items-center gap-3">
                     <DialogTitle className="text-2xl font-black text-foreground">
-                      {date.toDateString() === new Date().toDateString() ? 'Reserva para Hoy ⚡' : 'Agendar Clase 🗓️'}
+                      {date.toDateString() === new Date().toDateString() ? 'Reserva para Hoy ⚡' : 
+                       new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime() < todayTimestamp ? 'Registro de Clase Pasada 📚' : 
+                       'Agendar Clase 🗓️'}
                     </DialogTitle>
                     {date.toDateString() === new Date().toDateString() && (
                       <Badge className="bg-accent text-white rounded-full px-3 py-0.5 text-[10px] font-black animate-pulse uppercase tracking-widest border-none">
-                        Solo Hoy
+                        Hoy
                       </Badge>
                     )}
                   </div>
@@ -961,16 +998,11 @@ function ScheduleContent() {
                     <span className="block text-base text-foreground/70 font-medium">
                       {date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </span>
-                    {date.toDateString() === new Date().toDateString() && (
-                      <span className="block text-xs font-bold text-accent italic">
-                        Atención: Este acceso es exclusivo para agendar clases en horarios disponibles para el día de hoy.
-                      </span>
-                    )}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-card max-h-[60vh]">
                   {(isTeacher || isAdmin) && (
-                    <div className="space-y-3 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1">
+                    <div className="space-y-4 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
                         <Users className="w-3 h-3" /> 0. Seleccionar Alumno
                       </Label>
@@ -979,6 +1011,12 @@ function ScheduleContent() {
                           <SelectValue placeholder="Elegir un alumno..." />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-2">
+                          <SelectItem value="external" className="font-black text-blue-600 bg-blue-50 py-3 rounded-xl mb-2">
+                            <div className="flex items-center gap-2">
+                              <UserPlus className="w-4 h-4" />
+                              <span>Alumno no matriculado (Externo)</span>
+                            </div>
+                          </SelectItem>
                           {studentsList.map(s => (
                             <SelectItem key={s.id} value={s.id} className="font-bold py-3">
                               {s.name}
@@ -986,6 +1024,18 @@ function ScheduleContent() {
                           ))}
                         </SelectContent>
                       </Select>
+
+                      {selectedStudentIdForBooking === 'external' && (
+                        <div className="space-y-2 animate-in zoom-in-95 duration-200">
+                          <Label className="text-[10px] font-black uppercase text-blue-600">Nombre del Alumno Externo</Label>
+                          <Input 
+                            value={externalStudentName} 
+                            onChange={(e) => setExternalStudentName(e.target.value)}
+                            placeholder="Nombre y Apellido"
+                            className="h-12 rounded-xl border-2 border-blue-200 focus:border-blue-500 font-bold"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1034,12 +1084,6 @@ function ScheduleContent() {
                             <span>Cualquiera</span>
                           </div>
                         </SelectItem>
-                        <SelectItem value="sede" disabled className="font-bold py-3 opacity-50">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-muted-foreground" />
-                            <span>En Sede (Próximamente)</span>
-                          </div>
-                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1064,135 +1108,186 @@ function ScheduleContent() {
                     </div>
                   )}
 
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
-                    {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '4.' : '3.'} Selecciona un Horario Disponible
-                  </Label>
-                  
-                  {otherAvailableSlots.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-4">
-                      {otherAvailableSlots.map((slot) => {
-                        const isSelected = selectedSlotId === slot.id;
-                        const period = getTimePeriod(slot.time);
-                        const conflict = hasConflict(slot.time);
-                        const travelError = getSlotTravelMarginError(slot);
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                        {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '4.' : '3.'} Selecciona el Día
+                      </Label>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => { const newDate = new Date(date); newDate.setDate(date.getDate() - 7); setDate(newDate); }} 
+                          className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => { const newDate = new Date(date); newDate.setDate(date.getDate() + 7); setDate(newDate); }} 
+                          className="h-8 w-8 rounded-full hover:bg-accent/10 text-foreground"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-7 gap-2">
+                      {weekDays.map((d, i) => {
+                        const isSelected = d.toDateString() === date.toDateString();
+                        const isToday = d.toDateString() === todayStr;
+                        const dateAtStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                        const isPast = todayTimestamp > 0 && dateAtStart.getTime() < todayTimestamp;
+                        const dStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                        const hasAvailability = daysWithAvailability.has(dStr);
 
                         return (
-                          <div 
-                            key={slot.id} 
+                          <button
+                            key={i}
+                            disabled={!isStaff && isPast}
+                            onClick={() => setDate(d)}
                             className={cn(
-                              "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
-                              isSelected 
-                                ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
-                                : "bg-card border-primary/10 hover:border-accent/30",
-                              (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed"
+                              "flex flex-col items-center py-3 rounded-xl transition-all border-2 relative",
+                              isSelected ? "bg-accent border-accent text-white shadow-md" : "bg-muted/30 border-primary/10 hover:border-accent/20",
+                              isToday && !isSelected && "border-accent/30",
+                              !isStaff && isPast && "opacity-40 grayscale pointer-events-none cursor-not-allowed bg-muted border-border",
+                              isStaff && isPast && !isSelected && "bg-blue-50/30 border-blue-100"
                             )}
-                            onClick={() => {
-                              if (conflict) {
-                                toast({ variant: "destructive", title: "Horario Ocupado", description: "El alumno seleccionado ya tiene una clase reservada en este horario." });
-                                return;
-                              }
-                              if (travelError) {
-                                toast({ variant: "destructive", title: "Margen de Viaje", description: travelError });
-                                return;
-                              }
-                              setSelectedSlotId(slot.id);
-                              if (!bookingInstrument) {
-                                const targetId = (isTeacher || isAdmin) ? selectedStudentIdForBooking : user?.id;
-                                const targetStudent = allUsers.find(u => u.id === targetId);
-                                if (targetStudent?.instruments?.length) {
-                                  setBookingInstrument(targetStudent.instruments[0]);
-                                } else if (teacherInstruments.length > 0) {
-                                  setBookingInstrument(teacherInstruments[0]);
-                                }
-                              }
-                            }}
                           >
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-4">
-                                <div className={cn(
-                                  "p-2.5 rounded-2xl border shadow-inner",
-                                  isSelected ? "bg-accent text-white border-accent" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`),
-                                )}>
-                                  {conflict || travelError ? <AlertTriangle className="w-5 h-5 shrink-0" /> : <period.icon className="w-5 h-5 shrink-0" />}
-                                </div>
-                                <div className="flex flex-col items-start min-w-0">
-                                  <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground", (conflict || travelError) && "text-orange-700")}>
-                                    {formatToAmPm(slot.time)}
-                                  </span>
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    {conflict ? (
-                                      <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">
-                                        Conflicto de horario
-                                      </span>
-                                    ) : travelError ? (
-                                      <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200">
-                                        Sin margen de viaje
-                                      </span>
-                                    ) : (
-                                      <>
-                                        <span className={cn(
-                                          "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-1",
-                                          isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
-                                        )}>
-                                          <period.icon className="w-2.5 h-2.5" />
-                                          {period.label}
-                                        </span>
-                                        <span className="text-[10px] font-black uppercase text-muted-foreground/80 tracking-widest">
-                                          {currentTeacherProfile?.name || DEFAULT_TEACHER_NAME}
-                                        </span>
-                                      </>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
-                            </div>
-
-                            {travelError && (
-                              <p className="text-[8px] font-bold text-orange-600 leading-tight">
-                                {travelError}
-                              </p>
+                            <span className={cn("text-[8px] font-black uppercase", isSelected ? "text-white" : "text-muted-foreground")}>{d.toLocaleDateString('es-ES', { weekday: 'short' })}</span>
+                            <span className={cn("text-lg font-black", isSelected ? "text-white" : "text-foreground")}>{d.getDate()}</span>
+                            {hasAvailability && (
+                              <div className={cn("absolute bottom-1.5 w-1 h-1 rounded-full shadow-sm", isSelected ? "bg-white" : "bg-emerald-500 animate-pulse")} />
                             )}
-
-                            {isSelected && (
-                              <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                                  <Music className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '5.' : '4.'} ¿Qué instrumento tocarán?
-                                </Label>
-                                <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
-                                  <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">
-                                    <SelectValue placeholder="Seleccionar instrumento" />
-                                  </SelectTrigger>
-                                  <SelectContent className="rounded-2xl border-2">
-                                    {teacherInstruments.map(inst => (
-                                      <SelectItem key={inst} value={inst} className="font-bold py-3">
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
-                                          <span>{inst}</span>
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            )}
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
-                  ) : (
-                    <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10 space-y-3">
-                      <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30" />
-                      <div className="space-y-1">
-                        <p className="text-sm font-bold text-muted-foreground">¡Vaya! No hay horarios disponibles para esta modalidad hoy.</p>
-                        <p className="text-[10px] font-bold text-muted-foreground/60 italic">Te sugerimos elegir otra modalidad o cambiar la fecha.</p>
-                      </div>
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-accent/10">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block">
+                      {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '5.' : '4.'} Horarios Disponibles
+                    </Label>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      {otherAvailableSlots.length > 0 ? (
+                        otherAvailableSlots.map((slot) => {
+                          const isSelected = selectedSlotId === slot.id;
+                          const period = getTimePeriod(slot.time);
+                          const conflict = hasConflict(slot.time);
+                          const travelError = getSlotTravelMarginError(slot);
+
+                          return (
+                            <div 
+                              key={slot.id} 
+                              className={cn(
+                                "p-4 rounded-3xl border-2 transition-all cursor-pointer flex flex-col gap-4",
+                                isSelected 
+                                  ? "bg-accent/5 border-accent shadow-md ring-2 ring-accent/20" 
+                                  : "bg-card border-primary/10 hover:border-accent/30",
+                                (conflict || travelError) && "opacity-60 border-orange-200 bg-orange-50/30 cursor-not-allowed"
+                              )}
+                              onClick={() => {
+                                if (conflict) { toast({ variant: "destructive", title: "Horario Ocupado", description: "El alumno ya tiene otra reserva en este horario." }); return; }
+                                if (travelError) { toast({ variant: "destructive", title: "Margen de Viaje", description: travelError }); return; }
+                                setSelectedSlotId(slot.id);
+                                if (!bookingInstrument) {
+                                  const targetId = (isTeacher || isAdmin) ? selectedStudentIdForBooking : user?.id;
+                                  const targetStudent = allUsers.find(u => u.id === targetId);
+                                  if (targetStudent?.instruments?.length) {
+                                    setBookingInstrument(targetStudent.instruments[0]);
+                                  } else if (teacherInstruments.length > 0) {
+                                    setBookingInstrument(teacherInstruments[0]);
+                                  }
+                                }
+                              }}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-4">
+                                  <div className={cn(
+                                    "p-2.5 rounded-2xl border shadow-inner",
+                                    isSelected ? "bg-accent text-white border-accent" : (conflict || travelError ? "bg-orange-100 border-orange-200 text-orange-600" : `${period.bg} ${period.border} ${period.color}`),
+                                  )}>
+                                    {conflict || travelError ? <AlertTriangle className="w-5 h-5 shrink-0" /> : <period.icon className="w-5 h-5 shrink-0" />}
+                                  </div>
+                                  <div className="flex flex-col items-start min-w-0">
+                                    <span className={cn("text-xl font-black leading-tight", isSelected ? "text-accent" : "text-foreground", (conflict || travelError) && "text-orange-700")}>
+                                      {formatToAmPm(slot.time)}
+                                    </span>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <span className={cn(
+                                        "text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md border flex items-center gap-1",
+                                        isSelected ? "bg-white/20 border-white/30 text-white" : `${period.bg} ${period.border} ${period.color}`
+                                      )}>
+                                        <period.icon className="w-2.5 h-2.5" />
+                                        {period.label}
+                                      </span>
+                                      <span className={cn("text-[9px] font-black uppercase flex items-center gap-1", slot.type === 'virtual' ? (isSelected ? "text-white/80" : "text-blue-50") : (isSelected ? "text-white/80" : "text-red-500"))}>
+                                        {slot.type === 'virtual' ? <Video className="w-3 h-3" /> : <MapPin className="w-3 h-3" />}
+                                        {slot.type === 'virtual' ? 'Online' : 'Presencial'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                                {isSelected && <CheckCircle2 className="w-6 h-6 text-accent shrink-0 animate-in zoom-in" />}
+                              </div>
+
+                              {isSelected && (
+                                <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
+                                  <div className="space-y-3">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                                      <Music className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '6.' : '5.'} Instrumento
+                                    </Label>
+                                    <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
+                                      <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">
+                                        <SelectValue placeholder="Seleccionar instrumento" />
+                                      </SelectTrigger>
+                                      <SelectContent className="rounded-2xl border-2">
+                                        {teacherInstruments.map(inst => (
+                                          <SelectItem key={inst} value={inst} className="font-bold py-3">
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
+                                              <span>{inst}</span>
+                                            </div>
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {isStaff && (
+                                    <div className="space-y-3">
+                                      <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                                        <FileText className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '7.' : '6.'} Notas y Guía Pedagógica
+                                      </Label>
+                                      <Textarea 
+                                        value={bookingNotes} 
+                                        onChange={(e) => setBookingNotes(e.target.value)}
+                                        className="min-h-[100px] rounded-2xl border-2 font-medium text-xs bg-card focus:border-accent"
+                                        placeholder="Escribe aquí los temas a tratar o notas sobre el alumno..."
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="bg-muted/20 p-8 rounded-3xl text-center border-2 border-dashed border-primary/10 space-y-3">
+                          <AlertIcon className="w-8 h-8 mx-auto text-muted-foreground/30" />
+                          <p className="text-sm font-bold text-muted-foreground">No hay turnos habilitados en este día para el profesor seleccionado.</p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
+                
                 <div className="p-8 bg-muted/30 flex gap-3 border-t shrink-0 mt-auto">
                   <Button variant="outline" onClick={() => setIsBookingOpen(false)} className="rounded-2xl flex-1 h-12 border-primary/10 font-black">Cancelar</Button>
-                  <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar Reserva</Button>
+                  <Button onClick={handleBook} disabled={!selectedSlotId} className="bg-accent text-white rounded-2xl flex-1 h-12 font-black shadow-lg shadow-accent/20">Confirmar</Button>
                 </div>
               </DialogContent>
             </Dialog>
@@ -1323,7 +1418,6 @@ function ScheduleContent() {
                                   {d.toLocaleDateString('es-ES', { month: 'short' })} • {d.getFullYear()}
                                 </span>
                                 
-                                {/* Indicadores de estado de clase para el Administrador */}
                                 {isAdmin && adminStatus && (
                                   <div className="flex gap-1.5 mt-1.5 animate-in fade-in zoom-in duration-300">
                                     {adminStatus.hasPending && (
@@ -1600,7 +1694,7 @@ function ScheduleContent() {
         </div>
       </div>
 
-      {/* DIÁLOGO DE RESERVA - REFACTORIZADO PARA SOPORTAR PASADO */}
+      {/* DIÁLOGO DE RESERVA - REFACTORIZADO PARA SOPORTAR PASADO, EXTERNOS Y NOTAS */}
       <Dialog 
         open={isBookingOpen} 
         onOpenChange={(open) => {
@@ -1609,6 +1703,8 @@ function ScheduleContent() {
             setSelectedSlotId(null);
             setBookingInstrument('');
             setSelectedStudentIdForBooking('');
+            setExternalStudentName('');
+            setBookingNotes('');
           }
         }}
       >
@@ -1645,7 +1741,7 @@ function ScheduleContent() {
           
           <div className="p-8 space-y-6 flex-1 overflow-y-auto bg-card">
             {(isTeacher || isAdmin) && (
-              <div className="space-y-3 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1">
+              <div className="space-y-4 pb-4 border-b border-accent/10 animate-in fade-in slide-in-from-top-1">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
                   <Users className="w-3 h-3" /> 0. Seleccionar Alumno
                 </Label>
@@ -1654,6 +1750,12 @@ function ScheduleContent() {
                     <SelectValue placeholder="Elegir un alumno..." />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-2">
+                    <SelectItem value="external" className="font-black text-blue-600 bg-blue-50 py-3 rounded-xl mb-2">
+                      <div className="flex items-center gap-2">
+                        <UserPlus className="w-4 h-4" />
+                        <span>Alumno no matriculado (Externo)</span>
+                      </div>
+                    </SelectItem>
                     {studentsList.map(s => (
                       <SelectItem key={s.id} value={s.id} className="font-bold py-3">
                         {s.name}
@@ -1661,6 +1763,18 @@ function ScheduleContent() {
                     ))}
                   </SelectContent>
                 </Select>
+
+                {selectedStudentIdForBooking === 'external' && (
+                  <div className="space-y-2 animate-in zoom-in-95 duration-200">
+                    <Label className="text-[10px] font-black uppercase text-blue-600">Nombre del Alumno Externo</Label>
+                    <Input 
+                      value={externalStudentName} 
+                      onChange={(e) => setExternalStudentName(e.target.value)}
+                      placeholder="Nombre y Apellido"
+                      className="h-12 rounded-xl border-2 border-blue-200 focus:border-blue-500 font-bold"
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -1770,7 +1884,6 @@ function ScheduleContent() {
                   return (
                     <button
                       key={i}
-                      // Alumnos no ven pasado, Profesores/Admin SI pueden para registrar clases
                       disabled={!isStaff && isPast}
                       onClick={() => setDate(d)}
                       className={cn(
@@ -1861,25 +1974,41 @@ function ScheduleContent() {
                         </div>
 
                         {isSelected && (
-                          <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
-                              <Music className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '6.' : '5.'} Instrumento
-                            </Label>
-                            <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
-                              <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">
-                                <SelectValue placeholder="Seleccionar instrumento" />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-2xl border-2">
-                                {teacherInstruments.map(inst => (
-                                  <SelectItem key={inst} value={inst} className="font-bold py-3">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
-                                      <span>{inst}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                          <div className="space-y-4 pt-2 animate-in fade-in slide-in-from-top-1 duration-200 border-t border-accent/10" onClick={(e) => e.stopPropagation()}>
+                            <div className="space-y-3">
+                              <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                                <Music className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '6.' : '5.'} Instrumento
+                              </Label>
+                              <Select value={bookingInstrument} onValueChange={setBookingInstrument}>
+                                <SelectTrigger className="h-12 rounded-2xl border-2 border-accent/30 bg-card font-black text-foreground focus:ring-accent">
+                                  <SelectValue placeholder="Seleccionar instrumento" />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-2xl border-2">
+                                  {teacherInstruments.map(inst => (
+                                    <SelectItem key={inst} value={inst} className="font-bold py-3">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-lg">{INSTRUMENT_EMOJIS[inst] || '🎵'}</span>
+                                        <span>{inst}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            {isStaff && (
+                              <div className="space-y-3">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-accent flex items-center gap-2">
+                                  <FileText className="w-3 h-3" /> {(selectedModality === 'domicilio' || selectedModality === 'cualquiera') ? '7.' : '6.'} Notas y Guía Pedagógica
+                                </Label>
+                                <Textarea 
+                                  value={bookingNotes} 
+                                  onChange={(e) => setBookingNotes(e.target.value)}
+                                  className="min-h-[100px] rounded-2xl border-2 font-medium text-xs bg-card focus:border-accent"
+                                  placeholder="Escribe aquí los temas a tratar o notas sobre el alumno..."
+                                />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

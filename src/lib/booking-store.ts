@@ -28,6 +28,8 @@ export interface TimeSlot {
   isGroup?: boolean;
   students?: { id: string, name: string }[] | null;
   teachers?: { id: string, name: string }[] | null;
+  notes?: string | null;
+  isExternalStudent?: boolean;
 }
 
 export interface DayAvailability {
@@ -143,7 +145,19 @@ export function useBookingStore() {
       });
   }, [db]);
 
-  const bookSlot = useCallback(async (teacherId: string, date: Date, slotId: string, studentName: string, studentId: string, instrument: string, teacherName?: string, adminIds: string[] = [], zone?: string) => {
+  const bookSlot = useCallback(async (
+    teacherId: string, 
+    date: Date, 
+    slotId: string, 
+    studentName: string, 
+    studentId: string | null, 
+    instrument: string, 
+    teacherName?: string, 
+    adminIds: string[] = [], 
+    zone?: string,
+    notes?: string,
+    isExternal?: boolean
+  ) => {
     const dateStr = toLocalDateString(date);
     const id = `${teacherId}_${dateStr}`;
     const existing = availabilities.find(a => a.teacherId === teacherId && a.date === dateStr);
@@ -159,7 +173,9 @@ export function useBookingStore() {
       instrument, 
       status: 'pending', 
       teacherName: teacherName || null,
-      zone: zone || 'Miraflores'
+      zone: zone || 'Miraflores',
+      notes: notes || null,
+      isExternalStudent: !!isExternal
     };
 
     if (existing) {
@@ -185,7 +201,9 @@ export function useBookingStore() {
           teacherName: isTarget ? (teacherName || null) : null,
           type: 'presencial', 
           zone: isTarget ? (zone || 'Miraflores') : null,
-          status: 'pending'
+          status: 'pending',
+          notes: isTarget ? (notes || null) : null,
+          isExternalStudent: isTarget ? !!isExternal : false
         };
         if (isTarget) targetSlot = newSlot;
         return newSlot;
@@ -204,7 +222,7 @@ export function useBookingStore() {
         }));
       });
 
-    if (targetSlot) {
+    if (targetSlot && studentId) {
       const time = targetSlot.time;
       const formattedDate = new Date(dateStr + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
       
@@ -264,7 +282,9 @@ export function useBookingStore() {
         students: null, 
         isGroup: false, 
         teachers: null,
-        zone: null
+        zone: null,
+        notes: null,
+        isExternalStudent: false
       } : s
     ).filter(s => !s.id.startsWith('group-') || s.isBooked);
 
