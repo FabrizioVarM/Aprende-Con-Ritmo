@@ -154,7 +154,6 @@ export default function SettingsPage() {
   }, [settings]);
 
   useEffect(() => {
-    // Solo sincronizar con la base de datos si no ha habido una interacción manual reciente.
     const now = Date.now();
     if (user?.fcmToken !== undefined && (now - lastManualToggleTime.current > 4000)) {
       setNotificationsEnabled(!!user.fcmToken);
@@ -178,7 +177,6 @@ export default function SettingsPage() {
 
     const totalDocs = Object.values(counts).reduce((a, b) => a + b, 0);
     
-    // Límites de Firebase Spark (Gratis)
     const AUTH_LIMIT = 50000; 
     const FIRESTORE_STORAGE_LIMIT_MB = 1024; 
 
@@ -681,7 +679,8 @@ export default function SettingsPage() {
                     <Textarea value={termsContent} onChange={(e) => setTermsContent(e.target.value)} className="min-h-[300px] rounded-2xl border-2 font-bold p-6 focus:border-accent text-foreground bg-card text-sm leading-relaxed" />
                   </div>
                 </CardContent>
-              </>
+              </Card>
+            </>
           )}
         </div>
 
