@@ -47,7 +47,7 @@ export default function LoginPage() {
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      delay: `-${Math.random() * 10s}`,
+      delay: `-${Math.random() * 10}s`,
       duration: `${6 + Math.random() * 8}s`,
       size: 24 + Math.random() * 30,
       iconIndex: Math.floor(Math.random() * 4)
