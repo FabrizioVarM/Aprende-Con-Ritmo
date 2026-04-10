@@ -47,7 +47,7 @@ export default function LoginPage() {
       id: i,
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
-      delay: `-${Math.random() * 10}s`,
+      delay: `-${Math.random() * 10s}`,
       duration: `${6 + Math.random() * 8}s`,
       size: 24 + Math.random() * 30,
       iconIndex: Math.floor(Math.random() * 4)
@@ -215,7 +215,7 @@ export default function LoginPage() {
 
       {/* Versión de la Aplicación */}
       <div className="absolute bottom-4 right-6 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 pointer-events-none select-none">
-        v2.1.20
+        v2.1.25
       </div>
     </div>
   );
