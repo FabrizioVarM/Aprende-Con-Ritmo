@@ -757,9 +757,9 @@ function ProgressContent() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="flex flex-wrap gap-8">
               {studentMilestones.length > 0 ? studentMilestones.map((m) => (
-                <div key={m.id} className={cn("p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden", m.achieved ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40")}>
+                <div key={m.id} className={cn("flex-1 min-w-[320px] p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden", m.achieved ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40")}>
                   <div className="flex items-start gap-8 relative z-10">
                     <div className={cn("w-16 h-16 rounded-[1.8rem] flex items-center justify-center shrink-0 shadow-inner border-2 transition-all group-hover:rotate-6", m.achieved ? "bg-accent/10 border-accent/30 text-accent" : "bg-slate-800/50 border-white/5 text-slate-800")}>
                       {m.achieved ? <Crown className="w-8 h-8" /> : <StarIcon className="w-7 h-7" />}
@@ -792,7 +792,7 @@ function ProgressContent() {
                   </div>
                 </div>
               )) : (
-                <div className="col-span-full py-28 text-center bg-white/5 rounded-[5rem] border-2 border-dashed border-white/5">
+                <div className="w-full py-28 text-center bg-white/5 rounded-[5rem] border-2 border-dashed border-white/5">
                   <StarIcon className="w-20 h-20 text-white/5 mx-auto mb-8" />
                   <p className="text-slate-700 font-black uppercase tracking-[0.4em] text-[11px]">Sistema de Trayectoria Vacío</p>
                 </div>
