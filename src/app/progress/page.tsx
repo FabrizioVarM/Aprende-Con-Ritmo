@@ -117,7 +117,6 @@ const AnimatedNumber = ({ value }: { value: number }) => {
     return () => cancelAnimationFrame(frame);
   }, [value]);
 
-  // Se asegura de mostrar 2 dígitos (05%) a menos que sea 100%
   const displayValue = current === 100 ? "100" : current.toString().padStart(2, '0');
   return <>{displayValue}%</>;
 };
@@ -152,10 +151,7 @@ function ProgressContent() {
   const [mDate, setMDate] = useState('');
   const [mAchieved, setMAchieved] = useState(false);
 
-  // Seguridad: Bloqueo de edición de habilidades para profesores
   const [isSkillsLocked, setIsSkillsLocked] = useState(true);
-
-  // STABILIZATION: Control progress growth after mount
   const [isAnimationActive, setIsAnimationActive] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -177,7 +173,6 @@ function ProgressContent() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Demora de 1 segundo para estabilizar datos antes de mostrar la animación de crecimiento
     const timer = setTimeout(() => setIsAnimationActive(true), 1000);
     return () => clearTimeout(timer);
   }, []);
@@ -215,7 +210,6 @@ function ProgressContent() {
   const instrumentStats = useMemo(() => {
     if (!currentStudent) return {};
     const stats: Record<string, { points: number; completedHours: number; rank: RankConfig, nextRank: RankConfig | null }> = {};
-    
     const studentInstruments = Array.from(new Set([...(currentStudent.instruments || []), 'Teoría']));
 
     studentInstruments.forEach(cat => {
@@ -299,7 +293,6 @@ function ProgressContent() {
     return totalProgress * 100;
   }, [currentInstData.points, currentRanks]);
 
-  // AUTO-SCROLL to center the student marker
   useEffect(() => {
     if (isMounted && scrollRef.current && isAnimationActive) {
       const timer = setTimeout(() => {
@@ -409,11 +402,11 @@ function ProgressContent() {
 
         <div className="relative z-10 max-w-7xl mx-auto space-y-12">
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start animate-in fade-in slide-in-from-top-4 duration-700">
-            <div className="lg:col-span-7 flex flex-col md:flex-row items-center gap-10">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 items-start animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="xl:col-span-7 flex flex-col lg:flex-row items-center lg:items-start gap-8 md:gap-10">
               <div className="relative group shrink-0">
                 <div className="absolute inset-0 bg-accent rounded-[3.5rem] blur-2xl opacity-20 group-hover:opacity-40 transition-opacity animate-pulse" />
-                <div className="rounded-[3.5rem] bg-slate-900/40 border border-white/10 backdrop-blur-3xl px-10 py-8 flex items-center gap-6 shadow-2xl relative overflow-hidden">
+                <div className="rounded-[3.5rem] bg-slate-900/40 border border-white/10 backdrop-blur-3xl px-8 md:px-10 py-8 flex items-center gap-6 shadow-2xl relative overflow-hidden">
                   
                   <Popover>
                     <PopoverTrigger asChild>
@@ -424,15 +417,13 @@ function ProgressContent() {
                     <PopoverContent className="w-80 rounded-[2.5rem] bg-slate-900 border-white/10 text-slate-200 p-8 shadow-2xl z-50">
                       <div className="space-y-6">
                         <h4 className="font-black text-sm uppercase tracking-widest text-accent flex items-center gap-3">
-                          <Sparkles className="w-4 h-4" /> Protocolo de EXP
+                          <Star className="w-4 h-4" /> Protocolo de EXP
                         </h4>
-                        
                         <div className="space-y-4">
                           <div className="space-y-3">
                             <p className="text-[9px] font-black uppercase text-blue-400 tracking-widest border-b border-white/5 pb-1 flex items-center gap-2">
                               <Music className="w-2.5 h-2.5" /> Puntos por Especialidad
                             </p>
-                            <p className="text-[8px] font-black text-slate-500 uppercase italic">Estos puntos suman al instrumento Y al global.</p>
                             <div className="space-y-2.5">
                               <div className="flex gap-3 items-start">
                                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shadow-[0_0_5px_#3b82f6]" />
@@ -448,7 +439,6 @@ function ProgressContent() {
                               </div>
                             </div>
                           </div>
-
                           <div className="space-y-3 pt-2">
                             <p className="text-[9px] font-black uppercase text-accent tracking-widest border-b border-white/5 pb-1 flex items-center gap-2">
                               <Trophy className="w-2.5 h-2.5" /> Puntos Globales Únicos
@@ -459,31 +449,30 @@ function ProgressContent() {
                             </div>
                           </div>
                         </div>
-                        <p className="text-[8px] font-black uppercase text-slate-500 text-center pt-2 border-t border-white/5">Sincronización en tiempo real.</p>
                       </div>
                     </PopoverContent>
                   </Popover>
 
                   <div className="relative">
-                    <Trophy className="w-14 h-14 text-accent drop-shadow-[0_0_15px_rgba(255,139,122,0.6)]" />
+                    <Trophy className="w-12 h-12 md:w-14 md:h-14 text-accent drop-shadow-[0_0_15px_rgba(255,139,122,0.6)]" />
                     <div className="absolute -top-2 -right-2 bg-white text-accent rounded-full p-1 shadow-lg border-2 border-accent">
                       <Sparkles className="w-3 h-3" />
                     </div>
                   </div>
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500 mb-1">Global Experience</p>
-                    <h2 className="text-6xl font-black tabular-nums tracking-tighter leading-none text-white">{totalGlobalPoints.toLocaleString()}</h2>
+                    <h2 className="text-4xl md:text-6xl font-black tabular-nums tracking-tighter leading-none text-white">{totalGlobalPoints.toLocaleString()}</h2>
                   </div>
                 </div>
               </div>
 
-              <div className="space-y-6 flex-1">
-                <div className="flex flex-wrap gap-2 items-center">
+              <div className="space-y-6 flex-1 w-full lg:w-auto">
+                <div className="flex flex-wrap gap-2 items-center justify-center lg:justify-start">
                   {isStaff && (
                     <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
                       <Search className="w-3.5 h-3.5 text-accent ml-3" />
                       <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                        <SelectTrigger className="w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
+                        <SelectTrigger className="w-40 md:w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
                           <SelectValue placeholder="Alumno" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white">
@@ -498,7 +487,7 @@ function ProgressContent() {
                   <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
                     <LayoutGrid className="w-3.5 h-3.5 text-blue-400 ml-3" />
                     <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                      <SelectTrigger className="w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none [&>span]:w-full">
+                      <SelectTrigger className="w-40 md:w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none [&>span]:w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white min-w-[240px] p-1">
@@ -531,9 +520,9 @@ function ProgressContent() {
                   )}
                 </div>
                 
-                <div className="px-1">
-                  <h1 className="text-4xl font-black text-white font-headline tracking-tight leading-none">Mi Viaje Musical 🚀</h1>
-                  <div className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.4em] mt-3 flex items-center gap-3">
+                <div className="px-1 text-center lg:text-left">
+                  <h1 className="text-3xl md:text-4xl font-black text-white font-headline tracking-tight leading-none">Mi Viaje Musical 🚀</h1>
+                  <div className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.4em] mt-3 flex items-center justify-center lg:justify-start gap-3">
                     <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_#FF8B7A]" />
                     Status Operativo: <span className="text-accent">{getRankDisplayName(currentInstData.rank.name, selectedInstrument)}</span>
                   </div>
@@ -541,8 +530,8 @@ function ProgressContent() {
               </div>
             </div>
 
-            <div className="lg:col-span-5 flex justify-end">
-              <div className="w-full max-sm space-y-6 bg-slate-900/30 border border-white/5 backdrop-blur-3xl rounded-[3rem] p-8 shadow-2xl relative group hover:border-white/10 transition-colors">
+            <div className="xl:col-span-5 flex justify-center xl:justify-end w-full">
+              <div className="w-full max-w-2xl xl:max-w-full space-y-6 bg-slate-900/30 border border-white/5 backdrop-blur-3xl rounded-[3rem] p-6 md:p-8 shadow-2xl relative group hover:border-white/10 transition-colors">
                 <div className="flex items-center justify-between mb-4 border-b border-white/5 pb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-accent/10 rounded-xl">
@@ -568,16 +557,7 @@ function ProgressContent() {
                     )}
                     <div className="hidden sm:flex gap-1 h-4 items-center">
                       {[1, 2, 3, 4].map((i) => (
-                        <div 
-                          key={i} 
-                          className={cn(
-                            "w-0.5 rounded-full bg-slate-800 animate-pulse",
-                            i === 1 && "delay-75 h-2",
-                            i === 2 && "delay-150 h-4",
-                            i === 3 && "delay-300 h-3",
-                            i === 4 && "delay-500 h-2"
-                          )} 
-                        />
+                        <div key={i} className={cn("w-0.5 rounded-full bg-slate-800 animate-pulse", i === 1 && "delay-75 h-2", i === 2 && "delay-150 h-4", i === 3 && "delay-300 h-3", i === 4 && "delay-500 h-2")} />
                       ))}
                     </div>
                     <div className="flex flex-col items-end">
@@ -595,7 +575,7 @@ function ProgressContent() {
                 <div className="space-y-5">
                   {currentSkills.length > 0 ? currentSkills.map((skill, i) => (
                     <div key={i} className="space-y-2">
-                      <div className="flex justify-between items-center px-1">
+                      <div className="flex justify-between items-center px-1 flex-wrap gap-2">
                         <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{skill.name}</span>
                         <span className="text-accent text-[10px] font-mono font-bold tracking-tighter">
                           <AnimatedNumber value={skill.level} />
@@ -684,12 +664,7 @@ function ProgressContent() {
                         )}>
                           {isIconUrl ? (
                             <div className="relative w-12 h-12 sm:w-16 sm:h-16 mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">
-                              <Image 
-                                src={getDirectImageUrl(rank.icon)} 
-                                alt={rank.name} 
-                                fill 
-                                className="object-contain" 
-                              />
+                              <Image src={getDirectImageUrl(rank.icon)} alt={rank.name} fill className="object-contain" />
                             </div>
                           ) : (
                             <span className="text-4xl sm:text-6xl mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">
@@ -703,18 +678,9 @@ function ProgressContent() {
                           "absolute top-[88px] sm:top-[104px] w-64 text-center transition-all duration-700 flex flex-col items-center left-1/2 -translate-x-1/2 px-4",
                           isReached ? "opacity-100 translate-y-0" : "opacity-30 translate-y-4"
                         )}>
-                          <p className={cn(
-                            "font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] mb-2 drop-shadow-md leading-tight",
-                            isCurrent ? "text-accent" : "text-slate-400"
-                          )}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
-                          
+                          <p className={cn("font-black text-[10px] sm:text-xs uppercase tracking-[0.2em] mb-2 drop-shadow-md leading-tight", isCurrent ? "text-accent" : "text-slate-400")}>{getRankDisplayName(rank.name, selectedInstrument)}</p>
                           {rank.min > 0 && (
-                            <div className={cn(
-                              "inline-block px-5 py-2 rounded-xl border-2 text-[9px] sm:text-[10px] font-black tracking-widest transition-all shadow-sm",
-                              isReached 
-                                ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" 
-                                : "border-slate-800 bg-slate-900/50 text-slate-500"
-                            )}>
+                            <div className={cn("inline-block px-5 py-2 rounded-xl border-2 text-[9px] sm:text-[10px] font-black tracking-widest transition-all shadow-sm", isReached ? "border-accent/40 bg-accent/10 text-white shadow-[0_0_15px_rgba(255,139,122,0.2)]" : "border-slate-800 bg-slate-900/50 text-slate-500")}>
                               {rank.min.toLocaleString()} PTS
                             </div>
                           )}
@@ -724,31 +690,14 @@ function ProgressContent() {
                   })}
                 </div>
 
-                <div 
-                  className="absolute top-1/2 left-[25vw] right-[25vw] pointer-events-none z-20"
-                  style={{ transform: 'translateY(-50%)' }}
-                >
-                  <div 
-                    className={cn(
-                      "absolute flex flex-col items-center",
-                      isAnimationActive ? "transition-all duration-[2000ms] ease-out" : "transition-none"
-                    )}
-                    style={{ left: `${isAnimationActive ? pathProgress : 0}%`, transform: 'translateX(-50%)' }}
-                  >
-                    <div className={cn(
-                      "relative -top-40 flex flex-col items-center transition-opacity duration-1000",
-                      isAnimationActive ? "opacity-100" : "opacity-0"
-                    )}>
+                <div className="absolute top-1/2 left-[25vw] right-[25vw] pointer-events-none z-20" style={{ transform: 'translateY(-50%)' }}>
+                  <div className={cn("absolute flex flex-col items-center", isAnimationActive ? "transition-all duration-[2000ms] ease-out" : "transition-none")} style={{ left: `${isAnimationActive ? pathProgress : 0}%`, transform: 'translateX(-50%)' }}>
+                    <div className={cn("relative -top-40 flex flex-col items-center transition-opacity duration-1000", isAnimationActive ? "opacity-100" : "opacity-0")}>
                       <div className="relative p-2 rounded-[2.2rem] bg-accent shadow-[0_0_50px_rgba(255,139,122,0.8)] border-4 border-white group/avatar overflow-hidden">
                         <Avatar className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.8rem] border-2 border-accent/20">
-                          {currentStudent?.photoUrl ? (
-                            <AvatarImage src={getDirectImageUrl(currentStudent.photoUrl)} className="object-cover" />
-                          ) : (
-                            <AvatarImage src={`https://picsum.photos/seed/${currentStudent?.avatarSeed || currentStudent?.id}/150`} />
-                          )}
+                          {currentStudent?.photoUrl ? <AvatarImage src={getDirectImageUrl(currentStudent.photoUrl)} className="object-cover" /> : <AvatarImage src={`https://picsum.photos/seed/${currentStudent?.avatarSeed || currentStudent?.id}/150`} />}
                           <AvatarFallback className="bg-slate-800 text-white font-black text-2xl">{currentStudent?.name?.[0]}</AvatarFallback>
                         </Avatar>
-                        <div className="absolute inset-0 bg-accent/20 opacity-0 group/avatar:hover:opacity-100 transition-opacity" />
                       </div>
                       <div className="mt-4 flex items-center gap-2 bg-slate-950 border-2 border-accent text-accent px-4 py-2 sm:px-6 sm:py-2.5 rounded-2xl shadow-2xl font-black text-xs sm:text-sm tabular-nums tracking-wider whitespace-nowrap">
                         <Flame className="w-3 h-3 sm:w-4 sm:h-4 animate-bounce" />
@@ -760,7 +709,6 @@ function ProgressContent() {
                 </div>
               </div>
             </div>
-            
             <div className="mt-4 flex items-center justify-center gap-3 text-slate-600 animate-pulse pointer-events-none relative z-30">
               <ChevronRight className="w-4 h-4 rotate-180" />
               <span className="text-[10px] font-black uppercase tracking-widest">Arrastra para explorar el mapa</span>
@@ -769,20 +717,20 @@ function ProgressContent() {
           </section>
 
           <section className="space-y-12 pt-12 animate-in fade-in slide-in-from-bottom-4 duration-700 [animation-delay:800ms]">
-            <div className="flex items-center justify-between border-b border-white/5 pb-8">
+            <div className="flex flex-col md:flex-row items-center justify-between border-b border-white/5 pb-8 gap-6">
               <div className="flex items-center gap-6">
                 <div className="p-5 rounded-[2rem] bg-white/5 text-accent border border-white/10 shadow-2xl group">
                   <StarIcon className="w-8 h-8 fill-current group-hover:scale-110 group-hover:rotate-12 transition-all" />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-black text-white tracking-tight uppercase tracking-[0.2em]">Expediente de Logros</h2>
+                  <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase tracking-[0.2em]">Expediente de Logros</h2>
                   <div className="text-xs font-bold text-slate-600 uppercase tracking-widest mt-2 flex items-center gap-2">
                     <Info className="w-3.5 h-3.5" /> Bitácora oficial de trayectoria académica
                   </div>
                 </div>
               </div>
               {isAdmin && (
-                <Button className="rounded-2xl bg-accent hover:bg-accent/90 text-white font-black h-14 px-10 shadow-xl shadow-accent/30 gap-3 hover:scale-105 transition-all" onClick={() => { setEditingM(null); setMTitle(''); setMDate(''); setMAchieved(false); setIsMDialogOpen(true); }}>
+                <Button className="w-full md:w-auto rounded-2xl bg-accent hover:bg-accent/90 text-white font-black h-14 px-10 shadow-xl shadow-accent/30 gap-3 hover:scale-105 transition-all" onClick={() => { setEditingM(null); setMTitle(''); setMDate(''); setMAchieved(false); setIsMDialogOpen(true); }}>
                   <Plus className="w-5 h-5" /> Iniciar Protocolo de Hito
                 </Button>
               )}
@@ -790,18 +738,9 @@ function ProgressContent() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {studentMilestones.length > 0 ? studentMilestones.map((m) => (
-                <div key={m.id} className={cn(
-                  "p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden",
-                  m.achieved 
-                    ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" 
-                    : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40"
-                )}>
-                  {m.achieved && <div className="absolute top-0 right-0 -mr-6 -mt-6 w-24 h-24 bg-accent/5 rounded-full blur-3xl" />}
+                <div key={m.id} className={cn("p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden", m.achieved ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40")}>
                   <div className="flex items-start gap-8 relative z-10">
-                    <div className={cn(
-                      "w-16 h-16 rounded-[1.8rem] flex items-center justify-center shrink-0 shadow-inner border-2 transition-all group-hover:rotate-6",
-                      m.achieved ? "bg-accent/10 border-accent/30 text-accent" : "bg-slate-800/50 border-white/5 text-slate-800"
-                    )}>
+                    <div className={cn("w-16 h-16 rounded-[1.8rem] flex items-center justify-center shrink-0 shadow-inner border-2 transition-all group-hover:rotate-6", m.achieved ? "bg-accent/10 border-accent/30 text-accent" : "bg-slate-800/50 border-white/5 text-slate-800")}>
                       {m.achieved ? <Crown className="w-8 h-8" /> : <StarIcon className="w-7 h-7" />}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -845,125 +784,39 @@ function ProgressContent() {
       <Dialog open={isRanksDialogOpen} onOpenChange={setIsRanksDialogOpen}>
         <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white flex flex-col max-h-[90vh]">
           <DialogHeader className="bg-white/5 p-8 border-b border-white/10 shrink-0">
-            <DialogTitle className="text-2xl font-black flex items-center gap-3 text-accent">
-              <Settings className="w-6 h-6" />
-              Configuración de Sectores: {selectedInstrument}
-            </DialogTitle>
-            <DialogDescription className="text-slate-400 font-medium">Define los nombres, puntajes mínimos e iconos independientes para este instrumento.</DialogDescription>
+            <DialogTitle className="text-2xl font-black flex items-center gap-3 text-accent"><Settings className="w-6 h-6" /> Configuración de Sectores: {selectedInstrument}</DialogTitle>
           </DialogHeader>
-          
           <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-900 custom-scrollbar">
             {tempRanks.map((rank, i) => (
               <div key={i} className="p-6 rounded-[2rem] bg-white/5 border border-white/10 space-y-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Badge className="bg-accent/20 text-accent border-none font-black text-[10px] uppercase">Sector {i + 1}</Badge>
-                </div>
-                
+                <Badge className="bg-accent/20 text-accent border-none font-black text-[10px] uppercase">Sector {i + 1}</Badge>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-slate-500">Nombre del Rango</Label>
-                    <Input 
-                      value={rank.name} 
-                      onChange={(e) => {
-                        const newRanks = [...tempRanks];
-                        newRanks[i].name = e.target.value;
-                        setTempRanks(newRanks);
-                      }}
-                      className="h-12 bg-slate-800 border-white/10 font-bold focus:border-accent text-white"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase text-slate-500">Puntaje Mínimo</Label>
-                    <Input 
-                      type="number"
-                      value={rank.min} 
-                      onChange={(e) => {
-                        const newRanks = [...tempRanks];
-                        newRanks[i].min = parseInt(e.target.value) || 0;
-                        setTempRanks(newRanks);
-                      }}
-                      className="h-12 bg-slate-800 border-white/10 font-bold focus:border-accent text-white"
-                    />
-                  </div>
+                  <div className="space-y-2"><Label className="text-[10px] font-black uppercase text-slate-500">Nombre</Label><Input value={rank.name} onChange={(e) => { const newRanks = [...tempRanks]; newRanks[i].name = e.target.value; setTempRanks(newRanks); }} className="h-12 bg-slate-800 border-white/10 font-bold focus:border-accent text-white" /></div>
+                  <div className="space-y-2"><Label className="text-[10px] font-black uppercase text-slate-500">Puntaje Mínimo</Label><Input type="number" value={rank.min} onChange={(e) => { const newRanks = [...tempRanks]; newRanks[i].min = parseInt(e.target.value) || 0; setTempRanks(newRanks); }} className="h-12 bg-slate-800 border-white/10 font-bold focus:border-accent text-white" /></div>
                 </div>
-
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase text-slate-500 flex items-center gap-2">
-                    <ImageIcon className="w-3 h-3" /> Icono (Emoji o URL de Imagen)
-                  </Label>
+                  <Label className="text-[10px] font-black uppercase text-slate-500 flex items-center gap-2"><ImageIcon className="w-3 h-3" /> Icono (Emoji o URL)</Label>
                   <div className="flex gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-2xl shrink-0 border border-white/10 overflow-hidden">
-                      {rank.icon.startsWith('http') || rank.icon.startsWith('data:') || rank.icon.startsWith('/') ? (
-                        <div className="relative w-full h-full p-1">
-                          <Image src={getDirectImageUrl(rank.icon)} alt="Preview" fill className="object-contain" />
-                        </div>
-                      ) : rank.icon}
-                    </div>
-                    <Input 
-                      value={rank.icon} 
-                      onChange={(e) => {
-                        const newRanks = [...tempRanks];
-                        newRanks[i].icon = e.target.value;
-                        setTempRanks(newRanks);
-                      }}
-                      placeholder="Emoji ✨ o URL https://..."
-                      className="h-12 bg-slate-800 border-white/10 font-bold flex-1 focus:border-accent text-white text-xs"
-                    />
+                    <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-2xl shrink-0 border border-white/10 overflow-hidden">{rank.icon.startsWith('http') ? <Image src={getDirectImageUrl(rank.icon)} alt="P" width={32} height={32} /> : rank.icon}</div>
+                    <Input value={rank.icon} onChange={(e) => { const newRanks = [...tempRanks]; newRanks[i].icon = e.target.value; setTempRanks(newRanks); }} placeholder="Emoji ✨ o URL" className="h-12 bg-slate-800 border-white/10 font-bold flex-1 focus:border-accent text-white text-xs" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
-
-          <DialogFooter className="p-8 bg-slate-950/50 border-t border-white/10 shrink-0">
-            <Button variant="ghost" onClick={() => setIsRanksDialogOpen(false)} className="rounded-xl flex-1 h-14 font-black text-slate-400">Cancelar</Button>
-            <Button onClick={handleSaveRanks} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg shadow-accent/20 gap-2">
-              <Save className="w-5 h-5" /> Guardar para {selectedInstrument}
-            </Button>
-          </DialogFooter>
+          <DialogFooter className="p-8 bg-slate-950/50 border-t border-white/10 shrink-0"><Button variant="ghost" onClick={() => setIsRanksDialogOpen(false)} className="rounded-xl flex-1 h-14 font-black text-slate-400">Cancelar</Button><Button onClick={handleSaveRanks} className="bg-accent text-white rounded-xl flex-1 h-14 font-black shadow-lg gap-2"><Save className="w-5 h-5" /> Guardar para {selectedInstrument}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={isMDialogOpen} onOpenChange={setIsMDialogOpen}>
         <DialogContent className="rounded-[3.5rem] max-md border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white">
-          <DialogHeader className="bg-white/5 p-12 border-b border-white/10 text-center">
-            <div className="mx-auto w-24 h-24 bg-accent rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-accent/30">
-              <Trophy className="w-12 h-12 text-white" />
-            </div>
-            <DialogTitle className="text-3xl font-black">Asignación de Logro</DialogTitle>
-            <DialogDescription className="text-slate-500 font-black uppercase text-[10px] tracking-[0.3em] mt-3">Base de Datos de Trayectoria</DialogDescription>
-          </DialogHeader>
+          <DialogHeader className="bg-white/5 p-12 border-b border-white/10 text-center"><div className="mx-auto w-24 h-24 bg-accent rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-accent/30"><Trophy className="w-12 h-12 text-white" /></div><DialogTitle className="text-3xl font-black">Asignación de Logro</DialogTitle></DialogHeader>
           <div className="p-12 space-y-8">
-            <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 px-1">Descriptor del Hito</Label>
-              <Input 
-                value={mTitle} 
-                onChange={(e) => setMTitle(e.target.value)}
-                className="h-16 rounded-[1.5rem] border-white/10 bg-slate-800 text-white font-black focus:border-accent text-xl uppercase"
-                placeholder="CONCEPTO DEL LOGRO"
-              />
-            </div>
-            <div className="space-y-3">
-              <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 px-1">Ciclo Cronológico</Label>
-              <Input 
-                value={mDate} 
-                onChange={(e) => setMDate(e.target.value)}
-                className="h-16 rounded-[1.5rem] border-white/10 bg-slate-800 text-white font-black focus:border-accent uppercase"
-                placeholder="EJ: VERANO 2024"
-              />
-            </div>
-            <div className="flex items-center justify-between p-8 bg-white/5 rounded-[2.5rem] border border-white/10">
-              <div className="space-y-1">
-                <Label className="text-sm font-black uppercase tracking-widest">Activación</Label>
-                <p className="text-[9px] text-slate-600 font-black uppercase tracking-tighter">¿Validar inmediatamente?</p>
-              </div>
-              <Switch checked={mAchieved} onCheckedChange={setMAchieved} className="scale-150 data-[state=checked]:bg-accent" />
-            </div>
+            <div className="space-y-3"><Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 px-1">Descriptor</Label><Input value={mTitle} onChange={(e) => setMTitle(e.target.value)} className="h-16 rounded-[1.5rem] border-white/10 bg-slate-800 text-white font-black focus:border-accent text-xl uppercase" placeholder="CONCEPTO DEL LOGRO" /></div>
+            <div className="space-y-3"><Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 px-1">Ciclo</Label><Input value={mDate} onChange={(e) => setMDate(e.target.value)} className="h-16 rounded-[1.5rem] border-white/10 bg-slate-800 text-white font-black focus:border-accent uppercase" placeholder="EJ: VERANO 2024" /></div>
+            <div className="flex items-center justify-between p-8 bg-white/5 rounded-[2.5rem] border border-white/10"><div className="space-y-1"><Label className="text-sm font-black uppercase tracking-widest">Activación</Label><p className="text-[9px] text-slate-600 font-black uppercase">¿Validar inmediatamente?</p></div><Switch checked={mAchieved} onCheckedChange={setMAchieved} className="scale-150 data-[state=checked]:bg-accent" /></div>
           </div>
-          <DialogFooter className="p-12 bg-slate-950/50 border-t border-white/10 flex gap-5">
-            <Button variant="ghost" className="rounded-2xl flex-1 h-16 font-black text-slate-600 uppercase text-xs tracking-widest" onClick={() => setIsMDialogOpen(false)}>Abortar</Button>
-            <Button className="bg-accent text-white rounded-2xl flex-1 h-16 font-black shadow-2xl shadow-accent/20 uppercase text-xs tracking-widest" onClick={handleSaveM}>Sincronizar Datos</Button>
-          </DialogFooter>
+          <DialogFooter className="p-12 bg-slate-950/50 border-t border-white/10 flex gap-5"><Button variant="ghost" className="rounded-2xl flex-1 h-16 font-black text-slate-600 uppercase text-xs tracking-widest" onClick={() => setIsMDialogOpen(false)}>Abortar</Button><Button className="bg-accent text-white rounded-2xl flex-1 h-16 font-black shadow-2xl shadow-accent/20 uppercase text-xs tracking-widest" onClick={handleSaveM}>Sincronizar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </AppLayout>
