@@ -64,7 +64,8 @@ import {
   Save,
   Image as ImageIcon,
   Lock,
-  Unlock
+  Unlock,
+  User as UserIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -470,7 +471,7 @@ function ProgressContent() {
                 <div className="flex flex-wrap gap-2 items-center justify-center lg:justify-start">
                   {isStaff && (
                     <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
-                      <Search className="w-3.5 h-3.5 text-accent ml-3" />
+                      <UserIcon className="w-3.5 h-3.5 text-accent ml-3" />
                       <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
                         <SelectTrigger className="w-40 md:w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
                           <SelectValue placeholder="Alumno" />
@@ -485,10 +486,12 @@ function ProgressContent() {
                   )}
 
                   <div className="bg-white/5 border border-white/10 p-1 rounded-2xl flex items-center backdrop-blur-md shadow-inner">
-                    <LayoutGrid className="w-3.5 h-3.5 text-blue-400 ml-3" />
+                    <Music className="w-3.5 h-3.5 text-blue-400 ml-3" />
                     <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
-                      <SelectTrigger className="w-40 md:w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none [&>span]:w-full">
-                        <SelectValue />
+                      <SelectTrigger className="w-40 md:w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
+                        <div className="flex items-center gap-2 truncate">
+                          <span className="truncate">{selectedInstrument || "Instrumento"}</span>
+                        </div>
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white min-w-[280px] p-1">
                         {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => {
