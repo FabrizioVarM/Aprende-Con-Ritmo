@@ -490,16 +490,22 @@ function ProgressContent() {
                       <SelectTrigger className="w-40 md:w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none [&>span]:w-full">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white min-w-[240px] p-1">
+                      <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white min-w-[280px] p-1">
                         {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => {
                           const pts = instrumentStats[inst]?.points || 0;
+                          const hrs = instrumentStats[inst]?.completedHours || 0;
                           return (
                             <SelectItem key={inst} value={inst} className="font-bold text-[10px] py-3 uppercase tracking-widest rounded-xl cursor-pointer [&>span]:w-full">
-                              <div className="flex items-center justify-between w-full pr-2">
+                              <div className="flex items-center justify-between w-full pr-2 gap-4">
                                 <span className="flex-1 truncate text-left">{inst}</span>
-                                <Badge variant="secondary" className="bg-accent/20 text-accent border-none text-[8px] px-2 h-5 font-black shrink-0 ml-4 tabular-nums">
-                                  {pts.toLocaleString()} XP
-                                </Badge>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  <Badge variant="outline" className="border-blue-500/30 text-blue-400 text-[8px] px-2 h-5 font-black shrink-0 tabular-nums">
+                                    {hrs.toFixed(1)}H
+                                  </Badge>
+                                  <Badge variant="secondary" className="bg-accent/20 text-accent border-none text-[8px] px-2 h-5 font-black shrink-0 tabular-nums">
+                                    {pts.toLocaleString()} XP
+                                  </Badge>
+                                </div>
                               </div>
                             </SelectItem>
                           );
@@ -522,9 +528,21 @@ function ProgressContent() {
                 
                 <div className="px-1 text-center lg:text-left">
                   <h1 className="text-3xl md:text-4xl font-black text-white font-headline tracking-tight leading-none">Mi Viaje Musical 🚀</h1>
-                  <div className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.4em] mt-3 flex items-center justify-center lg:justify-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_#FF8B7A]" />
-                    Status Operativo: <span className="text-accent">{getRankDisplayName(currentInstData.rank.name, selectedInstrument)}</span>
+                  
+                  <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mt-4">
+                    <div className="text-slate-500 font-bold text-[10px] uppercase tracking-[0.4em] flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_12px_#FF8B7A]" />
+                      Status Operativo: <span className="text-accent">{getRankDisplayName(currentInstData.rank.name, selectedInstrument)}</span>
+                    </div>
+                    
+                    <div className="h-4 w-px bg-white/10 hidden sm:block" />
+                    
+                    <div className="flex items-center gap-2 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.1)]">
+                      <Clock className="w-3 h-3 text-blue-400" />
+                      <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest tabular-nums">
+                        {currentInstData.completedHours.toFixed(1)} Horas de Clase
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -782,7 +800,7 @@ function ProgressContent() {
       </div>
 
       <Dialog open={isRanksDialogOpen} onOpenChange={setIsRanksDialogOpen}>
-        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white flex flex-col max-h-[90vh]">
+        <DialogContent className="rounded-[2.5rem] max-w-2xl border-none shadow-2xl p-0 overflow-hidden bg-slate-900 text-white flex flex-col max-h-[95vh]">
           <DialogHeader className="bg-white/5 p-8 border-b border-white/10 shrink-0">
             <DialogTitle className="text-2xl font-black flex items-center gap-3 text-accent"><Settings className="w-6 h-6" /> Configuración de Sectores: {selectedInstrument}</DialogTitle>
           </DialogHeader>
