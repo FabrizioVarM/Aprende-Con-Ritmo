@@ -71,6 +71,7 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { getDirectImageUrl } from '@/lib/utils/images';
 import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const INSTRUMENT_TITLES: Record<string, string> = {
   'Guitarra': 'Guitarrista',
@@ -80,6 +81,16 @@ const INSTRUMENT_TITLES: Record<string, string> = {
   'Batería': 'Baterista',
   'Canto': 'Cantante',
   'Teoría': 'Teórico',
+};
+
+const INSTRUMENT_IMAGE_MAP: Record<string, string> = {
+  'Guitarra': 'guitar-lesson',
+  'Piano': 'piano-scales',
+  'Violín': 'violin-notes',
+  'Batería': 'drums-session',
+  'Canto': 'singing-mic',
+  'Teoría': 'theory-book',
+  'Bajo': 'guitar-lesson',
 };
 
 const calculateDuration = (timeStr: string): number => {
@@ -389,6 +400,9 @@ function ProgressContent() {
     const title = INSTRUMENT_TITLES[instrument] || 'Músico';
     return `${title} ${baseName}`;
   };
+
+  const milestoneImgId = INSTRUMENT_IMAGE_MAP[selectedInstrument] || 'app-logo';
+  const milestoneImgUrl = PlaceHolderImages.find(img => img.id === milestoneImgId)?.imageUrl;
 
   if (!isMounted || !user) return null;
 
@@ -760,6 +774,21 @@ function ProgressContent() {
             <div className="flex flex-wrap gap-8">
               {studentMilestones.length > 0 ? studentMilestones.map((m) => (
                 <div key={m.id} className={cn("flex-1 min-w-[320px] p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden", m.achieved ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40")}>
+                  
+                  {/* Imagen Representativa del Instrumento (Decorativa en diagonal) */}
+                  <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none z-0">
+                    <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-20 transition-all duration-1000 transform rotate-[15deg] translate-x-1/4 translate-y-4 scale-150">
+                      {milestoneImgUrl && (
+                        <Image 
+                          src={getDirectImageUrl(milestoneImgUrl)}
+                          alt={selectedInstrument}
+                          fill
+                          className="object-cover grayscale invert dark:invert-0"
+                        />
+                      )}
+                    </div>
+                  </div>
+
                   <div className="flex items-start gap-8 relative z-10">
                     <div className={cn("w-16 h-16 rounded-[1.8rem] flex items-center justify-center shrink-0 shadow-inner border-2 transition-all group-hover:rotate-6", m.achieved ? "bg-accent/10 border-accent/30 text-accent" : "bg-slate-800/50 border-white/5 text-slate-800")}>
                       {m.achieved ? <Crown className="w-8 h-8" /> : <StarIcon className="w-7 h-7" />}
