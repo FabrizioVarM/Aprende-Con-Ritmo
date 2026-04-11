@@ -843,14 +843,14 @@ function ProgressContent() {
                 return (
                   <div key={m.id} className={cn("flex-1 min-w-[320px] p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden", m.achieved ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40")}>
                     
-                    {/* Imagen Representativa con efecto Dashboard */}
+                    {/* Imagen Representativa con efecto Dashboard (Aprovechando más espacio) */}
                     <div className="absolute top-0 right-0 w-full h-full pointer-events-none z-0">
                       <div 
                         className="absolute inset-0 transition-opacity duration-1000"
                         style={{
-                          clipPath: 'polygon(45% 100%, 95% 0, 100% 0, 100% 100%)',
-                          maskImage: 'linear-gradient(to right, transparent 45%, black 65%)',
-                          WebkitMaskImage: 'linear-gradient(to right, transparent 45%, black 65%)'
+                          clipPath: 'polygon(25% 100%, 85% 0, 100% 0, 100% 100%)',
+                          maskImage: 'linear-gradient(to right, transparent 25%, black 55%)',
+                          WebkitMaskImage: 'linear-gradient(to right, transparent 25%, black 55%)'
                         }}
                       >
                         {milestoneImgUrl && (
@@ -858,7 +858,7 @@ function ProgressContent() {
                             src={getDirectImageUrl(milestoneImgUrl)}
                             alt={milestoneInst}
                             fill
-                            className="object-cover blur-[1px] opacity-20 dark:opacity-40 grayscale group-hover:opacity-40 transition-opacity"
+                            className="object-cover blur-[1px] opacity-30 dark:opacity-50 grayscale group-hover:opacity-50 transition-opacity"
                             data-ai-hint="musical instrument decor"
                           />
                         )}
