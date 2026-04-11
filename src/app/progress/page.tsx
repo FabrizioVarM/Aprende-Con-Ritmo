@@ -83,6 +83,16 @@ const INSTRUMENT_TITLES: Record<string, string> = {
   'Teoría': 'Teórico',
 };
 
+const INSTRUMENT_EMOJIS: Record<string, string> = {
+  'Guitarra': '🎸',
+  'Piano': '🎹',
+  'Violín': '🎻',
+  'Canto': '🎤',
+  'Batería': '🥁',
+  'Bajo': '🎸',
+  'Teoría': '📖'
+};
+
 const INSTRUMENT_IMAGE_MAP: Record<string, string> = {
   'Guitarra': 'guitar-lesson',
   'Piano': 'piano-scales',
@@ -161,6 +171,7 @@ function ProgressContent() {
   const [editingM, setEditingM] = useState<UserMilestone | null>(null);
   const [mTitle, setMTitle] = useState('');
   const [mDate, setMDate] = useState('');
+  const [mInstrument, setMInstrument] = useState('');
   const [mAchieved, setMAchieved] = useState(false);
 
   const [isSkillsLocked, setIsSkillsLocked] = useState(true);
@@ -380,9 +391,9 @@ function ProgressContent() {
   const handleSaveM = () => {
     if (!currentStudent) return;
     if (editingM) {
-      updateMilestone(editingM.id, { milestoneTitle: mTitle, date: mDate, achieved: mAchieved });
+      updateMilestone(editingM.id, { milestoneTitle: mTitle, date: mDate, achieved: mAchieved, instrument: mInstrument });
     } else {
-      addMilestone(currentStudent.id, mTitle, mDate, mAchieved);
+      addMilestone(currentStudent.id, mTitle, mDate, mAchieved, mInstrument);
     }
     setIsMDialogOpen(false);
   };
@@ -400,9 +411,6 @@ function ProgressContent() {
     const title = INSTRUMENT_TITLES[instrument] || 'Músico';
     return `${title} ${baseName}`;
   };
-
-  const milestoneImgId = INSTRUMENT_IMAGE_MAP[selectedInstrument] || 'app-logo';
-  const milestoneImgUrl = PlaceHolderImages.find(img => img.id === milestoneImgId)?.imageUrl;
 
   if (!isMounted || !user) return null;
 
@@ -503,9 +511,7 @@ function ProgressContent() {
                     <Music className="w-3.5 h-3.5 text-blue-400 ml-3" />
                     <Select value={selectedInstrument} onValueChange={setSelectedInstrument}>
                       <SelectTrigger className="w-40 md:w-44 h-9 rounded-xl border-none bg-transparent font-black text-slate-300 focus:ring-0 text-[10px] uppercase tracking-[0.2em] shadow-none outline-none">
-                        <div className="flex items-center gap-2 truncate">
-                          <span className="truncate">{selectedInstrument || "Instrumento"}</span>
-                        </div>
+                        <SelectValue placeholder="Instrumento" />
                       </SelectTrigger>
                       <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white min-w-[280px] p-1">
                         {Array.from(new Set([...(currentStudent?.instruments || []), 'Teoría'])).map(inst => {
@@ -695,7 +701,7 @@ function ProgressContent() {
                           "w-24 h-24 sm:w-32 sm:h-32 rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-700 border-4 relative z-10 shadow-2xl shrink-0",
                           isReached 
                             ? `bg-gradient-to-br ${rank.color} border-white/40 text-white scale-110 ${rank.glow}` 
-                            : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale opacity-30 hover:opacity-60 hover:scale-105"
+                            : "bg-slate-900/80 border-slate-800 text-slate-700 grayscale grayscale opacity-30 hover:opacity-60 hover:scale-105"
                         )}>
                           {isIconUrl ? (
                             <div className="relative w-12 h-12 sm:w-16 sm:h-16 mb-1 drop-shadow-lg group-hover:scale-110 transition-transform">
@@ -765,62 +771,67 @@ function ProgressContent() {
                 </div>
               </div>
               {isAdmin && (
-                <Button className="w-full md:w-auto rounded-2xl bg-accent hover:bg-accent/90 text-white font-black h-14 px-10 shadow-xl shadow-accent/30 gap-3 hover:scale-105 transition-all" onClick={() => { setEditingM(null); setMTitle(''); setMDate(''); setMAchieved(false); setIsMDialogOpen(true); }}>
+                <Button className="w-full md:w-auto rounded-2xl bg-accent hover:bg-accent/90 text-white font-black h-14 px-10 shadow-xl shadow-accent/30 gap-3 hover:scale-105 transition-all" onClick={() => { setEditingM(null); setMTitle(''); setMDate(''); setMInstrument(selectedInstrument); setMAchieved(false); setIsMDialogOpen(true); }}>
                   <Plus className="w-5 h-5" /> Iniciar Protocolo de Hito
                 </Button>
               )}
             </div>
 
             <div className="flex flex-wrap gap-8">
-              {studentMilestones.length > 0 ? studentMilestones.map((m) => (
-                <div key={m.id} className={cn("flex-1 min-w-[320px] p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden", m.achieved ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40")}>
-                  
-                  {/* Imagen Representativa del Instrumento (Decorativa en diagonal) */}
-                  <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none z-0">
-                    <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-20 transition-all duration-1000 transform rotate-[15deg] translate-x-1/4 translate-y-4 scale-150">
-                      {milestoneImgUrl && (
-                        <Image 
-                          src={getDirectImageUrl(milestoneImgUrl)}
-                          alt={selectedInstrument}
-                          fill
-                          className="object-cover grayscale invert dark:invert-0"
-                        />
-                      )}
-                    </div>
-                  </div>
+              {studentMilestones.length > 0 ? studentMilestones.map((m) => {
+                const milestoneImgId = INSTRUMENT_IMAGE_MAP[m.instrument || selectedInstrument] || 'app-logo';
+                const milestoneImgUrl = PlaceHolderImages.find(img => img.id === milestoneImgId)?.imageUrl;
 
-                  <div className="flex items-start gap-8 relative z-10">
-                    <div className={cn("w-16 h-16 rounded-[1.8rem] flex items-center justify-center shrink-0 shadow-inner border-2 transition-all group-hover:rotate-6", m.achieved ? "bg-accent/10 border-accent/30 text-accent" : "bg-slate-800/50 border-white/5 text-slate-800")}>
-                      {m.achieved ? <Crown className="w-8 h-8" /> : <StarIcon className="w-7 h-7" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-4">
-                        <h4 className={cn("font-black text-base uppercase tracking-[0.1em] leading-tight", m.achieved ? "text-white" : "text-slate-700")}>{m.milestoneTitle}</h4>
-                        {isStaff && (
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-accent" onClick={() => { setEditingM(m); setMTitle(m.milestoneTitle); setMDate(m.date || ''); setMAchieved(m.achieved); setIsMDialogOpen(true); }}>
-                              <Edit2 className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-destructive" onClick={() => deleteMilestone(m.id)}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
+                return (
+                  <div key={m.id} className={cn("flex-1 min-w-[320px] p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden", m.achieved ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40")}>
+                    
+                    {/* Imagen Representativa del Instrumento (Decorativa en diagonal) */}
+                    <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none z-0">
+                      <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-20 transition-all duration-1000 transform rotate-[15deg] translate-x-1/4 translate-y-4 scale-150">
+                        {milestoneImgUrl && (
+                          <Image 
+                            src={getDirectImageUrl(milestoneImgUrl)}
+                            alt={m.instrument || selectedInstrument}
+                            fill
+                            className="object-cover grayscale invert dark:invert-0"
+                          />
                         )}
                       </div>
-                      <div className="flex items-center gap-3 mt-4">
-                        {m.achieved ? (
-                          <>
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-                            <p className="text-[10px] font-black text-emerald-500/70 uppercase tracking-[0.2em]">{m.date || 'LOGRO VALIDADO'}</p>
-                          </>
-                        ) : (
-                          <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">PENDIENTE DE ASIGNACIÓN</p>
-                        )}
+                    </div>
+
+                    <div className="flex items-start gap-8 relative z-10">
+                      <div className={cn("w-16 h-16 rounded-[1.8rem] flex items-center justify-center shrink-0 shadow-inner border-2 transition-all group-hover:rotate-6", m.achieved ? "bg-accent/10 border-accent/30 text-accent" : "bg-slate-800/50 border-white/5 text-slate-800")}>
+                        {m.achieved ? <Crown className="w-8 h-8" /> : <StarIcon className="w-7 h-7" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-4">
+                          <h4 className={cn("font-black text-base uppercase tracking-[0.1em] leading-tight", m.achieved ? "text-white" : "text-slate-700")}>{m.milestoneTitle}</h4>
+                          {isStaff && (
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-accent" onClick={() => { setEditingM(m); setMTitle(m.milestoneTitle); setMDate(m.date || ''); setMInstrument(m.instrument || selectedInstrument); setMAchieved(m.achieved); setIsMDialogOpen(true); }}>
+                                <Edit2 className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-destructive" onClick={() => deleteMilestone(m.id)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-4">
+                          {m.achieved ? (
+                            <>
+                              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+                              <p className="text-[10px] font-black text-emerald-500/70 uppercase tracking-[0.2em]">{m.date || 'LOGRO VALIDADO'}</p>
+                            </>
+                          ) : (
+                            <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">PENDIENTE DE ASIGNACIÓN</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )) : (
+                );
+              }) : (
                 <div className="w-full py-28 text-center bg-white/5 rounded-[5rem] border-2 border-dashed border-white/5">
                   <StarIcon className="w-20 h-20 text-white/5 mx-auto mb-8" />
                   <p className="text-slate-700 font-black uppercase tracking-[0.4em] text-[11px]">Sistema de Trayectoria Vacío</p>
@@ -864,6 +875,21 @@ function ProgressContent() {
           <div className="p-12 space-y-8">
             <div className="space-y-3"><Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 px-1">Descriptor</Label><Input value={mTitle} onChange={(e) => setMTitle(e.target.value)} className="h-16 rounded-[1.5rem] border-white/10 bg-slate-800 text-white font-black focus:border-accent text-xl uppercase" placeholder="CONCEPTO DEL LOGRO" /></div>
             <div className="space-y-3"><Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 px-1">Ciclo</Label><Input value={mDate} onChange={(e) => setMDate(e.target.value)} className="h-16 rounded-[1.5rem] border-white/10 bg-slate-800 text-white font-black focus:border-accent uppercase" placeholder="EJ: VERANO 2024" /></div>
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 px-1">Instrumento Vinculado</Label>
+              <Select value={mInstrument} onValueChange={setMInstrument}>
+                <SelectTrigger className="h-16 rounded-[1.5rem] border-white/10 bg-slate-800 text-white font-black focus:border-accent">
+                  <SelectValue placeholder="SELECCIONAR INSTRUMENTO" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl bg-slate-900 border-white/10 text-white">
+                  {Object.keys(INSTRUMENT_TITLES).map(inst => (
+                    <SelectItem key={inst} value={inst} className="font-bold text-xs">
+                      {INSTRUMENT_EMOJIS[inst] || '🎵'} {inst}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex items-center justify-between p-8 bg-white/5 rounded-[2.5rem] border border-white/10"><div className="space-y-1"><Label className="text-sm font-black uppercase tracking-widest">Activación</Label><p className="text-[9px] text-slate-600 font-black uppercase">¿Validar inmediatamente?</p></div><Switch checked={mAchieved} onCheckedChange={setMAchieved} className="scale-150 data-[state=checked]:bg-accent" /></div>
           </div>
           <DialogFooter className="p-12 bg-slate-950/50 border-t border-white/10 flex gap-5"><Button variant="ghost" className="rounded-2xl flex-1 h-16 font-black text-slate-600 uppercase text-xs tracking-widest" onClick={() => setIsMDialogOpen(false)}>Abortar</Button><Button className="bg-accent text-white rounded-2xl flex-1 h-16 font-black shadow-2xl shadow-accent/20 uppercase text-xs tracking-widest" onClick={handleSaveM}>Sincronizar</Button></DialogFooter>

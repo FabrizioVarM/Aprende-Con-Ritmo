@@ -14,6 +14,7 @@ export interface UserMilestone {
   milestoneTitle: string;
   achieved: boolean;
   date?: string;
+  instrument?: string;
 }
 
 export function useMilestonesStore() {
@@ -40,11 +41,12 @@ export function useMilestonesStore() {
     return () => unsubscribe();
   }, [db, firebaseUser]);
 
-  const addMilestone = useCallback((studentId: string, title: string, date?: string, achieved: boolean = false) => {
+  const addMilestone = useCallback((studentId: string, title: string, date?: string, achieved: boolean = false, instrument?: string) => {
     const id = Math.random().toString(36).substring(7);
     const data: UserMilestone = {
       id, studentId, milestoneTitle: title, achieved,
-      date: date || (achieved ? new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }) : undefined)
+      date: date || (achieved ? new Date().toLocaleDateString('es-ES', { month: 'short', year: 'numeric' }) : undefined),
+      instrument
     };
     const docRef = doc(db, 'milestones', id);
     setDoc(docRef, data)
@@ -76,7 +78,7 @@ export function useMilestonesStore() {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
           path: docRef.path,
           operation: 'delete'
-        })).emit('permission-error', error);
+        }));
       });
   }, [db]);
 
