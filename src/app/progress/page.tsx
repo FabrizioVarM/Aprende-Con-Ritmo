@@ -779,8 +779,9 @@ function ProgressContent() {
 
             <div className="flex flex-wrap gap-8">
               {studentMilestones.length > 0 ? studentMilestones.map((m) => {
-                const milestoneImgId = INSTRUMENT_IMAGE_MAP[m.instrument || selectedInstrument] || 'app-logo';
-                const milestoneImgUrl = PlaceHolderImages.find(img => img.id === milestoneImgId)?.imageUrl;
+                const milestoneInst = m.instrument || selectedInstrument;
+                const customInstImg = settings.instrumentImages?.[milestoneInst];
+                const milestoneImgUrl = customInstImg || PlaceHolderImages.find(img => img.id === (INSTRUMENT_IMAGE_MAP[milestoneInst] || 'app-logo'))?.imageUrl;
 
                 return (
                   <div key={m.id} className={cn("flex-1 min-w-[320px] p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden", m.achieved ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40")}>
@@ -791,7 +792,7 @@ function ProgressContent() {
                         {milestoneImgUrl && (
                           <Image 
                             src={getDirectImageUrl(milestoneImgUrl)}
-                            alt={m.instrument || selectedInstrument}
+                            alt={milestoneInst}
                             fill
                             className="object-cover grayscale invert dark:invert-0"
                           />
