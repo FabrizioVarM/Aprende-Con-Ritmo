@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -100,6 +101,10 @@ export default {
         'sonar': {
           '0%': { transform: 'scale(1.1)', opacity: '0.8' },
           '100%': { transform: 'scale(2.2)', opacity: '0' },
+        },
+        'star-move': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-50%)' }
         }
       },
       animation: {
@@ -108,6 +113,7 @@ export default {
         float: 'float 10s ease-in-out infinite',
         'pulse-subtle': 'pulse-subtle 3s ease-in-out infinite',
         'sonar': 'sonar 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+        'star-move': 'star-move 120s linear infinite',
       },
     },
   },

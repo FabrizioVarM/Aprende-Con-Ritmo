@@ -143,6 +143,14 @@ const AnimatedNumber = ({ value }: { value: number }) => {
   return <>{displayValue}%</>;
 };
 
+interface StarData {
+  id: number;
+  top: string;
+  left: string;
+  size: number;
+  opacity: number;
+}
+
 function ProgressContent() {
   const { user, allUsers, loading } = useAuth();
   const { completions } = useCompletionStore();
@@ -176,6 +184,7 @@ function ProgressContent() {
 
   const [isSkillsLocked, setIsSkillsLocked] = useState(true);
   const [isAnimationActive, setIsAnimationActive] = useState(false);
+  const [stars, setStars] = useState<StarData[]>([]);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -197,6 +206,17 @@ function ProgressContent() {
   useEffect(() => {
     setIsMounted(true);
     const timer = setTimeout(() => setIsAnimationActive(true), 1000);
+    
+    // Generar estrellas para el fondo
+    const generatedStars = Array.from({ length: 100 }).map((_, i) => ({
+      id: i,
+      top: `${Math.random() * 100}%`,
+      left: `${Math.random() * 100}%`,
+      size: Math.random() * 1.5 + 0.5,
+      opacity: Math.random() * 0.6 + 0.2
+    }));
+    setStars(generatedStars);
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -417,9 +437,46 @@ function ProgressContent() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-[#020617] -m-4 md:-m-8 lg:-m-12 p-4 md:p-12 relative overflow-hidden text-slate-100 selection:bg-accent selection:text-white">
-        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        
+        {/* Fondo Espacial con Estrellas Animadas */}
+        <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute top-[-10%] left-[-5%] w-[60%] h-[60%] bg-accent/5 rounded-full blur-[150px] animate-pulse" />
           <div className="absolute bottom-[-10%] right-[-5%] w-[60%] h-[60%] bg-blue-600/5 rounded-full blur-[150px] animate-pulse [animation-delay:2s]" />
+          
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute inset-0 w-[200%] h-full flex animate-star-move">
+              <div className="relative w-1/2 h-full">
+                {stars.map(star => (
+                  <div 
+                    key={star.id} 
+                    className="absolute bg-white rounded-full shadow-[0_0_5px_white]" 
+                    style={{ 
+                      top: star.top, 
+                      left: star.left, 
+                      width: `${star.size}px`, 
+                      height: `${star.size}px`, 
+                      opacity: star.opacity 
+                    }} 
+                  />
+                ))}
+              </div>
+              <div className="relative w-1/2 h-full">
+                {stars.map(star => (
+                  <div 
+                    key={`clone-${star.id}`} 
+                    className="absolute bg-white rounded-full shadow-[0_0_5px_white]" 
+                    style={{ 
+                      top: star.top, 
+                      left: star.left, 
+                      width: `${star.size}px`, 
+                      height: `${star.size}px`, 
+                      opacity: star.opacity 
+                    }} 
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
         </div>
 
@@ -786,15 +843,23 @@ function ProgressContent() {
                 return (
                   <div key={m.id} className={cn("flex-1 min-w-[320px] p-10 rounded-[3.5rem] border-2 transition-all duration-500 group relative overflow-hidden", m.achieved ? "bg-slate-900/40 border-white/10 shadow-2xl hover:border-accent/50" : "bg-slate-950/50 border-white/5 opacity-20 hover:opacity-40")}>
                     
-                    {/* Imagen Representativa del Instrumento (Decorativa en diagonal) */}
-                    <div className="absolute top-0 right-0 w-1/2 h-full pointer-events-none z-0">
-                      <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-20 transition-all duration-1000 transform rotate-[15deg] translate-x-1/4 translate-y-4 scale-150">
+                    {/* Imagen Representativa con efecto Dashboard */}
+                    <div className="absolute top-0 right-0 w-full h-full pointer-events-none z-0">
+                      <div 
+                        className="absolute inset-0 transition-opacity duration-1000"
+                        style={{
+                          clipPath: 'polygon(45% 100%, 95% 0, 100% 0, 100% 100%)',
+                          maskImage: 'linear-gradient(to right, transparent 45%, black 65%)',
+                          WebkitMaskImage: 'linear-gradient(to right, transparent 45%, black 65%)'
+                        }}
+                      >
                         {milestoneImgUrl && (
                           <Image 
                             src={getDirectImageUrl(milestoneImgUrl)}
                             alt={milestoneInst}
                             fill
-                            className="object-cover grayscale invert dark:invert-0"
+                            className="object-cover blur-[1px] opacity-20 dark:opacity-40 grayscale group-hover:opacity-40 transition-opacity"
+                            data-ai-hint="musical instrument decor"
                           />
                         )}
                       </div>
